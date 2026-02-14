@@ -1,0 +1,380 @@
+{
+  "version": "1.0.0",
+  "generated": "2026-02-13T23:05:34.286Z",
+  "stack": {
+    "primaryLanguage": "typescript",
+    "languages": [
+      "javascript",
+      "typescript"
+    ],
+    "frameworks": [
+      "nextjs"
+    ],
+    "buildTools": [],
+    "testFrameworks": [],
+    "packageManager": "npm",
+    "isMonorepo": false,
+    "hasDocker": false,
+    "hasCI": false
+  },
+  "structure": {
+    "totalFiles": 43,
+    "topDirectories": [
+      {
+        "name": "components.json",
+        "fileCount": 1
+      },
+      {
+        "name": "eslint.config.mjs",
+        "fileCount": 1
+      },
+      {
+        "name": "next-env.d.ts",
+        "fileCount": 1
+      },
+      {
+        "name": "next.config.ts",
+        "fileCount": 1
+      },
+      {
+        "name": "package-lock.json",
+        "fileCount": 1
+      },
+      {
+        "name": "package.json",
+        "fileCount": 1
+      },
+      {
+        "name": "postcss.config.js",
+        "fileCount": 1
+      },
+      {
+        "name": "public",
+        "fileCount": 5
+      },
+      {
+        "name": "README.md",
+        "fileCount": 1
+      },
+      {
+        "name": "src",
+        "fileCount": 28
+      },
+      {
+        "name": "tailwind.config.ts",
+        "fileCount": 1
+      },
+      {
+        "name": "tsconfig.json",
+        "fileCount": 1
+      }
+    ],
+    "languageDistribution": [
+      {
+        "extension": ".tsx",
+        "count": 22
+      },
+      {
+        "extension": ".ts",
+        "count": 6
+      },
+      {
+        "extension": ".svg",
+        "count": 5
+      },
+      {
+        "extension": ".json",
+        "count": 4
+      },
+      {
+        "extension": ".css",
+        "count": 2
+      },
+      {
+        "extension": ".js",
+        "count": 1
+      },
+      {
+        "extension": ".mjs",
+        "count": 1
+      },
+      {
+        "extension": ".md",
+        "count": 1
+      },
+      {
+        "extension": ".ico",
+        "count": 1
+      }
+    ]
+  },
+  "architecture": {
+    "layers": [
+      {
+        "name": "Utils",
+        "description": "Shared utilities and helpers",
+        "directories": [
+          "src/lib"
+        ],
+        "symbolCount": 1,
+        "dependsOn": []
+      },
+      {
+        "name": "Services",
+        "description": "Business logic and orchestration",
+        "directories": [
+          "src/lib"
+        ],
+        "symbolCount": 2,
+        "dependsOn": []
+      },
+      {
+        "name": "Controllers",
+        "description": "Request handling and routing",
+        "directories": [
+          "src/lib",
+          "src/components"
+        ],
+        "symbolCount": 2,
+        "dependsOn": []
+      },
+      {
+        "name": "Components",
+        "description": "UI components and views",
+        "directories": [
+          "src/app",
+          "src/components/ui",
+          "src/app/dashboard",
+          "src/app/dashboard/profile",
+          "src/app/dashboard/create",
+          "src/app/auth/login",
+          "src/app/auth/register",
+          "src/app/dashboard/books/[id]"
+        ],
+        "symbolCount": 5,
+        "dependsOn": []
+      }
+    ],
+    "patterns": [],
+    "entryPoints": []
+  },
+  "symbols": {
+    "classes": [],
+    "interfaces": [
+      {
+        "name": "AuthResponse",
+        "kind": "interface",
+        "file": "src/lib/auth-service.ts",
+        "line": 14,
+        "exported": true
+      },
+      {
+        "name": "BadgeProps",
+        "kind": "interface",
+        "file": "src/components/ui/badge.tsx",
+        "line": 26,
+        "exported": true
+      },
+      {
+        "name": "ButtonProps",
+        "kind": "interface",
+        "file": "src/components/ui/button.tsx",
+        "line": 36,
+        "exported": true
+      },
+      {
+        "name": "User",
+        "kind": "interface",
+        "file": "src/lib/auth-service.ts",
+        "line": 6,
+        "exported": true
+      },
+      {
+        "name": "AuthContextType",
+        "kind": "interface",
+        "file": "src/context/AuthContext.tsx",
+        "line": 7,
+        "exported": false
+      }
+    ],
+    "functions": [
+      {
+        "name": "AuthProvider",
+        "kind": "function",
+        "file": "src/context/AuthContext.tsx",
+        "line": 19,
+        "exported": true
+      },
+      {
+        "name": "cn",
+        "kind": "function",
+        "file": "src/lib/utils.ts",
+        "line": 4,
+        "exported": true
+      },
+      {
+        "name": "initAuth",
+        "kind": "function",
+        "file": "src/context/AuthContext.tsx",
+        "line": 25,
+        "exported": true
+      },
+      {
+        "name": "ProtectedRoute",
+        "kind": "function",
+        "file": "src/components/ProtectedRoute.tsx",
+        "line": 8,
+        "exported": true
+      },
+      {
+        "name": "RootLayout",
+        "kind": "function",
+        "file": "src/app/layout.tsx",
+        "line": 17,
+        "exported": true
+      },
+      {
+        "name": "useAuth",
+        "kind": "function",
+        "file": "src/context/AuthContext.tsx",
+        "line": 103,
+        "exported": true
+      },
+      {
+        "name": "Badge",
+        "kind": "function",
+        "file": "src/components/ui/badge.tsx",
+        "line": 30,
+        "exported": false
+      },
+      {
+        "name": "fetchBook",
+        "kind": "function",
+        "file": "src/app/dashboard/books/[id]/page.tsx",
+        "line": 27,
+        "exported": false
+      }
+    ],
+    "types": [
+      {
+        "name": "Book",
+        "kind": "type",
+        "file": "src/lib/api.ts",
+        "line": 3,
+        "exported": true
+      },
+      {
+        "name": "WizardState",
+        "kind": "type",
+        "file": "src/app/dashboard/create/page.tsx",
+        "line": 14,
+        "exported": false
+      }
+    ],
+    "enums": []
+  },
+  "publicAPI": [
+    {
+      "name": "AuthProvider",
+      "kind": "function",
+      "file": "src/context/AuthContext.tsx",
+      "line": 19,
+      "exported": true
+    },
+    {
+      "name": "AuthResponse",
+      "kind": "interface",
+      "file": "src/lib/auth-service.ts",
+      "line": 14,
+      "exported": true
+    },
+    {
+      "name": "BadgeProps",
+      "kind": "interface",
+      "file": "src/components/ui/badge.tsx",
+      "line": 26,
+      "exported": true
+    },
+    {
+      "name": "Book",
+      "kind": "type",
+      "file": "src/lib/api.ts",
+      "line": 3,
+      "exported": true
+    },
+    {
+      "name": "ButtonProps",
+      "kind": "interface",
+      "file": "src/components/ui/button.tsx",
+      "line": 36,
+      "exported": true
+    },
+    {
+      "name": "cn",
+      "kind": "function",
+      "file": "src/lib/utils.ts",
+      "line": 4,
+      "exported": true
+    },
+    {
+      "name": "initAuth",
+      "kind": "function",
+      "file": "src/context/AuthContext.tsx",
+      "line": 25,
+      "exported": true
+    },
+    {
+      "name": "ProtectedRoute",
+      "kind": "function",
+      "file": "src/components/ProtectedRoute.tsx",
+      "line": 8,
+      "exported": true
+    },
+    {
+      "name": "RootLayout",
+      "kind": "function",
+      "file": "src/app/layout.tsx",
+      "line": 17,
+      "exported": true
+    },
+    {
+      "name": "useAuth",
+      "kind": "function",
+      "file": "src/context/AuthContext.tsx",
+      "line": 103,
+      "exported": true
+    },
+    {
+      "name": "User",
+      "kind": "interface",
+      "file": "src/lib/auth-service.ts",
+      "line": 6,
+      "exported": true
+    }
+  ],
+  "dependencies": {
+    "mostImported": [
+      {
+        "file": "/Users/reisalbuquerque/Projects/code/testing/05/.next/dev/types/routes.d.ts",
+        "importedBy": 1
+      },
+      {
+        "file": "/Users/reisalbuquerque/Projects/code/testing/05/src/lib/auth-service.ts",
+        "importedBy": 1
+      },
+      {
+        "file": "/Users/reisalbuquerque/Projects/code/testing/05/src/app/page.module.css",
+        "importedBy": 1
+      },
+      {
+        "file": "/Users/reisalbuquerque/Projects/code/testing/05/src/app/globals.css",
+        "importedBy": 1
+      }
+    ]
+  },
+  "stats": {
+    "totalSymbols": 15,
+    "exportedSymbols": 11,
+    "analysisTimeMs": 128
+  }
+}
