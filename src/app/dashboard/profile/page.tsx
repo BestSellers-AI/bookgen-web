@@ -75,7 +75,7 @@ export default function ProfilePage() {
                 <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="glass p-8 rounded-[2rem] border border-white/10"
+                    className="glass p-8 rounded-[2rem] border border-border"
                 >
                     <div className="flex items-center gap-3 mb-6">
                         <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
@@ -93,7 +93,7 @@ export default function ProfilePage() {
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
                                     placeholder="Your Name"
-                                    className="pl-12 h-12 rounded-2xl bg-white/5 border-white/10 focus:border-primary/50 transition-all"
+                                    className="pl-12 h-12 rounded-2xl bg-muted/50 border-border focus:border-primary/50 transition-all"
                                 />
                             </div>
                         </div>
@@ -107,7 +107,7 @@ export default function ProfilePage() {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="you@example.com"
-                                    className="pl-12 h-12 rounded-2xl bg-white/5 border-white/10 focus:border-primary/50 transition-all"
+                                    className="pl-12 h-12 rounded-2xl bg-muted/50 border-border focus:border-primary/50 transition-all"
                                 />
                             </div>
                         </div>
@@ -126,7 +126,7 @@ export default function ProfilePage() {
                 <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="glass p-8 rounded-[2rem] border border-white/10"
+                    className="glass p-8 rounded-[2rem] border border-border"
                 >
                     <div className="flex items-center gap-3 mb-6">
                         <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
@@ -145,7 +145,7 @@ export default function ProfilePage() {
                                     value={currentPassword}
                                     onChange={(e) => setCurrentPassword(e.target.value)}
                                     placeholder="••••••••"
-                                    className="pl-12 h-12 rounded-2xl bg-white/5 border-white/10 focus:border-primary/50 transition-all"
+                                    className="pl-12 h-12 rounded-2xl bg-muted/50 border-border focus:border-primary/50 transition-all"
                                 />
                             </div>
                         </div>
@@ -159,7 +159,7 @@ export default function ProfilePage() {
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
                                     placeholder="••••••••"
-                                    className="pl-12 h-12 rounded-2xl bg-white/5 border-white/10 focus:border-primary/50 transition-all"
+                                    className="pl-12 h-12 rounded-2xl bg-muted/50 border-border focus:border-primary/50 transition-all"
                                 />
                             </div>
                         </div>
@@ -173,7 +173,7 @@ export default function ProfilePage() {
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     placeholder="••••••••"
-                                    className="pl-12 h-12 rounded-2xl bg-white/5 border-white/10 focus:border-primary/50 transition-all"
+                                    className="pl-12 h-12 rounded-2xl bg-muted/50 border-border focus:border-primary/50 transition-all"
                                 />
                             </div>
                         </div>
@@ -182,7 +182,7 @@ export default function ProfilePage() {
                             type="submit"
                             disabled={isLoading}
                             variant="outline"
-                            className="w-full h-12 rounded-2xl border-white/10 hover:bg-white/5 text-white font-bold transition-all hover:scale-[1.02] active:scale-[0.98] mt-4"
+                            className="w-full h-12 rounded-2xl border-border hover:bg-muted/50 text-foreground font-bold transition-all hover:scale-[1.02] active:scale-[0.98] mt-4"
                         >
                             {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Update Password"}
                         </Button>
@@ -196,7 +196,7 @@ export default function ProfilePage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="glass p-8 rounded-[2rem] border border-white/10 overflow-hidden relative"
+                    className="glass p-8 rounded-[2rem] border border-border overflow-hidden relative"
                 >
                     <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-[60px] -mr-16 -mt-16" />
                     <div className="relative flex items-center gap-6">
@@ -205,7 +205,7 @@ export default function ProfilePage() {
                         </div>
                         <div>
                             <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-1">Wallet Balance</h3>
-                            <div className="text-3xl font-black text-white">
+                            <div className="text-3xl font-black text-foreground">
                                 {wallet ? `U$ ${wallet.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}` : 'U$ 0.00'}
                             </div>
                         </div>
@@ -216,7 +216,7 @@ export default function ProfilePage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="glass p-8 rounded-[2rem] border border-white/10 overflow-hidden relative"
+                    className="glass p-8 rounded-[2rem] border border-border overflow-hidden relative"
                 >
                     <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 blur-[60px] -mr-16 -mt-16" />
                     <div className="relative flex items-center gap-6">
@@ -225,7 +225,7 @@ export default function ProfilePage() {
                         </div>
                         <div>
                             <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-1">Account Status</h3>
-                            <div className="text-xl font-black text-white">Verified</div>
+                            <div className="text-xl font-black text-foreground">Verified</div>
                         </div>
                     </div>
                 </motion.div>

@@ -153,7 +153,7 @@ export default function DashboardLayout({
                                 <Menu className="w-6 h-6" />
                             </Button>
                         </SheetTrigger>
-                        <SheetContent side="right" className="glass border-l border-border text-foreground">
+                        <SheetContent side="right" className="bg-background border-l border-border text-foreground">
                             <SheetHeader className="mb-8">
                                 <SheetTitle className="text-left text-foreground">Menu</SheetTitle>
                             </SheetHeader>
