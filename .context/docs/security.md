@@ -1,29 +1,55 @@
 # Security & Compliance Notes
 
-Este documento descreve as políticas de segurança, mecanismos de autenticação e práticas de proteção de dados implementadas no projeto.
+## Modelo de Autenticação
 
-## Authentication & Authorization
+### JWT Bearer Token
+- Autenticação via JWT emitido pelo Xano
+- Token armazenado em `localStorage` no browser
+- Enviado como `Authorization: Bearer <token>` em todas as requisições autenticadas
+- Verificação de token via endpoint `/auth/me` na inicialização da app
 
-A plataforma utiliza um sistema de autenticação baseado em **JWT (JSON Web Tokens)** fornecido pelo Xano.
+### Fluxo de Autenticação
+1. Usuário faz login/signup via [`authService`](src/lib/auth-service.ts:18)
+2. Xano retorna `authToken` (JWT)
+3. Token salvo em `localStorage` via [`setToken()`](src/lib/auth-service.ts:64)
+4. [`AuthProvider`](src/context/AuthContext.tsx:20) verifica token no mount via `getMe()`
+5. Token expirado/inválido → remoção automática e redirect para login
 
-- **Identity Provider**: Xano Auth Service.
-- **Token Storage**: O token de autenticação é armazenado no `localStorage` do navegador (via [`auth-service.ts`](src/lib/auth-service.ts)).
-- **Session Management**: O estado de autenticação é mantido globalmente pelo [`AuthContext.tsx`](src/context/AuthContext.tsx). Na inicialização, a aplicação verifica a validade do token chamando o endpoint `/auth/me`.
-- **Authorization**: O acesso a rotas sensíveis no dashboard é protegido pelo componente [`ProtectedRoute.tsx`](src/components/ProtectedRoute.tsx), que redireciona usuários não autenticados para a página de login.
+### Riscos Conhecidos
 
-## Secrets & Sensitive Data
+| Risco | Severidade | Mitigação Atual | Recomendação |
+|-------|-----------|-----------------|--------------|
+| Token em localStorage (XSS) | Alta | Nenhuma | Migrar para httpOnly cookies |
+| Sem CSRF protection | Média | Bearer token mitiga parcialmente | Implementar CSRF tokens |
+| Sem rate limiting no frontend | Baixa | Delegado ao Xano | Adicionar throttling no client |
+| Sem refresh token | Média | Re-login necessário | Implementar refresh token flow |
 
-- **Environment Variables**: Chaves de API e URLs de serviços externos (Xano, n8n) são gerenciadas via variáveis de ambiente (`.env.local`).
-- **Client-Side Exposure**: Apenas variáveis prefixadas com `NEXT_PUBLIC_` são expostas ao navegador. Dados sensíveis de backend (como chaves mestras do Xano) nunca devem ser expostos no frontend.
-- **Data Classification**:
-  - **Public**: Metadados de livros (títulos, autores).
-  - **Private**: Conteúdo gerado por IA, briefings de usuários, credenciais de acesso.
+## Proteção de Rotas
 
-## Compliance & Policies
+- [`ProtectedRoute`](src/components/ProtectedRoute.tsx:8) verifica `isAuthenticated` do AuthContext
+- Redirect automático para `/auth/login` se não autenticado
+- Loading state enquanto verifica autenticação inicial
 
-- **Data Privacy**: O sistema deve garantir que os briefings e conteúdos gerados sejam acessíveis apenas pelo proprietário da conta (`user_id` enforcement na API).
-- **Secure Communication**: Todas as comunicações com Xano e n8n devem ser realizadas exclusivamente via HTTPS.
+## Gerenciamento de Secrets
 
----
-Relacionado:
-- [architecture.md](./architecture.md)
+- Variáveis de ambiente prefixadas com `NEXT_PUBLIC_` (expostas ao client)
+- URLs de API do Xano configuradas via `.env.local`
+- Nenhum secret sensível no código-fonte
+
+## Dados Sensíveis
+
+| Dado | Armazenamento | Exposição |
+|------|--------------|-----------|
+| JWT Token | localStorage | Client-side apenas |
+| Senha | Nunca armazenada localmente | Enviada apenas no login/signup |
+| Email/Nome | React state (AuthContext) | Client-side apenas |
+| Dados de livros | Xano (server-side) | Via API autenticada |
+
+## Recomendações de Segurança
+
+1. **Migrar token para httpOnly cookies** para prevenir XSS
+2. **Implementar Content Security Policy (CSP)** headers
+3. **Adicionar rate limiting** nas chamadas de API
+4. **Sanitizar inputs** do briefing antes de enviar para geração
+5. **Implementar refresh tokens** para melhor UX e segurança
+6. **Adicionar validação de input** no client antes de enviar ao Xano

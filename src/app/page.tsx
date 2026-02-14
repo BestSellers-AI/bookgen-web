@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -18,7 +19,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Navigation */}
-      <header className="fixed top-0 w-full z-50 glass border-b border-white/10">
+      <header className="fixed top-0 w-full z-50 glass border-b border-border">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center glow-primary">
@@ -32,6 +33,7 @@ export default function Home() {
             <Link href="/auth/login" className="hover:text-primary transition-colors">Sign In</Link>
           </nav>
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             <Button variant="ghost" size="sm" className="hidden sm:flex" asChild>
               <Link href="/auth/login">Login</Link>
             </Button>
@@ -81,7 +83,7 @@ export default function Home() {
         </section>
 
         {/* Features Section */}
-        <section id="features" className="py-24 bg-black/20">
+        <section id="features" className="py-24 bg-accent/20">
           <div className="container mx-auto px-4">
             <div className="text-center mb-16 space-y-4">
               <h2 className="text-3xl md:text-4xl font-bold">Empower Your Creativity</h2>
@@ -123,9 +125,9 @@ export default function Home() {
                   description: "Prepare your book for publication in multiple formats with just a few clicks."
                 }
               ].map((feature, i) => (
-                <Card key={i} className="glass border-white/5 glass-hover overflow-hidden group">
+                <Card key={i} className="glass border-border glass-hover overflow-hidden group">
                   <CardContent className="p-8 space-y-4">
-                    <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <div className="w-12 h-12 rounded-xl bg-accent flex items-center justify-center group-hover:scale-110 transition-transform">
                       {feature.icon}
                     </div>
                     <h3 className="text-xl font-bold">{feature.title}</h3>
@@ -142,7 +144,7 @@ export default function Home() {
         {/* CTA Section */}
         <section className="py-24 relative overflow-hidden">
           <div className="container mx-auto px-4 relative z-10">
-            <div className="glass border-white/10 rounded-3xl p-12 md:p-20 text-center space-y-8 max-w-5xl mx-auto">
+            <div className="glass border-border rounded-3xl p-12 md:p-20 text-center space-y-8 max-w-5xl mx-auto">
               <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
                 Your literary journey starts here.
               </h2>
@@ -167,7 +169,7 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="py-12 border-t border-white/5 bg-black/40">
+      <footer className="py-12 border-t border-border bg-accent/40">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-8">
             <div className="flex items-center gap-2">
@@ -177,9 +179,9 @@ export default function Home() {
               <span className="font-bold text-lg tracking-tight">BookGen</span>
             </div>
             <div className="flex gap-8 text-sm text-muted-foreground">
-              <Link href="#" className="hover:text-white transition-colors">Privacy</Link>
-              <Link href="#" className="hover:text-white transition-colors">Terms</Link>
-              <Link href="#" className="hover:text-white transition-colors">Contact</Link>
+              <Link href="#" className="hover:text-foreground transition-colors">Privacy</Link>
+              <Link href="#" className="hover:text-foreground transition-colors">Terms</Link>
+              <Link href="#" className="hover:text-foreground transition-colors">Contact</Link>
             </div>
             <p className="text-sm text-muted-foreground">
               © 2026 BookGen. Artificial Intelligence for Writers.

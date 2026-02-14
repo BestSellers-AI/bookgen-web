@@ -48,7 +48,7 @@ export default function HotmartPage() {
                 {plans.map((plan, index) => (
                     <Card 
                         key={index} 
-                        className={`glass border-white/10 flex flex-col relative overflow-hidden transition-all duration-500 hover:translate-y-[-8px] ${
+                        className={`glass border-border flex flex-col relative overflow-hidden transition-all duration-500 hover:translate-y-[-8px] ${
                             plan.highlight ? 'border-primary/50 shadow-[0_0_40px_rgba(var(--primary-rgb),0.2)]' : ''
                         }`}
                     >
@@ -61,13 +61,13 @@ export default function HotmartPage() {
                         <CardHeader>
                             <CardTitle className="text-xl font-bold">{plan.description}</CardTitle>
                             <div className="mt-4 flex items-baseline gap-1">
-                                <span className="text-4xl font-black text-white">${plan.price}</span>
+                                <span className="text-4xl font-black text-foreground">${plan.price}</span>
                                 <span className="text-muted-foreground">USD</span>
                             </div>
                         </CardHeader>
 
                         <CardContent className="flex-1 space-y-6">
-                            <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+                            <div className="p-4 rounded-2xl bg-muted/50 border border-border">
                                 <div className="text-sm text-muted-foreground mb-1">You receive:</div>
                                 <div className="text-2xl font-black text-primary">
                                     ${plan.credits} <span className="text-sm font-medium">in credits</span>

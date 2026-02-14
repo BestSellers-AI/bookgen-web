@@ -1,38 +1,86 @@
 # Tooling & Productivity Guide
 
-Este guia detalha as ferramentas, scripts e configurações recomendadas para maximizar a produtividade no desenvolvimento deste projeto.
+## Build & Dev Tools
 
-## Required Tooling
+| Ferramenta | Versão | Propósito |
+|-----------|--------|-----------|
+| Next.js | 16.1.6 | Framework React com App Router |
+| TypeScript | 5.x | Tipagem estática |
+| Tailwind CSS | 4.1.18 | Estilização utilitária |
+| PostCSS | 8.5.6 | Processamento CSS |
+| ESLint | 9.x | Linting de código |
 
-Para contribuir com este projeto, você precisará das seguintes ferramentas instaladas:
+## Componentes UI
 
-- **Node.js (v20+)**: Runtime principal para execução do Next.js.
-- **npm**: Gerenciador de pacotes padrão.
-- **TypeScript**: Para verificação estática de tipos.
-- **Tailwind CSS IntelliSense**: Extensão recomendada para autocompletar classes CSS.
+### shadcn/ui
+Componentes instalados (em [`src/components/ui/`](src/components/ui)):
+- `avatar` — Radix Avatar
+- `badge` — Badge com variantes (CVA)
+- `button` — Button com variantes (CVA)
+- `card` — Card container
+- `dialog` — Radix Dialog (modal)
+- `dropdown-menu` — Radix Dropdown Menu
+- `input` — Input estilizado
+- `label` — Radix Label
+- `select` — Radix Select
+- `separator` — Radix Separator
+- `sheet` — Radix Dialog como side panel
+- `textarea` — Textarea estilizado
+- `theme-toggle` — Toggle de tema claro/escuro
 
-## Recommended Automation
+### Configuração shadcn
+Definida em [`components.json`](components.json):
+- Style: `new-york`
+- CSS variables habilitadas
+- Path aliases: `@/components`, `@/lib`
 
-O projeto utiliza scripts npm para automatizar tarefas comuns:
+## IDE Configuration
 
-- **`npm run dev`**: Inicia o servidor de desenvolvimento com hot-reload.
-- **`npm run build`**: Compila a aplicação para produção, verificando tipos e otimizando assets.
-- **`npm run lint`**: Executa o ESLint para garantir a consistência do código e identificar problemas potenciais.
+### VS Code
+- Configurações em [`.vscode/`](.vscode/)
+- Recomendado: extensões Tailwind CSS IntelliSense, ESLint, TypeScript
 
-## IDE / Editor Setup (VS Code)
+### Path Aliases
+Configurados no [`tsconfig.json`](tsconfig.json):
+```json
+{
+  "paths": {
+    "@/*": ["./src/*"]
+  }
+}
+```
 
-Recomendamos o uso do **VS Code** com as seguintes extensões:
-- **ESLint**: Para feedback imediato sobre regras de código.
-- **Prettier**: Para formatação automática ao salvar.
-- **Tailwind CSS IntelliSense**: Essencial para trabalhar com Tailwind 4.
-- **PostCSS Language Support**: Para suporte adequado ao arquivo `postcss.config.js`.
+## Scripts NPM
 
-## Productivity Tips
+```bash
+npm run dev      # Servidor de desenvolvimento (hot reload)
+npm run build    # Build de produção
+npm run start    # Servidor de produção
+npm run lint     # ESLint
+```
 
-- **Environment Variables**: Mantenha um arquivo `.env.example` atualizado para que novos desenvolvedores saibam quais chaves são necessárias.
-- **Component Scaffolding**: Ao criar novos componentes de UI, utilize a estrutura existente em `src/components/ui` como referência para manter a consistência com Radix UI.
-- **Network Debugging**: Utilize a aba "Network" do navegador para inspecionar as chamadas para o Xano e n8n, verificando payloads e headers de autenticação.
+## Dependências Chave
 
----
-Relacionado:
-- [development-workflow.md](./development-workflow.md)
+### Runtime
+- `next` — Framework
+- `react` / `react-dom` — UI library
+- `@radix-ui/*` — Primitivos de UI acessíveis
+- `framer-motion` — Animações
+- `next-themes` — Gerenciamento de tema
+- `sonner` — Toast notifications
+
+### Dev
+- `tailwindcss` / `@tailwindcss/postcss` — Estilização
+- `class-variance-authority` — Variantes de componentes
+- `clsx` + `tailwind-merge` — Merge de classes CSS
+- `lucide-react` — Ícones
+- `tailwindcss-animate` — Animações Tailwind
+
+## Utilitários do Projeto
+
+### `cn()` — Class Name Merger
+```typescript
+import { cn } from "@/lib/utils";
+// Combina classes condicionalmente com deduplicação
+cn("px-4 py-2", isActive && "bg-primary", className)
+```

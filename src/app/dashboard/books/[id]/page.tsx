@@ -147,7 +147,7 @@ export default function BookViewPage() {
                             {new Date(book.created_at).toLocaleDateString()}
                         </span>
                     </div>
-                    <h1 className="text-5xl md:text-6xl font-heading font-black tracking-tight leading-tight text-white">
+                    <h1 className="text-5xl md:text-6xl font-heading font-black tracking-tight leading-tight text-foreground">
                         {structuredContent?.title || book.title}
                     </h1>
                     <p className="text-2xl text-muted-foreground font-medium italic">
@@ -155,14 +155,14 @@ export default function BookViewPage() {
                     </p>
                 </div>
 
-                <div className="flex flex-wrap gap-8 py-8 border-y border-white/5">
+                <div className="flex flex-wrap gap-8 py-8 border-y border-border">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                             <User size={20} />
                         </div>
                         <div className="flex flex-col">
                             <span className="text-xs font-black text-muted-foreground uppercase tracking-widest">Author</span>
-                            <span className="font-bold text-white">{structuredContent?.author || book.author}</span>
+                            <span className="font-bold text-foreground">{structuredContent?.author || book.author}</span>
                         </div>
                     </div>
                 </div>
@@ -188,9 +188,9 @@ export default function BookViewPage() {
                                                     View PDF
                                                 </Button>
                                             </DialogTrigger>
-                                            <DialogContent className="max-w-6xl w-[95vw] h-[90vh] p-0 overflow-hidden bg-[#0a0a0b] border-white/10 flex flex-col">
-                                                <DialogHeader className="p-4 border-b border-white/5 shrink-0">
-                                                    <DialogTitle className="text-white flex items-center gap-2">
+                                            <DialogContent className="max-w-6xl w-[95vw] h-[90vh] p-0 overflow-hidden bg-background border-border flex flex-col">
+                                                <DialogHeader className="p-4 border-b border-border shrink-0">
+                                                    <DialogTitle className="text-foreground flex items-center gap-2">
                                                         <FileText className="h-5 w-5 text-primary" />
                                                         {book.title} - {isReady ? 'Final PDF' : 'Preview'}
                                                     </DialogTitle>
@@ -204,7 +204,7 @@ export default function BookViewPage() {
                                                 </div>
                                             </DialogContent>
                                         </Dialog>
-                                        <Button variant="outline" className="rounded-xl border-white/10" asChild>
+                                        <Button variant="outline" className="rounded-xl border-border" asChild>
                                             <a href={pdfUrl} target="_blank" rel="noopener noreferrer">
                                                 <FileText className="mr-2 h-4 w-4" />
                                                 PDF Link
@@ -281,13 +281,13 @@ export default function BookViewPage() {
             {/* Table of Contents Section */}
             <div className="space-y-8">
                 <div className="flex items-center gap-4">
-                    <div className="h-px flex-1 bg-white/5" />
+                    <div className="h-px flex-1 bg-border" />
                     <h2 className="text-sm font-black uppercase tracking-[0.3em] text-primary/60">Table of Contents</h2>
-                    <div className="h-px flex-1 bg-white/5" />
+                    <div className="h-px flex-1 bg-border" />
                 </div>
 
                 {structuredContent && (
-                    <div className="glass rounded-[2rem] p-8 border-white/5 bg-white/[0.02]">
+                    <div className="glass rounded-[2rem] p-8 border-border bg-accent/10">
                         <nav className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
                             {structuredContent.planning?.chapters?.map((chapter: any, i: number) => (
                                 <a
@@ -298,7 +298,7 @@ export default function BookViewPage() {
                                     <span className="text-xs font-black text-primary/40 group-hover:text-primary transition-colors w-6">
                                         {chapter.number.toString().padStart(2, '0')}
                                     </span>
-                                    <span className="text-sm font-bold text-muted-foreground group-hover:text-white transition-colors truncate">
+                                    <span className="text-sm font-bold text-muted-foreground group-hover:text-foreground transition-colors truncate">
                                         {chapter.title}
                                     </span>
                                 </a>
@@ -306,12 +306,12 @@ export default function BookViewPage() {
                             {structuredContent.planning?.conclusion && (
                                 <a
                                     href="#conclusion"
-                                    className="group flex items-center gap-4 transition-all hover:translate-x-1 md:border-t md:border-white/5 md:pt-4"
+                                    className="group flex items-center gap-4 transition-all hover:translate-x-1 md:border-t md:border-border md:pt-4"
                                 >
                                     <span className="text-xs font-black text-primary/40 group-hover:text-primary transition-colors w-6">
                                         ---
                                     </span>
-                                    <span className="text-sm font-bold text-muted-foreground group-hover:text-white transition-colors">
+                                    <span className="text-sm font-bold text-muted-foreground group-hover:text-foreground transition-colors">
                                         Conclusion
                                     </span>
                                 </a>
@@ -319,12 +319,12 @@ export default function BookViewPage() {
                             {hasGlossary && (
                                 <a
                                     href="#glossary"
-                                    className="group flex items-center gap-4 transition-all hover:translate-x-1 md:border-t md:border-white/5 md:pt-4"
+                                    className="group flex items-center gap-4 transition-all hover:translate-x-1 md:border-t md:border-border md:pt-4"
                                 >
                                     <span className="text-xs font-black text-primary/40 group-hover:text-primary transition-colors w-6">
                                         ---
                                     </span>
-                                    <span className="text-sm font-bold text-muted-foreground group-hover:text-white transition-colors">
+                                    <span className="text-sm font-bold text-muted-foreground group-hover:text-foreground transition-colors">
                                         Glossary
                                     </span>
                                 </a>
@@ -353,7 +353,7 @@ export default function BookViewPage() {
                                         {chapter.number}
                                     </div>
                                     <div className="flex-1 min-w-0 space-y-4 w-full">
-                                        <h3 className="text-3xl font-heading font-bold text-white leading-tight break-words whitespace-normal">{chapter.title}</h3>
+                                        <h3 className="text-3xl font-heading font-bold text-foreground leading-tight break-words whitespace-normal">{chapter.title}</h3>
                                         <ul className="space-y-4 w-full">
                                             {chapter.topics?.map((topic: string, j: number) => (
                                                 <li key={j} className="flex items-start gap-4 text-muted-foreground text-lg leading-relaxed w-full">
@@ -373,7 +373,7 @@ export default function BookViewPage() {
                     {/* Conclusion Section */}
                     {structuredContent.planning?.conclusion && (
                         <div id="conclusion" className="glass rounded-[2.5rem] p-10 space-y-4 break-words whitespace-normal min-w-0 scroll-mt-12">
-                            <h3 className="text-2xl font-heading font-bold text-white">Conclusion</h3>
+                            <h3 className="text-2xl font-heading font-bold text-foreground">Conclusion</h3>
                             <p className="text-muted-foreground text-lg leading-relaxed italic break-words whitespace-normal w-full">
                                 {structuredContent.planning.conclusion}
                             </p>
@@ -388,21 +388,21 @@ export default function BookViewPage() {
                                 <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
                                     <FileText size={24} />
                                 </div>
-                                <h3 className="text-3xl font-heading font-bold text-white">Glossary of Terms</h3>
+                                <h3 className="text-3xl font-heading font-bold text-foreground">Glossary of Terms</h3>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
                                 {isGlossaryArray ? (
                                     (glossaryData as string[]).map((item: string, i: number) => (
-                                        <div key={i} className="group p-6 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-primary/20 hover:bg-primary/[0.02] transition-all duration-300">
-                                            <p className="text-base text-muted-foreground group-hover:text-white transition-colors leading-relaxed">
+                                        <div key={i} className="group p-6 rounded-2xl bg-accent/30 border border-border hover:border-primary/20 hover:bg-primary/[0.02] transition-all duration-300">
+                                            <p className="text-base text-muted-foreground group-hover:text-foreground transition-colors leading-relaxed">
                                                 {item}
                                             </p>
                                         </div>
                                     ))
                                 ) : (
-                                    <div className="col-span-2 group p-6 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-primary/20 hover:bg-primary/[0.02] transition-all duration-300">
-                                        <p className="text-base text-muted-foreground group-hover:text-white transition-colors leading-relaxed">
+                                    <div className="col-span-2 group p-6 rounded-2xl bg-accent/30 border border-border hover:border-primary/20 hover:bg-primary/[0.02] transition-all duration-300">
+                                        <p className="text-base text-muted-foreground group-hover:text-foreground transition-colors leading-relaxed">
                                             {glossaryData as string}
                                         </p>
                                     </div>
@@ -440,13 +440,13 @@ export default function BookViewPage() {
                         <div className="grid md:grid-cols-2 gap-8">
                             {book.introduction && (
                                 <div className="glass rounded-[2rem] p-8 space-y-4">
-                                    <h3 className="text-xl font-bold text-white">Introduction</h3>
+                                    <h3 className="text-xl font-bold text-foreground">Introduction</h3>
                                     <p className="text-muted-foreground leading-relaxed">{book.introduction}</p>
                                 </div>
                             )}
                             {book.conclusion && (
                                 <div className="glass rounded-[2rem] p-8 space-y-4">
-                                    <h3 className="text-xl font-bold text-white">Conclusion</h3>
+                                    <h3 className="text-xl font-bold text-foreground">Conclusion</h3>
                                     <p className="text-muted-foreground leading-relaxed">{book.conclusion}</p>
                                 </div>
                             )}

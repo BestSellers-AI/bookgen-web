@@ -1,69 +1,63 @@
 # Project Overview
 
-Este projeto é uma aplicação web moderna para criação e gerenciamento de livros, utilizando Inteligência Artificial para auxiliar no processo de estruturação e escrita. Ele permite que usuários criem briefings, gerem prévias de estruturas literárias e gerenciem sua biblioteca pessoal de obras.
+## Propósito
 
-> **Detailed Analysis**: For complete symbol counts, architecture layers, and dependency graphs, see [`codebase-map.json`](./codebase-map.json).
+**AI Book Generator** é uma aplicação web que permite aos usuários criar livros personalizados utilizando inteligência artificial. O sistema guia o usuário por um fluxo de criação (wizard) onde ele fornece um briefing, recebe uma prévia gerada por IA, e pode então gerar o livro completo.
 
-## Quick Facts
+## Funcionalidades Principais
 
-- Root: `/Users/reisalbuquerque/Projects/code/testing/05`
-- Languages: TypeScript (Next.js), CSS (Tailwind)
-- Entry: [`src/app/page.tsx`](src/app/page.tsx)
-- Full analysis: [`codebase-map.json`](./codebase-map.json)
+- **Autenticação completa**: Login, registro, recuperação de senha e gerenciamento de perfil
+- **Dashboard de livros**: Listagem, visualização e exclusão de livros criados
+- **Wizard de criação**: Fluxo guiado para criação de livros com modos manual e IA
+- **Geração de prévia**: Geração de título, subtítulo e planejamento via IA
+- **Geração completa**: Geração do livro completo com conteúdo, introdução, conclusão, glossário, etc.
+- **Sistema de créditos**: Wallet com saldo para controlar o uso da geração de livros
+- **Integração Hotmart**: Compra de créditos via Hotmart
+- **Tema claro/escuro**: Suporte a dark mode com toggle e detecção do sistema
+- **Download de PDF**: Livros gerados disponíveis para download em PDF
 
-## Entry Points
+## Stack Tecnológica
 
-- **Web Application**: [`src/app/page.tsx`](src/app/page.tsx) - Página inicial e ponto de entrada principal.
-- **Authentication**: [`src/app/auth/login/page.tsx`](src/app/auth/login/page.tsx) e [`src/app/auth/register/page.tsx`](src/app/auth/register/page.tsx).
-- **Dashboard**: [`src/app/dashboard/page.tsx`](src/app/dashboard/page.tsx) - Visão geral da biblioteca do usuário.
+| Camada | Tecnologia | Versão |
+|--------|-----------|--------|
+| Framework | Next.js (App Router) | 16.1.6 |
+| UI | React | 19.2.3 |
+| Estilização | Tailwind CSS v4 | 4.1.18 |
+| Componentes UI | Radix UI + shadcn/ui | — |
+| Animações | Framer Motion | 12.34.0 |
+| Temas | next-themes | 0.4.6 |
+| Notificações | Sonner | 2.0.7 |
+| Backend (BaaS) | Xano | — |
+| Linguagem | TypeScript | 5.x |
 
-## Key Exports
+## Público-Alvo
 
-- `AuthProvider` e `useAuth` em [`src/context/AuthContext.tsx`](src/context/AuthContext.tsx) para gerenciamento de estado de autenticação.
-- `authService` em [`src/lib/auth-service.ts`](src/lib/auth-service.ts) para integração com API de autenticação.
-- `getBooks`, `createBook`, `generatePreview` em [`src/lib/api.ts`](src/lib/api.ts) para operações de dados.
+Criadores de conteúdo, autores independentes e profissionais que desejam gerar livros rapidamente usando IA como assistente de escrita.
 
-## File Structure & Code Organization
+## Integrações Externas
 
-- `src/app/` — Rotas e páginas da aplicação utilizando Next.js App Router.
-- `src/components/` — Componentes React reutilizáveis, incluindo componentes de UI (Shadcn/UI).
-- `src/context/` — Contextos do React para gerenciamento de estado global (Autenticação).
-- `src/lib/` — Utilitários, serviços de API e definições de tipos.
-- `public/` — Ativos estáticos como imagens e ícones.
+- **Xano**: Backend-as-a-Service para API REST (autenticação, CRUD de livros, wallet)
+- **n8n**: Orquestração de workflows de IA para geração de conteúdo (chamado via Xano)
+- **Hotmart**: Plataforma de pagamento para compra de créditos
 
-## Technology Stack Summary
+## Variáveis de Ambiente
 
-- **Framework**: Next.js 16 (App Router)
-- **Linguagem**: TypeScript
-- **Estilização**: Tailwind CSS 4, Framer Motion (animações)
-- **UI Components**: Radix UI, Lucide React (ícones)
-- **Backend Integration**: Xano (API de dados e Auth), n8n (Automação de IA para prévias)
+| Variável | Descrição |
+|----------|-----------|
+| `NEXT_PUBLIC_XANO_AUTH_API_URL` | URL da API de autenticação no Xano |
+| `NEXT_PUBLIC_XANO_BOOK_API_URL` | URL da API de livros no Xano |
+| `NEXT_PUBLIC_XANO_ACCOUNT_API_URL` | URL da API de conta/perfil no Xano |
 
-## Core Framework Stack
+## Como Começar
 
-A aplicação segue o padrão de arquitetura do Next.js App Router, com separação clara entre Client Components (para interatividade) e Server Components (onde aplicável). O gerenciamento de estado é feito via React Context API para autenticação e estado local para formulários e wizards.
+```bash
+# Instalar dependências
+npm install
 
-## UI & Interaction Libraries
+# Configurar variáveis de ambiente
+cp .env.example .env.local
+# Editar .env.local com as URLs do Xano
 
-- **Shadcn/UI**: Base para componentes como botões, inputs, cards e diálogos.
-- **Framer Motion**: Utilizado para transições suaves entre passos do wizard de criação e estados de carregamento.
-- **Sonner**: Para notificações toast.
-
-## Getting Started Checklist
-
-1. Instale as dependências com `npm install`.
-2. Configure as variáveis de ambiente necessárias (Xano e n8n URLs).
-3. Inicie o servidor de desenvolvimento com `npm run dev`.
-4. Acesse `http://localhost:3000` para visualizar a aplicação.
-
-## Next Steps
-
-- Implementar a edição de capítulos existentes.
-- Adicionar suporte a múltiplos formatos de exportação.
-- Refinar o prompt de IA no n8n para melhores resultados de estruturação.
-
----
-Relacionado:
-- [architecture.md](./architecture.md)
-- [development-workflow.md](./development-workflow.md)
-- [tooling.md](./tooling.md)
+# Rodar em desenvolvimento
+npm run dev
+```

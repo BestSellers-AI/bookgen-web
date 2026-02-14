@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { BookOpen, Library, PlusCircle, LogOut, Wallet as WalletIcon, Menu, User, DollarSign } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from '@/context/AuthContext';
@@ -69,6 +70,7 @@ export default function DashboardLayout({
                             <BookOpen className="w-6 h-6 text-white" />
                         </div>
                         <span className="text-xl font-bold font-heading text-gradient">BookGen</span>
+                        <ThemeToggle />
                     </div>
 
                     <nav className="flex flex-col gap-2 flex-1">
@@ -80,7 +82,7 @@ export default function DashboardLayout({
                                     variant="ghost"
                                     className={`group justify-start gap-3 h-12 px-4 rounded-2xl transition-all duration-300 ${isActive
                                         ? 'bg-primary/20 text-primary hover:bg-primary/30'
-                                        : 'text-muted-foreground hover:text-white hover:bg-white/5'
+                                        : 'text-muted-foreground hover:text-foreground hover:bg-accent'
                                         }`}
                                     asChild
                                 >
@@ -102,14 +104,14 @@ export default function DashboardLayout({
                                     <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Wallet Balance</span>
                                 </div>
                             </div>
-                            <div className="text-lg font-black text-white">
+                            <div className="text-lg font-black text-foreground">
                                 {wallet ? `U$ ${Number(wallet.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : 'U$ 0.00'}
                             </div>
                         </div>
 
                         <Link
                             href="/dashboard/profile"
-                            className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/5 group transition-colors hover:bg-white/10 w-full"
+                            className="flex items-center gap-3 p-3 rounded-2xl bg-accent/50 border border-border group transition-colors hover:bg-accent w-full"
                         >
                             <Avatar className="w-10 h-10 border-2 border-primary/20">
                                 <AvatarImage src="" />
@@ -136,12 +138,13 @@ export default function DashboardLayout({
                 </aside>
 
                 {/* Mobile Header */}
-                <header className="xl:hidden fixed top-0 left-0 right-0 h-16 glass z-40 flex items-center justify-between px-6 border-b border-white/5">
+                <header className="xl:hidden fixed top-0 left-0 right-0 h-16 glass z-40 flex items-center justify-between px-6 border-b border-border">
                     <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
                             <BookOpen className="w-5 h-5 text-white" />
                         </div>
                         <span className="font-bold text-gradient">BookGen</span>
+                        <ThemeToggle />
                     </div>
 
                     <Sheet>
@@ -150,13 +153,13 @@ export default function DashboardLayout({
                                 <Menu className="w-6 h-6" />
                             </Button>
                         </SheetTrigger>
-                        <SheetContent side="right" className="glass border-l border-white/10 text-white">
+                        <SheetContent side="right" className="glass border-l border-border text-foreground">
                             <SheetHeader className="mb-8">
-                                <SheetTitle className="text-left text-white">Menu</SheetTitle>
+                                <SheetTitle className="text-left text-foreground">Menu</SheetTitle>
                             </SheetHeader>
                             
                             <div className="flex flex-col gap-6">
-                                <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
+                                <div className="flex items-center gap-4 p-4 rounded-2xl bg-accent/50 border border-border">
                                     <Avatar className="w-12 h-12 border-2 border-primary/20">
                                         <AvatarFallback className="bg-primary/20 text-primary font-bold">
                                             {user?.name ? getInitials(user.name) : '??'}
@@ -206,7 +209,7 @@ export default function DashboardLayout({
                 </header>
 
                 {/* Mobile Bottom Nav */}
-                <nav className="xl:hidden fixed bottom-0 left-0 right-0 h-20 bg-background/95 backdrop-blur-xl z-40 flex items-center justify-around px-4 border-t border-white/10 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+                <nav className="xl:hidden fixed bottom-0 left-0 right-0 h-20 bg-background/95 backdrop-blur-xl z-40 flex items-center justify-around px-4 border-t border-border pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.1)] dark:shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
                     <Link href="/dashboard" className={`flex flex-col items-center gap-1 transition-colors ${pathname === '/dashboard' ? 'text-primary' : 'text-muted-foreground'}`}>
                         <Library className="w-6 h-6" />
                         <span className="text-[10px] font-medium">My Books</span>

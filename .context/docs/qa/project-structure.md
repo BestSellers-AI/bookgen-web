@@ -1,7 +1,7 @@
 ---
 slug: project-structure
 category: architecture
-generatedAt: 2026-02-13T23:05:34.695Z
+generatedAt: 2026-02-14T12:54:18.541Z
 relevantFiles:
   - src/app
   - src/components
@@ -12,7 +12,7 @@ relevantFiles:
   - src/app/favicon.ico
   - src/app/globals.css
   - src/app/layout.tsx
-  - src/app/page.module.css
+  - src/app/page.tsx
 ---
 
 # How is the codebase organized?
@@ -20,6 +20,7 @@ relevantFiles:
 ## Project Structure
 
 ```
+plans/
 public/
 src/
 ```

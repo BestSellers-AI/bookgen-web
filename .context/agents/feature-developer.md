@@ -1,60 +1,59 @@
-# Feature Developer Agent Playbook
+# Feature Developer — AI Book Generator
 
-Este playbook orienta o agente Feature Developer na implementação de novas funcionalidades, garantindo integração perfeita com a arquitetura existente.
-
-## Mission
-
-O Feature Developer é responsável por transformar especificações em código funcional, focando na lógica de negócio, integração de APIs e persistência de dados.
-
-## Responsibilities
-
-- Implementar lógica de negócio em serviços e hooks.
-- Integrar a aplicação com APIs externas (Xano, n8n).
-- Definir e gerenciar modelos de dados e tipos TypeScript.
-- Criar fluxos de trabalho complexos (ex: novos passos no wizard de criação).
-- Garantir que novas funcionalidades respeitem as camadas de segurança e autenticação.
-
-## Best Practices
-
-- **Clean Code**: Escreva funções pequenas e com responsabilidade única.
-- **DRY (Don't Repeat Yourself)**: Reutilize utilitários e serviços existentes em `src/lib`.
-- **Error Handling**: Implemente tratamento de erros robusto em chamadas assíncronas.
-- **Type Safety**: Garanta que todos os dados vindos de APIs externas sejam tipados corretamente.
-- **Integration**: Sempre verifique como a nova funcionalidade impacta o `AuthContext` e as rotas protegidas.
-
-## Key Project Resources
-
-- [Documentation Index](../docs/README.md)
-- [AGENTS.md](../../AGENTS.md)
-- [Architecture Notes](../docs/architecture.md)
-
-## Repository Starting Points
-
-- `src/lib/` — Serviços de API e lógica de negócio.
-- `src/app/dashboard/` — Implementação de funcionalidades do usuário logado.
-- `src/context/` — Integração com estado global.
+## Role & Responsibilities
+- Implementar novas funcionalidades end-to-end
+- Criar novas páginas e rotas no App Router
+- Integrar com APIs do Xano
+- Manter consistência com padrões existentes
 
 ## Key Files
+- [`src/app/`](src/app) — Rotas e páginas
+- [`src/lib/api.ts`](src/lib/api.ts) — Cliente API do Xano (books, wallet, generate)
+- [`src/lib/auth-service.ts`](src/lib/auth-service.ts) — Serviço de autenticação
+- [`src/context/AuthContext.tsx`](src/context/AuthContext.tsx) — Context de auth global
+- [`src/components/ProtectedRoute.tsx`](src/components/ProtectedRoute.tsx) — Proteção de rotas
 
-- [`src/lib/api.ts`](src/lib/api.ts) — Ponto central para integração com Xano e n8n.
-- [`src/lib/auth-service.ts`](src/lib/auth-service.ts) — Lógica de autenticação e perfil.
-- [`src/app/dashboard/create/page.tsx`](src/app/dashboard/create/page.tsx) — Exemplo de fluxo de negócio complexo.
+## Workflow
+1. Criar branch `feature/<nome>` a partir de `main`
+2. Definir a rota em `src/app/<path>/page.tsx`
+3. Se autenticada, envolver com `ProtectedRoute`
+4. Criar componentes em `src/components/` se reutilizáveis
+5. Adicionar chamadas API em `src/lib/api.ts` se necessário
+6. Usar `useAuth()` para acessar dados do usuário
+7. Testar em dev com `npm run dev`
+8. Commit com Conventional Commits
 
-## Key Symbols for This Agent
+## Integration Points
+- **Nova página autenticada**: Adicionar em `src/app/dashboard/<feature>/page.tsx`
+- **Nova API call**: Adicionar função em [`src/lib/api.ts`](src/lib/api.ts) seguindo padrão existente
+- **Novo componente UI**: Verificar se shadcn/ui tem o componente antes de criar custom
+- **Estado global**: Usar AuthContext; para estado local, usar `useState`/`useReducer`
 
-- `Book` (Type) em [`src/lib/api.ts`](src/lib/api.ts).
-- `getBooks`, `createBook`, `generatePreview` em [`src/lib/api.ts`](src/lib/api.ts).
-- `updateProfile`, `updatePassword` em [`src/lib/auth-service.ts`](src/lib/auth-service.ts).
+## Padrão de API Call
+```typescript
+export const novaFuncao = async (params: Tipo): Promise<Retorno> => {
+    const response = await fetch(`${API_URL}/endpoint`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(params),
+    });
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.message || 'Falha na operação');
+    }
+    return response.json();
+};
+```
 
-## Documentation Touchpoints
+## Best Practices
+- Sempre tipar parâmetros e retornos de funções
+- Tratar erros de API com try/catch e feedback visual (Sonner toast)
+- Usar `getHeaders()` para incluir token de autenticação
+- Manter componentes pequenos e focados
+- Seguir Conventional Commits para mensagens de commit
 
-- [Project Overview](../docs/project-overview.md)
-- [Security Notes](../docs/security.md)
-
-## Collaboration Checklist
-
-1. Revisar a especificação da feature e tirar dúvidas antes de codar.
-2. Identificar quais serviços de API existentes podem ser reutilizados.
-3. Validar o fluxo de dados entre o frontend e o backend (Xano/n8n).
-4. Garantir que mensagens de erro amigáveis sejam exibidas na UI.
-5. Atualizar os playbooks se novos padrões de desenvolvimento forem introduzidos.
+## Common Pitfalls
+- Xano pode retornar dados em formatos diferentes (`array`, `{ items }`, `{ data }`)
+- Sempre verificar `response.ok` antes de processar resposta
+- `userId` deve ser convertido para `Number()` antes de enviar ao Xano
+- Não esquecer `"use client"` em componentes com hooks ou interatividade

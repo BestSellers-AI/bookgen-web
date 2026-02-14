@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated": "2026-02-13T23:05:34.286Z",
+  "generated": "2026-02-14T12:54:17.972Z",
   "stack": {
     "primaryLanguage": "typescript",
     "languages": [
@@ -18,8 +18,16 @@
     "hasCI": false
   },
   "structure": {
-    "totalFiles": 43,
+    "totalFiles": 53,
     "topDirectories": [
+      {
+        "name": "AGENTS.md",
+        "fileCount": 1
+      },
+      {
+        "name": "CLAUDE.md",
+        "fileCount": 1
+      },
       {
         "name": "components.json",
         "fileCount": 1
@@ -45,6 +53,10 @@
         "fileCount": 1
       },
       {
+        "name": "plans",
+        "fileCount": 1
+      },
+      {
         "name": "postcss.config.js",
         "fileCount": 1
       },
@@ -58,7 +70,7 @@
       },
       {
         "name": "src",
-        "fileCount": 28
+        "fileCount": 34
       },
       {
         "name": "tailwind.config.ts",
@@ -67,12 +79,16 @@
       {
         "name": "tsconfig.json",
         "fileCount": 1
+      },
+      {
+        "name": "tsconfig.tsbuildinfo",
+        "fileCount": 1
       }
     ],
     "languageDistribution": [
       {
         "extension": ".tsx",
-        "count": 22
+        "count": 29
       },
       {
         "extension": ".ts",
@@ -87,8 +103,12 @@
         "count": 4
       },
       {
-        "extension": ".css",
-        "count": 2
+        "extension": ".md",
+        "count": 4
+      },
+      {
+        "extension": ".tsbuildinfo",
+        "count": 1
       },
       {
         "extension": ".js",
@@ -99,7 +119,7 @@
         "count": 1
       },
       {
-        "extension": ".md",
+        "extension": ".css",
         "count": 1
       },
       {
@@ -135,23 +155,27 @@
           "src/lib",
           "src/components"
         ],
-        "symbolCount": 2,
+        "symbolCount": 4,
         "dependsOn": []
       },
       {
         "name": "Components",
         "description": "UI components and views",
         "directories": [
+          "src/components",
           "src/app",
           "src/components/ui",
           "src/app/dashboard",
-          "src/app/dashboard/profile",
           "src/app/dashboard/create",
-          "src/app/auth/login",
+          "src/app/dashboard/profile",
+          "src/app/dashboard/credits",
           "src/app/auth/register",
-          "src/app/dashboard/books/[id]"
+          "src/app/auth/login",
+          "src/app/auth/forgot-password",
+          "src/app/dashboard/books/[id]",
+          "src/app/dashboard/credits/hotmart"
         ],
-        "symbolCount": 5,
+        "symbolCount": 8,
         "dependsOn": []
       }
     ],
@@ -202,7 +226,7 @@
         "name": "AuthProvider",
         "kind": "function",
         "file": "src/context/AuthContext.tsx",
-        "line": 19,
+        "line": 20,
         "exported": true
       },
       {
@@ -213,10 +237,17 @@
         "exported": true
       },
       {
+        "name": "CreditsPage",
+        "kind": "function",
+        "file": "src/app/dashboard/credits/page.tsx",
+        "line": 9,
+        "exported": true
+      },
+      {
         "name": "initAuth",
         "kind": "function",
         "file": "src/context/AuthContext.tsx",
-        "line": 25,
+        "line": 30,
         "exported": true
       },
       {
@@ -230,14 +261,28 @@
         "name": "RootLayout",
         "kind": "function",
         "file": "src/app/layout.tsx",
-        "line": 17,
+        "line": 18,
+        "exported": true
+      },
+      {
+        "name": "ThemeProvider",
+        "kind": "function",
+        "file": "src/components/theme-provider.tsx",
+        "line": 7,
+        "exported": true
+      },
+      {
+        "name": "ThemeToggle",
+        "kind": "function",
+        "file": "src/components/ui/theme-toggle.tsx",
+        "line": 15,
         "exported": true
       },
       {
         "name": "useAuth",
         "kind": "function",
         "file": "src/context/AuthContext.tsx",
-        "line": 103,
+        "line": 117,
         "exported": true
       },
       {
@@ -251,7 +296,7 @@
         "name": "fetchBook",
         "kind": "function",
         "file": "src/app/dashboard/books/[id]/page.tsx",
-        "line": 27,
+        "line": 30,
         "exported": false
       }
     ],
@@ -261,6 +306,20 @@
         "kind": "type",
         "file": "src/lib/api.ts",
         "line": 3,
+        "exported": true
+      },
+      {
+        "name": "GenerateFullBookResult",
+        "kind": "type",
+        "file": "src/lib/api.ts",
+        "line": 173,
+        "exported": true
+      },
+      {
+        "name": "Wallet",
+        "kind": "type",
+        "file": "src/lib/api.ts",
+        "line": 30,
         "exported": true
       },
       {
@@ -278,7 +337,7 @@
       "name": "AuthProvider",
       "kind": "function",
       "file": "src/context/AuthContext.tsx",
-      "line": 19,
+      "line": 20,
       "exported": true
     },
     {
@@ -317,10 +376,24 @@
       "exported": true
     },
     {
+      "name": "CreditsPage",
+      "kind": "function",
+      "file": "src/app/dashboard/credits/page.tsx",
+      "line": 9,
+      "exported": true
+    },
+    {
+      "name": "GenerateFullBookResult",
+      "kind": "type",
+      "file": "src/lib/api.ts",
+      "line": 173,
+      "exported": true
+    },
+    {
       "name": "initAuth",
       "kind": "function",
       "file": "src/context/AuthContext.tsx",
-      "line": 25,
+      "line": 30,
       "exported": true
     },
     {
@@ -334,14 +407,28 @@
       "name": "RootLayout",
       "kind": "function",
       "file": "src/app/layout.tsx",
-      "line": 17,
+      "line": 18,
+      "exported": true
+    },
+    {
+      "name": "ThemeProvider",
+      "kind": "function",
+      "file": "src/components/theme-provider.tsx",
+      "line": 7,
+      "exported": true
+    },
+    {
+      "name": "ThemeToggle",
+      "kind": "function",
+      "file": "src/components/ui/theme-toggle.tsx",
+      "line": 15,
       "exported": true
     },
     {
       "name": "useAuth",
       "kind": "function",
       "file": "src/context/AuthContext.tsx",
-      "line": 103,
+      "line": 117,
       "exported": true
     },
     {
@@ -350,31 +437,30 @@
       "file": "src/lib/auth-service.ts",
       "line": 6,
       "exported": true
+    },
+    {
+      "name": "Wallet",
+      "kind": "type",
+      "file": "src/lib/api.ts",
+      "line": 30,
+      "exported": true
     }
   ],
   "dependencies": {
     "mostImported": [
       {
-        "file": "/Users/reisalbuquerque/Projects/code/testing/05/.next/dev/types/routes.d.ts",
+        "file": "/Users/reisalbuquerque/Projects/code/testing/05 - bookgen/src/lib/auth-service.ts",
         "importedBy": 1
       },
       {
-        "file": "/Users/reisalbuquerque/Projects/code/testing/05/src/lib/auth-service.ts",
-        "importedBy": 1
-      },
-      {
-        "file": "/Users/reisalbuquerque/Projects/code/testing/05/src/app/page.module.css",
-        "importedBy": 1
-      },
-      {
-        "file": "/Users/reisalbuquerque/Projects/code/testing/05/src/app/globals.css",
+        "file": "/Users/reisalbuquerque/Projects/code/testing/05 - bookgen/src/app/globals.css",
         "importedBy": 1
       }
     ]
   },
   "stats": {
-    "totalSymbols": 15,
-    "exportedSymbols": 11,
-    "analysisTimeMs": 128
+    "totalSymbols": 20,
+    "exportedSymbols": 16,
+    "analysisTimeMs": 189
   }
 }

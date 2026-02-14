@@ -1,84 +1,98 @@
 # Architecture Notes
 
-Este documento detalha a arquitetura do sistema, as decisões de design e os padrões utilizados no desenvolvimento da plataforma de criação de livros.
+## Visão Geral
 
-## System Architecture Overview
+O AI Book Generator segue a arquitetura do **Next.js App Router** com renderização client-side para a maioria das páginas interativas. O backend é totalmente delegado ao **Xano** (BaaS), que expõe APIs REST consumidas diretamente pelo frontend.
 
-A aplicação é construída sobre o framework **Next.js 16** utilizando o **App Router**. A arquitetura segue um modelo de **Frontend-as-a-Service**, onde a lógica de interface e orquestração reside no Next.js, enquanto a persistência de dados e autenticação são delegadas ao **Xano** (Backend-as-a-Service) e o processamento pesado de IA é delegado ao **n8n**.
+## Diagrama de Camadas
 
-As requisições fluem da seguinte forma:
-1. O usuário interage com **Client Components** (React).
-2. A lógica de negócio é orquestrada via **Hooks** e **Context API**.
-3. Chamadas de API são feitas para o Xano (CRUD e Auth) ou n8n (Geração de IA).
-4. O estado é atualizado e refletido na UI através de transições animadas com Framer Motion.
-
-## Architectural Layers
-
-- **Presentation Layer**: Páginas e layouts em [`src/app/`](src/app) e componentes de UI em [`src/components/ui/`](src/components/ui).
-- **State Management Layer**: Gerenciamento de autenticação em [`src/context/AuthContext.tsx`](src/context/AuthContext.tsx).
-- **Service/API Layer**: Abstração de chamadas externas em [`src/lib/api.ts`](src/lib/api.ts) e [`src/lib/auth-service.ts`](src/lib/auth-service.ts).
-- **Security Layer**: Proteção de rotas via [`src/components/ProtectedRoute.tsx`](src/components/ProtectedRoute.tsx).
-
-> See [`codebase-map.json`](./codebase-map.json) for complete symbol counts and dependency graphs.
-
-## Detected Design Patterns
-
-| Pattern | Confidence | Locations | Description |
-|---------|------------|-----------|-------------|
-| **Provider Pattern** | 100% | [`src/context/AuthContext.tsx`](src/context/AuthContext.tsx) | Gerencia e distribui o estado de autenticação para a árvore de componentes. |
-| **Higher-Order Component (Wrapper)** | 90% | [`src/components/ProtectedRoute.tsx`](src/components/ProtectedRoute.tsx) | Protege rotas privadas verificando o estado de autenticação. |
-| **Service Pattern** | 95% | [`src/lib/api.ts`](src/lib/api.ts), [`src/lib/auth-service.ts`](src/lib/auth-service.ts) | Encapsula a lógica de comunicação com APIs externas. |
-| **Wizard Pattern** | 100% | [`src/app/dashboard/create/page.tsx`](src/app/dashboard/create/page.tsx) | Gerencia o fluxo multi-etapa de criação de livros. |
-
-## Entry Points
-
-- **Main Application**: [`src/app/page.tsx`](src/app/page.tsx)
-- **Global Layout**: [`src/app/layout.tsx`](src/app/layout.tsx)
-- **Auth Entry**: [`src/app/auth/login/page.tsx`](src/app/auth/login/page.tsx)
-- **Dashboard Entry**: [`src/app/dashboard/page.tsx`](src/app/dashboard/page.tsx)
-
-## Public API
-
-| Symbol | Type | Location |
-|--------|------|----------|
-| `AuthProvider` | Function | [`src/context/AuthContext.tsx`](src/context/AuthContext.tsx) |
-| `useAuth` | Function | [`src/context/AuthContext.tsx`](src/context/AuthContext.tsx) |
-| `getBooks` | Function | [`src/lib/api.ts`](src/lib/api.ts) |
-| `ProtectedRoute` | Function | [`src/components/ProtectedRoute.tsx`](src/components/ProtectedRoute.tsx) |
-| `Book` | Type | [`src/lib/api.ts`](src/lib/api.ts) |
-
-## External Service Dependencies
-
-- **Xano**: Utilizado para armazenamento de dados (PostgreSQL), lógica de backend e autenticação JWT.
-- **n8n**: Orquestrador de workflows de IA, responsável por receber o briefing e retornar a estrutura do livro.
-- **Vercel**: Plataforma de hospedagem e deployment (assumido pelo uso de Next.js).
-
-## Diagrams
-
-```mermaid
-graph TD
-    User((Usuário))
-    NextJS[Next.js App Router]
-    AuthContext[AuthContext]
-    Xano[Xano API / Auth]
-    n8n[n8n AI Workflow]
-
-    User --> NextJS
-    NextJS --> AuthContext
-    AuthContext --> Xano
-    NextJS --> Xano
-    NextJS --> n8n
+```
+┌─────────────────────────────────────────┐
+│              Browser (Client)           │
+├─────────────────────────────────────────┤
+│  Next.js App Router (React 19)          │
+│  ├── Pages (src/app/**)                 │
+│  ├── Components (src/components/**)     │
+│  ├── Context (src/context/AuthContext)  │
+│  └── Lib (src/lib/api, auth-service)    │
+├─────────────────────────────────────────┤
+│         Xano REST API (BaaS)            │
+│  ├── Auth API (signup, login, me)       │
+│  ├── Book API (CRUD, generate)          │
+│  ├── Account API (profile, password)    │
+│  └── Wallet API (créditos)              │
+├─────────────────────────────────────────┤
+│         n8n (AI Orchestration)          │
+│  └── Geração de conteúdo via LLM        │
+├─────────────────────────────────────────┤
+│         Hotmart (Payments)              │
+│  └── Compra de créditos                 │
+└─────────────────────────────────────────┘
 ```
 
-## Top Directories Snapshot
+## Estrutura de Diretórios
 
-- `src/app/`: ~15 arquivos (Rotas e Páginas)
-- `src/components/ui/`: ~10 arquivos (Componentes base)
-- `src/lib/`: ~3 arquivos (Serviços e Utils)
-- `src/context/`: ~1 arquivo (Estado Global)
+```
+src/
+├── app/                    # Rotas (App Router)
+│   ├── layout.tsx          # Layout raiz (providers globais)
+│   ├── page.tsx            # Landing page
+│   ├── globals.css         # Estilos globais (Tailwind v4)
+│   ├── auth/               # Rotas de autenticação
+│   │   ├── login/
+│   │   ├── register/
+│   │   └── forgot-password/
+│   └── dashboard/          # Área autenticada
+│       ├── layout.tsx      # Layout do dashboard (sidebar, header)
+│       ├── page.tsx        # Lista de livros
+│       ├── create/         # Wizard de criação
+│       ├── books/[id]/     # Detalhes do livro
+│       ├── credits/        # Gestão de créditos
+│       └── profile/        # Perfil do usuário
+├── components/
+│   ├── ui/                 # Componentes shadcn/ui (Button, Card, etc.)
+│   ├── theme-provider.tsx  # Provider de tema (next-themes)
+│   ├── ProtectedRoute.tsx  # HOC de proteção de rotas
+│   └── wizard/             # Componentes do wizard de criação
+├── context/
+│   └── AuthContext.tsx     # Context de autenticação global
+└── lib/
+    ├── api.ts              # Cliente da API de livros (Xano)
+    ├── auth-service.ts     # Serviço de autenticação (Xano)
+    └── utils.ts            # Utilitários (cn helper)
+```
 
-## Related Resources
+## Padrões de Design
 
-- [Project Overview](./project-overview.md)
-- [Development Workflow](./development-workflow.md)
-- [`codebase-map.json`](./codebase-map.json)
+### Autenticação
+- **JWT Bearer Token** armazenado em `localStorage`
+- [`AuthProvider`](src/context/AuthContext.tsx:20) como Context Provider global
+- [`ProtectedRoute`](src/components/ProtectedRoute.tsx:8) como wrapper para rotas autenticadas
+- [`useAuth()`](src/context/AuthContext.tsx:117) hook para acessar estado de autenticação
+
+### Comunicação com API
+- Fetch API nativo (sem axios ou similar)
+- Headers com Bearer token injetados via [`getHeaders()`](src/lib/api.ts:39)
+- Tratamento de respostas flexível para diferentes formatos do Xano (array, `{ items }`, `{ data }`)
+
+### UI e Estilização
+- **Tailwind CSS v4** com configuração via CSS (`@theme`)
+- **shadcn/ui** para componentes base (Radix UI primitives)
+- **Framer Motion** para animações
+- **next-themes** para dark mode com detecção de sistema
+- Fontes: Inter (corpo) + Outfit (headings)
+
+### Estado
+- React Context para autenticação global
+- Estado local (`useState`) para formulários e UI
+- Sem state management externo (Redux, Zustand, etc.)
+
+## Decisões Técnicas
+
+| Decisão | Justificativa |
+|---------|--------------|
+| Xano como backend | Prototipagem rápida sem necessidade de backend custom |
+| Client-side rendering | Dados dinâmicos por usuário, sem necessidade de SSR/SSG |
+| localStorage para token | Simplicidade; trade-off com segurança (XSS) |
+| Tailwind v4 | Última versão com melhor performance e CSS-first config |
+| shadcn/ui | Componentes acessíveis e customizáveis sem lock-in |

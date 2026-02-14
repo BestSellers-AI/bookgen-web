@@ -2,7 +2,7 @@
 
 On-demand expertise for AI agents. Skills are task-specific procedures that get activated when relevant.
 
-> Project: 05
+> Project: 05 - bookgen
 
 ## How Skills Work
 

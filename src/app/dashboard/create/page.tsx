@@ -97,7 +97,7 @@ export default function CreateBookPage() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0a0a0b]/80 backdrop-blur-xl"
+                        className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-xl"
                     >
                         <div className="relative">
                             <div className="absolute inset-0 bg-primary/20 blur-[100px] rounded-full animate-pulse" />
@@ -112,7 +112,7 @@ export default function CreateBookPage() {
                                     </div>
                                 </div>
                                 <div className="space-y-4">
-                                    <h2 className="text-4xl md:text-5xl font-heading font-black tracking-tight text-white">
+                                    <h2 className="text-4xl md:text-5xl font-heading font-black tracking-tight text-foreground">
                                         Crafting your <span className="text-gradient">masterpiece...</span>
                                     </h2>
                                     <p className="text-xl text-muted-foreground font-medium max-w-md mx-auto">
@@ -150,7 +150,7 @@ export default function CreateBookPage() {
                         className="space-y-8 md:space-y-12 text-center"
                     >
                         <div className="space-y-4">
-                            <h1 className="text-4xl md:text-6xl font-heading font-black tracking-tight text-white">
+                            <h1 className="text-4xl md:text-6xl font-heading font-black tracking-tight text-foreground">
                                 How shall we <span className="text-gradient">begin?</span>
                             </h1>
                             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
@@ -161,7 +161,7 @@ export default function CreateBookPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 max-w-4xl mx-auto">
                             <button
                                 onClick={() => handleModeSelect('ai')}
-                                className="group relative p-6 md:p-10 rounded-[2rem] md:rounded-[2.5rem] bg-white/5 border border-white/10 hover:border-primary/50 transition-all text-left overflow-hidden"
+                                className="group relative p-6 md:p-10 rounded-[2rem] md:rounded-[2.5rem] bg-accent/50 border border-border hover:border-primary/50 transition-all text-left overflow-hidden"
                             >
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-[60px] -mr-16 -mt-16 group-hover:bg-primary/20 transition-colors" />
                                 <div className="relative space-y-4 md:space-y-6">
@@ -169,7 +169,7 @@ export default function CreateBookPage() {
                                         <Sparkles className="w-6 h-6 md:w-8 md:h-8" />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl md:text-2xl font-bold text-white mb-1 md:mb-2">AI Guided</h3>
+                                        <h3 className="text-xl md:text-2xl font-bold text-foreground mb-1 md:mb-2">AI Guided</h3>
                                         <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
                                             Tell us your idea and our AI will help you structure the entire book, from chapters to key topics.
                                         </p>
@@ -179,7 +179,7 @@ export default function CreateBookPage() {
 
                             <button
                                 onClick={() => handleModeSelect('manual')}
-                                className="group relative p-6 md:p-10 rounded-[2rem] md:rounded-[2.5rem] bg-white/5 border border-white/10 hover:border-primary/50 transition-all text-left overflow-hidden"
+                                className="group relative p-6 md:p-10 rounded-[2rem] md:rounded-[2.5rem] bg-accent/50 border border-border hover:border-primary/50 transition-all text-left overflow-hidden"
                             >
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-[60px] -mr-16 -mt-16 group-hover:bg-blue-500/20 transition-colors" />
                                 <div className="relative space-y-4 md:space-y-6">
@@ -187,7 +187,7 @@ export default function CreateBookPage() {
                                         <PenTool className="w-6 h-6 md:w-8 md:h-8" />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl md:text-2xl font-bold text-white mb-1 md:mb-2">Manual Setup</h3>
+                                        <h3 className="text-xl md:text-2xl font-bold text-foreground mb-1 md:mb-2">Manual Setup</h3>
                                         <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
                                             You provide the title, subtitle, and author. We'll help you flesh out the content based on your briefing.
                                         </p>
@@ -206,12 +206,12 @@ export default function CreateBookPage() {
                         exit={{ opacity: 0, x: -20 }}
                         className="max-w-3xl mx-auto"
                     >
-                        <div className="glass rounded-[2rem] md:rounded-[3rem] p-6 md:p-12 space-y-6 md:space-y-10 border border-white/10">
+                        <div className="glass rounded-[2rem] md:rounded-[3rem] p-6 md:p-12 space-y-6 md:space-y-10 border border-border">
                             <div className="flex items-center justify-between">
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="text-muted-foreground hover:text-white h-8 px-2"
+                                    className="text-muted-foreground hover:text-foreground h-8 px-2"
                                     onClick={() => setStep(0)}
                                 >
                                     <ChevronLeft className="mr-1 h-4 w-4" /> Back
@@ -230,7 +230,7 @@ export default function CreateBookPage() {
                                                 placeholder="The Art of Innovation"
                                                 value={state.title}
                                                 onChange={e => setState(s => ({ ...s, title: e.target.value }))}
-                                                className="h-12 md:h-14 rounded-xl md:rounded-2xl bg-white/5 border-white/10 focus:border-primary/50 transition-all text-base md:text-lg"
+                                                className="h-12 md:h-14 rounded-xl md:rounded-2xl bg-accent/50 border-border focus:border-primary/50 transition-all text-base md:text-lg"
                                             />
                                         </div>
                                         <div className="space-y-1.5 md:space-y-2">
@@ -239,7 +239,7 @@ export default function CreateBookPage() {
                                                 placeholder="Jane Doe"
                                                 value={state.author}
                                                 onChange={e => setState(s => ({ ...s, author: e.target.value }))}
-                                                className="h-12 md:h-14 rounded-xl md:rounded-2xl bg-white/5 border-white/10 focus:border-primary/50 transition-all text-base md:text-lg"
+                                                className="h-12 md:h-14 rounded-xl md:rounded-2xl bg-accent/50 border-border focus:border-primary/50 transition-all text-base md:text-lg"
                                             />
                                         </div>
                                         <div className="space-y-1.5 md:space-y-2 md:col-span-2">
@@ -248,7 +248,7 @@ export default function CreateBookPage() {
                                                 placeholder="A comprehensive guide to modern creativity"
                                                 value={state.subtitle}
                                                 onChange={e => setState(s => ({ ...s, subtitle: e.target.value }))}
-                                                className="h-12 md:h-14 rounded-xl md:rounded-2xl bg-white/5 border-white/10 focus:border-primary/50 transition-all text-base md:text-lg"
+                                                className="h-12 md:h-14 rounded-xl md:rounded-2xl bg-accent/50 border-border focus:border-primary/50 transition-all text-base md:text-lg"
                                             />
                                         </div>
                                     </div>
@@ -260,7 +260,7 @@ export default function CreateBookPage() {
                                                 placeholder="Jane Doe"
                                                 value={state.author}
                                                 onChange={e => setState(s => ({ ...s, author: e.target.value }))}
-                                                className="h-12 md:h-14 rounded-xl md:rounded-2xl bg-white/5 border-white/10 focus:border-primary/50 transition-all text-base md:text-lg"
+                                                className="h-12 md:h-14 rounded-xl md:rounded-2xl bg-accent/50 border-border focus:border-primary/50 transition-all text-base md:text-lg"
                                             />
                                         </div>
                                     </div>
@@ -268,7 +268,7 @@ export default function CreateBookPage() {
 
                                 <div className="space-y-3 md:space-y-4">
                                     <div className="flex items-center justify-between px-1">
-                                        <Label className="text-base md:text-lg font-bold text-white">
+                                        <Label className="text-base md:text-lg font-bold text-foreground">
                                             {state.mode === 'ai' ? 'What is your book about?' : 'Detailed Briefing'}
                                         </Label>
                                         <span className="text-[10px] md:text-xs text-muted-foreground font-medium">Min. 50 characters</span>
@@ -280,7 +280,7 @@ export default function CreateBookPage() {
                                         }
                                         value={state.briefing}
                                         onChange={e => setState(s => ({ ...s, briefing: e.target.value }))}
-                                        className="min-h-[180px] md:min-h-[250px] rounded-2xl md:rounded-[2rem] bg-white/5 border-white/10 focus:border-primary/50 transition-all text-base md:text-lg p-4 md:p-8 leading-relaxed resize-none"
+                                        className="min-h-[180px] md:min-h-[250px] rounded-2xl md:rounded-[2rem] bg-accent/50 border-border focus:border-primary/50 transition-all text-base md:text-lg p-4 md:p-8 leading-relaxed resize-none"
                                     />
                                 </div>
                             </div>
@@ -308,17 +308,17 @@ export default function CreateBookPage() {
                         animate={{ opacity: 1, scale: 1 }}
                         className="max-w-4xl mx-auto"
                     >
-                        <div className="glass rounded-[3rem] overflow-hidden border border-white/10 shadow-2xl">
-                            <div className="bg-primary/10 p-16 border-b border-white/5 relative">
+                        <div className="glass rounded-[3rem] overflow-hidden border border-border shadow-2xl">
+                            <div className="bg-primary/10 p-16 border-b border-border relative">
                                 <div className="absolute top-0 right-0 p-8">
                                     <span className="flex items-center gap-2 text-primary font-black uppercase tracking-widest text-sm">
                                         <Check className="w-5 h-5" /> Structure Ready</span>
                                 </div>
-                                <h2 className="text-6xl font-heading font-black mb-4 leading-tight">{previewData.title}</h2>
+                                <h2 className="text-6xl font-heading font-black mb-4 leading-tight text-foreground">{previewData.title}</h2>
                                 <p className="text-3xl text-muted-foreground font-medium leading-tight">{previewData.subtitle}</p>
                                 <div className="mt-8 flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-primary/50 border border-white/20" />
-                                    <span className="text-lg font-semibold text-white/80">Drafted by {previewData.author}</span>
+                                    <div className="w-8 h-8 rounded-full bg-primary/50 border border-border" />
+                                    <span className="text-lg font-semibold text-foreground/80">Drafted by {previewData.author}</span>
                                 </div>
                             </div>
 
@@ -334,16 +334,16 @@ export default function CreateBookPage() {
                                             className="flex gap-8 group"
                                         >
                                             <div className="flex flex-col items-center gap-4">
-                                                <div className="w-10 h-10 rounded-xl bg-white/5 group-hover:bg-primary transition-colors flex items-center justify-center font-bold font-heading text-lg">
+                                                <div className="w-10 h-10 rounded-xl bg-accent group-hover:bg-primary transition-colors flex items-center justify-center font-bold font-heading text-lg text-foreground group-hover:text-white">
                                                     {chapter.number}
                                                 </div>
-                                                <div className="w-0.5 flex-1 bg-white/5 rounded-full" />
+                                                <div className="w-0.5 flex-1 bg-border rounded-full" />
                                             </div>
                                             <div className="pb-10 group-last:pb-0">
-                                                <div className="text-2xl font-bold mb-4 group-hover:text-primary transition-colors">{chapter.title}</div>
+                                                <div className="text-2xl font-bold mb-4 group-hover:text-primary transition-colors text-foreground">{chapter.title}</div>
                                                 <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     {chapter.topics?.map((topic: string, j: number) => (
-                                                        <li key={j} className="flex items-center gap-3 text-muted-foreground font-medium group-hover:text-white/80 transition-colors">
+                                                        <li key={j} className="flex items-center gap-3 text-muted-foreground font-medium group-hover:text-foreground/80 transition-colors">
                                                             <div className="w-1.5 h-1.5 rounded-full bg-primary/40 shrink-0" />
                                                             {topic}
                                                         </li>
@@ -355,11 +355,11 @@ export default function CreateBookPage() {
                                 </div>
                             </div>
 
-                            <div className="p-12 glass border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+                            <div className="p-12 glass border-t border-border flex flex-col md:flex-row justify-between items-center gap-6">
                                 <Button
                                     variant="ghost"
                                     size="lg"
-                                    className="h-16 px-8 rounded-2xl font-bold text-muted-foreground hover:text-white transition-all"
+                                    className="h-16 px-8 rounded-2xl font-bold text-muted-foreground hover:text-foreground transition-all"
                                     onClick={() => setStep(1)}
                                     disabled={loading}
                                 >
@@ -367,7 +367,7 @@ export default function CreateBookPage() {
                                 </Button>
                                 <Button
                                     size="lg"
-                                    className="h-20 px-12 rounded-[2rem] bg-white text-black hover:bg-white/90 text-xl font-black shadow-[0_0_40px_rgba(255,255,255,0.2)] hover:shadow-[0_0_60px_rgba(255,255,255,0.4)] transition-all active:scale-[0.98]"
+                                    className="h-20 px-12 rounded-[2rem] bg-foreground text-background hover:bg-foreground/90 text-xl font-black shadow-xl transition-all active:scale-[0.98]"
                                     onClick={handleApprove}
                                     disabled={loading}
                                 >

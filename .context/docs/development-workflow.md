@@ -1,43 +1,72 @@
 # Development Workflow
 
-Este documento descreve os processos de engenharia, padrões de contribuição e fluxo de trabalho diário para desenvolvedores deste repositório.
+## Ambiente de Desenvolvimento
 
-## Processo de Desenvolvimento
+### Pré-requisitos
+- Node.js 18+ 
+- npm 9+
 
-O fluxo de trabalho diário segue o padrão de desenvolvimento moderno para Next.js:
-1. **Planejamento**: Definição de novas rotas ou componentes.
-2. **Implementação**: Desenvolvimento utilizando TypeScript e Tailwind CSS.
-3. **Verificação**: Testes manuais no ambiente local.
-4. **Revisão**: Submissão de Pull Requests para integração.
+### Setup Inicial
 
-## Branching & Releases
+```bash
+npm install
+cp .env.example .env.local
+# Configurar variáveis NEXT_PUBLIC_XANO_* no .env.local
+npm run dev
+```
 
-- **Trunk-based Development**: A branch `main` é a fonte da verdade e deve estar sempre em estado de deploy.
-- **Feature Branches**: Novas funcionalidades devem ser desenvolvidas em branches curtas (ex: `feat/nome-da-feature`).
-- **Releases**: O deploy é contínuo (CI/CD), geralmente via Vercel, disparado a cada merge na `main`.
+### Scripts Disponíveis
 
-## Local Development
+| Script | Comando | Descrição |
+|--------|---------|-----------|
+| `dev` | `next dev` | Servidor de desenvolvimento com hot reload |
+| `build` | `next build` | Build de produção |
+| `start` | `next start` | Servidor de produção |
+| `lint` | `eslint` | Linting do código |
 
-Para configurar o ambiente local, siga os comandos abaixo:
+## Estrutura de Branches
 
-- **Instalação**: `npm install`
-- **Desenvolvimento**: `npm run dev`
-- **Build**: `npm run build`
-- **Linting**: `npm run lint`
+- `main` — branch de produção estável
+- `feature/*` — branches de funcionalidades
+- `fix/*` — branches de correções
 
-Certifique-se de ter o arquivo `.env.local` configurado com as URLs do Xano e n8n antes de iniciar o servidor.
+## Convenções de Código
 
-## Code Review Expectations
+### TypeScript
+- Strict mode habilitado
+- Interfaces para contratos de API (`User`, `Book`, `Wallet`, `AuthResponse`)
+- Types para modelos de dados (`Book`, `Wallet`, `GenerateFullBookResult`)
 
-Ao revisar código, foque nos seguintes pontos:
-- **Tipagem**: Uso correto de interfaces e tipos do TypeScript.
-- **Performance**: Evitar re-renders desnecessários em Client Components.
-- **Estilização**: Uso consistente de classes Tailwind e tokens de design.
-- **Segurança**: Garantir que rotas privadas usem o `ProtectedRoute`.
+### Componentes React
+- Componentes funcionais com hooks
+- `"use client"` directive para componentes client-side
+- Props tipadas com TypeScript interfaces
+- Componentes UI via shadcn/ui (Radix primitives)
 
-Consulte o arquivo [`AGENTS.md`](AGENTS.md) para diretrizes específicas sobre colaboração entre agentes de IA e humanos.
+### Estilização
+- Tailwind CSS v4 com classes utilitárias
+- `cn()` helper para merge condicional de classes (clsx + tailwind-merge)
+- CSS variables para temas (`--font-inter`, `--font-outfit`)
+- Dark mode via classe CSS (`class` strategy do next-themes)
 
----
-Relacionado:
-- [tooling.md](./tooling.md)
-- [project-overview.md](./project-overview.md)
+### Imports
+- Path aliases: `@/` mapeia para `src/`
+- Imports organizados: React/Next → libs externas → componentes → utils
+
+## Fluxo de Desenvolvimento
+
+1. Criar branch a partir de `main`
+2. Implementar mudanças seguindo as convenções
+3. Testar localmente com `npm run dev`
+4. Rodar `npm run lint` para verificar qualidade
+5. Fazer build com `npm run build` para validar
+6. Abrir PR seguindo Conventional Commits
+
+## Conventional Commits
+
+```
+feat(dashboard): add book deletion confirmation dialog
+fix(auth): handle expired token on page refresh
+style(ui): update button hover states for dark mode
+refactor(api): extract common fetch error handling
+```

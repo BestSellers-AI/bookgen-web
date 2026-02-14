@@ -1,7 +1,7 @@
 ---
 slug: authentication
 category: features
-generatedAt: 2026-02-13T23:05:34.980Z
+generatedAt: 2026-02-14T12:54:19.030Z
 relevantFiles:
   - src/lib/auth-service.ts
   - src/context/AuthContext.tsx

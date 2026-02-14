@@ -54,7 +54,35 @@
 }
 
 @layer base {
-  :root {
+:root {
+  /* Light Mode - Cores Claras com tom azulado mais equilibrado */
+  --background: hsl(220 33% 98%);
+  --foreground: hsl(224 71% 4%);
+  --card: hsl(220 33% 98%);
+  --card-foreground: hsl(224 71% 4%);
+  --popover: hsl(220 33% 98%);
+  --popover-foreground: hsl(224 71% 4%);
+  --primary: hsl(263 70% 50%);
+  --primary-foreground: hsl(210 40% 98%);
+  --secondary: hsl(220 14% 92%);
+  --secondary-foreground: hsl(224 71% 4%);
+  --muted: hsl(220 14% 92%);
+  --muted-foreground: hsl(220 10% 40%);
+  --accent: hsl(263 70% 50% / 0.08);
+  --accent-foreground: hsl(263 70% 50%);
+  --destructive: hsl(0 84% 60%);
+  --destructive-foreground: hsl(210 40% 98%);
+  --border: hsl(220 13% 88%);
+  --input: hsl(220 13% 88%);
+  --ring: hsl(263 70% 50%);
+  --radius: 0.75rem;
+
+  --font-inter: var(--font-inter);
+  --font-outfit: var(--font-outfit);
+}
+
+  .dark {
+    /* Dark Mode - Suas cores originais */
     --background: hsl(240 10% 2.5%);
     --foreground: hsl(0 0% 98%);
     --card: hsl(240 10% 4.5%);
@@ -74,32 +102,6 @@
     --border: hsl(240 3.7% 18%);
     --input: hsl(240 3.7% 18%);
     --ring: hsl(263 70% 50%);
-    --radius: 0.75rem;
-
-    --font-inter: var(--font-inter);
-    --font-outfit: var(--font-outfit);
-  }
-
-  .dark {
-    --background: hsl(240 10% 3.9%);
-    --foreground: hsl(0 0% 98%);
-    --card: hsl(240 10% 3.9%);
-    --card-foreground: hsl(0 0% 98%);
-    --popover: hsl(240 10% 3.9%);
-    --popover-foreground: hsl(0 0% 98%);
-    --primary: hsl(0 0% 98%);
-    --primary-foreground: hsl(240 5.9% 10%);
-    --secondary: hsl(240 3.7% 15.9%);
-    --secondary-foreground: hsl(0 0% 98%);
-    --muted: hsl(240 3.7% 15.9%);
-    --muted-foreground: hsl(240 5% 64.9%);
-    --accent: hsl(240 3.7% 15.9%);
-    --accent-foreground: hsl(0 0% 98%);
-    --destructive: hsl(0 62.8% 30.6%);
-    --destructive-foreground: hsl(0 0% 98%);
-    --border: hsl(240 3.7% 15.9%);
-    --input: hsl(240 3.7% 15.9%);
-    --ring: hsl(240 4.9% 83.9%);
   }
 }
 
@@ -112,9 +114,14 @@
     background-color: var(--background);
     color: var(--foreground);
     font-family: var(--font-inter), sans-serif;
+    background-image: radial-gradient(at 0% 0%, hsla(263, 70%, 50%, 0.05) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, hsla(263, 70%, 50%, 0.03) 0px, transparent 50%);
+    background-attachment: fixed;
+  }
+
+  .dark body {
     background-image: radial-gradient(at 0% 0%, hsla(263, 70%, 50%, 0.15) 0px, transparent 50%),
       radial-gradient(at 100% 0%, hsla(263, 70%, 50%, 0.1) 0px, transparent 50%);
-    background-attachment: fixed;
   }
 
   h1,
@@ -132,7 +139,8 @@
   .glass {
     background: color-mix(in srgb, var(--card), transparent 40%);
     backdrop-filter: blur(12px);
-    border: 1px solid color-mix(in srgb, white, transparent 90%);
+    border: 1px solid color-mix(in srgb, var(--foreground), transparent 90%);
+    box-shadow: 0 8px 32px 0 color-mix(in srgb, var(--foreground), transparent 95%);
   }
 
   .glass-hover {
@@ -141,18 +149,38 @@
 
   .glass-hover:hover {
     background: color-mix(in srgb, var(--card), transparent 20%);
-    border-color: color-mix(in srgb, white, transparent 80%);
-    box-shadow: 0 25px 50px -12px color-mix(in srgb, var(--primary), transparent 90%);
+    border-color: color-mix(in srgb, var(--foreground), transparent 80%);
+    box-shadow: 0 25px 50px -12px color-mix(in srgb, var(--primary), transparent 85%);
   }
 
   .text-gradient {
-    background: linear-gradient(to bottom right, white, color-mix(in srgb, white, transparent 50%));
+    background: linear-gradient(to bottom right, var(--foreground), color-mix(in srgb, var(--foreground), transparent 30%));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    /* Fallback para navegadores que não suportam background-clip: text */
+    display: inline-block;
+    /* Garante que o fundo não vaze se o clip falhar */
+    background-color: var(--foreground);
+  }
+
+  .dark .text-gradient {
+    background: linear-gradient(to bottom right, #ffffff, rgba(255, 255, 255, 0.6));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
 
   .text-gradient-primary {
+    background: linear-gradient(to bottom right, var(--primary), hsl(263 70% 40%));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    display: inline-block;
+    background-color: var(--primary);
+  }
+
+  .dark .text-gradient-primary {
     background: linear-gradient(to bottom right, var(--primary), hsl(263 70% 70%));
     -webkit-background-clip: text;
     background-clip: text;

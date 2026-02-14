@@ -90,9 +90,9 @@ export default function DashboardPage() {
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`relative flex-1 md:flex-none flex items-center justify-center gap-2 px-2 md:px-8 py-3.5 rounded-[1.5rem] font-bold text-xs md:text-sm transition-all duration-500 z-10 whitespace-nowrap ${isActive
-                                ? 'text-white'
-                                : 'text-muted-foreground hover:text-white hover:bg-white/5'
-                                }`}
+                                    ? 'text-white'
+                                    : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                                    }`}
                         >
                             {isActive && (
                                 <motion.div
@@ -108,7 +108,7 @@ export default function DashboardPage() {
                                 className={`shrink-0 h-4 min-w-[18px] px-1 flex items-center justify-center text-[9px] font-black rounded-md transition-colors duration-500 ${
                                     isActive
                                     ? 'bg-white/20 text-white border-transparent'
-                                    : 'bg-white/5 text-muted-foreground'
+                                    : 'bg-accent text-muted-foreground'
                                 }`}
                             >
                                 {count}
@@ -122,7 +122,7 @@ export default function DashboardPage() {
                 <div className="flex flex-col items-center justify-center p-20 glass rounded-[3rem] text-center min-h-[400px] gap-8">
                     <div className="relative">
                         <div className="absolute inset-0 bg-primary blur-3xl opacity-20 -m-4 rounded-full" />
-                        <div className="w-24 h-24 rounded-[2rem] bg-card border border-white/10 flex items-center justify-center relative z-10">
+                        <div className="w-24 h-24 rounded-[2rem] bg-card border border-border flex items-center justify-center relative z-10">
                             <Book size={48} className="text-primary" />
                         </div>
                     </div>
@@ -132,7 +132,7 @@ export default function DashboardPage() {
                             Start your creative journey by generating your first AI-assisted masterpiece in seconds.
                         </p>
                     </div>
-                    <Button size="lg" variant="outline" className="h-14 px-8 rounded-2xl border-white/10 hover:bg-white/5 active:scale-95" asChild>
+                    <Button size="lg" variant="outline" className="h-14 px-8 rounded-2xl border-border hover:bg-accent active:scale-95" asChild>
                         <Link href="/dashboard/create">
                             Generate First Book
                         </Link>
@@ -214,13 +214,13 @@ export default function DashboardPage() {
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center justify-between pt-6 border-t border-white/5">
+                                    <div className="flex items-center justify-between pt-6 border-t border-border">
                                         <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-widest">
                                             <Clock size={14} className="text-primary" />
                                             {new Date(book.created_at).toLocaleDateString()}
                                         </div>
-                                        <div className="p-2 rounded-xl bg-white/5 group-hover:bg-primary transition-colors">
-                                            <ChevronRight size={18} className="text-white" />
+                                        <div className="p-2 rounded-xl bg-accent group-hover:bg-primary transition-colors">
+                                            <ChevronRight size={18} className="text-foreground group-hover:text-white" />
                                         </div>
                                     </div>
                                 </div>

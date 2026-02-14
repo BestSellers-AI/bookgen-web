@@ -1,7 +1,7 @@
 ---
 slug: api-endpoints
 category: features
-generatedAt: 2026-02-13T23:05:34.980Z
+generatedAt: 2026-02-14T12:54:19.030Z
 ---
 
 # What API endpoints are available?

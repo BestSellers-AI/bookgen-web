@@ -1,7 +1,7 @@
 ---
 slug: routing
 category: architecture
-generatedAt: 2026-02-13T23:05:34.845Z
+generatedAt: 2026-02-14T12:54:18.777Z
 ---
 
 # How does routing work?

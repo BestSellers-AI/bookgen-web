@@ -1,7 +1,7 @@
 ---
 slug: getting-started
 category: getting-started
-generatedAt: 2026-02-13T23:05:34.417Z
+generatedAt: 2026-02-14T12:54:18.182Z
 ---
 
 # How do I set up and run this project?
@@ -18,7 +18,7 @@ generatedAt: 2026-02-13T23:05:34.417Z
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd 05
+cd 05 - bookgen
 
 # Install dependencies
 npm install
