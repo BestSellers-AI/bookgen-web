@@ -1,52 +1,78 @@
-# Security Auditor — AI Book Generator
+---
+type: agent
+name: Security Auditor
+description: Identify security vulnerabilities
+agentType: security-auditor
+phases: [R, V]
+generated: 2026-03-04
+status: unfilled
+scaffoldVersion: "2.0.0"
+---
+## Mission
 
-## Role & Responsibilities
-- Auditar código para vulnerabilidades de segurança
-- Verificar implementação de autenticação e autorização
-- Avaliar exposição de dados sensíveis
-- Recomendar melhorias de segurança
+<!-- Describe how the security auditor agent supports the team and when to engage it. -->
 
-## Key Files
-- [`src/lib/auth-service.ts`](src/lib/auth-service.ts) — Autenticação JWT, token management
-- [`src/context/AuthContext.tsx`](src/context/AuthContext.tsx) — Estado de auth, proteção de rotas
-- [`src/components/ProtectedRoute.tsx`](src/components/ProtectedRoute.tsx) — Guard de rotas
-- [`src/lib/api.ts`](src/lib/api.ts) — Headers de autenticação, chamadas API
+_Content to be added._
 
-## Security Concerns
+## Responsibilities
 
-### Autenticação
-- JWT armazenado em `localStorage` (vulnerável a XSS)
-- Sem refresh token implementado
-- Sem CSRF protection explícita
-- Token não tem validação de expiração no client
+<!-- List specific responsibilities this agent handles. Be concrete about what tasks it performs. -->
 
-### Dados
-- Variáveis `NEXT_PUBLIC_*` expostas ao client (apenas URLs, não secrets)
-- Dados do usuário em React state (memória do browser)
-- Sem criptografia client-side
-
-### API
-- Todas as chamadas usam HTTPS (via Xano)
-- Bearer token em headers de autorização
-- Sem rate limiting no frontend
-
-## Audit Workflow
-1. Revisar fluxo de autenticação completo
-2. Verificar proteção de todas as rotas autenticadas
-3. Auditar manipulação de tokens e dados sensíveis
-4. Verificar sanitização de inputs do usuário
-5. Avaliar dependências para vulnerabilidades conhecidas (`npm audit`)
-6. Documentar findings e recomendações
+_Content to be added._
 
 ## Best Practices
-- Executar `npm audit` regularmente
-- Verificar que nenhum secret está no código-fonte
-- Garantir que todas as rotas do dashboard usam `ProtectedRoute`
-- Validar inputs antes de enviar ao backend
-- Manter dependências atualizadas
 
-## Common Pitfalls
-- `localStorage` acessível via JavaScript (XSS vector)
-- `NEXT_PUBLIC_` vars são incluídas no bundle do client
-- Sem validação de expiração do JWT no frontend
-- Briefing do usuário enviado diretamente para IA sem sanitização
+<!-- List best practices and guidelines for this agent to follow. -->
+
+_Content to be added._
+
+## Key Project Resources
+
+<!-- Link to documentation index, agent handbook, AGENTS.md, and contributor guide. -->
+
+_Content to be added._
+
+## Repository Starting Points
+
+<!-- List top-level directories relevant to this agent with brief descriptions. -->
+
+_Content to be added._
+
+## Key Files
+
+- [`src/lib/auth-service.ts`](../src/lib/auth-service.ts)
+- [`src/context/AuthContext.tsx`](../src/context/AuthContext.tsx)
+- [`src/app/auth/layout.tsx`](../src/app/auth/layout.tsx)
+- [`src/app/auth/register/page.tsx`](../src/app/auth/register/page.tsx)
+- [`src/app/auth/login/page.tsx`](../src/app/auth/login/page.tsx)
+- [`src/app/auth/forgot-password/page.tsx`](../src/app/auth/forgot-password/page.tsx)
+
+## Architecture Context
+
+<!-- For each architectural layer, describe directories, symbol counts, and key exports. -->
+
+_Content to be added._
+
+## Key Symbols for This Agent
+
+- `AuthProvider` (function) - AuthContext.tsx:20
+- `initAuth` (function) - AuthContext.tsx:30
+- `useAuth` (function) - AuthContext.tsx:117
+
+## Documentation Touchpoints
+
+<!-- Link to relevant documentation files this agent should reference. -->
+
+_Content to be added._
+
+## Collaboration Checklist
+
+<!-- Numbered checklist for agent workflow: confirm assumptions, review PRs, update docs, capture learnings. -->
+
+_Content to be added._
+
+## Hand-off Notes
+
+<!-- Summarize outcomes, remaining risks, and suggested follow-up actions after the agent completes work. -->
+
+_Content to be added._

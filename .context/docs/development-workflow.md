@@ -1,72 +1,43 @@
-# Development Workflow
+---
+type: doc
+name: development-workflow
+description: Day-to-day engineering processes, branching, and contribution guidelines
+category: workflow
+generated: 2026-03-04
+status: unfilled
+scaffoldVersion: "2.0.0"
+---
+## Development Workflow
 
-## Ambiente de Desenvolvimento
+<!-- Outline the day-to-day engineering process for this repository. -->
 
-### Pré-requisitos
-- Node.js 18+ 
-- npm 9+
+_Content to be added._
 
-### Setup Inicial
+## Branching & Releases
 
-```bash
-npm install
-cp .env.example .env.local
-# Configurar variáveis NEXT_PUBLIC_XANO_* no .env.local
-npm run dev
-```
+<!-- Describe the branching model (trunk-based, Git Flow, etc.). Note release cadence and tagging conventions. -->
 
-### Scripts Disponíveis
+_Content to be added._
 
-| Script | Comando | Descrição |
-|--------|---------|-----------|
-| `dev` | `next dev` | Servidor de desenvolvimento com hot reload |
-| `build` | `next build` | Build de produção |
-| `start` | `next start` | Servidor de produção |
-| `lint` | `eslint` | Linting do código |
+## Local Development
 
-## Estrutura de Branches
+<!-- Commands to install dependencies, run locally, and build for distribution. Use code blocks for commands. -->
 
-- `main` — branch de produção estável
-- `feature/*` — branches de funcionalidades
-- `fix/*` — branches de correções
+_Content to be added._
 
-## Convenções de Código
+## Code Review Expectations
 
-### TypeScript
-- Strict mode habilitado
-- Interfaces para contratos de API (`User`, `Book`, `Wallet`, `AuthResponse`)
-- Types para modelos de dados (`Book`, `Wallet`, `GenerateFullBookResult`)
+<!-- Summarize review checklists and required approvals. Reference AGENTS.md for agent collaboration tips. -->
 
-### Componentes React
-- Componentes funcionais com hooks
-- `"use client"` directive para componentes client-side
-- Props tipadas com TypeScript interfaces
-- Componentes UI via shadcn/ui (Radix primitives)
+_Content to be added._
 
-### Estilização
-- Tailwind CSS v4 com classes utilitárias
-- `cn()` helper para merge condicional de classes (clsx + tailwind-merge)
-- CSS variables para temas (`--font-inter`, `--font-outfit`)
-- Dark mode via classe CSS (`class` strategy do next-themes)
+## Onboarding Tasks
 
-### Imports
-- Path aliases: `@/` mapeia para `src/`
-- Imports organizados: React/Next → libs externas → componentes → utils
+<!-- Point newcomers to first issues or starter tickets. Link to internal runbooks or dashboards. -->
 
-## Fluxo de Desenvolvimento
+_Content to be added._
 
-1. Criar branch a partir de `main`
-2. Implementar mudanças seguindo as convenções
-3. Testar localmente com `npm run dev`
-4. Rodar `npm run lint` para verificar qualidade
-5. Fazer build com `npm run build` para validar
-6. Abrir PR seguindo Conventional Commits
+## Related Resources
 
-## Conventional Commits
-
-```
-feat(dashboard): add book deletion confirmation dialog
-fix(auth): handle expired token on page refresh
-style(ui): update button hover states for dark mode
-refactor(api): extract common fetch error handling
-```
+- [testing-strategy.md](./testing-strategy.md)
+- [tooling.md](./tooling.md)

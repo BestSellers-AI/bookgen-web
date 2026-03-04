@@ -1,63 +1,101 @@
-# Project Overview
+---
+type: doc
+name: project-overview
+description: High-level overview of the project, its purpose, and key components
+category: overview
+generated: 2026-03-04
+status: unfilled
+scaffoldVersion: "2.0.0"
+---
+## Project Overview
 
-## Propósito
+This is a **typescript** project using nextjs. The codebase contains **37 files** with **20 symbols**.
 
-**AI Book Generator** é uma aplicação web que permite aos usuários criar livros personalizados utilizando inteligência artificial. O sistema guia o usuário por um fluxo de criação (wizard) onde ele fornece um briefing, recebe uma prévia gerada por IA, e pode então gerar o livro completo.
+## Codebase Reference
 
-## Funcionalidades Principais
+> **Detailed Analysis**: For complete symbol counts, architecture layers, and dependency graphs, see [`codebase-map.json`](./codebase-map.json).
 
-- **Autenticação completa**: Login, registro, recuperação de senha e gerenciamento de perfil
-- **Dashboard de livros**: Listagem, visualização e exclusão de livros criados
-- **Wizard de criação**: Fluxo guiado para criação de livros com modos manual e IA
-- **Geração de prévia**: Geração de título, subtítulo e planejamento via IA
-- **Geração completa**: Geração do livro completo com conteúdo, introdução, conclusão, glossário, etc.
-- **Sistema de créditos**: Wallet com saldo para controlar o uso da geração de livros
-- **Integração Hotmart**: Compra de créditos via Hotmart
-- **Tema claro/escuro**: Suporte a dark mode com toggle e detecção do sistema
-- **Download de PDF**: Livros gerados disponíveis para download em PDF
+## Quick Facts
 
-## Stack Tecnológica
+- **Root**: `/Users/reisalbuquerque/Projects/code/bookgen/bestsellers-ai-monorepo-v01`
+- **Languages**: javascript, typescript
+- **Total Files**: 37
+- **Total Symbols**: 20
+- **Full analysis**: [`codebase-map.json`](./codebase-map.json)
 
-| Camada | Tecnologia | Versão |
-|--------|-----------|--------|
-| Framework | Next.js (App Router) | 16.1.6 |
-| UI | React | 19.2.3 |
-| Estilização | Tailwind CSS v4 | 4.1.18 |
-| Componentes UI | Radix UI + shadcn/ui | — |
-| Animações | Framer Motion | 12.34.0 |
-| Temas | next-themes | 0.4.6 |
-| Notificações | Sonner | 2.0.7 |
-| Backend (BaaS) | Xano | — |
-| Linguagem | TypeScript | 5.x |
+## Entry Points
 
-## Público-Alvo
+_No entry points detected. Add main entry files here._
 
-Criadores de conteúdo, autores independentes e profissionais que desejam gerar livros rapidamente usando IA como assistente de escrita.
+## Key Exports
 
-## Integrações Externas
+- `AuthProvider` (function) - AuthContext.tsx:20
+- `AuthResponse` (interface) - auth-service.ts:14
+- `BadgeProps` (interface) - badge.tsx:26
+- `Book` (type) - api.ts:3
+- `ButtonProps` (interface) - button.tsx:36
+- `cn` (function) - utils.ts:4
+- `CreditsPage` (function) - page.tsx:9
+- `GenerateFullBookResult` (type) - api.ts:172
+- `initAuth` (function) - AuthContext.tsx:30
+- `ProtectedRoute` (function) - ProtectedRoute.tsx:8
 
-- **Xano**: Backend-as-a-Service para API REST (autenticação, CRUD de livros, wallet)
-- **n8n**: Orquestração de workflows de IA para geração de conteúdo (chamado via Xano)
-- **Hotmart**: Plataforma de pagamento para compra de créditos
+> See [`codebase-map.json`](./codebase-map.json) for complete list.
 
-## Variáveis de Ambiente
+## File Structure & Code Organization
 
-| Variável | Descrição |
-|----------|-----------|
-| `NEXT_PUBLIC_XANO_AUTH_API_URL` | URL da API de autenticação no Xano |
-| `NEXT_PUBLIC_XANO_BOOK_API_URL` | URL da API de livros no Xano |
-| `NEXT_PUBLIC_XANO_ACCOUNT_API_URL` | URL da API de conta/perfil no Xano |
+- `components.json/` — _describe purpose_
+- `eslint.config.mjs/` — _describe purpose_
+- `next-env.d.ts/` — _describe purpose_
+- `next.config.ts/` — _describe purpose_
+- `package-lock.json/` — _describe purpose_
+- `package.json/` — _describe purpose_
+- `plan/` — _describe purpose_
+- `postcss.config.js/` — _describe purpose_
+- `public/` — _describe purpose_
+- `README.md/` — _describe purpose_
 
-## Como Começar
+## Technology Stack Summary
 
-```bash
-# Instalar dependências
-npm install
+**Primary Language**: typescript
 
-# Configurar variáveis de ambiente
-cp .env.example .env.local
-# Editar .env.local com as URLs do Xano
+**Other Languages**: javascript
 
-# Rodar em desenvolvimento
-npm run dev
-```
+**Frameworks**: nextjs
+
+**Package Manager**: npm
+
+## Core Framework Stack
+
+- **nextjs**
+
+## UI & Interaction Libraries
+
+<!-- List UI kits, CLI interaction helpers, or design system dependencies. Note theming, accessibility, or localization considerations. -->
+
+_Content to be added._
+
+## Development Tools Overview
+
+<!-- Highlight essential CLIs, scripts, or developer environments. Link to Tooling guide for deeper setup. -->
+
+_Content to be added._
+
+## Getting Started Checklist
+
+1. Install dependencies with `npm install`.
+2. Start development with `npm run dev` or `npm start`.
+3. Review the development workflow documentation.
+
+## Next Steps
+
+<!-- Capture product positioning, key stakeholders, and links to external documentation or product specs. -->
+
+_Content to be added._
+
+## Related Resources
+
+- [architecture.md](./architecture.md)
+- [development-workflow.md](./development-workflow.md)
+- [tooling.md](./tooling.md)
+- [codebase-map.json](./codebase-map.json)

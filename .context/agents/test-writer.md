@@ -1,84 +1,71 @@
-# Test Writer — AI Book Generator
+---
+type: agent
+name: Test Writer
+description: Write comprehensive unit and integration tests
+agentType: test-writer
+phases: [E, V]
+generated: 2026-03-04
+status: unfilled
+scaffoldVersion: "2.0.0"
+---
+## Mission
 
-## Role & Responsibilities
-- Criar e manter testes automatizados
-- Definir estratégias de mocking para APIs externas
-- Garantir cobertura adequada de código crítico
-- Configurar framework de testes quando necessário
+<!-- Describe how the test writer agent supports the team and when to engage it. -->
 
-## Estado Atual
-O projeto **não possui testes automatizados** configurados. Nenhum framework de teste está instalado.
+_Content to be added._
 
-## Setup Recomendado
+## Responsibilities
 
-### Instalação
-```bash
-npm install -D vitest @testing-library/react @testing-library/jest-dom jsdom msw
-```
+<!-- List specific responsibilities this agent handles. Be concrete about what tasks it performs. -->
 
-### Configuração (`vitest.config.ts`)
-```typescript
-import { defineConfig } from 'vitest/config';
-import path from 'path';
-
-export default defineConfig({
-  test: {
-    environment: 'jsdom',
-    globals: true,
-    setupFiles: ['./src/test/setup.ts'],
-  },
-  resolve: {
-    alias: { '@': path.resolve(__dirname, './src') },
-  },
-});
-```
-
-## Prioridades de Teste
-
-### 1. Serviços (Alta Prioridade)
-- [`authService`](src/lib/auth-service.ts:18) — login, signup, getMe, token CRUD
-- [`api.ts`](src/lib/api.ts:1) — getBooks, createBook, generatePreview, generateFullBook, getWallet
-
-### 2. Contextos (Média Prioridade)
-- [`AuthProvider`](src/context/AuthContext.tsx:20) — estados de auth, login/logout flow
-- [`useAuth()`](src/context/AuthContext.tsx:117) — hook de autenticação
-
-### 3. Componentes (Média Prioridade)
-- [`ProtectedRoute`](src/components/ProtectedRoute.tsx:8) — redirect quando não autenticado
-- [`ThemeToggle`](src/components/ui/theme-toggle.tsx:15) — alternância de tema
-
-## Mocking Strategies
-
-| Dependência | Estratégia |
-|-------------|-----------|
-| Xano API (fetch) | MSW (Mock Service Worker) |
-| localStorage | Mock manual ou `jest-localstorage-mock` |
-| `next/navigation` | Mock de `useRouter`, `usePathname`, `redirect` |
-| `next-themes` | Mock de `useTheme` |
-
-## Test File Organization
-```
-src/
-├── test/
-│   └── setup.ts          # Setup global (MSW, mocks)
-├── lib/
-│   ├── api.test.ts        # Testes do API client
-│   └── auth-service.test.ts # Testes do auth service
-├── context/
-│   └── AuthContext.test.tsx # Testes do AuthProvider
-└── components/
-    └── ProtectedRoute.test.tsx
-```
+_Content to be added._
 
 ## Best Practices
-- Testar comportamento, não implementação
-- Usar MSW para interceptar fetch ao invés de mockar módulos
-- Cada teste deve ser independente (setup/teardown)
-- Nomear testes descritivamente: `it('should redirect to login when not authenticated')`
-- Manter testes próximos ao código testado (co-location)
 
-## Common Pitfalls
-- `localStorage` não existe em ambiente de teste — precisa de mock
-- `useRouter` do Next.js precisa de mock explícito
-- Componentes com `"use client"` podem precisar de setup especial
-- Async operations precisam de `waitFor` do Testing Library
+<!-- List best practices and guidelines for this agent to follow. -->
+
+_Content to be added._
+
+## Key Project Resources
+
+<!-- Link to documentation index, agent handbook, AGENTS.md, and contributor guide. -->
+
+_Content to be added._
+
+## Repository Starting Points
+
+<!-- List top-level directories relevant to this agent with brief descriptions. -->
+
+_Content to be added._
+
+## Key Files
+
+_No specific files detected for this agent type._
+
+## Architecture Context
+
+<!-- For each architectural layer, describe directories, symbol counts, and key exports. -->
+
+_Content to be added._
+
+## Key Symbols for This Agent
+
+_No specific symbols detected for this agent type._
+
+## Documentation Touchpoints
+
+<!-- Link to relevant documentation files this agent should reference. -->
+
+_Content to be added._
+
+## Collaboration Checklist
+
+<!-- Numbered checklist for agent workflow: confirm assumptions, review PRs, update docs, capture learnings. -->
+
+_Content to be added._
+
+## Hand-off Notes
+
+<!-- Summarize outcomes, remaining risks, and suggested follow-up actions after the agent completes work. -->
+
+_Content to be added._

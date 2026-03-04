@@ -1,53 +1,74 @@
-# Code Reviewer — AI Book Generator
+---
+type: agent
+name: Code Reviewer
+description: Review code changes for quality, style, and best practices
+agentType: code-reviewer
+phases: [R, V]
+generated: 2026-03-04
+status: unfilled
+scaffoldVersion: "2.0.0"
+---
+## Mission
 
-## Role & Responsibilities
-- Revisar PRs para qualidade, segurança e consistência
-- Verificar aderência aos padrões do projeto
-- Identificar potenciais bugs e problemas de performance
-- Garantir que mudanças são testáveis e documentadas
+<!-- Describe how the code reviewer agent supports the team and when to engage it. -->
 
-## Code Review Checklist
+_Content to be added._
 
-### Geral
-- [ ] Código segue convenções TypeScript do projeto
-- [ ] Imports usam path alias `@/`
-- [ ] Sem `any` desnecessário — tipos explícitos quando possível
-- [ ] Sem `console.log` em código de produção (apenas `console.error` para erros)
-- [ ] Commit message segue Conventional Commits
+## Responsibilities
 
-### Componentes React
-- [ ] `"use client"` presente quando necessário (hooks, interatividade)
-- [ ] Props tipadas com interfaces/types
-- [ ] Componentes shadcn/ui preferidos sobre implementações custom
-- [ ] `cn()` usado para merge condicional de classes
-- [ ] Dark mode testado (classes `dark:`)
+<!-- List specific responsibilities this agent handles. Be concrete about what tasks it performs. -->
 
-### API & Dados
-- [ ] Erros de API tratados com try/catch
-- [ ] `response.ok` verificado antes de processar
-- [ ] `getHeaders()` usado para requests autenticados
-- [ ] Tipos de retorno explícitos nas funções de API
-- [ ] Feedback visual para o usuário em caso de erro (toast)
+_Content to be added._
 
-### Segurança
-- [ ] Sem secrets hardcoded no código
-- [ ] Token JWT usado via `getHeaders()`, não manipulado diretamente
-- [ ] Inputs sanitizados antes de enviar ao backend
-- [ ] Rotas protegidas usam `ProtectedRoute`
+## Best Practices
 
-### Performance
-- [ ] Sem re-renders desnecessários (deps corretas no useEffect)
-- [ ] Imagens otimizadas (next/image quando aplicável)
-- [ ] Sem fetches duplicados ou em loop
+<!-- List best practices and guidelines for this agent to follow. -->
 
-## Key Patterns to Verify
-- API calls seguem o padrão de [`src/lib/api.ts`](src/lib/api.ts)
-- Auth flow usa [`useAuth()`](src/context/AuthContext.tsx:117) hook
-- Novos componentes UI seguem padrão shadcn/ui
-- Novas rotas autenticadas estão dentro de `dashboard/`
+_Content to be added._
 
-## Common Issues to Flag
-- `userId` passado como string ao invés de number
-- Falta de tratamento para formatos variados de resposta do Xano
-- `useEffect` sem cleanup para async operations
-- Componentes server-side usando hooks de client
+## Key Project Resources
+
+<!-- Link to documentation index, agent handbook, AGENTS.md, and contributor guide. -->
+
+_Content to be added._
+
+## Repository Starting Points
+
+<!-- List top-level directories relevant to this agent with brief descriptions. -->
+
+_Content to be added._
+
+## Key Files
+
+- [`src/lib/auth-service.ts`](../src/lib/auth-service.ts)
+
+## Architecture Context
+
+<!-- For each architectural layer, describe directories, symbol counts, and key exports. -->
+
+_Content to be added._
+
+## Key Symbols for This Agent
+
+- `User` (interface) - auth-service.ts:6
+- `AuthResponse` (interface) - auth-service.ts:14
+- `ButtonProps` (interface) - button.tsx:36
+- `BadgeProps` (interface) - badge.tsx:26
+
+## Documentation Touchpoints
+
+<!-- Link to relevant documentation files this agent should reference. -->
+
+_Content to be added._
+
+## Collaboration Checklist
+
+<!-- Numbered checklist for agent workflow: confirm assumptions, review PRs, update docs, capture learnings. -->
+
+_Content to be added._
+
+## Hand-off Notes
+
+<!-- Summarize outcomes, remaining risks, and suggested follow-up actions after the agent completes work. -->
+
+_Content to be added._

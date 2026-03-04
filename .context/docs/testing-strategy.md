@@ -1,55 +1,42 @@
-# Testing Strategy
+---
+type: doc
+name: testing-strategy
+description: Test frameworks, patterns, coverage requirements, and quality gates
+category: testing
+generated: 2026-03-04
+status: unfilled
+scaffoldVersion: "2.0.0"
+---
+## Testing Strategy
 
-## Estado Atual
+<!-- Document how quality is maintained across the codebase. -->
 
-O projeto atualmente **não possui testes automatizados** configurados. Não há framework de testes instalado no `package.json` nem scripts de teste definidos.
+_Content to be added._
 
-## Estratégia Recomendada
+## Test Types
 
-### Framework Sugerido
-- **Vitest** ou **Jest** com React Testing Library
-- **Playwright** ou **Cypress** para testes E2E
+<!-- For Unit, Integration, and E2E tests: list frameworks, file naming conventions, and required tooling. -->
 
-### Prioridades de Teste
+_Content to be added._
 
-#### 1. Testes Unitários (Alta Prioridade)
-- [`authService`](src/lib/auth-service.ts:18) — login, signup, getMe, token management
-- [`api.ts`](src/lib/api.ts:1) — getBooks, createBook, generatePreview, generateFullBook
-- [`cn()`](src/lib/utils.ts:4) — merge de classes CSS
+## Running Tests
 
-#### 2. Testes de Componente (Média Prioridade)
-- [`AuthProvider`](src/context/AuthContext.tsx:20) — estados de autenticação
-- [`ProtectedRoute`](src/components/ProtectedRoute.tsx:8) — redirect quando não autenticado
-- [`ThemeToggle`](src/components/ui/theme-toggle.tsx:15) — alternância de tema
-- Wizard de criação — fluxo multi-step
+<!-- Commands for running all tests, watch mode, and coverage. Use code blocks. -->
 
-#### 3. Testes E2E (Baixa Prioridade Inicial)
-- Fluxo completo de login → dashboard → criar livro
-- Fluxo de registro de novo usuário
-- Visualização e download de livro
+_Content to be added._
 
-### Mocking
+## Quality Gates
 
-| Dependência | Estratégia de Mock |
-|-------------|-------------------|
-| Xano API | MSW (Mock Service Worker) para interceptar fetch |
-| localStorage | jest-localstorage-mock ou mock manual |
-| next/navigation | Mock do `useRouter`, `usePathname` |
-| next-themes | Mock do `useTheme` |
+<!-- Define minimum coverage expectations. Capture linting or formatting requirements before merging. -->
 
-### Cobertura Mínima Sugerida
-- Serviços (`lib/`): 80%+
-- Componentes críticos: 60%+
-- Páginas: 40%+
+_Content to be added._
 
-## Setup Futuro
+## Troubleshooting
 
-```bash
-# Instalar dependências de teste
-npm install -D vitest @testing-library/react @testing-library/jest-dom jsdom msw
+<!-- Document flaky suites, long-running tests, or environment quirks. -->
 
-# Adicionar scripts ao package.json
-# "test": "vitest",
-# "test:watch": "vitest --watch",
-# "test:coverage": "vitest --coverage"
-```
+_Content to be added._
+
+## Related Resources
+
+- [development-workflow.md](./development-workflow.md)

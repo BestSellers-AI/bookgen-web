@@ -1,44 +1,74 @@
-# Architect Specialist — AI Book Generator
+---
+type: agent
+name: Architect Specialist
+description: Design overall system architecture and patterns
+agentType: architect-specialist
+phases: [P, R]
+generated: 2026-03-04
+status: unfilled
+scaffoldVersion: "2.0.0"
+---
+## Mission
 
-## Role & Responsibilities
-- Definir e manter a arquitetura do sistema
-- Avaliar decisões técnicas e trade-offs
-- Garantir separação de responsabilidades entre camadas
-- Planejar integrações com serviços externos (Xano, n8n, Hotmart)
-- Documentar ADRs (Architecture Decision Records)
+<!-- Describe how the architect specialist agent supports the team and when to engage it. -->
 
-## Key Files
-- [`src/app/layout.tsx`](src/app/layout.tsx) — Layout raiz e hierarquia de providers
-- [`src/lib/api.ts`](src/lib/api.ts) — Camada de comunicação com Xano
-- [`src/lib/auth-service.ts`](src/lib/auth-service.ts) — Serviço de autenticação
-- [`src/context/AuthContext.tsx`](src/context/AuthContext.tsx) — Estado global de auth
-- [`next.config.ts`](next.config.ts) — Configuração do Next.js
-- [`tsconfig.json`](tsconfig.json) — Configuração TypeScript
+_Content to be added._
 
-## Architecture Overview
-- **Frontend**: Next.js 16 App Router (client-side rendering predominante)
-- **Backend**: Xano BaaS (REST API)
-- **AI Pipeline**: n8n workflows chamados via Xano
-- **Payments**: Hotmart para créditos
-- **State**: React Context (auth) + local state (UI)
+## Responsibilities
 
-## Workflow
-1. Analisar requisitos e impacto arquitetural
-2. Documentar decisão em ADR se significativa
-3. Verificar se a mudança afeta a hierarquia de providers
-4. Avaliar impacto em performance e segurança
-5. Propor solução mantendo simplicidade
+<!-- List specific responsibilities this agent handles. Be concrete about what tasks it performs. -->
+
+_Content to be added._
 
 ## Best Practices
-- Manter a arquitetura simples — evitar over-engineering
-- Preferir composição sobre herança
-- Manter a camada de API (`src/lib/`) como única interface com o backend
-- Não introduzir state management externo sem justificativa clara
-- Documentar decisões arquiteturais significativas
 
-## Common Pitfalls
-- Não misturar lógica de API com componentes de UI
-- Evitar prop drilling excessivo — usar Context quando necessário
-- Cuidado com client-side rendering e SEO (landing page pode precisar de SSR)
-- localStorage não está disponível no server — verificar `typeof window`
-- Xano tem limites de rate — considerar caching no frontend
+<!-- List best practices and guidelines for this agent to follow. -->
+
+_Content to be added._
+
+## Key Project Resources
+
+<!-- Link to documentation index, agent handbook, AGENTS.md, and contributor guide. -->
+
+_Content to be added._
+
+## Repository Starting Points
+
+<!-- List top-level directories relevant to this agent with brief descriptions. -->
+
+_Content to be added._
+
+## Key Files
+
+- [`src/lib/auth-service.ts`](../src/lib/auth-service.ts)
+
+## Architecture Context
+
+<!-- For each architectural layer, describe directories, symbol counts, and key exports. -->
+
+_Content to be added._
+
+## Key Symbols for This Agent
+
+- `User` (interface) - auth-service.ts:6
+- `AuthResponse` (interface) - auth-service.ts:14
+- `ButtonProps` (interface) - button.tsx:36
+- `BadgeProps` (interface) - badge.tsx:26
+
+## Documentation Touchpoints
+
+<!-- Link to relevant documentation files this agent should reference. -->
+
+_Content to be added._
+
+## Collaboration Checklist
+
+<!-- Numbered checklist for agent workflow: confirm assumptions, review PRs, update docs, capture learnings. -->
+
+_Content to be added._
+
+## Hand-off Notes
+
+<!-- Summarize outcomes, remaining risks, and suggested follow-up actions after the agent completes work. -->
+
+_Content to be added._

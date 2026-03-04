@@ -1,0 +1,92 @@
+import {
+  UserRole,
+  SubscriptionPlan,
+  SubscriptionStatus,
+  BillingInterval,
+  BookStatus,
+  PurchaseStatus,
+} from '../enums';
+
+export interface AdminUserSummary {
+  id: string;
+  email: string;
+  name: string | null;
+  role: UserRole;
+  onboardingCompleted: boolean;
+  balance: number;
+  activePlan: SubscriptionPlan | null;
+  booksCount: number;
+  createdAt: string;
+}
+
+export interface AdminUserDetail {
+  id: string;
+  email: string;
+  name: string | null;
+  avatarUrl: string | null;
+  role: UserRole;
+  stripeCustomerId: string | null;
+  onboardingCompleted: boolean;
+  emailVerified: string | null;
+  wallet: {
+    balance: number;
+  } | null;
+  subscription: {
+    id: string;
+    plan: SubscriptionPlan;
+    status: SubscriptionStatus;
+    billingInterval: BillingInterval;
+    currentPeriodEnd: string | null;
+    cancelAtPeriodEnd: boolean;
+  } | null;
+  booksCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminBookSummary {
+  id: string;
+  title: string;
+  author: string;
+  status: BookStatus;
+  userId: string;
+  userEmail: string;
+  wordCount: number | null;
+  pageCount: number | null;
+  createdAt: string;
+}
+
+export interface AdminSubscriptionSummary {
+  id: string;
+  userId: string;
+  userEmail: string;
+  plan: SubscriptionPlan;
+  status: SubscriptionStatus;
+  billingInterval: BillingInterval;
+  currentPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean;
+  createdAt: string;
+}
+
+export interface AdminPurchaseSummary {
+  id: string;
+  userId: string;
+  userEmail: string;
+  status: PurchaseStatus;
+  totalAmount: number;
+  currency: string;
+  gateway: string;
+  paidAt: string | null;
+  createdAt: string;
+}
+
+export interface DashboardStats {
+  totalUsers: number;
+  activeUsers: number;
+  totalBooks: number;
+  booksThisMonth: number;
+  totalRevenueCents: number;
+  revenueThisMonthCents: number;
+  activeSubscriptions: Record<string, number>;
+  topAddons: Array<{ kind: string; count: number }>;
+}

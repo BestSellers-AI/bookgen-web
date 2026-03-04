@@ -1,66 +1,34 @@
-# Project Rules and Guidelines
+# AGENTS.md
 
-> Auto-generated from .context/docs on 2026-02-14T13:00:20.623Z
+## Dev environment tips
+- Install dependencies with `npm install` before running scaffolds.
+- Use `npm run dev` for the interactive TypeScript session that powers local experimentation.
+- Run `npm run build` to refresh the CommonJS bundle in `dist/` before shipping changes.
+- Store generated artefacts in `.context/` so reruns stay deterministic.
 
-## README
+## Testing instructions
+- Execute `npm run test` to run the Jest suite.
+- Append `-- --watch` while iterating on a failing spec.
+- Trigger `npm run build && npm run test` before opening a PR to mimic CI.
+- Add or update tests alongside any generator or CLI changes.
 
-# Documentation Index
+## PR instructions
+- Follow Conventional Commits (for example, `feat(scaffolding): add doc links`).
+- Cross-link new scaffolds in `docs/README.md` and `agents/README.md` so future agents can find them.
+- Attach sample CLI output or generated markdown when behaviour shifts.
+- Confirm the built artefacts in `dist/` match the new source changes.
 
-Bem-vindo à base de conhecimento do **AI Book Generator**. Comece pelo overview do projeto e depois explore os guias específicos.
+## Repository map
+- `components.json/` — explain what lives here and when agents should edit it.
+- `eslint.config.mjs/` — explain what lives here and when agents should edit it.
+- `next-env.d.ts/` — explain what lives here and when agents should edit it.
+- `next.config.ts/` — explain what lives here and when agents should edit it.
+- `package-lock.json/` — explain what lives here and when agents should edit it.
+- `package.json/` — explain what lives here and when agents should edit it.
+- `plan/` — explain what lives here and when agents should edit it.
+- `postcss.config.js/` — explain what lives here and when agents should edit it.
 
-## Core Guides
-- [Project Overview](./project-overview.md) — Propósito, stack, funcionalidades e como começar
-- [Architecture Notes](./architecture.md) — Camadas, estrutura de diretórios, padrões de design
-- [Development Workflow](./development-workflow.md) — Setup, scripts, convenções de código
-- [Testing Strategy](./testing-strategy.md) — Estado atual, estratégia recomendada, prioridades
-- [Glossary & Domain Concepts](./glossary.md) — Termos de domínio, entidades, personas
-- [Security & Compliance Notes](./security.md) — Autenticação JWT, riscos, recomendações
-- [Tooling & Productivity Guide](./tooling.md) — Ferramentas, componentes UI, utilitários
-
-## Repository Snapshot
-
-```
-src/
-├── app/              # Rotas Next.js (App Router)
-│   ├── auth/         # Login, registro, forgot-password
-│   └── dashboard/    # Área autenticada (livros, créditos, perfil)
-├── components/       # Componentes React (UI, providers, wizard)
-├── context/          # AuthContext (autenticação global)
-└── lib/              # API client, auth service, utils
-```
-
-## Document Map
-| Guide | File | Conteúdo Principal |
-| --- | --- | --- |
-| Project Overview | `project-overview.md` | Stack, funcionalidades, integrações |
-| Architecture Notes | `architecture.md` | Camadas, padrões, decisões técnicas |
-| Development Workflow | `development-workflow.md` | Setup, scripts, convenções |
-| Testing Strategy | `testing-strategy.md` | Frameworks, prioridades, mocking |
-| Glossary | `glossary.md` | Termos de domínio, entidades, APIs |
-| Security | `security.md` | JWT, riscos, proteção de rotas |
-| Tooling | `tooling.md` | Build tools, shadcn/ui, utilitários |
-
-
-## qa/README
-
-# Q&A Index
-
-Project type: **web-app**
-
-Generated: 2026-02-14T12:54:19.041Z
-
-## Getting-started
-
-- [How do I set up and run this project?](./getting-started.md)
-
-## Architecture
-
-- [How is the codebase organized?](./project-structure.md)
-- [How does routing work?](./routing.md)
-- [How does middleware work?](./middleware.md)
-
-## Features
-
-- [How does authentication work?](./authentication.md)
-- [What API endpoints are available?](./api-endpoints.md)
-
+## AI Context References
+- Documentation index: `.context/docs/README.md`
+- Agent playbooks: `.context/agents/README.md`
+- Contributor guide: `CONTRIBUTING.md`

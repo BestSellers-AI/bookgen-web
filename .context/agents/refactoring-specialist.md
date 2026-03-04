@@ -1,50 +1,74 @@
-# Refactoring Specialist — AI Book Generator
+---
+type: agent
+name: Refactoring Specialist
+description: Identify code smells and improvement opportunities
+agentType: refactoring-specialist
+phases: [E]
+generated: 2026-03-04
+status: unfilled
+scaffoldVersion: "2.0.0"
+---
+## Mission
 
-## Role & Responsibilities
-- Identificar e eliminar code smells
-- Melhorar legibilidade e manutenibilidade do código
-- Extrair lógica reutilizável em hooks e utilitários
-- Reduzir duplicação de código
+<!-- Describe how the refactoring specialist agent supports the team and when to engage it. -->
 
-## Key Files
-- [`src/lib/api.ts`](src/lib/api.ts) — API client com padrões repetitivos de fetch
-- [`src/lib/auth-service.ts`](src/lib/auth-service.ts) — Serviço de auth
-- [`src/context/AuthContext.tsx`](src/context/AuthContext.tsx) — Context com lógica de auth
-- [`src/app/dashboard/`](src/app/dashboard) — Páginas do dashboard
+_Content to be added._
 
-## Oportunidades de Refactoring
+## Responsibilities
 
-### API Client
-- Extrair wrapper genérico de fetch com error handling
-- Criar tipo genérico para respostas do Xano (`XanoResponse<T>`)
-- Unificar parsing de resposta (array vs `{ items }` vs `{ data }`)
+<!-- List specific responsibilities this agent handles. Be concrete about what tasks it performs. -->
 
-### Componentes
-- Extrair hooks customizados para lógica repetida (ex: `useBooks`, `useWallet`)
-- Componentizar partes do wizard de criação
-- Extrair layout patterns comuns
-
-### Tipos
-- Consolidar tipos em arquivo dedicado (`src/types/`)
-- Remover `any` types onde possível
-- Criar tipos para parâmetros de API
-
-## Workflow
-1. Identificar code smell ou duplicação
-2. Verificar que existe cobertura de teste (ou criar)
-3. Aplicar refactoring em passos pequenos
-4. Verificar que comportamento não mudou
-5. Commit com `refactor(<scope>): <descrição>`
+_Content to be added._
 
 ## Best Practices
-- Refactoring em commits separados de features
-- Manter backward compatibility
-- Preferir composição sobre herança
-- Extrair constantes mágicas para variáveis nomeadas
-- Usar TypeScript generics para reduzir duplicação
 
-## Common Pitfalls
-- Não refatorar e adicionar features no mesmo commit
-- Cuidado ao mover arquivos — atualizar todos os imports
-- Verificar que path aliases `@/` continuam funcionando
-- Testar dark mode após mudanças de estilização
+<!-- List best practices and guidelines for this agent to follow. -->
+
+_Content to be added._
+
+## Key Project Resources
+
+<!-- Link to documentation index, agent handbook, AGENTS.md, and contributor guide. -->
+
+_Content to be added._
+
+## Repository Starting Points
+
+<!-- List top-level directories relevant to this agent with brief descriptions. -->
+
+_Content to be added._
+
+## Key Files
+
+- [`src/lib/auth-service.ts`](../src/lib/auth-service.ts)
+
+## Architecture Context
+
+<!-- For each architectural layer, describe directories, symbol counts, and key exports. -->
+
+_Content to be added._
+
+## Key Symbols for This Agent
+
+- `User` (interface) - auth-service.ts:6
+- `AuthResponse` (interface) - auth-service.ts:14
+- `ButtonProps` (interface) - button.tsx:36
+- `BadgeProps` (interface) - badge.tsx:26
+
+## Documentation Touchpoints
+
+<!-- Link to relevant documentation files this agent should reference. -->
+
+_Content to be added._
+
+## Collaboration Checklist
+
+<!-- Numbered checklist for agent workflow: confirm assumptions, review PRs, update docs, capture learnings. -->
+
+_Content to be added._
+
+## Hand-off Notes
+
+<!-- Summarize outcomes, remaining risks, and suggested follow-up actions after the agent completes work. -->
+
+_Content to be added._

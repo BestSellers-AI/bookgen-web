@@ -1,38 +1,80 @@
-# Frontend Specialist — AI Book Generator
+---
+type: agent
+name: Frontend Specialist
+description: Design and implement user interfaces
+agentType: frontend-specialist
+phases: [P, E]
+generated: 2026-03-04
+status: unfilled
+scaffoldVersion: "2.0.0"
+---
+## Mission
 
-## Role & Responsibilities
-- Implementar e manter componentes React no Next.js App Router
-- Garantir acessibilidade e responsividade da UI
-- Gerenciar estilização com Tailwind CSS v4 e shadcn/ui
-- Implementar animações com Framer Motion
-- Manter consistência visual entre temas claro e escuro
+<!-- Describe how the frontend specialist agent supports the team and when to engage it. -->
 
-## Key Files
-- [`src/app/layout.tsx`](src/app/layout.tsx) — Layout raiz com providers
-- [`src/app/globals.css`](src/app/globals.css) — Estilos globais e variáveis Tailwind v4
-- [`src/components/ui/`](src/components/ui) — Componentes shadcn/ui
-- [`src/components/theme-provider.tsx`](src/components/theme-provider.tsx) — Provider de tema
-- [`src/components/ui/theme-toggle.tsx`](src/components/ui/theme-toggle.tsx) — Toggle dark/light mode
-- [`components.json`](components.json) — Configuração shadcn/ui
-- [`tailwind.config.ts`](tailwind.config.ts) — Configuração Tailwind
+_Content to be added._
 
-## Workflow
-1. Verificar se o componente já existe em `src/components/ui/`
-2. Para novos componentes shadcn: `npx shadcn@latest add <component>`
-3. Usar `cn()` de [`src/lib/utils.ts`](src/lib/utils.ts) para merge de classes
-4. Testar em ambos os temas (claro e escuro)
-5. Verificar responsividade em mobile e desktop
+## Responsibilities
+
+<!-- List specific responsibilities this agent handles. Be concrete about what tasks it performs. -->
+
+_Content to be added._
 
 ## Best Practices
-- Usar `"use client"` apenas quando necessário (interatividade, hooks)
-- Preferir componentes shadcn/ui sobre implementações custom
-- Usar variantes CVA (class-variance-authority) para componentes com múltiplos estados
-- Manter fontes Inter (corpo) e Outfit (headings) via CSS variables
-- Usar `suppressHydrationWarning` no `<html>` para next-themes
-- Seguir o padrão de path alias `@/` para imports
 
-## Common Pitfalls
-- Não esquecer de testar dark mode — usar classes `dark:` do Tailwind
-- Tailwind v4 usa `@theme` no CSS ao invés de `tailwind.config.ts` para customizações
-- Componentes Radix precisam de `"use client"` directive
-- Framer Motion pode causar hydration mismatch se não usar `"use client"`
+<!-- List best practices and guidelines for this agent to follow. -->
+
+_Content to be added._
+
+## Key Project Resources
+
+<!-- Link to documentation index, agent handbook, AGENTS.md, and contributor guide. -->
+
+_Content to be added._
+
+## Repository Starting Points
+
+<!-- List top-level directories relevant to this agent with brief descriptions. -->
+
+_Content to be added._
+
+## Key Files
+
+- [`src/components/theme-provider.tsx`](../src/components/theme-provider.tsx)
+- [`src/components/ProtectedRoute.tsx`](../src/components/ProtectedRoute.tsx)
+- [`src/app/page.tsx`](../src/app/page.tsx)
+- [`src/components/ui/theme-toggle.tsx`](../src/components/ui/theme-toggle.tsx)
+- [`src/components/ui/textarea.tsx`](../src/components/ui/textarea.tsx)
+- [`src/components/ui/sheet.tsx`](../src/components/ui/sheet.tsx)
+- [`src/components/ui/separator.tsx`](../src/components/ui/separator.tsx)
+- [`src/components/ui/select.tsx`](../src/components/ui/select.tsx)
+- [`src/components/ui/label.tsx`](../src/components/ui/label.tsx)
+- [`src/components/ui/input.tsx`](../src/components/ui/input.tsx)
+
+## Architecture Context
+
+<!-- For each architectural layer, describe directories, symbol counts, and key exports. -->
+
+_Content to be added._
+
+## Key Symbols for This Agent
+
+- `useAuth` (function) - AuthContext.tsx:117
+
+## Documentation Touchpoints
+
+<!-- Link to relevant documentation files this agent should reference. -->
+
+_Content to be added._
+
+## Collaboration Checklist
+
+<!-- Numbered checklist for agent workflow: confirm assumptions, review PRs, update docs, capture learnings. -->
+
+_Content to be added._
+
+## Hand-off Notes
+
+<!-- Summarize outcomes, remaining risks, and suggested follow-up actions after the agent completes work. -->
+
+_Content to be added._

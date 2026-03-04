@@ -1,59 +1,74 @@
-# Feature Developer — AI Book Generator
+---
+type: agent
+name: Feature Developer
+description: Implement new features according to specifications
+agentType: feature-developer
+phases: [P, E]
+generated: 2026-03-04
+status: unfilled
+scaffoldVersion: "2.0.0"
+---
+## Mission
 
-## Role & Responsibilities
-- Implementar novas funcionalidades end-to-end
-- Criar novas páginas e rotas no App Router
-- Integrar com APIs do Xano
-- Manter consistência com padrões existentes
+<!-- Describe how the feature developer agent supports the team and when to engage it. -->
 
-## Key Files
-- [`src/app/`](src/app) — Rotas e páginas
-- [`src/lib/api.ts`](src/lib/api.ts) — Cliente API do Xano (books, wallet, generate)
-- [`src/lib/auth-service.ts`](src/lib/auth-service.ts) — Serviço de autenticação
-- [`src/context/AuthContext.tsx`](src/context/AuthContext.tsx) — Context de auth global
-- [`src/components/ProtectedRoute.tsx`](src/components/ProtectedRoute.tsx) — Proteção de rotas
+_Content to be added._
 
-## Workflow
-1. Criar branch `feature/<nome>` a partir de `main`
-2. Definir a rota em `src/app/<path>/page.tsx`
-3. Se autenticada, envolver com `ProtectedRoute`
-4. Criar componentes em `src/components/` se reutilizáveis
-5. Adicionar chamadas API em `src/lib/api.ts` se necessário
-6. Usar `useAuth()` para acessar dados do usuário
-7. Testar em dev com `npm run dev`
-8. Commit com Conventional Commits
+## Responsibilities
 
-## Integration Points
-- **Nova página autenticada**: Adicionar em `src/app/dashboard/<feature>/page.tsx`
-- **Nova API call**: Adicionar função em [`src/lib/api.ts`](src/lib/api.ts) seguindo padrão existente
-- **Novo componente UI**: Verificar se shadcn/ui tem o componente antes de criar custom
-- **Estado global**: Usar AuthContext; para estado local, usar `useState`/`useReducer`
+<!-- List specific responsibilities this agent handles. Be concrete about what tasks it performs. -->
 
-## Padrão de API Call
-```typescript
-export const novaFuncao = async (params: Tipo): Promise<Retorno> => {
-    const response = await fetch(`${API_URL}/endpoint`, {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify(params),
-    });
-    if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.message || 'Falha na operação');
-    }
-    return response.json();
-};
-```
+_Content to be added._
 
 ## Best Practices
-- Sempre tipar parâmetros e retornos de funções
-- Tratar erros de API com try/catch e feedback visual (Sonner toast)
-- Usar `getHeaders()` para incluir token de autenticação
-- Manter componentes pequenos e focados
-- Seguir Conventional Commits para mensagens de commit
 
-## Common Pitfalls
-- Xano pode retornar dados em formatos diferentes (`array`, `{ items }`, `{ data }`)
-- Sempre verificar `response.ok` antes de processar resposta
-- `userId` deve ser convertido para `Number()` antes de enviar ao Xano
-- Não esquecer `"use client"` em componentes com hooks ou interatividade
+<!-- List best practices and guidelines for this agent to follow. -->
+
+_Content to be added._
+
+## Key Project Resources
+
+<!-- Link to documentation index, agent handbook, AGENTS.md, and contributor guide. -->
+
+_Content to be added._
+
+## Repository Starting Points
+
+<!-- List top-level directories relevant to this agent with brief descriptions. -->
+
+_Content to be added._
+
+## Key Files
+
+- [`src/lib/auth-service.ts`](../src/lib/auth-service.ts)
+
+## Architecture Context
+
+<!-- For each architectural layer, describe directories, symbol counts, and key exports. -->
+
+_Content to be added._
+
+## Key Symbols for This Agent
+
+- `User` (interface) - auth-service.ts:6
+- `AuthResponse` (interface) - auth-service.ts:14
+- `ButtonProps` (interface) - button.tsx:36
+- `BadgeProps` (interface) - badge.tsx:26
+
+## Documentation Touchpoints
+
+<!-- Link to relevant documentation files this agent should reference. -->
+
+_Content to be added._
+
+## Collaboration Checklist
+
+<!-- Numbered checklist for agent workflow: confirm assumptions, review PRs, update docs, capture learnings. -->
+
+_Content to be added._
+
+## Hand-off Notes
+
+<!-- Summarize outcomes, remaining risks, and suggested follow-up actions after the agent completes work. -->
+
+_Content to be added._

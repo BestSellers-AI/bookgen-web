@@ -1,0 +1,644 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// ENUMS
+// ==========================================
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum SubscriptionPlan {
+  ASPIRANTE
+  BESTSELLER
+  ELITE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  PAUSED
+  TRIALING
+  UNPAID
+}
+
+enum BillingInterval {
+  MONTHLY
+  ANNUAL
+}
+
+enum CreditType {
+  SUBSCRIPTION
+  PURCHASE
+  BONUS
+  REFUND
+}
+
+enum BookStatus {
+  DRAFT
+  PREVIEW_GENERATING
+  PREVIEW
+  PREVIEW_APPROVED
+  QUEUED
+  GENERATING
+  GENERATED
+  ERROR
+  CANCELLED
+}
+
+enum BookCreationMode {
+  SIMPLE
+  GUIDED
+  ADVANCED
+}
+
+enum ChapterStatus {
+  PENDING
+  GENERATING
+  GENERATED
+  ERROR
+}
+
+enum ProductKind {
+  CREDIT_PACK
+  BOOK_GENERATION
+  ADDON_COVER
+  ADDON_TRANSLATION
+  ADDON_COVER_TRANSLATION
+  ADDON_AMAZON_STANDARD
+  ADDON_AMAZON_PREMIUM
+  ADDON_IMAGES
+  ADDON_AUDIOBOOK
+  ONE_TIME_BOOK
+  SUBSCRIPTION_PLAN
+}
+
+enum PurchaseStatus {
+  PENDING
+  PAID
+  REFUNDED
+  CHARGEBACK
+  CANCELLED
+  EXPIRED
+}
+
+enum AddonStatus {
+  PENDING
+  QUEUED
+  PROCESSING
+  COMPLETED
+  ERROR
+  CANCELLED
+}
+
+enum WalletTransactionType {
+  CREDIT_PURCHASE
+  BOOK_GENERATION
+  ADDON_PURCHASE
+  REFUND
+  BONUS
+  ADJUSTMENT
+  SUBSCRIPTION_CREDIT
+}
+
+enum TranslationStatus {
+  PENDING
+  QUEUED
+  TRANSLATING
+  TRANSLATED
+  ERROR
+  CANCELLED
+}
+
+enum PublishingStatus {
+  PREPARING
+  REVIEW
+  READY
+  SUBMITTED
+  PUBLISHED
+  REJECTED
+  CANCELLED
+}
+
+enum FileType {
+  PREVIEW_PDF
+  FULL_PDF
+  EPUB
+  DOCX
+  COVER_IMAGE
+  COVER_TRANSLATED
+  AMAZON_PACKAGE
+  AUDIOBOOK
+}
+
+enum NotificationType {
+  BOOK_PREVIEW_READY
+  BOOK_GENERATED
+  BOOK_GENERATION_ERROR
+  ADDON_COMPLETED
+  ADDON_ERROR
+  TRANSLATION_COMPLETED
+  PUBLISHING_UPDATE
+  CREDITS_ADDED
+  CREDITS_LOW
+  CREDITS_EXPIRING
+  SUBSCRIPTION_RENEWED
+  SUBSCRIPTION_CANCELLED
+  SYSTEM
+}
+
+// ==========================================
+// MODELS
+// ==========================================
+
+model User {
+  id                  String    @id @default(cuid())
+  email               String    @unique
+  name                String?
+  passwordHash        String?   @map("password_hash")
+  avatarUrl           String?   @map("avatar_url")
+  role                UserRole  @default(USER)
+  stripeCustomerId    String?   @unique @map("stripe_customer_id")
+  onboardingCompleted Boolean   @default(false) @map("onboarding_completed")
+  emailVerified       DateTime? @map("email_verified")
+  deletedAt           DateTime? @map("deleted_at")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  accounts      Account[]
+  sessions      Session[]
+  books         Book[]
+  wallet        Wallet?
+  subscriptions Subscription[]
+  purchases     Purchase[]
+  notifications Notification[]
+  monthlyUsages MonthlyUsage[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String @id @default(cuid())
+  userId            String @map("user_id")
+  provider          String
+  providerAccountId String @map("provider_account_id")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  sessionToken String   @map("session_token")
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  id         String   @id @default(cuid())
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@map("verification_tokens")
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  userId               String             @map("user_id")
+  plan                 SubscriptionPlan
+  status               SubscriptionStatus
+  billingInterval      BillingInterval    @map("billing_interval")
+  stripeSubscriptionId String?            @unique @map("stripe_subscription_id")
+  stripeCustomerId     String?            @map("stripe_customer_id")
+  stripePriceId        String?            @map("stripe_price_id")
+  currentPeriodStart   DateTime?          @map("current_period_start")
+  currentPeriodEnd     DateTime?          @map("current_period_end")
+  cancelAtPeriodEnd    Boolean            @default(false) @map("cancel_at_period_end")
+  cancelledAt          DateTime?          @map("cancelled_at")
+  trialEnd             DateTime?          @map("trial_end")
+  createdAt            DateTime           @default(now()) @map("created_at")
+  updatedAt            DateTime           @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+model Wallet {
+  id        String   @id @default(cuid())
+  userId    String   @unique @map("user_id")
+  balance   Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions WalletTransaction[]
+  creditLedger CreditLedger[]
+
+  @@map("wallets")
+}
+
+model WalletTransaction {
+  id          String                @id @default(cuid())
+  walletId    String                @map("wallet_id")
+  type        WalletTransactionType
+  amount      Int
+  balance     Int
+  description String?
+  bookId      String?               @map("book_id")
+  addonId     String?               @map("addon_id")
+  createdAt   DateTime              @default(now()) @map("created_at")
+
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@map("wallet_transactions")
+}
+
+model CreditLedger {
+  id        String     @id @default(cuid())
+  walletId  String     @map("wallet_id")
+  type      CreditType
+  amount    Int
+  remaining Int
+  expiresAt DateTime?  @map("expires_at")
+  source    String?
+  sourceId  String?    @map("source_id")
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@map("credit_ledger")
+}
+
+model MonthlyUsage {
+  id               String @id @default(cuid())
+  userId           String @map("user_id")
+  month            String // "2026-03"
+  freeRegensUsed   Int    @default(0) @map("free_regens_used")
+  freeRegensLimit  Int    @map("free_regens_limit")
+  booksGenerated   Int    @default(0) @map("books_generated")
+  previewsGenerated Int   @default(0) @map("previews_generated")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, month])
+  @@map("monthly_usages")
+}
+
+model Book {
+  id                     String           @id @default(cuid())
+  userId                 String           @map("user_id")
+  title                  String
+  subtitle               String?
+  author                 String
+  briefing               String
+  status                 BookStatus       @default(DRAFT)
+  creationMode           BookCreationMode @map("creation_mode")
+  planning               Json?
+  settings               Json?
+  introduction           String?
+  conclusion             String?
+  finalConsiderations    String?          @map("final_considerations")
+  glossary               Json?
+  resourcesReferences    String?          @map("resources_references")
+  wordCount              Int?             @map("word_count")
+  pageCount              Int?             @map("page_count")
+  generationStartedAt    DateTime?        @map("generation_started_at")
+  generationCompletedAt  DateTime?        @map("generation_completed_at")
+  generationError        String?          @map("generation_error")
+  deletedAt              DateTime?        @map("deleted_at")
+  createdAt              DateTime         @default(now()) @map("created_at")
+  updatedAt              DateTime         @updatedAt @map("updated_at")
+
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chapters     Chapter[]
+  versions     BookContentVersion[]
+  files        BookFile[]
+  addons       BookAddon[]
+  translations BookTranslation[]
+  images       BookImage[]
+  audiobooks   Audiobook[]
+  sharedBooks  SharedBook[]
+
+  @@map("books")
+}
+
+model Chapter {
+  id             String        @id @default(cuid())
+  bookId         String        @map("book_id")
+  sequence       Int
+  title          String
+  content        String?
+  editedContent  String?       @map("edited_content")
+  status         ChapterStatus @default(PENDING)
+  topics         Json?
+  contextSummary String?       @map("context_summary")
+  wordCount      Int?          @map("word_count")
+  isEdited       Boolean       @default(false) @map("is_edited")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  book                Book                 @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  versions            BookContentVersion[]
+  translationChapters TranslationChapter[]
+  audiobookChapters   AudiobookChapter[]
+  images              BookImage[]
+
+  @@map("chapters")
+}
+
+model BookContentVersion {
+  id          String   @id @default(cuid())
+  bookId      String   @map("book_id")
+  chapterId   String?  @map("chapter_id")
+  contentType String   @map("content_type")
+  content     String
+  version     Int
+  createdBy   String   @map("created_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  book    Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  chapter Chapter? @relation(fields: [chapterId], references: [id], onDelete: SetNull)
+
+  @@map("book_content_versions")
+}
+
+model BookFile {
+  id            String   @id @default(cuid())
+  bookId        String   @map("book_id")
+  fileType      FileType @map("file_type")
+  fileName      String   @map("file_name")
+  fileUrl       String   @map("file_url")
+  fileSizeBytes Int?     @map("file_size_bytes")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@map("book_files")
+}
+
+model BookAddon {
+  id          String      @id @default(cuid())
+  bookId      String      @map("book_id")
+  kind        ProductKind
+  status      AddonStatus @default(PENDING)
+  resultUrl   String?     @map("result_url")
+  resultData  Json?       @map("result_data")
+  creditsCost Int?        @map("credits_cost")
+  error       String?
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  book               Book                @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  publishingRequests PublishingRequest[]
+
+  @@map("book_addons")
+}
+
+model BookTranslation {
+  id                String            @id @default(cuid())
+  bookId            String            @map("book_id")
+  targetLanguage    String            @map("target_language")
+  status            TranslationStatus @default(PENDING)
+  translatedTitle   String?           @map("translated_title")
+  translatedSubtitle String?          @map("translated_subtitle")
+  totalChapters     Int               @map("total_chapters")
+  completedChapters Int               @default(0) @map("completed_chapters")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  book     Book                 @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  chapters TranslationChapter[]
+
+  @@map("book_translations")
+}
+
+model TranslationChapter {
+  id                String            @id @default(cuid())
+  translationId     String            @map("translation_id")
+  chapterId         String            @map("chapter_id")
+  sequence          Int
+  translatedTitle   String?           @map("translated_title")
+  translatedContent String?           @map("translated_content")
+  status            TranslationStatus @default(PENDING)
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  translation BookTranslation @relation(fields: [translationId], references: [id], onDelete: Cascade)
+  chapter     Chapter         @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  @@map("translation_chapters")
+}
+
+model BookImage {
+  id        String   @id @default(cuid())
+  bookId    String   @map("book_id")
+  chapterId String?  @map("chapter_id")
+  prompt    String
+  imageUrl  String   @map("image_url")
+  caption   String?
+  position  Int
+  createdAt DateTime @default(now()) @map("created_at")
+
+  book    Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  chapter Chapter? @relation(fields: [chapterId], references: [id], onDelete: SetNull)
+
+  @@map("book_images")
+}
+
+model Audiobook {
+  id            String      @id @default(cuid())
+  bookId        String      @map("book_id")
+  voiceId       String?     @map("voice_id")
+  voiceName     String?     @map("voice_name")
+  status        AddonStatus @default(PENDING)
+  totalDuration Int?        @map("total_duration")
+  fullAudioUrl  String?     @map("full_audio_url")
+  fullAudioSize Int?        @map("full_audio_size")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  book     Book               @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  chapters AudiobookChapter[]
+
+  @@map("audiobooks")
+}
+
+model AudiobookChapter {
+  id           String        @id @default(cuid())
+  audiobookId  String        @map("audiobook_id")
+  chapterId    String        @map("chapter_id")
+  sequence     Int
+  title        String
+  audioUrl     String?       @map("audio_url")
+  durationSecs Int?          @map("duration_secs")
+  status       ChapterStatus @default(PENDING)
+  createdAt    DateTime      @default(now()) @map("created_at")
+
+  audiobook Audiobook @relation(fields: [audiobookId], references: [id], onDelete: Cascade)
+  chapter   Chapter   @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  @@map("audiobook_chapters")
+}
+
+model SharedBook {
+  id         String    @id @default(cuid())
+  bookId     String    @map("book_id")
+  shareToken String    @unique @map("share_token")
+  isActive   Boolean   @default(true) @map("is_active")
+  viewCount  Int       @default(0) @map("view_count")
+  expiresAt  DateTime? @map("expires_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@map("shared_books")
+}
+
+model PublishingRequest {
+  id           String           @id @default(cuid())
+  bookId       String           @map("book_id")
+  addonId      String           @map("addon_id")
+  platform     String
+  status       PublishingStatus @default(PREPARING)
+  metadata     Json?
+  submittedAt  DateTime?        @map("submitted_at")
+  publishedUrl String?          @map("published_url")
+  error        String?
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+
+  addon BookAddon @relation(fields: [addonId], references: [id], onDelete: Cascade)
+
+  @@map("publishing_requests")
+}
+
+model Product {
+  id            String      @id @default(cuid())
+  name          String
+  slug          String      @unique
+  kind          ProductKind
+  description   String?
+  creditsAmount Int?        @map("credits_amount")
+  metadata      Json?
+  isActive      Boolean     @default(true) @map("is_active")
+  sortOrder     Int         @default(0) @map("sort_order")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  prices        ProductPrice[]
+  purchaseItems PurchaseItem[]
+
+  @@map("products")
+}
+
+model ProductPrice {
+  id            String  @id @default(cuid())
+  productId     String  @map("product_id")
+  currency      String  @default("usd")
+  amount        Int // cents
+  creditsCost   Int?    @map("credits_cost")
+  stripePriceId   String?          @map("stripe_price_id")
+  billingInterval BillingInterval? @map("billing_interval")
+  isActive        Boolean          @default(true) @map("is_active")
+  createdAt       DateTime         @default(now()) @map("created_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_prices")
+}
+
+model Purchase {
+  id                     String         @id @default(cuid())
+  userId                 String         @map("user_id")
+  status                 PurchaseStatus @default(PENDING)
+  totalAmount            Int            @map("total_amount") // cents
+  currency               String         @default("usd")
+  paymentMethod          String?        @map("payment_method")
+  gateway                String         @default("stripe")
+  stripeSessionId        String?        @map("stripe_session_id")
+  stripePaymentIntentId  String?        @map("stripe_payment_intent_id")
+  paidAt                 DateTime?      @map("paid_at")
+  refundedAt             DateTime?      @map("refunded_at")
+  createdAt              DateTime       @default(now()) @map("created_at")
+  updatedAt              DateTime       @updatedAt @map("updated_at")
+
+  user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items PurchaseItem[]
+
+  @@map("purchases")
+}
+
+model PurchaseItem {
+  id            String   @id @default(cuid())
+  purchaseId    String   @map("purchase_id")
+  productId     String   @map("product_id")
+  quantity      Int      @default(1)
+  unitPrice     Int      @map("unit_price") // cents
+  creditsAmount Int?     @map("credits_amount")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id])
+
+  @@map("purchase_items")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String           @map("user_id")
+  type      NotificationType
+  title     String
+  message   String
+  data      Json?
+  readAt    DateTime?        @map("read_at")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model WebhookEvent {
+  id          String    @id @default(cuid())
+  source      String
+  eventType   String    @map("event_type")
+  payload     Json
+  processed   Boolean   @default(false)
+  processedAt DateTime? @map("processed_at")
+  error       String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@map("webhook_events")
+}
+
+model JobLog {
+  id          String    @id @default(cuid())
+  queue       String
+  jobId       String    @map("job_id")
+  status      String
+  data        Json?
+  result      Json?
+  error       String?
+  startedAt   DateTime? @map("started_at")
+  completedAt DateTime? @map("completed_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@map("job_logs")
+}

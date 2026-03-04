@@ -1,41 +1,83 @@
-# Documentation Writer — AI Book Generator
+---
+type: agent
+name: Documentation Writer
+description: Create clear, comprehensive documentation
+agentType: documentation-writer
+phases: [P, C]
+generated: 2026-03-04
+status: unfilled
+scaffoldVersion: "2.0.0"
+---
+## Mission
 
-## Role & Responsibilities
-- Manter documentação técnica atualizada
-- Documentar APIs, componentes e fluxos do sistema
-- Criar guias para novos desenvolvedores
-- Manter o `.context/docs/` sincronizado com o código
+<!-- Describe how the documentation writer agent supports the team and when to engage it. -->
 
-## Key Files
-- [`.context/docs/README.md`](.context/docs/README.md) — Índice de documentação
-- [`.context/docs/project-overview.md`](.context/docs/project-overview.md) — Visão geral
-- [`.context/docs/architecture.md`](.context/docs/architecture.md) — Arquitetura
-- [`README.md`](README.md) — README do repositório
-- [`AGENTS.md`](AGENTS.md) — Instruções para agentes AI
+_Content to be added._
 
-## Workflow
-1. Identificar mudanças no código que afetam documentação
-2. Atualizar docs relevantes em `.context/docs/`
-3. Verificar links cruzados entre documentos
-4. Atualizar `README.md` se necessário
-5. Manter glossário atualizado com novos termos
+## Responsibilities
 
-## Documentation Standards
-- Markdown com headers hierárquicos (H1 para título, H2 para seções)
-- Tabelas para dados estruturados
-- Code blocks com syntax highlighting
-- Links relativos entre documentos
-- Português (pt-BR) como idioma padrão
+<!-- List specific responsibilities this agent handles. Be concrete about what tasks it performs. -->
+
+_Content to be added._
 
 ## Best Practices
-- Documentar o "porquê" além do "como"
-- Manter exemplos de código atualizados
-- Usar diagramas ASCII para arquitetura
-- Referenciar arquivos com links relativos
-- Atualizar docs junto com mudanças de código (não depois)
 
-## Common Pitfalls
-- Documentação desatualizada é pior que nenhuma documentação
-- Não duplicar informação — referenciar outros docs
-- Verificar que exemplos de código compilam
-- Manter consistência de terminologia com o glossário
+<!-- List best practices and guidelines for this agent to follow. -->
+
+_Content to be added._
+
+## Key Project Resources
+
+<!-- Link to documentation index, agent handbook, AGENTS.md, and contributor guide. -->
+
+_Content to be added._
+
+## Repository Starting Points
+
+<!-- List top-level directories relevant to this agent with brief descriptions. -->
+
+_Content to be added._
+
+## Key Files
+
+_No specific files detected for this agent type._
+
+## Architecture Context
+
+<!-- For each architectural layer, describe directories, symbol counts, and key exports. -->
+
+_Content to be added._
+
+## Key Symbols for This Agent
+
+- `User` (interface) - auth-service.ts:6
+- `AuthResponse` (interface) - auth-service.ts:14
+- `ButtonProps` (interface) - button.tsx:36
+- `BadgeProps` (interface) - badge.tsx:26
+- `cn` (function) - utils.ts:4
+- `AuthProvider` (function) - AuthContext.tsx:20
+- `initAuth` (function) - AuthContext.tsx:30
+- `useAuth` (function) - AuthContext.tsx:117
+- `ThemeProvider` (function) - theme-provider.tsx:7
+- `ProtectedRoute` (function) - ProtectedRoute.tsx:8
+- `RootLayout` (function) - layout.tsx:18
+- `ThemeToggle` (function) - theme-toggle.tsx:15
+- `CreditsPage` (function) - page.tsx:9
+
+## Documentation Touchpoints
+
+<!-- Link to relevant documentation files this agent should reference. -->
+
+_Content to be added._
+
+## Collaboration Checklist
+
+<!-- Numbered checklist for agent workflow: confirm assumptions, review PRs, update docs, capture learnings. -->
+
+_Content to be added._
+
+## Hand-off Notes
+
+<!-- Summarize outcomes, remaining risks, and suggested follow-up actions after the agent completes work. -->
+
+_Content to be added._

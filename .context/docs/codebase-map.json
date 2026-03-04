@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated": "2026-02-14T12:54:17.972Z",
+  "generated": "2026-03-04T15:56:20.741Z",
   "stack": {
     "primaryLanguage": "typescript",
     "languages": [
@@ -15,74 +15,27 @@
     "packageManager": "npm",
     "isMonorepo": false,
     "hasDocker": false,
-    "hasCI": false
+    "hasCI": false,
+    "runtimeEnvironment": "browser"
   },
   "structure": {
-    "totalFiles": 53,
+    "totalFiles": 55,
+    "rootPath": ".",
     "topDirectories": [
       {
-        "name": "AGENTS.md",
-        "fileCount": 1
-      },
-      {
-        "name": "CLAUDE.md",
-        "fileCount": 1
-      },
-      {
-        "name": "components.json",
-        "fileCount": 1
-      },
-      {
-        "name": "eslint.config.mjs",
-        "fileCount": 1
-      },
-      {
-        "name": "next-env.d.ts",
-        "fileCount": 1
-      },
-      {
-        "name": "next.config.ts",
-        "fileCount": 1
-      },
-      {
-        "name": "package-lock.json",
-        "fileCount": 1
-      },
-      {
-        "name": "package.json",
-        "fileCount": 1
-      },
-      {
-        "name": "plans",
-        "fileCount": 1
-      },
-      {
-        "name": "postcss.config.js",
-        "fileCount": 1
+        "name": "plan",
+        "fileCount": 4,
+        "description": "Development plans"
       },
       {
         "name": "public",
-        "fileCount": 5
-      },
-      {
-        "name": "README.md",
-        "fileCount": 1
+        "fileCount": 5,
+        "description": "Public static assets"
       },
       {
         "name": "src",
-        "fileCount": 34
-      },
-      {
-        "name": "tailwind.config.ts",
-        "fileCount": 1
-      },
-      {
-        "name": "tsconfig.json",
-        "fileCount": 1
-      },
-      {
-        "name": "tsconfig.tsbuildinfo",
-        "fileCount": 1
+        "fileCount": 34,
+        "description": "Source code root"
       }
     ],
     "languageDistribution": [
@@ -95,16 +48,16 @@
         "count": 6
       },
       {
-        "extension": ".svg",
+        "extension": ".json",
         "count": 5
       },
       {
-        "extension": ".json",
-        "count": 4
+        "extension": ".md",
+        "count": 5
       },
       {
-        "extension": ".md",
-        "count": 4
+        "extension": ".svg",
+        "count": 5
       },
       {
         "extension": ".tsbuildinfo",
@@ -164,23 +117,25 @@
         "directories": [
           "src/components",
           "src/app",
-          "src/components/ui",
           "src/app/dashboard",
-          "src/app/dashboard/create",
           "src/app/dashboard/profile",
           "src/app/dashboard/credits",
+          "src/app/dashboard/create",
           "src/app/auth/register",
           "src/app/auth/login",
           "src/app/auth/forgot-password",
+          "src/app/dashboard/credits/hotmart",
           "src/app/dashboard/books/[id]",
-          "src/app/dashboard/credits/hotmart"
+          "src/components/ui"
         ],
         "symbolCount": 8,
         "dependsOn": []
       }
     ],
     "patterns": [],
-    "entryPoints": []
+    "entryPoints": [],
+    "mainEntryPoints": [],
+    "moduleExports": []
   },
   "symbols": {
     "classes": [],
@@ -312,14 +267,14 @@
         "name": "GenerateFullBookResult",
         "kind": "type",
         "file": "src/lib/api.ts",
-        "line": 173,
+        "line": 172,
         "exported": true
       },
       {
         "name": "Wallet",
         "kind": "type",
         "file": "src/lib/api.ts",
-        "line": 30,
+        "line": 29,
         "exported": true
       },
       {
@@ -386,7 +341,7 @@
       "name": "GenerateFullBookResult",
       "kind": "type",
       "file": "src/lib/api.ts",
-      "line": 173,
+      "line": 172,
       "exported": true
     },
     {
@@ -442,25 +397,83 @@
       "name": "Wallet",
       "kind": "type",
       "file": "src/lib/api.ts",
-      "line": 30,
+      "line": 29,
       "exported": true
     }
   ],
   "dependencies": {
     "mostImported": [
       {
-        "file": "/Users/reisalbuquerque/Projects/code/testing/05 - bookgen/src/lib/auth-service.ts",
-        "importedBy": 1
+        "file": ".next/dev/types/routes.d.ts",
+        "importedBy": 1,
+        "description": "TypeScript type definitions"
       },
       {
-        "file": "/Users/reisalbuquerque/Projects/code/testing/05 - bookgen/src/app/globals.css",
-        "importedBy": 1
+        "file": "src/lib/auth-service.ts",
+        "importedBy": 1,
+        "description": "Shared library code"
+      },
+      {
+        "file": "src/app/globals.css",
+        "importedBy": 1,
+        "description": "Application entry (Next.js app router)"
       }
     ]
   },
   "stats": {
     "totalSymbols": 20,
     "exportedSymbols": 16,
-    "analysisTimeMs": 189
+    "analysisTimeMs": 209
+  },
+  "keyFiles": [
+    {
+      "path": "eslint.config.mjs",
+      "description": "Tool configuration",
+      "category": "config"
+    },
+    {
+      "path": "next.config.ts",
+      "description": "Tool configuration",
+      "category": "config"
+    },
+    {
+      "path": "package.json",
+      "description": "Package manifest",
+      "category": "config"
+    },
+    {
+      "path": "postcss.config.js",
+      "description": "Tool configuration",
+      "category": "config"
+    },
+    {
+      "path": "tailwind.config.ts",
+      "description": "Tool configuration",
+      "category": "config"
+    },
+    {
+      "path": "tsconfig.json",
+      "description": "TypeScript configuration",
+      "category": "config"
+    },
+    {
+      "path": "src/lib/utils.ts",
+      "description": "Utility functions",
+      "category": "util"
+    }
+  ],
+  "navigation": {
+    "tests": "src/**/*.test.ts",
+    "config": [
+      "package.json",
+      "tsconfig.json",
+      "next.config.ts"
+    ],
+    "types": [
+      "next-env.d.ts"
+    ],
+    "mainLogic": [
+      "src/lib"
+    ]
   }
 }

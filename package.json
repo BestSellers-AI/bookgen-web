@@ -1,43 +1,31 @@
 {
-  "name": "06",
+  "name": "bestsellers-ai",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
+  "packageManager": "pnpm@10.30.1",
+  "engines": {
+    "node": ">=22"
   },
-  "dependencies": {
-    "@radix-ui/react-avatar": "^1.1.11",
-    "@radix-ui/react-dialog": "^1.1.15",
-    "@radix-ui/react-dropdown-menu": "^2.1.16",
-    "@radix-ui/react-label": "^2.1.8",
-    "@radix-ui/react-select": "^2.2.6",
-    "@radix-ui/react-separator": "^1.1.8",
-    "@radix-ui/react-slot": "^1.2.4",
-    "framer-motion": "^12.34.0",
-    "next": "16.1.6",
-    "next-themes": "^0.4.6",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
-    "sonner": "^2.0.7"
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "type-check": "turbo type-check",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "clean": "turbo clean && rm -rf node_modules",
+    "db:migrate": "pnpm --filter @bestsellers/api prisma:migrate",
+    "db:seed": "pnpm --filter @bestsellers/api prisma:seed",
+    "db:studio": "pnpm --filter @bestsellers/api prisma:studio"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.1.18",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "autoprefixer": "^10.4.24",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "eslint": "^9",
-    "eslint-config-next": "16.1.6",
-    "lucide-react": "^0.563.0",
-    "postcss": "^8.5.6",
-    "tailwind-merge": "^3.4.0",
-    "tailwindcss": "^4.1.18",
-    "tailwindcss-animate": "^1.0.7",
-    "typescript": "^5"
+    "turbo": "^2.5.0",
+    "prettier": "^3.5.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "prisma",
+      "@prisma/client",
+      "@prisma/engines"
+    ]
   }
 }

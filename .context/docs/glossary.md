@@ -1,58 +1,54 @@
-# Glossary & Domain Concepts
+---
+type: doc
+name: glossary
+description: Project terminology, type definitions, domain entities, and business rules
+category: glossary
+generated: 2026-03-04
+status: unfilled
+scaffoldVersion: "2.0.0"
+---
+## Glossary & Domain Concepts
 
-## Termos de Domínio
+<!-- List project-specific terminology, acronyms, domain entities, and user personas. -->
 
-| Termo | Definição |
-|-------|-----------|
-| **Book** | Entidade principal — um livro gerado por IA com título, subtítulo, autor, conteúdo e metadados |
-| **Briefing** | Texto descritivo fornecido pelo usuário para guiar a geração do livro |
-| **Planning** | Estrutura/outline do livro gerada pela IA a partir do briefing |
-| **Preview** | Prévia do livro (título, subtítulo, planejamento) gerada antes da versão completa |
-| **Full Book** | Livro completo com todos os capítulos, introdução, conclusão, glossário, etc. |
-| **Wallet** | Carteira de créditos do usuário para consumir gerações de livros |
-| **Credits** | Unidade monetária interna usada para pagar gerações de livros |
-| **Wizard** | Fluxo guiado passo-a-passo para criação de um novo livro |
+_Content to be added._
 
-## Status de Livro (`book_status`)
+## Type Definitions
 
-| Status | Descrição |
-|--------|-----------|
-| `draft` | Livro criado com planejamento, aguardando geração completa |
-| `generating` | Livro em processo de geração pela IA |
-| `completed` | Livro gerado com sucesso, disponível para download |
+<!-- List exported type definitions and interfaces with links to their locations. -->
 
-## Modos de Criação
+_Content to be added._
 
-| Modo | Descrição |
-|------|-----------|
-| `manual` | Usuário fornece título, subtítulo e autor manualmente |
-| `ai` | IA gera título, subtítulo e planejamento a partir do briefing |
+## Enumerations
 
-## Entidades do Sistema
+<!-- List exported enums with links to their locations. -->
 
-### User
-Usuário autenticado com `id`, `name`, `email`, `phone` e `created_at`.
+_Content to be added._
 
-### Book
-Livro com campos de conteúdo (`introduction`, `conclusion`, `appendix`, `glossary`, `content`, `planning`) e metadados (`url_pdf`, `preview_pdf_url`, `book_status`, `step`).
+## Core Terms
 
-### Wallet
-Carteira vinculada ao usuário com `amount` (saldo de créditos).
+<!-- Define key terms, their relevance, and where they surface in the codebase. -->
 
-### AuthResponse
-Resposta de autenticação contendo `authToken` (JWT).
+_Content to be added._
 
-## APIs Externas
+## Acronyms & Abbreviations
 
-| Serviço | Papel |
-|---------|-------|
-| **Xano** | Backend-as-a-Service — armazena dados, gerencia autenticação, orquestra chamadas |
-| **n8n** | Workflow automation — executa pipelines de IA para geração de conteúdo |
-| **Hotmart** | Plataforma de pagamento — venda de créditos |
+<!-- Expand abbreviations and note associated services or APIs. -->
 
-## Personas
+_Content to be added._
 
-| Persona | Descrição |
-|---------|-----------|
-| **Autor** | Usuário que cria livros usando a plataforma |
-| **Visitante** | Usuário não autenticado na landing page |
+## Personas / Actors
+
+<!-- Describe user goals, key workflows, and pain points addressed by the system. -->
+
+_Content to be added._
+
+## Domain Rules & Invariants
+
+<!-- Capture business rules, validation constraints, or compliance requirements. Note region/localization nuances. -->
+
+_Content to be added._
+
+## Related Resources
+
+- [project-overview.md](./project-overview.md)

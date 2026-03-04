@@ -4,7 +4,7 @@ name: Commit Message
 description: Generate commit messages following conventional commits with scope detection
 skillSlug: commit-message
 phases: [E, C]
-generated: 2026-02-13
+generated: 2026-03-04
 status: unfilled
 scaffoldVersion: "2.0.0"
 ---

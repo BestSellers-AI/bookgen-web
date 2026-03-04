@@ -1,33 +1,27 @@
-# Agent Playbooks — AI Book Generator
+# Agent Handbook
 
-Playbooks especializados para agentes AI trabalhando neste repositório.
+This directory contains ready-to-customize playbooks for AI agents collaborating on the repository.
 
-## Agents Disponíveis
+## Available Agents
+- [Code Reviewer](./code-reviewer.md) — Review code changes for quality, style, and best practices
+- [Bug Fixer](./bug-fixer.md) — Analyze bug reports and error messages
+- [Feature Developer](./feature-developer.md) — Implement new features according to specifications
+- [Refactoring Specialist](./refactoring-specialist.md) — Identify code smells and improvement opportunities
+- [Test Writer](./test-writer.md) — Write comprehensive unit and integration tests
+- [Documentation Writer](./documentation-writer.md) — Create clear, comprehensive documentation
+- [Performance Optimizer](./performance-optimizer.md) — Identify performance bottlenecks
+- [Security Auditor](./security-auditor.md) — Identify security vulnerabilities
+- [Frontend Specialist](./frontend-specialist.md) — Design and implement user interfaces
+- [Architect Specialist](./architect-specialist.md) — Design overall system architecture and patterns
+- [Devops Specialist](./devops-specialist.md) — Design and maintain CI/CD pipelines
 
-| Agent | Arquivo | Foco Principal |
-|-------|---------|---------------|
-| Architect Specialist | [`architect-specialist.md`](./architect-specialist.md) | Arquitetura, decisões técnicas, integrações |
-| Bug Fixer | [`bug-fixer.md`](./bug-fixer.md) | Diagnóstico e correção de bugs |
-| Code Reviewer | [`code-reviewer.md`](./code-reviewer.md) | Revisão de PRs, checklist de qualidade |
-| DevOps Specialist | [`devops-specialist.md`](./devops-specialist.md) | CI/CD, deploy, variáveis de ambiente |
-| Documentation Writer | [`documentation-writer.md`](./documentation-writer.md) | Documentação técnica, guias |
-| Feature Developer | [`feature-developer.md`](./feature-developer.md) | Implementação de funcionalidades |
-| Frontend Specialist | [`frontend-specialist.md`](./frontend-specialist.md) | UI, componentes, estilização, temas |
-| Performance Optimizer | [`performance-optimizer.md`](./performance-optimizer.md) | Bundle size, rendering, Core Web Vitals |
-| Refactoring Specialist | [`refactoring-specialist.md`](./refactoring-specialist.md) | Code smells, duplicação, clean code |
-| Security Auditor | [`security-auditor.md`](./security-auditor.md) | Vulnerabilidades, auth, dados sensíveis |
-| Test Writer | [`test-writer.md`](./test-writer.md) | Testes automatizados, mocking, cobertura |
+## How To Use These Playbooks
+1. Pick the agent that matches your task.
+2. Enrich the template with project-specific context or links.
+3. Share the final prompt with your AI assistant.
+4. Capture learnings in the relevant documentation file so future runs improve.
 
-## Como Usar
-
-Cada playbook contém:
-- **Role & Responsibilities** — O que o agent faz
-- **Key Files** — Arquivos mais relevantes para o papel
-- **Workflow** — Passos para executar tarefas comuns
-- **Best Practices** — Convenções e padrões do projeto
-- **Common Pitfalls** — Erros comuns a evitar
-
-## Referências
+## Related Resources
 - [Documentation Index](../docs/README.md)
-- [Project Overview](../docs/project-overview.md)
-- [Architecture Notes](../docs/architecture.md)
+- [Agent Knowledge Base](../../AGENTS.md)
+- [Contributor Guidelines](../../CONTRIBUTING.md)

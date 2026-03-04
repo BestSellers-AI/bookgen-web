@@ -1,53 +1,74 @@
-# Bug Fixer — AI Book Generator
+---
+type: agent
+name: Bug Fixer
+description: Analyze bug reports and error messages
+agentType: bug-fixer
+phases: [E, V]
+generated: 2026-03-04
+status: unfilled
+scaffoldVersion: "2.0.0"
+---
+## Mission
 
-## Role & Responsibilities
-- Diagnosticar e corrigir bugs reportados
-- Identificar a causa raiz antes de aplicar correções
-- Garantir que correções não introduzam regressões
-- Documentar bugs e soluções para referência futura
+<!-- Describe how the bug fixer agent supports the team and when to engage it. -->
 
-## Key Files for Debugging
-- [`src/lib/api.ts`](src/lib/api.ts) — Erros de API, parsing de resposta do Xano
-- [`src/lib/auth-service.ts`](src/lib/auth-service.ts) — Problemas de autenticação
-- [`src/context/AuthContext.tsx`](src/context/AuthContext.tsx) — Estado de auth inconsistente
-- [`src/components/ProtectedRoute.tsx`](src/components/ProtectedRoute.tsx) — Redirects incorretos
-- [`src/app/globals.css`](src/app/globals.css) — Problemas de estilização/tema
+_Content to be added._
 
-## Common Bug Patterns
+## Responsibilities
 
-### Autenticação
-- Token expirado não detectado → verificar `getMe()` no [`AuthProvider`](src/context/AuthContext.tsx:20)
-- Redirect loop no login → verificar condições do [`ProtectedRoute`](src/components/ProtectedRoute.tsx:8)
-- `localStorage` undefined no SSR → verificar guard `typeof window !== 'undefined'`
+<!-- List specific responsibilities this agent handles. Be concrete about what tasks it performs. -->
 
-### API
-- Resposta do Xano em formato inesperado → verificar parsing em [`getBooks()`](src/lib/api.ts:47)
-- `userId` como string ao invés de number → usar `Number(userId)`
-- CORS errors → configuração no Xano, não no frontend
+_Content to be added._
 
-### UI/Estilização
-- Dark mode inconsistente → verificar classes `dark:` e variáveis CSS
-- Hydration mismatch → `suppressHydrationWarning` no `<html>` e `"use client"`
-- Layout quebrado → verificar Tailwind classes e responsividade
+## Best Practices
 
-## Debugging Workflow
-1. Reproduzir o bug localmente com `npm run dev`
-2. Verificar console do browser para erros
-3. Verificar Network tab para falhas de API
-4. Identificar o componente/serviço afetado
-5. Adicionar `console.log` temporários se necessário
-6. Aplicar correção mínima e focada
-7. Testar cenários relacionados para evitar regressão
-8. Commit com `fix(<scope>): <descrição>`
+<!-- List best practices and guidelines for this agent to follow. -->
 
-## Error Handling Conventions
-- API errors: `throw new Error(error.message || 'Fallback message')`
-- UI feedback: Usar `Sonner` toast para notificar o usuário
-- Auth errors: Remover token e redirecionar para login
-- Catch genérico: `await response.json().catch(() => ({}))`
+_Content to be added._
 
-## Common Pitfalls
-- Não assumir formato de resposta do Xano — sempre verificar
-- Cuidado com race conditions no `useEffect` de autenticação
-- `router.push()` não funciona em server components
-- Framer Motion pode causar warnings de hydration
+## Key Project Resources
+
+<!-- Link to documentation index, agent handbook, AGENTS.md, and contributor guide. -->
+
+_Content to be added._
+
+## Repository Starting Points
+
+<!-- List top-level directories relevant to this agent with brief descriptions. -->
+
+_Content to be added._
+
+## Key Files
+
+- [`src/lib/auth-service.ts`](../src/lib/auth-service.ts)
+
+## Architecture Context
+
+<!-- For each architectural layer, describe directories, symbol counts, and key exports. -->
+
+_Content to be added._
+
+## Key Symbols for This Agent
+
+- `User` (interface) - auth-service.ts:6
+- `AuthResponse` (interface) - auth-service.ts:14
+- `ButtonProps` (interface) - button.tsx:36
+- `BadgeProps` (interface) - badge.tsx:26
+
+## Documentation Touchpoints
+
+<!-- Link to relevant documentation files this agent should reference. -->
+
+_Content to be added._
+
+## Collaboration Checklist
+
+<!-- Numbered checklist for agent workflow: confirm assumptions, review PRs, update docs, capture learnings. -->
+
+_Content to be added._
+
+## Hand-off Notes
+
+<!-- Summarize outcomes, remaining risks, and suggested follow-up actions after the agent completes work. -->
+
+_Content to be added._

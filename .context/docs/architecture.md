@@ -1,98 +1,112 @@
-# Architecture Notes
+---
+type: doc
+name: architecture
+description: System architecture, layers, patterns, and design decisions
+category: architecture
+generated: 2026-03-04
+status: unfilled
+scaffoldVersion: "2.0.0"
+---
+## Architecture Notes
 
-## Visão Geral
+<!-- Describe how the system is assembled and why the current design exists. -->
 
-O AI Book Generator segue a arquitetura do **Next.js App Router** com renderização client-side para a maioria das páginas interativas. O backend é totalmente delegado ao **Xano** (BaaS), que expõe APIs REST consumidas diretamente pelo frontend.
+_Content to be added._
 
-## Diagrama de Camadas
+## System Architecture Overview
 
-```
-┌─────────────────────────────────────────┐
-│              Browser (Client)           │
-├─────────────────────────────────────────┤
-│  Next.js App Router (React 19)          │
-│  ├── Pages (src/app/**)                 │
-│  ├── Components (src/components/**)     │
-│  ├── Context (src/context/AuthContext)  │
-│  └── Lib (src/lib/api, auth-service)    │
-├─────────────────────────────────────────┤
-│         Xano REST API (BaaS)            │
-│  ├── Auth API (signup, login, me)       │
-│  ├── Book API (CRUD, generate)          │
-│  ├── Account API (profile, password)    │
-│  └── Wallet API (créditos)              │
-├─────────────────────────────────────────┤
-│         n8n (AI Orchestration)          │
-│  └── Geração de conteúdo via LLM        │
-├─────────────────────────────────────────┤
-│         Hotmart (Payments)              │
-│  └── Compra de créditos                 │
-└─────────────────────────────────────────┘
-```
+<!-- Summarize the top-level topology (monolith, modular service, microservices) and deployment model. Highlight how requests traverse the system and where control pivots between layers. -->
 
-## Estrutura de Diretórios
+_Content to be added._
 
-```
-src/
-├── app/                    # Rotas (App Router)
-│   ├── layout.tsx          # Layout raiz (providers globais)
-│   ├── page.tsx            # Landing page
-│   ├── globals.css         # Estilos globais (Tailwind v4)
-│   ├── auth/               # Rotas de autenticação
-│   │   ├── login/
-│   │   ├── register/
-│   │   └── forgot-password/
-│   └── dashboard/          # Área autenticada
-│       ├── layout.tsx      # Layout do dashboard (sidebar, header)
-│       ├── page.tsx        # Lista de livros
-│       ├── create/         # Wizard de criação
-│       ├── books/[id]/     # Detalhes do livro
-│       ├── credits/        # Gestão de créditos
-│       └── profile/        # Perfil do usuário
-├── components/
-│   ├── ui/                 # Componentes shadcn/ui (Button, Card, etc.)
-│   ├── theme-provider.tsx  # Provider de tema (next-themes)
-│   ├── ProtectedRoute.tsx  # HOC de proteção de rotas
-│   └── wizard/             # Componentes do wizard de criação
-├── context/
-│   └── AuthContext.tsx     # Context de autenticação global
-└── lib/
-    ├── api.ts              # Cliente da API de livros (Xano)
-    ├── auth-service.ts     # Serviço de autenticação (Xano)
-    └── utils.ts            # Utilitários (cn helper)
-```
+## Architectural Layers
 
-## Padrões de Design
+- **Utils**: Shared utilities and helpers (`src/lib`)
+- **Services**: Business logic and orchestration (`src/lib`)
+- **Controllers**: Request handling and routing (`src/lib`, `src/components`)
+- **Components**: UI components and views (`src/components`, `src/app`, `src/app/dashboard`)
 
-### Autenticação
-- **JWT Bearer Token** armazenado em `localStorage`
-- [`AuthProvider`](src/context/AuthContext.tsx:20) como Context Provider global
-- [`ProtectedRoute`](src/components/ProtectedRoute.tsx:8) como wrapper para rotas autenticadas
-- [`useAuth()`](src/context/AuthContext.tsx:117) hook para acessar estado de autenticação
+> See [`codebase-map.json`](./codebase-map.json) for complete symbol counts and dependency graphs.
 
-### Comunicação com API
-- Fetch API nativo (sem axios ou similar)
-- Headers com Bearer token injetados via [`getHeaders()`](src/lib/api.ts:39)
-- Tratamento de respostas flexível para diferentes formatos do Xano (array, `{ items }`, `{ data }`)
+## Detected Design Patterns
 
-### UI e Estilização
-- **Tailwind CSS v4** com configuração via CSS (`@theme`)
-- **shadcn/ui** para componentes base (Radix UI primitives)
-- **Framer Motion** para animações
-- **next-themes** para dark mode com detecção de sistema
-- Fontes: Inter (corpo) + Outfit (headings)
+_No design patterns detected._
 
-### Estado
-- React Context para autenticação global
-- Estado local (`useState`) para formulários e UI
-- Sem state management externo (Redux, Zustand, etc.)
+## Entry Points
 
-## Decisões Técnicas
+_No entry points detected. Add main entry files here._
 
-| Decisão | Justificativa |
-|---------|--------------|
-| Xano como backend | Prototipagem rápida sem necessidade de backend custom |
-| Client-side rendering | Dados dinâmicos por usuário, sem necessidade de SSR/SSG |
-| localStorage para token | Simplicidade; trade-off com segurança (XSS) |
-| Tailwind v4 | Última versão com melhor performance e CSS-first config |
-| shadcn/ui | Componentes acessíveis e customizáveis sem lock-in |
+## Public API
+
+| Symbol | Type | Location |
+|--------|------|----------|
+| `AuthProvider` | function | AuthContext.tsx:20 |
+| `AuthResponse` | interface | auth-service.ts:14 |
+| `BadgeProps` | interface | badge.tsx:26 |
+| `Book` | type | api.ts:3 |
+| `ButtonProps` | interface | button.tsx:36 |
+| `cn` | function | utils.ts:4 |
+| `CreditsPage` | function | page.tsx:9 |
+| `GenerateFullBookResult` | type | api.ts:172 |
+| `initAuth` | function | AuthContext.tsx:30 |
+| `ProtectedRoute` | function | ProtectedRoute.tsx:8 |
+| `RootLayout` | function | layout.tsx:18 |
+| `ThemeProvider` | function | theme-provider.tsx:7 |
+| `ThemeToggle` | function | theme-toggle.tsx:15 |
+| `useAuth` | function | AuthContext.tsx:117 |
+| `User` | interface | auth-service.ts:6 |
+
+## Internal System Boundaries
+
+<!-- Document seams between domains, bounded contexts, or service ownership. Note data ownership, synchronization strategies, and shared contract enforcement. -->
+
+_Content to be added._
+
+## External Service Dependencies
+
+<!-- List SaaS platforms, third-party APIs, or infrastructure services. Describe authentication methods, rate limits, and failure considerations. -->
+
+_Content to be added._
+
+## Key Decisions & Trade-offs
+
+<!-- Summarize architectural decisions, experiments, or ADR outcomes. Explain why selected approaches won over alternatives. -->
+
+_Content to be added._
+
+## Diagrams
+
+<!-- Link architectural diagrams or add mermaid definitions showing system components and their relationships. -->
+
+_Content to be added._
+
+## Risks & Constraints
+
+<!-- Document performance constraints, scaling considerations, or external system assumptions. -->
+
+_Content to be added._
+
+## Top Directories Snapshot
+
+- `components.json/` — _describe purpose_
+- `eslint.config.mjs/` — _describe purpose_
+- `next-env.d.ts/` — _describe purpose_
+- `next.config.ts/` — _describe purpose_
+- `package-lock.json/` — _describe purpose_
+- `package.json/` — _describe purpose_
+- `plan/` — _describe purpose_
+- `postcss.config.js/` — _describe purpose_
+- `public/` — _describe purpose_
+- `README.md/` — _describe purpose_
+
+## Related Resources
+
+<!-- Link to Project Overview and other relevant documentation. -->
+
+_Content to be added._
+
+## Related Resources
+
+- [project-overview.md](./project-overview.md)
+- [data-flow.md](./data-flow.md)
+- [codebase-map.json](./codebase-map.json)

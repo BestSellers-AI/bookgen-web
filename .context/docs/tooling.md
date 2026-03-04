@@ -1,86 +1,38 @@
-# Tooling & Productivity Guide
+---
+type: doc
+name: tooling
+description: Scripts, IDE settings, automation, and developer productivity tips
+category: tooling
+generated: 2026-03-04
+status: unfilled
+scaffoldVersion: "2.0.0"
+---
+## Tooling & Productivity Guide
 
-## Build & Dev Tools
+_No build tools detected._
 
-| Ferramenta | Versão | Propósito |
-|-----------|--------|-----------|
-| Next.js | 16.1.6 | Framework React com App Router |
-| TypeScript | 5.x | Tipagem estática |
-| Tailwind CSS | 4.1.18 | Estilização utilitária |
-| PostCSS | 8.5.6 | Processamento CSS |
-| ESLint | 9.x | Linting de código |
+## Required Tooling
 
-## Componentes UI
+_No build tools detected._
 
-### shadcn/ui
-Componentes instalados (em [`src/components/ui/`](src/components/ui)):
-- `avatar` — Radix Avatar
-- `badge` — Badge com variantes (CVA)
-- `button` — Button com variantes (CVA)
-- `card` — Card container
-- `dialog` — Radix Dialog (modal)
-- `dropdown-menu` — Radix Dropdown Menu
-- `input` — Input estilizado
-- `label` — Radix Label
-- `select` — Radix Select
-- `separator` — Radix Separator
-- `sheet` — Radix Dialog como side panel
-- `textarea` — Textarea estilizado
-- `theme-toggle` — Toggle de tema claro/escuro
+## Recommended Automation
 
-### Configuração shadcn
-Definida em [`components.json`](components.json):
-- Style: `new-york`
-- CSS variables habilitadas
-- Path aliases: `@/components`, `@/lib`
+<!-- Document pre-commit hooks, linting/formatting commands, code generators, or scaffolding scripts. Include shortcuts or watch modes. -->
 
-## IDE Configuration
+_Content to be added._
 
-### VS Code
-- Configurações em [`.vscode/`](.vscode/)
-- Recomendado: extensões Tailwind CSS IntelliSense, ESLint, TypeScript
+## IDE / Editor Setup
 
-### Path Aliases
-Configurados no [`tsconfig.json`](tsconfig.json):
-```json
-{
-  "paths": {
-    "@/*": ["./src/*"]
-  }
-}
-```
+<!-- List extensions or plugins that catch issues early. Share snippets, templates, or workspace settings. -->
 
-## Scripts NPM
+_Content to be added._
 
-```bash
-npm run dev      # Servidor de desenvolvimento (hot reload)
-npm run build    # Build de produção
-npm run start    # Servidor de produção
-npm run lint     # ESLint
-```
+## Productivity Tips
 
-## Dependências Chave
+<!-- Document terminal aliases, container workflows, or local emulators. Link to shared scripts or dotfiles. -->
 
-### Runtime
-- `next` — Framework
-- `react` / `react-dom` — UI library
-- `@radix-ui/*` — Primitivos de UI acessíveis
-- `framer-motion` — Animações
-- `next-themes` — Gerenciamento de tema
-- `sonner` — Toast notifications
+_Content to be added._
 
-### Dev
-- `tailwindcss` / `@tailwindcss/postcss` — Estilização
-- `class-variance-authority` — Variantes de componentes
-- `clsx` + `tailwind-merge` — Merge de classes CSS
-- `lucide-react` — Ícones
-- `tailwindcss-animate` — Animações Tailwind
+## Related Resources
 
-## Utilitários do Projeto
-
-### `cn()` — Class Name Merger
-```typescript
-import { cn } from "@/lib/utils";
-// Combina classes condicionalmente com deduplicação
-cn("px-4 py-2", isActive && "bg-primary", className)
-```
+- [development-workflow.md](./development-workflow.md)

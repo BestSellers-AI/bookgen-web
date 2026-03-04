@@ -1,57 +1,71 @@
-# Performance Optimizer — AI Book Generator
+---
+type: agent
+name: Performance Optimizer
+description: Identify performance bottlenecks
+agentType: performance-optimizer
+phases: [E, V]
+generated: 2026-03-04
+status: unfilled
+scaffoldVersion: "2.0.0"
+---
+## Mission
 
-## Role & Responsibilities
-- Identificar e resolver gargalos de performance
-- Otimizar bundle size e tempo de carregamento
-- Melhorar Core Web Vitals
-- Otimizar renderização de componentes React
+<!-- Describe how the performance optimizer agent supports the team and when to engage it. -->
 
-## Key Files
-- [`next.config.ts`](next.config.ts) — Configuração de build e otimizações
-- [`src/app/layout.tsx`](src/app/layout.tsx) — Layout raiz (fonts, providers)
-- [`src/app/globals.css`](src/app/globals.css) — CSS global
-- [`src/lib/api.ts`](src/lib/api.ts) — Chamadas de API (caching, deduplication)
+_Content to be added._
 
-## Áreas de Otimização
+## Responsibilities
 
-### Bundle Size
-- Verificar tree-shaking de dependências (Radix UI, Framer Motion)
-- Lazy load de páginas pesadas (wizard, book details)
-- Analisar bundle com `@next/bundle-analyzer`
+<!-- List specific responsibilities this agent handles. Be concrete about what tasks it performs. -->
 
-### Rendering
-- Minimizar re-renders com `React.memo`, `useMemo`, `useCallback`
-- Evitar prop drilling que causa cascata de re-renders
-- Usar `Suspense` boundaries para loading states
-
-### Network
-- Implementar caching de respostas da API (SWR ou React Query)
-- Deduplicar requests simultâneos
-- Prefetch de dados para navegação previsível
-
-### Fonts
-- Fonts (Inter, Outfit) já usam `next/font` com otimização automática
-- Verificar que `font-display: swap` está configurado
-
-### Images
-- Usar `next/image` para otimização automática
-- Lazy loading de imagens fora do viewport
-
-## Workflow
-1. Medir performance atual (Lighthouse, Web Vitals)
-2. Identificar gargalos com DevTools Performance tab
-3. Priorizar por impacto no usuário
-4. Implementar otimização
-5. Medir novamente para validar melhoria
+_Content to be added._
 
 ## Best Practices
-- Medir antes de otimizar — evitar otimização prematura
-- Preferir server components quando não há interatividade
-- Usar dynamic imports para code splitting
-- Manter CSS minimal com Tailwind (purge automático)
 
-## Common Pitfalls
-- Framer Motion pode ser pesado — usar `LazyMotion` para reduzir bundle
-- Radix UI importa componentes inteiros — verificar tree-shaking
-- `useEffect` sem deps corretas pode causar loops infinitos
-- Context providers no topo causam re-render global em mudanças de estado
+<!-- List best practices and guidelines for this agent to follow. -->
+
+_Content to be added._
+
+## Key Project Resources
+
+<!-- Link to documentation index, agent handbook, AGENTS.md, and contributor guide. -->
+
+_Content to be added._
+
+## Repository Starting Points
+
+<!-- List top-level directories relevant to this agent with brief descriptions. -->
+
+_Content to be added._
+
+## Key Files
+
+_No specific files detected for this agent type._
+
+## Architecture Context
+
+<!-- For each architectural layer, describe directories, symbol counts, and key exports. -->
+
+_Content to be added._
+
+## Key Symbols for This Agent
+
+_No specific symbols detected for this agent type._
+
+## Documentation Touchpoints
+
+<!-- Link to relevant documentation files this agent should reference. -->
+
+_Content to be added._
+
+## Collaboration Checklist
+
+<!-- Numbered checklist for agent workflow: confirm assumptions, review PRs, update docs, capture learnings. -->
+
+_Content to be added._
+
+## Hand-off Notes
+
+<!-- Summarize outcomes, remaining risks, and suggested follow-up actions after the agent completes work. -->
+
+_Content to be added._
