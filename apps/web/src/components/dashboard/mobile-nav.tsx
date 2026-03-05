@@ -14,6 +14,7 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { Link, usePathname } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { PlanBadge } from "./plan-badge";
 import type { WalletInfo } from "@/lib/api/types";
 
@@ -111,6 +112,10 @@ export function MobileNav({ wallet }: MobileNavProps) {
               <span>{t("logout")}</span>
             </Button>
           </nav>
+
+          <div className="flex items-center gap-3 pt-4 border-t border-border">
+            <ThemeToggle />
+          </div>
         </div>
       </SheetContent>
     </Sheet>

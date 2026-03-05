@@ -1,6 +1,6 @@
 "use client";
 
-import { User, Settings, LogOut, Moon, Sun, Monitor } from "lucide-react";
+import { User, Settings, LogOut, Moon, Sun, Monitor, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -15,18 +15,33 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/use-auth";
-import { Link } from "@/i18n/navigation";
-import { useTranslations } from "next-intl";
+import { Link, usePathname } from "@/i18n/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
+import { useRouter } from "@/i18n/navigation";
+import { locales, type Locale } from "@/i18n/config";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useState } from "react";
+
+const localeLabels: Record<Locale, string> = {
+  en: "English",
+  "pt-BR": "Portugues",
+  es: "Espanol",
+};
 
 export function UserMenu() {
   const { user, logout } = useAuth();
   const t = useTranslations("nav");
   const tTheme = useTranslations("theme");
   const { setTheme } = useTheme();
+  const locale = useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  const handleLocaleChange = (newLocale: Locale) => {
+    router.replace(pathname, { locale: newLocale });
+  };
 
   const getInitials = (name: string) =>
     name.split(" ").map((n) => n[0]).join("").toUpperCase().substring(0, 2);
@@ -76,6 +91,23 @@ export function UserMenu() {
                 <Monitor className="w-4 h-4 mr-2" />
                 {tTheme("system")}
               </DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <Globe className="w-4 h-4 mr-2" />
+              {localeLabels[locale as Locale]}
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              {locales.map((loc) => (
+                <DropdownMenuItem
+                  key={loc}
+                  onClick={() => handleLocaleChange(loc)}
+                  className={locale === loc ? "bg-accent" : ""}
+                >
+                  {localeLabels[loc]}
+                </DropdownMenuItem>
+              ))}
             </DropdownMenuSubContent>
           </DropdownMenuSub>
           <DropdownMenuSeparator />

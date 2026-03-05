@@ -3,7 +3,6 @@
 import { BookOpen, Library, PlusCircle, Wallet as WalletIcon, User, LogOut, ShieldCheck, Users, CreditCard, Package } from "lucide-react";
 import { UserRole } from "@bestsellers/shared";
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link, usePathname } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
@@ -38,15 +37,14 @@ export function Sidebar({ wallet }: SidebarProps) {
 
   return (
     <aside className="fixed left-6 top-6 bottom-6 w-64 hidden xl:flex flex-col glass rounded-[2rem] p-6 shadow-2xl z-50">
-      <div className="flex items-center gap-3 px-4 mb-10">
+      <Link href="/dashboard" className="flex items-center gap-3 px-4 mb-6 hover:opacity-80 transition-opacity">
         <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center glow-primary">
           <BookOpen className="w-6 h-6 text-white" />
         </div>
         <span className="text-xl font-bold font-heading text-gradient">BookGen</span>
-        <ThemeToggle />
-      </div>
+      </Link>
 
-      <nav className="flex flex-col gap-2 flex-1">
+      <nav className="flex flex-col gap-2 flex-1 min-h-0 overflow-y-auto scrollbar-thin">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
@@ -111,7 +109,7 @@ export function Sidebar({ wallet }: SidebarProps) {
         )}
       </nav>
 
-      <div className="mt-6 flex flex-col gap-4">
+      <div className="mt-4 flex flex-col gap-3 shrink-0">
         <Link href="/dashboard/wallet" className="block p-4 rounded-2xl bg-primary/10 border border-primary/20 mb-2 hover:bg-primary/15 transition-colors">
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
