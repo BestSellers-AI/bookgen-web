@@ -4,109 +4,144 @@ name: architecture
 description: System architecture, layers, patterns, and design decisions
 category: architecture
 generated: 2026-03-04
-status: unfilled
+updated: 2026-03-05
+status: filled
 scaffoldVersion: "2.0.0"
 ---
+
 ## Architecture Notes
 
-<!-- Describe how the system is assembled and why the current design exists. -->
-
-_Content to be added._
+BestSellers AI is a monorepo with a clear separation between backend (NestJS) and frontend (Next.js), connected via REST API. Book generation is delegated to n8n via HTTP webhooks.
 
 ## System Architecture Overview
 
-<!-- Summarize the top-level topology (monolith, modular service, microservices) and deployment model. Highlight how requests traverse the system and where control pivots between layers. -->
+```
+Browser → Next.js (React/Zustand) → NestJS API → PostgreSQL / Redis
+                                              → n8n (AI generation)
+                                              → Stripe (payments)
+                                              → Cloudflare R2 (storage)
+```
 
-_Content to be added._
+The system is a **modular monolith** backend with a **client-rendered** Next.js frontend. The backend exposes a REST API under `/api` prefix. The frontend communicates exclusively through the API client layer.
 
-## Architectural Layers
+## Backend Architecture (`apps/api`)
 
-- **Utils**: Shared utilities and helpers (`src/lib`)
-- **Services**: Business logic and orchestration (`src/lib`)
-- **Controllers**: Request handling and routing (`src/lib`, `src/components`)
-- **Components**: UI components and views (`src/components`, `src/app`, `src/app/dashboard`)
+### Layers
 
-> See [`codebase-map.json`](./codebase-map.json) for complete symbol counts and dependency graphs.
+| Layer | Location | Responsibility |
+|-------|----------|---------------|
+| Controllers | `src/*/**.controller.ts` | Request handling, validation, routing |
+| Services | `src/*/**.service.ts` | Business logic, orchestration |
+| DTOs | `src/*/dto/*.dto.ts` | Input validation (class-validator) |
+| Prisma | `prisma/schema.prisma` | Data model (27 models, 17 enums) |
+| Common | `src/common/` | Guards, decorators, filters, middleware, pagination |
 
-## Detected Design Patterns
+### Key Modules
 
-_No design patterns detected._
+- **Auth** — JWT access/refresh tokens, Google OAuth, session management
+- **Books** — CRUD, creation wizard, generation dispatch, chapter management
+- **Wallet** — CreditLedger (FIFO debit with expiry), WalletTransaction records
+- **Hooks** — n8n callback endpoints (secured by `x-n8n-secret` header)
+- **SSE** — Real-time progress events via Server-Sent Events (RxJS Subject per book)
+- **Checkout** — Stripe checkout session creation
+- **Subscriptions** — Stripe subscription management + webhook handling
+- **Addons** — Book addon purchases and management
+- **Translations** — Book translation into supported languages
+- **Share** — Public book sharing with unique tokens
+- **Files** — Cloudflare R2 file upload/download
+- **Admin** — User management, book oversight, subscription/purchase admin
+- **Cron** — Scheduled tasks (credit expiry, stale generation cleanup)
+- **Notifications** — In-app notification system
+- **Health** — Health check endpoint (`GET /api/health`)
 
-## Entry Points
+### Design Patterns
 
-_No entry points detected. Add main entry files here._
+- **Optimistic locking:** Status transitions use `updateMany` with status guard
+- **FIFO credit debit:** Credits consumed in expiry-first order with Serializable isolation
+- **Idempotent webhooks:** n8n callbacks check current status before processing
+- **Dispatch + callback:** Backend dispatches to n8n, n8n calls back on completion/failure
 
-## Public API
+## Frontend Architecture (`apps/web`)
 
-| Symbol | Type | Location |
-|--------|------|----------|
-| `AuthProvider` | function | AuthContext.tsx:20 |
-| `AuthResponse` | interface | auth-service.ts:14 |
-| `BadgeProps` | interface | badge.tsx:26 |
-| `Book` | type | api.ts:3 |
-| `ButtonProps` | interface | button.tsx:36 |
-| `cn` | function | utils.ts:4 |
-| `CreditsPage` | function | page.tsx:9 |
-| `GenerateFullBookResult` | type | api.ts:172 |
-| `initAuth` | function | AuthContext.tsx:30 |
-| `ProtectedRoute` | function | ProtectedRoute.tsx:8 |
-| `RootLayout` | function | layout.tsx:18 |
-| `ThemeProvider` | function | theme-provider.tsx:7 |
-| `ThemeToggle` | function | theme-toggle.tsx:15 |
-| `useAuth` | function | AuthContext.tsx:117 |
-| `User` | interface | auth-service.ts:6 |
+### Layers
 
-## Internal System Boundaries
+| Layer | Location | Responsibility |
+|-------|----------|---------------|
+| Pages | `src/app/[locale]/` | Route components (App Router) |
+| Components | `src/components/` | Reusable UI (shadcn/ui based) |
+| Stores | `src/stores/` | Zustand state management |
+| API | `src/lib/api/` | Modular API client (13 files) |
+| Hooks | `src/hooks/` | Custom React hooks (auth, etc.) |
+| i18n | `src/i18n/` + `messages/` | Internationalization config + translations |
 
-<!-- Document seams between domains, bounded contexts, or service ownership. Note data ownership, synchronization strategies, and shared contract enforcement. -->
+### API Client
 
-_Content to be added._
+Base Axios client (`lib/api-client.ts`) with automatic token refresh interceptor. Modular API files under `lib/api/`:
+- auth, books, wallet, checkout, subscriptions, addons, notifications, files, products, share, admin, types
+
+### State Management
+
+- `stores/auth-store.ts` — Auth state, tokens, user data (Zustand)
+- `stores/notification-store.ts` — Notification count (Zustand)
+- No React Context for global state — all via Zustand
+
+### i18n
+
+- next-intl with `[locale]` dynamic route segment
+- Supported locales: `en`, `pt-BR`, `es`
+- Messages: `messages/{locale}.json`
+- Navigation: `src/i18n/navigation.ts` exports locale-aware `Link`, `usePathname`, `useRouter`
+
+### Layout
+
+- **Desktop (xl+):** Collapsible sidebar + header bar
+- **Mobile (<xl):** Header bar + bottom navigation
+- **Theme:** Dark/light/system via next-themes
+
+## n8n Integration
+
+```
+Backend                          n8n
+   │                              │
+   ├── POST /n8n-webhook ────────→│  (dispatch generation job)
+   │                              │
+   │                              ├── Generate chapters...
+   │                              │
+   │←── POST /hooks/n8n/* ────────┤  (callback with results)
+   │                              │
+   ├── SSE → Browser              │  (real-time progress)
+```
+
+- Backend dispatches via HTTP POST to n8n webhook URL
+- n8n processes and calls back to `/hooks/n8n/*` endpoints
+- Callbacks secured by `x-n8n-secret` header (`N8nSecretGuard`)
+- `dispatch()` throws on HTTP failure — callers handle rollback
+- See `plan/N8N_INTEGRATION.md` for full documentation
+
+## Data Flow: Book Generation
+
+1. User submits creation form → frontend calls `POST /api/books`
+2. Backend creates book record, debits credits (FIFO), dispatches to n8n
+3. n8n generates preview → calls back `POST /hooks/n8n/preview-ready`
+4. Backend updates book status, emits SSE event
+5. User approves preview → frontend calls `POST /api/books/:id/generate`
+6. Backend dispatches full generation to n8n
+7. n8n generates chapters one-by-one → callbacks update progress via SSE
+8. Final callback marks book as complete → SSE stream closes
 
 ## External Service Dependencies
 
-<!-- List SaaS platforms, third-party APIs, or infrastructure services. Describe authentication methods, rate limits, and failure considerations. -->
-
-_Content to be added._
-
-## Key Decisions & Trade-offs
-
-<!-- Summarize architectural decisions, experiments, or ADR outcomes. Explain why selected approaches won over alternatives. -->
-
-_Content to be added._
-
-## Diagrams
-
-<!-- Link architectural diagrams or add mermaid definitions showing system components and their relationships. -->
-
-_Content to be added._
-
-## Risks & Constraints
-
-<!-- Document performance constraints, scaling considerations, or external system assumptions. -->
-
-_Content to be added._
-
-## Top Directories Snapshot
-
-- `components.json/` — _describe purpose_
-- `eslint.config.mjs/` — _describe purpose_
-- `next-env.d.ts/` — _describe purpose_
-- `next.config.ts/` — _describe purpose_
-- `package-lock.json/` — _describe purpose_
-- `package.json/` — _describe purpose_
-- `plan/` — _describe purpose_
-- `postcss.config.js/` — _describe purpose_
-- `public/` — _describe purpose_
-- `README.md/` — _describe purpose_
+| Service | Purpose | Auth Method |
+|---------|---------|-------------|
+| PostgreSQL 16 | Primary database | Connection string |
+| Redis 7 | Caching, rate limiting | Connection string |
+| Stripe | Payments, subscriptions | API key + webhook signing secret |
+| n8n | AI book generation | Shared secret (`x-n8n-secret`) |
+| Cloudflare R2 | File storage | S3-compatible credentials |
+| Google | OAuth login | Client ID (ID token verification) |
 
 ## Related Resources
 
-<!-- Link to Project Overview and other relevant documentation. -->
-
-_Content to be added._
-
-## Related Resources
-
-- [project-overview.md](./project-overview.md)
-- [data-flow.md](./data-flow.md)
-- [codebase-map.json](./codebase-map.json)
+- [CLAUDE.md](../../CLAUDE.md) — Conventions and coding reference
+- [project-overview.md](./project-overview.md) — Project overview
+- [plan/N8N_INTEGRATION.md](../../plan/N8N_INTEGRATION.md) — n8n integration details

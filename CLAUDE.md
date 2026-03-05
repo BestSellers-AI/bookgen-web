@@ -6,8 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 BestSellers AI — SaaS for AI-powered book generation. Turborepo monorepo with pnpm.
 
-- **`apps/api`** — NestJS 11 backend (Phase 6 complete + audited)
-- **`apps/web`** — Next.js 16 frontend (still pointing to old Xano APIs, Phase 7 migration pending)
+- **`apps/api`** — NestJS 11 backend (complete, audited — 27 models, 17 enums, 62 endpoints)
+- **`apps/web`** — Next.js 16 frontend (fully migrated — i18n, Zustand, dashboard, admin, all flows)
 - **`packages/shared`** — Shared enums, types, constants, utils (CommonJS for NestJS compat)
 - **`packages/config`** — Base tsconfig
 
@@ -49,7 +49,7 @@ pnpm format                    # Prettier on all files
 
 NestJS 11 with Prisma 6, 27 models, 17 enums. Global prefix `/api`. Builder: `tsc` (not swc). Dist path: `dist/apps/api/src/main`.
 
-**Key modules:** Auth, Books, Wallet (CreditLedger FIFO), Hooks (n8n callbacks), SSE (real-time progress), Checkout/Stripe, Addons, Translations, Share, Files/Storage, Admin, Cron, Notifications.
+**Key modules:** Auth, Books, Wallet (CreditLedger FIFO), Hooks (n8n callbacks), SSE (real-time progress), Checkout/Stripe, Addons, Translations, Share, Files/Storage, Admin, Cron, Notifications, Health.
 
 **Auth pattern:** JWT access (15min) + refresh (7d) as DB `Session` records. `JwtAuthGuard` applied per-controller (not global) + `@Public()` decorator. `@CurrentUser('id')` extracts user. Google OAuth via ID token verification.
 
@@ -63,9 +63,19 @@ NestJS 11 with Prisma 6, 27 models, 17 enums. Global prefix `/api`. Builder: `ts
 
 ### Frontend (`apps/web`)
 
-Next.js 16, Tailwind 4 (`darkMode: "class"`), shadcn/ui, next-themes. Auth via `AuthContext` (context/AuthContext.tsx). Dashboard layout with sidebar (desktop) / sheet drawer (mobile). Path alias: `@/*` → `src/*`.
+Next.js 16, Tailwind 4, shadcn/ui, next-intl (en/pt-BR/es), Zustand 5, next-themes. Path alias: `@/*` → `src/*`.
 
-**Current state:** `lib/api.ts` and `lib/auth-service.ts` still call Xano endpoints. Phase 7 will migrate these to the NestJS API.
+**Auth:** Zustand store (`stores/auth-store.ts`) + `hooks/use-auth.ts` hook. JWT tokens stored in memory, refresh via API interceptor.
+
+**API layer:** Base client in `lib/api-client.ts` (Axios with interceptors for auth/refresh). Modular API modules in `lib/api/` — 13 files: auth, books, wallet, checkout, subscriptions, addons, notifications, files, products, share, admin, types, index (barrel).
+
+**i18n:** next-intl with `[locale]` route segment. Messages in `messages/{en,pt-BR,es}.json`. Routing config in `src/i18n/navigation.ts` exports `Link`, `usePathname`, `useRouter`.
+
+**Layout:** Sidebar (xl+ breakpoint), header bar (all breakpoints), bottom navigation (mobile < xl). Theme: dark/light/system via next-themes.
+
+**Pages:** Auth (login, register, forgot-password, reset-password), Dashboard (home, books list, book detail, create wizard, wallet, credits, checkout, subscriptions, settings, notifications, profile), Admin (dashboard, users, books, subscriptions, purchases, settings), Share (public book view).
+
+**State management:** Zustand stores — `auth-store.ts` (auth state + tokens), `notification-store.ts` (notification count). No React Context for auth.
 
 ### Shared Package (`packages/shared`)
 
@@ -83,7 +93,7 @@ Barrel export from `src/index.ts`. Contains all domain enums (17), TypeScript ty
 - **Hooks:** Idempotency guards — always check current status before processing
 - **Cron:** Per-item try/catch, `Promise.allSettled` for batch notifications
 - **Tailwind:** Static classes only (no string interpolation)
-- **i18n:** All UI strings via next-intl (en, pt-BR, es) — not yet implemented in frontend
+- **i18n:** All UI strings via next-intl (en, pt-BR, es) — implemented across all pages
 - **Commits:** Conventional Commits (`feat(scope):`, `fix(scope):`, etc.)
 
 ## Infrastructure
@@ -101,5 +111,8 @@ Barrel export from `src/index.ts`. Contains all domain enums (17), TypeScript ty
 - `packages/shared/src/constants.ts` — Plans, credit costs, supported languages
 - `packages/shared/src/enums.ts` — All 17 domain enums
 - `apps/api/AUDIT.md` — Backend audit results (26 fixes, patterns established)
-- `plan/PARTE_1.md` through `plan/PARTE_4.md` — Full migration plan (12 phases, 62 endpoints)
+- `plan/sprints/sprint-0/PARTE_1.md` through `PARTE_4.md` — Full migration plan (12 phases, 62 endpoints)
+- `plan/N8N_INTEGRATION.md` — n8n webhook integration documentation
+- `plan/BACKLOG.md` — Remaining backlog items
+- `apps/web/messages/en.json` — i18n message keys (English)
 - `.env.example` — All required environment variables

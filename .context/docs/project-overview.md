@@ -4,98 +4,72 @@ name: project-overview
 description: High-level overview of the project, its purpose, and key components
 category: overview
 generated: 2026-03-04
-status: unfilled
+updated: 2026-03-05
+status: filled
 scaffoldVersion: "2.0.0"
 ---
+
 ## Project Overview
 
-This is a **typescript** project using nextjs. The codebase contains **37 files** with **20 symbols**.
+**BestSellers AI** is a SaaS platform for AI-powered book generation. Users provide a briefing, receive an AI-generated preview, and can generate complete books (10+ chapters, 150+ pages) with introduction, conclusion, and professional formatting.
 
-## Codebase Reference
+The project is a **Turborepo monorepo** managed with **pnpm**, containing a NestJS backend, Next.js frontend, and shared packages.
 
-> **Detailed Analysis**: For complete symbol counts, architecture layers, and dependency graphs, see [`codebase-map.json`](./codebase-map.json).
+## Monorepo Structure
 
-## Quick Facts
-
-- **Root**: `/Users/reisalbuquerque/Projects/code/bookgen/bestsellers-ai-monorepo-v01`
-- **Languages**: javascript, typescript
-- **Total Files**: 37
-- **Total Symbols**: 20
-- **Full analysis**: [`codebase-map.json`](./codebase-map.json)
+| Workspace | Technology | Description |
+|-----------|-----------|-------------|
+| `apps/api` | NestJS 11 + Prisma 6 | Backend — 27 models, 17 enums, 62 endpoints |
+| `apps/web` | Next.js 16 + Zustand 5 | Frontend — i18n, dashboard, admin, all user flows |
+| `packages/shared` | TypeScript (CommonJS) | Shared enums, types, constants, utilities |
+| `packages/config` | TypeScript | Base tsconfig for all workspaces |
 
 ## Entry Points
 
-_No entry points detected. Add main entry files here._
+- **API:** `apps/api/src/main.ts` → serves on `:3001` with global prefix `/api`
+- **Web:** `apps/web/src/app/[locale]/layout.tsx` → serves on `:3000` with locale routing
+- **Shared:** `packages/shared/src/index.ts` → barrel export of all shared code
 
-## Key Exports
+## Tech Stack
 
-- `AuthProvider` (function) - AuthContext.tsx:20
-- `AuthResponse` (interface) - auth-service.ts:14
-- `BadgeProps` (interface) - badge.tsx:26
-- `Book` (type) - api.ts:3
-- `ButtonProps` (interface) - button.tsx:36
-- `cn` (function) - utils.ts:4
-- `CreditsPage` (function) - page.tsx:9
-- `GenerateFullBookResult` (type) - api.ts:172
-- `initAuth` (function) - AuthContext.tsx:30
-- `ProtectedRoute` (function) - ProtectedRoute.tsx:8
+- **Runtime:** Node.js >= 22
+- **Backend:** NestJS 11, Prisma 6, PostgreSQL 16, Redis 7
+- **Frontend:** Next.js 16 (App Router), React 19, Tailwind CSS 4, shadcn/ui, Zustand 5
+- **i18n:** next-intl (en, pt-BR, es)
+- **Auth:** JWT (access 15min + refresh 7d) + Google OAuth
+- **Payments:** Stripe (checkout sessions, subscriptions, webhooks)
+- **AI Engine:** n8n (external, HTTP webhooks for book generation)
+- **Storage:** Cloudflare R2 (book files, covers)
+- **Monorepo:** Turborepo + pnpm 10.30+
 
-> See [`codebase-map.json`](./codebase-map.json) for complete list.
+## Key Features
 
-## File Structure & Code Organization
+- User authentication (email/password + Google OAuth)
+- Book creation wizard (3 modes: simple, advanced, AI-assisted)
+- AI preview generation with SSE real-time progress
+- Full book generation with chapter-by-chapter progress
+- Credit-based billing with FIFO expiry (CreditLedger)
+- Stripe checkout and subscription management
+- Book addons and translations
+- Public book sharing
+- Admin dashboard (users, books, subscriptions, purchases)
+- Notifications (in-app)
+- i18n across all pages (English, Portuguese, Spanish)
+- Dark/light/system theme
 
-- `components.json/` — _describe purpose_
-- `eslint.config.mjs/` — _describe purpose_
-- `next-env.d.ts/` — _describe purpose_
-- `next.config.ts/` — _describe purpose_
-- `package-lock.json/` — _describe purpose_
-- `package.json/` — _describe purpose_
-- `plan/` — _describe purpose_
-- `postcss.config.js/` — _describe purpose_
-- `public/` — _describe purpose_
-- `README.md/` — _describe purpose_
+## Getting Started
 
-## Technology Stack Summary
-
-**Primary Language**: typescript
-
-**Other Languages**: javascript
-
-**Frameworks**: nextjs
-
-**Package Manager**: npm
-
-## Core Framework Stack
-
-- **nextjs**
-
-## UI & Interaction Libraries
-
-<!-- List UI kits, CLI interaction helpers, or design system dependencies. Note theming, accessibility, or localization considerations. -->
-
-_Content to be added._
-
-## Development Tools Overview
-
-<!-- Highlight essential CLIs, scripts, or developer environments. Link to Tooling guide for deeper setup. -->
-
-_Content to be added._
-
-## Getting Started Checklist
-
-1. Install dependencies with `npm install`.
-2. Start development with `npm run dev` or `npm start`.
-3. Review the development workflow documentation.
-
-## Next Steps
-
-<!-- Capture product positioning, key stakeholders, and links to external documentation or product specs. -->
-
-_Content to be added._
+```bash
+docker compose up -d          # PostgreSQL + Redis
+pnpm install                  # Install dependencies
+cp .env.example .env          # Configure environment
+pnpm db:migrate               # Run migrations
+pnpm db:seed                  # Seed database
+pnpm dev                      # Start all apps
+```
 
 ## Related Resources
 
-- [architecture.md](./architecture.md)
-- [development-workflow.md](./development-workflow.md)
-- [tooling.md](./tooling.md)
-- [codebase-map.json](./codebase-map.json)
+- [CLAUDE.md](../../CLAUDE.md) — Authoritative architecture and conventions reference
+- [architecture.md](./architecture.md) — System architecture details
+- [plan/BACKLOG.md](../../plan/BACKLOG.md) — Remaining work items

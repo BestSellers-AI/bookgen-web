@@ -64,7 +64,7 @@
   - `GET /admin/subscriptions` — adicionar `user.name`
   - `GET /admin/purchases` — adicionar relacao com product para `productName`
 - [ ] Endpoint de change password: `PATCH /auth/change-password` (currentPassword + newPassword)
-- [ ] Health check endpoint: `GET /health` com status do banco + Redis
+- [x] Health check endpoint: `GET /api/health` com status do banco + Redis
 - [ ] API docs: Swagger/OpenAPI auto-gerado com decorators NestJS
 
 ---
