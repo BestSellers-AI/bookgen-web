@@ -1,6 +1,7 @@
 import React from 'react';
-import { BookOpen, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
+import { Logo } from '@/components/ui/logo';
 import { useTranslations } from 'next-intl';
 import { GoogleOAuthWrapper } from '@/components/auth/google-oauth-provider';
 import { LocaleSwitcher } from '@/components/ui/locale-switcher';
@@ -21,9 +22,8 @@ export default function AuthLayout({
                     <div className="absolute -top-24 -left-24 w-96 h-96 bg-primary/20 blur-[120px] rounded-full" />
 
                     <div className="relative z-10">
-                        <Link href="/" className="flex items-center gap-2 text-2xl font-bold font-heading">
-                            <BookOpen className="w-8 h-8 text-primary glow-primary" />
-                            <span className="text-gradient">BookGen</span>
+                        <Link href="/">
+                            <Logo size="lg" />
                         </Link>
                     </div>
 

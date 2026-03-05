@@ -42,7 +42,16 @@ export default function DashboardLayout({
 
   return (
     <ProtectedRoute>
-      <div className="flex min-h-screen bg-background font-inter">
+      <div className="relative flex min-h-screen font-inter">
+        {/* Subtle grid overlay — matches landing page */}
+        <div
+          className="fixed inset-0 pointer-events-none z-0"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(245,158,11,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.07) 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+          }}
+        />
         <Sidebar wallet={wallet} />
         <Header wallet={wallet} />
 

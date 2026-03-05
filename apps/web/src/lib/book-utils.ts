@@ -1,10 +1,10 @@
 import type { BookStatus } from '@bestsellers/shared';
 
 export const BOOK_STATUS_BADGE_CLASSES: Record<string, string> = {
-  DRAFT: 'bg-violet-500/10 text-violet-400 border-violet-500/20',
-  PREVIEW_GENERATING: 'bg-violet-500/10 text-violet-400 border-violet-500/20',
-  PREVIEW: 'bg-violet-500/10 text-violet-400 border-violet-500/20',
-  PREVIEW_APPROVED: 'bg-violet-500/10 text-violet-400 border-violet-500/20',
+  DRAFT: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  PREVIEW_GENERATING: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  PREVIEW: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  PREVIEW_APPROVED: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
   QUEUED: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
   GENERATING: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
   GENERATED: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',

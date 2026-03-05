@@ -36,14 +36,14 @@ const PLAN_COLORS = {
   [SubscriptionPlan.ASPIRANTE]:
     "border-blue-500/20 hover:border-blue-500/40",
   [SubscriptionPlan.BESTSELLER]:
-    "border-violet-500/20 hover:border-violet-500/40",
+    "border-primary/20 hover:border-primary/40",
   [SubscriptionPlan.ELITE]:
     "border-amber-500/20 hover:border-amber-500/40",
 };
 
 const PLAN_ICON_BG = {
   [SubscriptionPlan.ASPIRANTE]: "bg-blue-500/10 text-blue-500",
-  [SubscriptionPlan.BESTSELLER]: "bg-violet-500/10 text-violet-500",
+  [SubscriptionPlan.BESTSELLER]: "bg-primary/10 text-primary",
   [SubscriptionPlan.ELITE]: "bg-amber-500/10 text-amber-500",
 };
 
@@ -176,7 +176,7 @@ export default function UpgradePage() {
               }`}
             >
               {isPopular && !isCurrent && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-violet-500 text-white text-[10px] font-black uppercase tracking-widest rounded-full">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-primary text-white text-[10px] font-black uppercase tracking-widest rounded-full">
                   {t("popular")}
                 </div>
               )}

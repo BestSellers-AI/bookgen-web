@@ -181,7 +181,7 @@ export default function WalletPage() {
             />
 
             <div className="flex items-center gap-3">
-              <div className="w-3 h-3 rounded-full bg-violet-500" />
+              <div className="w-3 h-3 rounded-full bg-primary" />
               <span className="text-sm text-muted-foreground flex-1">
                 {t("bonus")}
               </span>
@@ -189,7 +189,7 @@ export default function WalletPage() {
             </div>
             <Progress
               value={total > 0 ? (breakdown.bonus / total) * 100 : 0}
-              className="h-2 [&>div]:bg-violet-500"
+              className="h-2 [&>div]:bg-primary"
             />
           </div>
         )}

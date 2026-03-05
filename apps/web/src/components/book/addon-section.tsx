@@ -97,8 +97,8 @@ const ADDON_CONFIGS: AddonConfig[] = [
     icon: ImageIcon,
     cost: CREDITS_COST[ProductKind.ADDON_IMAGES],
     hasLanguageParam: false,
-    color: "text-violet-500",
-    iconBg: "bg-violet-500/10 border-violet-500/20",
+    color: "text-indigo-500",
+    iconBg: "bg-indigo-500/10 border-indigo-500/20",
   },
   {
     kind: ProductKind.ADDON_AUDIOBOOK,

@@ -2,43 +2,40 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import PlanCard from '@/components/pricing/PlanCard'
-import CreditCard from '@/components/pricing/CreditCard'
-import PlanCalculator from '@/components/pricing/PlanCalculator'
-import { PLANS, CREDIT_PACKS, SERVICES } from '@/lib/pricing-data'
+import { useTranslations } from 'next-intl'
+import PlanCard from '@/components/landing/pricing/PlanCard'
+import CreditCard from '@/components/landing/pricing/CreditCard'
+import PlanCalculator from '@/components/landing/pricing/PlanCalculator'
+import { PLANS, CREDIT_PACKS, SERVICES } from '@/lib/landing-pricing-data'
 import clsx from 'clsx'
 
 type PricingTab = 'plans' | 'credits'
 type BillingPeriod = 'annual' | 'monthly'
 
-// Custo por livro = preço anual / (créditos/mês ÷ 100cr por livro)
-const comparisonRows = [
-  { label: 'Obra Aspirante (avulso)', price: '$19', savings: 'referência', highlight: false },
-  { label: 'Autor Aspirante ($19/mês)', price: '$6,3', savings: '67% mais barato', highlight: false },
-  { label: 'Autor BestSeller ($39/mês)', price: '$5,2', savings: '73% mais barato', highlight: true },
-  { label: 'Autor Elite ($89/mês)', price: '$4,5', savings: '76% mais barato', highlight: false },
-]
-
-// Badge de economia por crédito em relação ao plano anterior
-const savingsBadges: Record<string, string> = {
-  bestseller: '22% mais barato por livro vs Aspirante',
-  editora: '13% mais barato por livro vs BestSeller',
-}
-
 export default function PricingSection() {
+  const t = useTranslations('landingV2.pricing')
   const [activeTab, setActiveTab] = useState<PricingTab>('plans')
   const [billing, setBilling] = useState<BillingPeriod>('annual')
   const [highlightedPlan, setHighlightedPlan] = useState<string | null>(null)
 
+  const comparisonRows = [
+    { label: t('whySubRow1Label'), price: t('whySubRow1Price'), savings: t('whySubRow1Savings'), highlight: false },
+    { label: t('whySubRow2Label'), price: t('whySubRow2Price'), savings: t('whySubRow2Savings'), highlight: false },
+    { label: t('whySubRow3Label'), price: t('whySubRow3Price'), savings: t('whySubRow3Savings'), highlight: true },
+    { label: t('whySubRow4Label'), price: t('whySubRow4Price'), savings: t('whySubRow4Savings'), highlight: false },
+  ]
+
+  const savingsBadges: Record<string, string> = {
+    bestseller: t('savingsBestseller'),
+    editora: t('savingsElite'),
+  }
+
   return (
     <section id="planos" className="py-24 md:py-32 relative">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-navy-900 via-navy-950 to-navy-900 pointer-events-none" />
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold-500/20 to-transparent" />
+      <div className="absolute inset-0 dark:bg-gradient-to-b dark:from-navy-900 dark:via-navy-950 dark:to-navy-900 bg-gradient-to-b from-cream-50 via-cream-100 to-cream-50 pointer-events-none" />
+      <div className="absolute top-0 left-0 right-0 h-px dark:bg-gradient-to-r dark:from-transparent dark:via-gold-500/20 dark:to-transparent bg-gradient-to-r from-transparent via-gold-600/20 to-transparent" />
 
       <div className="section-container relative">
-
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -46,20 +43,19 @@ export default function PricingSection() {
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           className="text-center mb-10"
         >
-          <span className="section-badge mb-5">Precificação</span>
-          <h2 className="font-playfair font-bold text-4xl md:text-5xl text-cream-200 mt-4 leading-tight">
-            O plano certo para o{' '}
-            <span className="italic text-gradient-gold">seu próximo bestseller</span>
+          <span className="section-badge mb-5">{t('badge')}</span>
+          <h2 className="font-playfair font-bold text-4xl md:text-5xl dark:text-cream-200 text-navy-900 mt-4 leading-tight">
+            {t('headline1')}{' '}
+            <span className="italic text-gradient-gold">{t('headlineHighlight')}</span>
           </h2>
-          <p className="text-cream-400 mt-4 text-lg max-w-2xl mx-auto">
-            Planos flexíveis para escritores, criadores e agências.
-            Créditos que você usa do seu jeito.
+          <p className="dark:text-cream-400 text-navy-700 mt-4 text-lg max-w-2xl mx-auto">
+            {t('subtitle')}
           </p>
         </motion.div>
 
-        {/* Tab Toggle: Planos | Créditos */}
+        {/* Tab Toggle */}
         <div className="flex justify-center mb-8">
-          <div className="flex bg-navy-800/80 backdrop-blur-sm rounded-2xl p-1.5 border border-white/[0.08]">
+          <div className="flex dark:bg-navy-800/80 bg-cream-200/80 backdrop-blur-sm rounded-2xl p-1.5 border dark:border-white/[0.08] border-navy-900/[0.08]">
             {(['plans', 'credits'] as PricingTab[]).map((tab) => (
               <button
                 key={tab}
@@ -68,16 +64,15 @@ export default function PricingSection() {
                   'px-7 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200',
                   activeTab === tab
                     ? 'bg-gold-500 text-navy-900 shadow-gold-sm'
-                    : 'text-cream-400 hover:text-cream-200',
+                    : 'dark:text-cream-400 text-navy-700 dark:hover:text-cream-200 hover:text-navy-900',
                 )}
               >
-                {tab === 'plans' ? 'Planos' : 'Créditos'}
+                {tab === 'plans' ? t('tabPlans') : t('tabCredits')}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Tab Content */}
         <AnimatePresence mode="wait">
           {activeTab === 'plans' ? (
             <motion.div
@@ -91,14 +86,14 @@ export default function PricingSection() {
               <div className="flex justify-center items-center gap-4 mb-8">
                 <span className={clsx(
                   'text-sm transition-colors',
-                  billing === 'monthly' ? 'text-cream-200 font-medium' : 'text-cream-500',
+                  billing === 'monthly' ? 'dark:text-cream-200 text-navy-900 font-medium' : 'dark:text-cream-500 text-navy-600',
                 )}>
-                  Mensal
+                  {t('monthly')}
                 </span>
 
                 <button
                   onClick={() => setBilling(b => b === 'annual' ? 'monthly' : 'annual')}
-                  className="relative w-14 h-7 bg-navy-700 rounded-full border border-white/10 transition-colors hover:border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400"
+                  className="relative w-14 h-7 dark:bg-navy-700 bg-cream-300 rounded-full border dark:border-white/10 border-navy-900/10 transition-colors dark:hover:border-white/20 hover:border-navy-900/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400"
                   aria-label="Toggle billing period"
                 >
                   <motion.div
@@ -110,19 +105,17 @@ export default function PricingSection() {
 
                 <span className={clsx(
                   'text-sm transition-colors flex items-center gap-2',
-                  billing === 'annual' ? 'text-cream-200 font-medium' : 'text-cream-500',
+                  billing === 'annual' ? 'dark:text-cream-200 text-navy-900 font-medium' : 'dark:text-cream-500 text-navy-600',
                 )}>
-                  Anual
-                  <span className="bg-gold-500/15 border border-gold-500/25 text-gold-400 text-[10px] font-bold px-2 py-0.5 rounded-full tracking-wide">
-                    2 MESES GRÁTIS
+                  {t('annual')}
+                  <span className="dark:bg-gold-500/15 bg-gold-600/15 border dark:border-gold-500/25 border-gold-600/25 dark:text-gold-400 text-gold-700 text-[10px] font-bold px-2 py-0.5 rounded-full tracking-wide">
+                    {t('annualBadge')}
                   </span>
                 </span>
               </div>
 
-              {/* Plan Calculator */}
               <PlanCalculator onRecommend={setHighlightedPlan} />
 
-              {/* Plan Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
                 {PLANS.map((plan, i) => (
                   <motion.div
@@ -146,15 +139,15 @@ export default function PricingSection() {
               {/* Enterprise CTA */}
               <div className="mt-5 glass-card p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div>
-                  <p className="text-cream-300 font-medium">Agência ou ghostwriter com volume maior?</p>
-                  <p className="text-cream-500 text-sm mt-0.5">Temos planos customizados para você.</p>
+                  <p className="dark:text-cream-300 text-navy-800 font-medium">{t('enterpriseTitle')}</p>
+                  <p className="dark:text-cream-500 text-navy-600 text-sm mt-0.5">{t('enterpriseSubtitle')}</p>
                 </div>
                 <button className="btn-secondary text-sm py-2.5 flex-shrink-0">
-                  Fale com a gente
+                  {t('enterpriseCta')}
                 </button>
               </div>
 
-              {/* Why subscribe section */}
+              {/* Why Subscribe */}
               <div className="mt-20">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -163,19 +156,19 @@ export default function PricingSection() {
                   transition={{ duration: 0.5 }}
                   className="text-center mb-8"
                 >
-                  <h3 className="font-playfair font-bold text-2xl md:text-3xl text-cream-200">
-                    Por que assinar em vez de comprar avulso?
+                  <h3 className="font-playfair font-bold text-2xl md:text-3xl dark:text-cream-200 text-navy-900">
+                    {t('whySubscribeTitle')}
                   </h3>
-                  <p className="text-cream-500 text-sm mt-2">Custo por livro em cada cenário</p>
+                  <p className="dark:text-cream-500 text-navy-600 text-sm mt-2">{t('whySubscribeSubtitle')}</p>
                 </motion.div>
 
                 <div className="glass-card overflow-hidden max-w-2xl mx-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-                        <th className="text-left py-3 px-5 text-cream-500 font-medium text-xs uppercase tracking-wider">Plano</th>
-                        <th className="text-right py-3 px-5 text-cream-500 font-medium text-xs uppercase tracking-wider">Por livro</th>
-                        <th className="text-right py-3 px-5 text-cream-500 font-medium text-xs uppercase tracking-wider hidden sm:table-cell">Economia</th>
+                      <tr className="border-b dark:border-white/[0.06] border-navy-900/[0.06] dark:bg-white/[0.02] bg-navy-900/[0.02]">
+                        <th className="text-left py-3 px-5 dark:text-cream-500 text-navy-600 font-medium text-xs uppercase tracking-wider">{t('whySubColPlan')}</th>
+                        <th className="text-right py-3 px-5 dark:text-cream-500 text-navy-600 font-medium text-xs uppercase tracking-wider">{t('whySubColPerBook')}</th>
+                        <th className="text-right py-3 px-5 dark:text-cream-500 text-navy-600 font-medium text-xs uppercase tracking-wider hidden sm:table-cell">{t('whySubColSavings')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -183,30 +176,25 @@ export default function PricingSection() {
                         <tr
                           key={row.label}
                           className={clsx(
-                            'border-b border-white/[0.04] last:border-0',
-                            row.highlight ? 'bg-gold-500/[0.06]' : 'hover:bg-white/[0.02]',
+                            'border-b dark:border-white/[0.04] border-navy-900/[0.04] last:border-0',
+                            row.highlight ? 'dark:bg-gold-500/[0.06] bg-gold-600/[0.06]' : 'dark:hover:bg-white/[0.02] hover:bg-navy-900/[0.02]',
                           )}
                         >
                           <td className={clsx(
                             'py-3.5 px-5',
-                            row.highlight ? 'text-gold-400 font-semibold' : 'text-cream-300',
+                            row.highlight ? 'dark:text-gold-400 text-gold-700 font-semibold' : 'dark:text-cream-300 text-navy-800',
                           )}>
                             {row.label}
-                            {row.highlight && (
-                              <span className="ml-2 text-[10px] bg-gold-500/20 text-gold-400 px-1.5 py-0.5 rounded font-bold">
-                                ⭐
-                              </span>
-                            )}
                           </td>
                           <td className={clsx(
                             'py-3.5 px-5 text-right font-mono font-bold',
-                            row.highlight ? 'text-gold-400 text-base' : 'text-cream-200',
+                            row.highlight ? 'dark:text-gold-400 text-gold-700 text-base' : 'dark:text-cream-200 text-navy-900',
                           )}>
                             {row.price}
                           </td>
                           <td className={clsx(
                             'py-3.5 px-5 text-right text-xs hidden sm:table-cell',
-                            row.highlight ? 'text-gold-400 font-semibold' : 'text-cream-500',
+                            row.highlight ? 'dark:text-gold-400 text-gold-700 font-semibold' : 'dark:text-cream-500 text-navy-600',
                           )}>
                             {row.savings}
                           </td>
@@ -217,9 +205,7 @@ export default function PricingSection() {
                 </div>
               </div>
             </motion.div>
-
           ) : (
-
             <motion.div
               key="credits"
               initial={{ opacity: 0, y: 12 }}
@@ -227,25 +213,22 @@ export default function PricingSection() {
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.25 }}
             >
-              {/* Credits header */}
               <div className="text-center mb-6">
-                <p className="text-cream-400 text-sm">
-                  Créditos sem prazo de validade · Sem recorrência · Use quando quiser
+                <p className="dark:text-cream-400 text-navy-700 text-sm">
+                  {t('creditsHeader')}
                 </p>
               </div>
 
-              {/* Comparison banner */}
               <div className="flex items-center justify-center gap-3 mb-8">
-                <div className="inline-flex items-center gap-2.5 bg-gold-500/[0.08] border border-gold-500/20 rounded-xl px-5 py-3 text-sm">
-                  <span className="text-gold-400 text-base">💡</span>
-                  <span className="text-cream-300">
-                    No plano Autor BestSeller, 1 livro custa $5,2 —{' '}
-                    <strong className="text-gold-400">mais de 3× mais barato</strong>
+                <div className="inline-flex items-center gap-2.5 dark:bg-gold-500/[0.08] bg-gold-600/[0.08] border dark:border-gold-500/20 border-gold-600/20 rounded-xl px-5 py-3 text-sm">
+                  <span className="dark:text-gold-400 text-gold-600 text-base">💡</span>
+                  <span className="dark:text-cream-300 text-navy-800">
+                    {t('creditsBanner')}{' '}
+                    <strong className="dark:text-gold-400 text-gold-700">{t('creditsBannerBold')}</strong>
                   </span>
                 </div>
               </div>
 
-              {/* Credit Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {CREDIT_PACKS.map((pack, i) => (
                   <motion.div
@@ -263,28 +246,28 @@ export default function PricingSection() {
               {/* Services Table */}
               <div className="mt-20">
                 <div className="text-center mb-8">
-                  <h3 className="font-playfair font-bold text-2xl md:text-3xl text-cream-200">
-                    Tabela de créditos por serviço
+                  <h3 className="font-playfair font-bold text-2xl md:text-3xl dark:text-cream-200 text-navy-900">
+                    {t('servicesTitle')}
                   </h3>
-                  <p className="text-cream-500 text-sm mt-2">Saiba exatamente quantos créditos cada serviço custa</p>
+                  <p className="dark:text-cream-500 text-navy-600 text-sm mt-2">{t('servicesSubtitle')}</p>
                 </div>
 
                 <div className="glass-card overflow-hidden max-w-lg mx-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-                        <th className="text-left py-3 px-6 text-cream-500 font-medium text-xs uppercase tracking-wider">Serviço</th>
-                        <th className="text-right py-3 px-6 text-cream-500 font-medium text-xs uppercase tracking-wider">Créditos</th>
+                      <tr className="border-b dark:border-white/[0.06] border-navy-900/[0.06] dark:bg-white/[0.02] bg-navy-900/[0.02]">
+                        <th className="text-left py-3 px-6 dark:text-cream-500 text-navy-600 font-medium text-xs uppercase tracking-wider">{t('servicesColName')}</th>
+                        <th className="text-right py-3 px-6 dark:text-cream-500 text-navy-600 font-medium text-xs uppercase tracking-wider">{t('servicesColCredits')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {SERVICES.map((service) => (
                         <tr
-                          key={service.name}
-                          className="border-b border-white/[0.04] last:border-0 hover:bg-white/[0.02] transition-colors"
+                          key={service.nameKey}
+                          className="border-b dark:border-white/[0.04] border-navy-900/[0.04] last:border-0 dark:hover:bg-white/[0.02] hover:bg-navy-900/[0.02] transition-colors"
                         >
-                          <td className="py-3.5 px-6 text-cream-300">{service.name}</td>
-                          <td className="py-3.5 px-6 text-right font-mono text-gold-400 font-bold">{service.credits}</td>
+                          <td className="py-3.5 px-6 dark:text-cream-300 text-navy-800">{t(service.nameKey)}</td>
+                          <td className="py-3.5 px-6 text-right font-mono dark:text-gold-400 text-gold-700 font-bold">{service.credits}</td>
                         </tr>
                       ))}
                     </tbody>

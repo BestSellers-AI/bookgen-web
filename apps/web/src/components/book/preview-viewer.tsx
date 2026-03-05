@@ -73,7 +73,7 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
           <div className="flex items-center gap-3">
             <Badge
               variant="secondary"
-              className="text-[10px] font-black uppercase tracking-widest h-6 px-3 rounded-full bg-violet-500/10 text-violet-400 border-violet-500/20"
+              className="text-[10px] font-black uppercase tracking-widest h-6 px-3 rounded-full bg-amber-500/10 text-amber-400 border-amber-500/20"
             >
               {t("preview")}
             </Badge>

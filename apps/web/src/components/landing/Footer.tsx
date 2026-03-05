@@ -1,4 +1,6 @@
-import Link from 'next/link'
+'use client'
+
+import { useTranslations } from 'next-intl'
 
 const Logo = () => (
   <div className="flex items-center gap-2.5">
@@ -15,55 +17,53 @@ const Logo = () => (
         </linearGradient>
       </defs>
     </svg>
-    <span className="font-playfair font-bold text-cream-300 text-sm">Best Sellers AI</span>
+    <span className="font-playfair font-bold dark:text-cream-300 text-navy-800 text-sm">Best Sellers AI</span>
   </div>
 )
 
-const links = {
-  Produto: [
-    { label: 'Planos', href: '#planos' },
-    { label: 'Como Funciona', href: '#como-funciona' },
-    { label: 'FAQ', href: '#faq' },
-  ],
-  Legal: [
-    { label: 'Termos de Uso', href: '/termos' },
-    { label: 'Privacidade', href: '/privacidade' },
-    { label: 'Cookies', href: '/cookies' },
-  ],
-  Contato: [
-    { label: 'Suporte', href: 'mailto:contato@bestsellers-ai.com' },
-    { label: 'Fale com a gente', href: 'mailto:contato@bestsellers-ai.com' },
-  ],
-}
-
 export default function Footer() {
-  return (
-    <footer className="bg-navy-950 border-t border-white/[0.06]">
-      <div className="section-container py-12 md:py-16">
+  const t = useTranslations('landingV2.footer')
 
-        {/* Top row */}
+  const links = {
+    [t('colProduct')]: [
+      { label: t('linkPlans'), href: '#planos' },
+      { label: t('linkHowItWorks'), href: '#como-funciona' },
+      { label: t('linkFaq'), href: '#faq' },
+    ],
+    [t('colLegal')]: [
+      { label: t('linkTerms'), href: '#' },
+      { label: t('linkPrivacy'), href: '#' },
+      { label: t('linkCookies'), href: '#' },
+    ],
+    [t('colContact')]: [
+      { label: t('linkSupport'), href: 'mailto:contato@bestsellers-ai.com' },
+      { label: t('linkContactUs'), href: 'mailto:contato@bestsellers-ai.com' },
+    ],
+  }
+
+  return (
+    <footer className="dark:bg-navy-950 bg-cream-50 border-t dark:border-white/[0.06] border-navy-900/[0.06]">
+      <div className="section-container py-12 md:py-16">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-          {/* Brand */}
           <div className="col-span-2 md:col-span-1">
             <Logo />
-            <p className="mt-4 text-cream-500 text-sm leading-relaxed max-w-xs">
-              A plataforma de IA para criar, personalizar e publicar livros profissionais.
+            <p className="mt-4 dark:text-cream-500 text-navy-600 text-sm leading-relaxed max-w-xs">
+              {t('brandDesc')}
             </p>
           </div>
 
-          {/* Links */}
           {Object.entries(links).map(([category, items]) => (
             <div key={category}>
-              <p className="text-cream-300 text-xs font-semibold uppercase tracking-wider mb-4">{category}</p>
+              <p className="dark:text-cream-300 text-navy-800 text-xs font-semibold uppercase tracking-wider mb-4">{category}</p>
               <ul className="flex flex-col gap-2.5">
                 {items.map((item) => (
                   <li key={item.label}>
-                    <Link
+                    <a
                       href={item.href}
-                      className="text-cream-500 text-sm hover:text-cream-200 transition-colors"
+                      className="dark:text-cream-500 text-navy-600 text-sm dark:hover:text-cream-200 hover:text-navy-900 transition-colors"
                     >
                       {item.label}
-                    </Link>
+                    </a>
                   </li>
                 ))}
               </ul>
@@ -71,17 +71,16 @@ export default function Footer() {
           ))}
         </div>
 
-        {/* Bottom row */}
-        <div className="pt-8 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-cream-600 text-xs">
-            © {new Date().getFullYear()} Best Sellers AI. Todos os direitos reservados.
+        <div className="pt-8 border-t dark:border-white/[0.06] border-navy-900/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="dark:text-cream-600 text-navy-500 text-xs">
+            {t('copyright', { year: new Date().getFullYear() })}
           </p>
-          <p className="text-cream-600 text-xs flex items-center gap-1.5">
-            Feito com{' '}
+          <p className="dark:text-cream-600 text-navy-500 text-xs flex items-center gap-1.5">
+            {t('madeWith')}{' '}
             <svg className="w-3.5 h-3.5 text-gold-500" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
             </svg>
-            para escritores do mundo todo
+            {t('forWriters')}
           </p>
         </div>
       </div>

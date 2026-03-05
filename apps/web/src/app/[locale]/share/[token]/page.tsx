@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
+import { Logo } from "@/components/ui/logo";
 import { shareApi } from "@/lib/api/share";
 import type { SharedBookPublicView } from "@/lib/api/types";
 import { sanitizeHtml } from "@/lib/sanitize";
@@ -79,14 +80,7 @@ export default function SharedBookPage() {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border px-6 py-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <BookOpen className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-bold font-heading text-gradient">
-              BookGen
-            </span>
-          </div>
+          <Logo size="sm" />
           <Button asChild size="sm" className="rounded-lg">
             <Link href="/auth/register">{t("createYourOwn")}</Link>
           </Button>
@@ -249,11 +243,8 @@ export default function SharedBookPage() {
       {/* CTA Footer */}
       <footer className="border-t border-border bg-primary/5 py-12 mt-16">
         <div className="max-w-4xl mx-auto px-6 text-center space-y-4">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <BookOpen className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-bold font-heading">BookGen</span>
+          <div className="flex justify-center mb-4">
+            <Logo size="sm" />
           </div>
           <h2 className="text-2xl font-heading font-bold">
             {t("ctaTitle")}

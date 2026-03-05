@@ -13,12 +13,12 @@ import { PageHeader } from "@/components/ui/page-header";
 const PACK_ICONS = [Zap, Star, Crown];
 const PACK_COLORS = [
   "border-blue-500/20 hover:border-blue-500/40",
-  "border-violet-500/20 hover:border-violet-500/40",
+  "border-primary/20 hover:border-primary/40",
   "border-amber-500/20 hover:border-amber-500/40",
 ];
 const PACK_ICON_BG = [
   "bg-blue-500/10 text-blue-500",
-  "bg-violet-500/10 text-violet-500",
+  "bg-primary/10 text-primary",
   "bg-amber-500/10 text-amber-500",
 ];
 

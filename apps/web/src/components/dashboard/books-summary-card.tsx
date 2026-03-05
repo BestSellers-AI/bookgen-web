@@ -37,8 +37,8 @@ export function BooksSummaryCard({ books }: BooksSummaryCardProps) {
       label: t("inPreview"),
       value: counts.preview,
       icon: Sparkles,
-      color: "text-violet-400",
-      bg: "bg-violet-500/10 border-violet-500/20",
+      color: "text-amber-400",
+      bg: "bg-amber-500/10 border-amber-500/20",
     },
     {
       label: t("generating"),

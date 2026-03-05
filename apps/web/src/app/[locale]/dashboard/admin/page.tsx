@@ -73,8 +73,8 @@ export default function AdminDashboardPage() {
       value: stats.totalBooks,
       sub: `${stats.booksThisMonth} ${t("thisMonth")}`,
       icon: BookOpen,
-      color: "text-violet-500",
-      bg: "bg-violet-500/10 border-violet-500/20",
+      color: "text-primary",
+      bg: "bg-primary/10 border-primary/20",
     },
     {
       label: t("totalRevenue"),
