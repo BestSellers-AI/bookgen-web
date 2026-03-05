@@ -1,4 +1,4 @@
-import { Controller, Post, Req, HttpCode } from '@nestjs/common';
+import { Controller, Post, Req, HttpCode, BadRequestException } from '@nestjs/common';
 import { RawBodyRequest } from '@nestjs/common';
 import { Request } from 'express';
 import { SkipThrottle } from '@nestjs/throttler';
@@ -20,9 +20,17 @@ export class WebhookController {
   async handleStripeWebhook(
     @Req() req: RawBodyRequest<Request>,
   ): Promise<{ received: true }> {
+    if (!req.rawBody) {
+      throw new BadRequestException('Missing raw body');
+    }
+
     const signature = req.headers['stripe-signature'] as string;
+    if (!signature) {
+      throw new BadRequestException('Missing stripe-signature header');
+    }
+
     const event = this.stripeService.constructWebhookEvent(
-      req.rawBody!,
+      req.rawBody,
       signature,
     );
     await this.stripeWebhookService.processEvent(event);

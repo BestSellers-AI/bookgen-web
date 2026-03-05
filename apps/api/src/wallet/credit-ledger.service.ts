@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreditType, Prisma } from '@prisma/client';
+import { CreditType, Prisma, WalletTransactionType } from '@prisma/client';
 import { WalletBreakdown, ExpiringCredits } from '@bestsellers/shared';
 import { InsufficientCreditsException } from './exceptions/insufficient-credits.exception';
 
@@ -96,6 +96,108 @@ export class CreditLedgerService {
 
         // 6. Sync wallet balance inside the transaction
         await this.syncWalletBalance(walletId, tx);
+        this.logger.log(`Debited ${amount} credits from wallet ${walletId}`);
+      },
+      {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      },
+    );
+  }
+
+  /**
+   * Debit credits and create a WalletTransaction atomically inside one transaction.
+   */
+  async debitCreditsWithTransaction(
+    walletId: string,
+    amount: number,
+    txData: {
+      type: WalletTransactionType;
+      description: string;
+      bookId?: string | null;
+      addonId?: string | null;
+    },
+  ): Promise<void> {
+    await this.prisma.$transaction(
+      async (tx) => {
+        // 1. Lock the wallet row
+        await tx.$queryRawUnsafe(
+          `SELECT * FROM wallets WHERE id = $1 FOR UPDATE`,
+          walletId,
+        );
+
+        // 2. Get the real balance from ledger
+        const balanceResult = await tx.$queryRawUnsafe<{ sum: number | null }[]>(
+          `SELECT COALESCE(SUM(remaining), 0) as sum FROM credit_ledger
+           WHERE wallet_id = $1 AND remaining > 0
+           AND (expires_at IS NULL OR expires_at > NOW())`,
+          walletId,
+        );
+        const balance = Number(balanceResult[0]?.sum ?? 0);
+
+        // 3. Check if enough credits
+        if (balance < amount) {
+          throw new InsufficientCreditsException(amount, balance);
+        }
+
+        // 4. Get entries with remaining > 0, ordered FIFO (expiring first)
+        const entries = await tx.creditLedger.findMany({
+          where: {
+            walletId,
+            remaining: { gt: 0 },
+            OR: [
+              { expiresAt: null },
+              { expiresAt: { gt: new Date() } },
+            ],
+          },
+          orderBy: [
+            { expiresAt: { sort: 'asc', nulls: 'last' } },
+            { createdAt: 'asc' },
+          ],
+        });
+
+        // 5. FIFO consumption
+        let remainingToDebit = amount;
+        for (const entry of entries) {
+          if (remainingToDebit <= 0) break;
+
+          const deduction = Math.min(entry.remaining, remainingToDebit);
+          await tx.creditLedger.update({
+            where: { id: entry.id },
+            data: { remaining: entry.remaining - deduction },
+          });
+          remainingToDebit -= deduction;
+        }
+
+        // 6. Sync wallet balance inside the transaction
+        await this.syncWalletBalance(walletId, tx);
+
+        // 7. Compute current balance for the transaction record
+        const postResult = await tx.creditLedger.aggregate({
+          where: {
+            walletId,
+            remaining: { gt: 0 },
+            OR: [
+              { expiresAt: null },
+              { expiresAt: { gt: new Date() } },
+            ],
+          },
+          _sum: { remaining: true },
+        });
+        const currentBalance = postResult._sum.remaining ?? 0;
+
+        // 8. Create WalletTransaction inside the same transaction
+        await tx.walletTransaction.create({
+          data: {
+            walletId,
+            type: txData.type,
+            amount: -amount,
+            balance: currentBalance,
+            description: txData.description,
+            bookId: txData.bookId ?? null,
+            addonId: txData.addonId ?? null,
+          },
+        });
+
         this.logger.log(`Debited ${amount} credits from wallet ${walletId}`);
       },
       {

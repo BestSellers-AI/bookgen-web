@@ -139,6 +139,11 @@ export class ShareService {
       throw new NotFoundException('Shared book not found');
     }
 
+    // Check if book was soft-deleted
+    if (shared.book.deletedAt) {
+      throw new NotFoundException('Shared book not found');
+    }
+
     // Check expiration
     if (shared.expiresAt && shared.expiresAt < new Date()) {
       throw new NotFoundException('Share link has expired');
@@ -172,7 +177,7 @@ export class ShareService {
         content: ch.editedContent ?? ch.content,
         editedContent: ch.editedContent,
         topics: ch.topics as SharedBookPublicView['chapters'][number]['topics'],
-        contextSummary: ch.contextSummary,
+        contextSummary: null,
       })),
       coverUrl: book.files[0]?.fileUrl ?? null,
       wordCount: book.wordCount,

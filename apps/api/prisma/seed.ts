@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
+const BCRYPT_ROUNDS = 12;
 
 async function main() {
   console.log('Seeding database...');
@@ -185,8 +187,82 @@ async function main() {
     });
   }
 
+  // ============================================
+  // Dev Users
+  // ============================================
+  const adminPassword = await bcrypt.hash('Admin123!', BCRYPT_ROUNDS);
+  const userPassword = await bcrypt.hash('User1234!', BCRYPT_ROUNDS);
+
+  const admin = await prisma.user.upsert({
+    where: { email: 'admin@bestsellers.ai' },
+    update: {},
+    create: {
+      email: 'admin@bestsellers.ai',
+      name: 'Admin',
+      passwordHash: adminPassword,
+      role: 'ADMIN',
+      onboardingCompleted: true,
+      emailVerified: new Date(),
+      wallet: {
+        create: { balance: 1000 },
+      },
+    },
+    include: { wallet: true },
+  });
+
+  // Add credits to admin wallet ledger
+  if (admin.wallet) {
+    await prisma.creditLedger.upsert({
+      where: { id: 'seed-admin-credits' },
+      update: {},
+      create: {
+        id: 'seed-admin-credits',
+        walletId: admin.wallet.id,
+        type: 'BONUS',
+        amount: 1000,
+        remaining: 1000,
+        source: 'SEED',
+      },
+    });
+  }
+
+  const user = await prisma.user.upsert({
+    where: { email: 'user@bestsellers.ai' },
+    update: {},
+    create: {
+      email: 'user@bestsellers.ai',
+      name: 'Test User',
+      passwordHash: userPassword,
+      role: 'USER',
+      onboardingCompleted: true,
+      emailVerified: new Date(),
+      wallet: {
+        create: { balance: 500 },
+      },
+    },
+    include: { wallet: true },
+  });
+
+  if (user.wallet) {
+    await prisma.creditLedger.upsert({
+      where: { id: 'seed-user-credits' },
+      update: {},
+      create: {
+        id: 'seed-user-credits',
+        walletId: user.wallet.id,
+        type: 'BONUS',
+        amount: 500,
+        remaining: 500,
+        source: 'SEED',
+      },
+    });
+  }
+
   console.log('Seed completed!');
   console.log(`Created: 3 subscription plans, 1 one-time book, 3 credit packs, 1 book-generation, 7 addons`);
+  console.log(`Created dev users:`);
+  console.log(`  Admin: admin@bestsellers.ai / Admin123!`);
+  console.log(`  User:  user@bestsellers.ai  / User1234!`);
 }
 
 main()

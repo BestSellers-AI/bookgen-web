@@ -11,6 +11,7 @@ import {
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { AdminService } from './admin.service';
 import {
   AdminPaginationDto,
@@ -39,9 +40,10 @@ export class AdminController {
   @Patch('users/:id/role')
   async changeUserRole(
     @Param('id') id: string,
+    @CurrentUser('id') callerId: string,
     @Body() dto: AdminChangeRoleDto,
   ) {
-    return this.adminService.changeUserRole(id, dto);
+    return this.adminService.changeUserRole(id, callerId, dto);
   }
 
   @Post('users/:id/add-credits')

@@ -48,6 +48,12 @@ export class HooksService {
       throw new NotFoundException(`Book ${dto.bookId} not found`);
     }
 
+    // Idempotency: skip if already processed
+    if (book.status === BookStatus.PREVIEW || book.status === BookStatus.PREVIEW_APPROVED) {
+      this.logger.warn(`Preview for book ${dto.bookId} already processed, skipping`);
+      return;
+    }
+
     /* ---------- Error path ---------- */
     if (dto.status === 'error') {
       await this.prisma.book.update({
@@ -151,6 +157,12 @@ export class HooksService {
       );
     }
 
+    // Idempotency: skip if chapter already generated
+    if (chapter.status === ChapterStatus.GENERATED && dto.status === 'success') {
+      this.logger.warn(`Chapter #${dto.chapterSequence} of book ${dto.bookId} already generated, skipping`);
+      return;
+    }
+
     /* ---------- Error path ---------- */
     if (dto.status === 'error') {
       await this.prisma.chapter.update({
@@ -209,6 +221,12 @@ export class HooksService {
 
     if (!book) {
       throw new NotFoundException(`Book ${dto.bookId} not found`);
+    }
+
+    // Idempotency: skip if already generated
+    if (book.status === BookStatus.GENERATED) {
+      this.logger.warn(`Book ${dto.bookId} already generated, skipping`);
+      return;
     }
 
     await this.prisma.book.update({
@@ -298,6 +316,12 @@ export class HooksService {
       throw new NotFoundException(`Addon ${dto.addonId} not found`);
     }
 
+    // Idempotency: skip if already completed or in a terminal state
+    if (addon.status === AddonStatus.COMPLETED || addon.status === AddonStatus.CANCELLED) {
+      this.logger.warn(`Addon ${dto.addonId} already ${addon.status}, skipping`);
+      return;
+    }
+
     /* ---------- Error path ---------- */
     if (dto.status === 'error') {
       await this.prisma.bookAddon.update({
@@ -327,6 +351,9 @@ export class HooksService {
     }
 
     /* ---------- Success path ---------- */
+    // Process addon-specific records BEFORE marking as COMPLETED
+    await this.processAddonSpecific(dto);
+
     await this.prisma.bookAddon.update({
       where: { id: dto.addonId },
       data: {
@@ -335,9 +362,6 @@ export class HooksService {
         resultData: (dto.resultData ?? Prisma.DbNull) as Prisma.InputJsonValue,
       },
     });
-
-    // Addon-specific processing
-    await this.processAddonSpecific(dto);
 
     await this.notifications.create({
       userId: addon.book.userId,

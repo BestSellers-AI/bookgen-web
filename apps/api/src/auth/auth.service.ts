@@ -212,12 +212,44 @@ export class AuthService {
       throw new UnauthorizedException('Refresh token expired');
     }
 
-    // Rotation: delete the old session
-    await this.prisma.session.delete({ where: { id: matchedSession.id } });
-
     // Generate new tokens
     const tokens = await this.generateTokens(decoded.sub);
-    await this.saveSession(decoded.sub, tokens.refreshToken);
+    const sessionTokenHash = await bcrypt.hash(tokens.refreshToken, BCRYPT_ROUNDS);
+
+    // Atomic rotation: delete old session + create new one in a transaction
+    await this.prisma.$transaction(async (tx) => {
+      // Delete the old session
+      await tx.session.delete({ where: { id: matchedSession.id } }).catch(() => {
+        // Session already deleted by a concurrent request — this is a race condition
+        throw new UnauthorizedException('Refresh token already used');
+      });
+
+      // Enforce max sessions
+      const sessionCount = await tx.session.count({
+        where: { userId: decoded.sub },
+      });
+
+      if (sessionCount >= MAX_SESSIONS) {
+        const oldest = await tx.session.findMany({
+          where: { userId: decoded.sub },
+          orderBy: { expires: 'asc' },
+          take: sessionCount - MAX_SESSIONS + 1,
+        });
+        if (oldest.length > 0) {
+          await tx.session.deleteMany({
+            where: { id: { in: oldest.map((s) => s.id) } },
+          });
+        }
+      }
+
+      await tx.session.create({
+        data: {
+          userId: decoded.sub,
+          sessionToken: sessionTokenHash,
+          expires: new Date(Date.now() + REFRESH_TOKEN_EXPIRY_MS),
+        },
+      });
+    });
 
     const user = await this.usersService.findById(decoded.sub);
     if (!user) {
@@ -260,9 +292,12 @@ export class AuthService {
     // In development, log the token for testing
     if (!this.appConfig.isProduction) {
       this.logger.debug(`Password reset token for ${user.email}: ${rawToken}`);
+    } else {
+      // TODO: Integrate email service (SendGrid, SES, etc.)
+      this.logger.warn(
+        `Password reset requested for ${user.email} but email service is not configured`,
+      );
     }
-
-    // TODO: Send password reset email in production
   }
 
   // ─── Reset Password ─────────────────────────────────────────────────

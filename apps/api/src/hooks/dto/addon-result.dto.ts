@@ -1,4 +1,5 @@
-import { IsIn, IsObject, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsIn, IsObject, IsOptional, IsString } from 'class-validator';
+import { ProductKind } from '@prisma/client';
 
 export class AddonResultDto {
   @IsString()
@@ -7,8 +8,8 @@ export class AddonResultDto {
   @IsString()
   addonId!: string;
 
-  @IsString()
-  addonKind!: string;
+  @IsEnum(ProductKind)
+  addonKind!: ProductKind;
 
   @IsIn(['success', 'error'])
   status!: 'success' | 'error';

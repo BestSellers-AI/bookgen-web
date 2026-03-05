@@ -23,7 +23,7 @@ const envSchema = z.object({
   N8N_WEBHOOK_PREVIEW: z.string().default('/preview'),
   N8N_WEBHOOK_GENERATION: z.string().default('/generate-book'),
   N8N_WEBHOOK_ADDON: z.string().default('/process-addon'),
-  N8N_CALLBACK_SECRET: z.string().default('dev-secret'),
+  N8N_CALLBACK_SECRET: z.string().min(16).default('dev-secret-not-for-production'),
 
   // Storage (R2)
   R2_ACCOUNT_ID: z.string().default(''),

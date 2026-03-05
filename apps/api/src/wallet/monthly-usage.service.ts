@@ -61,14 +61,22 @@ export class MonthlyUsageService {
   ): Promise<boolean> {
     const usage = await this.getOrCreate(userId, plan);
 
-    if (usage.freeRegensUsed >= usage.freeRegensLimit) {
+    if (usage.freeRegensLimit <= 0) {
       return false;
     }
 
-    await this.prisma.monthlyUsage.update({
-      where: { id: usage.id },
+    // Atomic conditional update: only increment if still under limit
+    const result = await this.prisma.monthlyUsage.updateMany({
+      where: {
+        id: usage.id,
+        freeRegensUsed: { lt: usage.freeRegensLimit },
+      },
       data: { freeRegensUsed: { increment: 1 } },
     });
+
+    if (result.count === 0) {
+      return false;
+    }
 
     this.logger.log(
       `User ${userId} used free regen (${usage.freeRegensUsed + 1}/${usage.freeRegensLimit})`,

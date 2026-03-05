@@ -8,7 +8,9 @@ import {
   Max,
   MaxLength,
 } from 'class-validator';
-import { BOOK_TONES } from '@bestsellers/shared';
+import { BOOK_TONES, SUPPORTED_LANGUAGES } from '@bestsellers/shared';
+
+const LANGUAGE_CODES = SUPPORTED_LANGUAGES.map((l) => l.code);
 
 export class AdvancedSettingsDto {
   @IsIn([...BOOK_TONES])
@@ -18,7 +20,7 @@ export class AdvancedSettingsDto {
   @MaxLength(200)
   targetAudience!: string;
 
-  @IsString()
+  @IsIn(LANGUAGE_CODES)
   language!: string;
 
   @IsInt()

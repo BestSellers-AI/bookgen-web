@@ -11,6 +11,7 @@ import {
   BookStatus,
   BookCreationMode,
   ChapterStatus,
+  CreditType,
   FileType,
   Prisma,
   WalletTransactionType,
@@ -375,13 +376,25 @@ export class BookService {
       }
     }
 
-    await this.prisma.book.update({
-      where: { id: bookId },
+    // Atomic status transition: only update if still in expected state
+    const updated = await this.prisma.book.updateMany({
+      where: {
+        id: bookId,
+        userId,
+        deletedAt: null,
+        status: { in: [BookStatus.DRAFT, BookStatus.ERROR] },
+      },
       data: {
         status: BookStatus.PREVIEW_GENERATING,
         generationError: null,
       },
     });
+
+    if (updated.count === 0) {
+      throw new BadRequestException(
+        'Book is no longer in a valid state for preview generation',
+      );
+    }
 
     const previewRequest = {
       briefing: book.briefing,
@@ -392,7 +405,21 @@ export class BookService {
       settings: book.settings,
     };
 
-    await this.n8nClient.dispatchPreview(bookId, previewRequest);
+    try {
+      await this.n8nClient.dispatchPreview(bookId, previewRequest);
+    } catch {
+      // Revert status on dispatch failure
+      await this.prisma.book.update({
+        where: { id: bookId },
+        data: {
+          status: book.status,
+          generationError: 'Failed to dispatch preview to processing engine',
+        },
+      });
+      throw new BadRequestException(
+        'Failed to start preview generation. Please try again.',
+      );
+    }
   }
 
   // ─── Get Preview Status ────────────────────────────────────────────
@@ -486,10 +513,17 @@ export class BookService {
       );
     }
 
-    await this.prisma.book.update({
-      where: { id: bookId },
+    // Atomic status transition
+    const updated = await this.prisma.book.updateMany({
+      where: { id: bookId, userId, status: BookStatus.PREVIEW },
       data: { status: BookStatus.PREVIEW_APPROVED },
     });
+
+    if (updated.count === 0) {
+      throw new BadRequestException(
+        'Book is no longer in a valid state to approve',
+      );
+    }
 
     return book;
   }
@@ -512,24 +546,39 @@ export class BookService {
       );
     }
 
-    // Debit credits (throws InsufficientCreditsException with 402 if not enough)
-    const cost = CREDITS_COST.BOOK_GENERATION;
-    await this.walletService.debitCredits(
-      userId,
-      cost,
-      WalletTransactionType.BOOK_GENERATION,
-      'Book generation',
-      { bookId },
-    );
-
-    // Update status to QUEUED
-    await this.prisma.book.update({
-      where: { id: bookId },
+    // Atomic status transition to QUEUED (prevents double-debit race)
+    const locked = await this.prisma.book.updateMany({
+      where: { id: bookId, userId, status: BookStatus.PREVIEW_APPROVED },
       data: {
         status: BookStatus.QUEUED,
         generationStartedAt: new Date(),
       },
     });
+
+    if (locked.count === 0) {
+      throw new BadRequestException(
+        'Book is no longer in a valid state for generation',
+      );
+    }
+
+    // Debit credits (throws InsufficientCreditsException with 402 if not enough)
+    const cost = CREDITS_COST.BOOK_GENERATION;
+    try {
+      await this.walletService.debitCredits(
+        userId,
+        cost,
+        WalletTransactionType.BOOK_GENERATION,
+        'Book generation',
+        { bookId },
+      );
+    } catch (error) {
+      // Revert status on credit failure
+      await this.prisma.book.update({
+        where: { id: bookId },
+        data: { status: BookStatus.PREVIEW_APPROVED, generationStartedAt: null },
+      });
+      throw error;
+    }
 
     // Determine queue priority based on user's subscription plan
     const activeSubscription = await this.prisma.subscription.findFirst({
@@ -567,7 +616,31 @@ export class BookService {
       queuePriority,
     };
 
-    await this.n8nClient.dispatchGeneration(bookId, generationData);
+    try {
+      await this.n8nClient.dispatchGeneration(bookId, generationData);
+    } catch {
+      // Refund credits and revert status on dispatch failure
+      await this.walletService.addCredits(
+        userId,
+        cost,
+        CreditType.REFUND,
+        {
+          transactionType: WalletTransactionType.REFUND,
+          description: 'Refund: generation dispatch failed',
+        },
+      );
+      await this.prisma.book.update({
+        where: { id: bookId },
+        data: {
+          status: BookStatus.PREVIEW_APPROVED,
+          generationStartedAt: null,
+          generationError: 'Failed to dispatch generation to processing engine',
+        },
+      });
+      throw new BadRequestException(
+        'Failed to start book generation. Credits have been refunded.',
+      );
+    }
 
     // Update status to GENERATING
     await this.prisma.book.update({
@@ -660,10 +733,36 @@ export class BookService {
       bookPlanning: book.planning,
     };
 
-    await this.n8nClient.dispatchGeneration(bookId, {
-      type: 'chapter-regeneration',
-      ...chapterData,
-    });
+    try {
+      await this.n8nClient.dispatchGeneration(bookId, {
+        type: 'chapter-regeneration',
+        ...chapterData,
+      });
+    } catch {
+      // Revert chapter status on dispatch failure
+      await this.prisma.chapter.update({
+        where: { id: chapter.id },
+        data: { status: ChapterStatus.GENERATED },
+      });
+
+      // Refund if credits were debited (not free regen)
+      if (!usedFreeRegen) {
+        const cost = CREDITS_COST.CHAPTER_REGENERATION;
+        await this.walletService.addCredits(
+          userId,
+          cost,
+          CreditType.REFUND,
+          {
+            transactionType: WalletTransactionType.REFUND,
+            description: 'Refund: chapter regeneration dispatch failed',
+          },
+        );
+      }
+
+      throw new BadRequestException(
+        'Failed to start chapter regeneration. Please try again.',
+      );
+    }
 
     this.logger.log(
       `Chapter ${chapterSequence} regeneration started for book ${bookId}`,

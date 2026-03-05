@@ -16,7 +16,7 @@ export class N8nClientService {
     };
 
     this.logger.log(`Dispatching preview for book ${bookId} → ${url}`);
-    await this.fireAndForget(url, body);
+    await this.dispatch(url, body);
   }
 
   async dispatchGeneration(bookId: string, request: object): Promise<void> {
@@ -28,7 +28,7 @@ export class N8nClientService {
     };
 
     this.logger.log(`Dispatching generation for book ${bookId} → ${url}`);
-    await this.fireAndForget(url, body);
+    await this.dispatch(url, body);
   }
 
   async dispatchAddon(
@@ -49,15 +49,18 @@ export class N8nClientService {
     this.logger.log(
       `Dispatching addon ${addonKind} for book ${bookId} → ${url}`,
     );
-    await this.fireAndForget(url, body);
+    await this.dispatch(url, body);
   }
 
-  private async fireAndForget(url: string, body: object): Promise<void> {
+  /**
+   * Dispatch request to n8n. Throws on failure so callers can handle rollback.
+   */
+  private async dispatch(url: string, body: object): Promise<void> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10_000);
 
     try {
-      await fetch(url, {
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -66,10 +69,17 @@ export class N8nClientService {
         body: JSON.stringify(body),
         signal: controller.signal,
       });
+
+      if (!response.ok) {
+        throw new Error(
+          `n8n returned HTTP ${response.status}: ${response.statusText}`,
+        );
+      }
     } catch (error) {
-      this.logger.warn(
-        `Fire-and-forget request to ${url} failed: ${error instanceof Error ? error.message : String(error)}`,
+      this.logger.error(
+        `n8n dispatch to ${url} failed: ${error instanceof Error ? error.message : String(error)}`,
       );
+      throw error;
     } finally {
       clearTimeout(timeout);
     }

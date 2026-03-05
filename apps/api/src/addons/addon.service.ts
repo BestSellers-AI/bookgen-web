@@ -74,9 +74,27 @@ export class AddonService {
     );
 
     // Dispatch to n8n
-    await this.n8nClient.dispatchAddon(bookId, addon.id, dto.kind, {
-      ...(dto.params ?? {}),
-    });
+    try {
+      await this.n8nClient.dispatchAddon(bookId, addon.id, dto.kind, {
+        ...(dto.params ?? {}),
+      });
+    } catch {
+      // Refund credits and mark addon as ERROR on dispatch failure
+      await this.walletService.addCredits(userId, creditsCost, CreditType.REFUND, {
+        description: `Refund: ${dto.kind} add-on dispatch failed`,
+        transactionType: WalletTransactionType.REFUND,
+      });
+      await this.prisma.bookAddon.update({
+        where: { id: addon.id },
+        data: {
+          status: AddonStatus.ERROR,
+          error: 'Failed to dispatch to processing engine',
+        },
+      });
+      throw new BadRequestException(
+        'Failed to start add-on processing. Credits have been refunded.',
+      );
+    }
 
     // Update to QUEUED
     const updated = await this.prisma.bookAddon.update({

@@ -282,12 +282,23 @@ export class StripeWebhookService {
         `Creating subscription record for user ${user.id} from first invoice`,
       );
 
+      // Resolve plan from invoice metadata or line items metadata
+      const invoiceMeta = invoice.metadata ?? {};
+      const lineItem = invoice.lines?.data?.[0] as unknown as Record<string, unknown> | undefined;
+      const lineItemPrice = (lineItem?.price ?? lineItem?.pricing) as Record<string, unknown> | undefined;
+      const lineItemMeta = (lineItemPrice?.metadata ?? {}) as Record<string, string>;
+      const planSlug = invoiceMeta.plan ?? lineItemMeta.plan;
+      const plan = this.resolvePlan(planSlug as string | undefined);
+
+      const recurring = lineItemPrice?.recurring as Record<string, string> | undefined;
+      const billingInterval = recurring?.interval === 'year' ? 'ANNUAL' : 'MONTHLY';
+
       subscription = await this.prisma.subscription.create({
         data: {
           userId: user.id,
-          plan: 'ASPIRANTE',
+          plan,
           status: 'ACTIVE',
-          billingInterval: 'MONTHLY',
+          billingInterval,
           stripeSubscriptionId,
           stripeCustomerId,
           currentPeriodStart: invoice.period_start
@@ -311,6 +322,30 @@ export class StripeWebhookService {
             : undefined,
         },
       });
+    }
+
+    // Deduplication: check if credits were already granted for this invoice
+    const invoiceId = invoice.id;
+    if (invoiceId) {
+      const existingLedger = await this.prisma.creditLedger.findFirst({
+        where: {
+          source: 'subscription',
+          sourceId: subscription.id,
+          // Use source + sourceId + approximate timing to detect duplicates
+          createdAt: {
+            gte: invoice.period_start
+              ? new Date(invoice.period_start * 1000)
+              : new Date(Date.now() - 60_000),
+          },
+        },
+      });
+
+      if (existingLedger) {
+        this.logger.warn(
+          `Credits already granted for subscription ${subscription.id} in this period, skipping`,
+        );
+        return;
+      }
     }
 
     // Find plan config

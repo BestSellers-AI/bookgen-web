@@ -153,13 +153,12 @@ export class AdminService {
 
   async changeUserRole(
     id: string,
+    callerId: string,
     dto: AdminChangeRoleDto,
   ): Promise<{ role: string }> {
-    const validRoles = Object.values(UserRole);
-    if (!validRoles.includes(dto.role as UserRole)) {
-      throw new BadRequestException(
-        `Invalid role. Must be one of: ${validRoles.join(', ')}`,
-      );
+    // Prevent admin from changing their own role
+    if (id === callerId) {
+      throw new BadRequestException('Cannot change your own role');
     }
 
     const user = await this.prisma.user.findFirst({
@@ -173,10 +172,10 @@ export class AdminService {
 
     await this.prisma.user.update({
       where: { id },
-      data: { role: dto.role as UserRole },
+      data: { role: dto.role },
     });
 
-    this.logger.log(`User ${id} role changed to ${dto.role}`);
+    this.logger.log(`User ${id} role changed to ${dto.role} by admin ${callerId}`);
     return { role: dto.role };
   }
 

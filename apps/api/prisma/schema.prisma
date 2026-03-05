@@ -195,6 +195,7 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
   @@map("accounts")
 }
 
@@ -206,6 +207,8 @@ model Session {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
+  @@index([expires])
   @@map("sessions")
 }
 
@@ -215,6 +218,8 @@ model VerificationToken {
   token      String
   expires    DateTime
 
+  @@index([identifier])
+  @@index([token])
   @@map("verification_tokens")
 }
 
@@ -237,6 +242,9 @@ model Subscription {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
+  @@index([userId, status])
+  @@index([stripeCustomerId])
   @@map("subscriptions")
 }
 
@@ -267,6 +275,8 @@ model WalletTransaction {
 
   wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
 
+  @@index([walletId])
+  @@index([walletId, createdAt])
   @@map("wallet_transactions")
 }
 
@@ -283,6 +293,10 @@ model CreditLedger {
 
   wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
 
+  @@index([walletId])
+  @@index([walletId, remaining])
+  @@index([expiresAt])
+  @@index([source, sourceId])
   @@map("credit_ledger")
 }
 
@@ -336,6 +350,9 @@ model Book {
   audiobooks   Audiobook[]
   sharedBooks  SharedBook[]
 
+  @@index([userId])
+  @@index([userId, status, deletedAt])
+  @@index([status])
   @@map("books")
 }
 
@@ -360,6 +377,8 @@ model Chapter {
   audiobookChapters   AudiobookChapter[]
   images              BookImage[]
 
+  @@index([bookId])
+  @@index([bookId, sequence])
   @@map("chapters")
 }
 
@@ -376,6 +395,8 @@ model BookContentVersion {
   book    Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
   chapter Chapter? @relation(fields: [chapterId], references: [id], onDelete: SetNull)
 
+  @@index([bookId])
+  @@index([chapterId])
   @@map("book_content_versions")
 }
 
@@ -390,6 +411,8 @@ model BookFile {
 
   book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
 
+  @@index([bookId])
+  @@index([bookId, fileType])
   @@map("book_files")
 }
 
@@ -408,6 +431,8 @@ model BookAddon {
   book               Book                @relation(fields: [bookId], references: [id], onDelete: Cascade)
   publishingRequests PublishingRequest[]
 
+  @@index([bookId])
+  @@index([bookId, status])
   @@map("book_addons")
 }
 
@@ -426,6 +451,7 @@ model BookTranslation {
   book     Book                 @relation(fields: [bookId], references: [id], onDelete: Cascade)
   chapters TranslationChapter[]
 
+  @@index([bookId])
   @@map("book_translations")
 }
 
@@ -443,6 +469,8 @@ model TranslationChapter {
   translation BookTranslation @relation(fields: [translationId], references: [id], onDelete: Cascade)
   chapter     Chapter         @relation(fields: [chapterId], references: [id], onDelete: Cascade)
 
+  @@index([translationId])
+  @@index([chapterId])
   @@map("translation_chapters")
 }
 
@@ -459,6 +487,7 @@ model BookImage {
   book    Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
   chapter Chapter? @relation(fields: [chapterId], references: [id], onDelete: SetNull)
 
+  @@index([bookId])
   @@map("book_images")
 }
 
@@ -477,6 +506,7 @@ model Audiobook {
   book     Book               @relation(fields: [bookId], references: [id], onDelete: Cascade)
   chapters AudiobookChapter[]
 
+  @@index([bookId])
   @@map("audiobooks")
 }
 
@@ -494,6 +524,8 @@ model AudiobookChapter {
   audiobook Audiobook @relation(fields: [audiobookId], references: [id], onDelete: Cascade)
   chapter   Chapter   @relation(fields: [chapterId], references: [id], onDelete: Cascade)
 
+  @@index([audiobookId])
+  @@index([chapterId])
   @@map("audiobook_chapters")
 }
 
@@ -508,6 +540,8 @@ model SharedBook {
 
   book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
 
+  @@index([bookId])
+  @@index([bookId, isActive])
   @@map("shared_books")
 }
 
@@ -526,6 +560,8 @@ model PublishingRequest {
 
   addon BookAddon @relation(fields: [addonId], references: [id], onDelete: Cascade)
 
+  @@index([bookId])
+  @@index([addonId])
   @@map("publishing_requests")
 }
 
@@ -561,6 +597,8 @@ model ProductPrice {
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
+  @@index([productId])
+  @@index([stripePriceId])
   @@map("product_prices")
 }
 
@@ -582,6 +620,9 @@ model Purchase {
   user  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   items PurchaseItem[]
 
+  @@index([userId])
+  @@index([stripeSessionId])
+  @@index([stripePaymentIntentId])
   @@map("purchases")
 }
 
@@ -597,6 +638,8 @@ model PurchaseItem {
   purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
   product  Product  @relation(fields: [productId], references: [id])
 
+  @@index([purchaseId])
+  @@index([productId])
   @@map("purchase_items")
 }
 
@@ -612,6 +655,8 @@ model Notification {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
+  @@index([userId, readAt])
   @@map("notifications")
 }
 
@@ -625,6 +670,8 @@ model WebhookEvent {
   error       String?
   createdAt   DateTime  @default(now()) @map("created_at")
 
+  @@index([source, eventType])
+  @@index([processed])
   @@map("webhook_events")
 }
 

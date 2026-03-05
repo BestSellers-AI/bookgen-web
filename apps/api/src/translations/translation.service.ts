@@ -111,51 +111,71 @@ export class TranslationService {
       throw new NotFoundException(`Translation ${translationId} not found`);
     }
 
-    // Update the chapter
-    await this.prisma.translationChapter.updateMany({
-      where: {
-        translationId,
-        chapterId: data.chapterId,
-      },
-      data: {
-        translatedTitle: data.translatedTitle,
-        translatedContent: data.translatedContent,
-        status: TranslationStatus.TRANSLATED,
-      },
+    // Idempotency: skip if chapter already translated
+    const chapter = await this.prisma.translationChapter.findFirst({
+      where: { translationId, chapterId: data.chapterId },
     });
 
-    // Increment completed chapters
-    const updated = await this.prisma.bookTranslation.update({
-      where: { id: translationId },
-      data: {
-        completedChapters: { increment: 1 },
-      },
+    if (chapter?.status === TranslationStatus.TRANSLATED) {
+      this.logger.warn(
+        `Translation chapter ${data.chapterId} already translated, skipping`,
+      );
+      return;
+    }
+
+    // Atomic: update chapter + increment counter in one transaction
+    const updated = await this.prisma.$transaction(async (tx) => {
+      await tx.translationChapter.updateMany({
+        where: {
+          translationId,
+          chapterId: data.chapterId,
+          status: { not: TranslationStatus.TRANSLATED },
+        },
+        data: {
+          translatedTitle: data.translatedTitle,
+          translatedContent: data.translatedContent,
+          status: TranslationStatus.TRANSLATED,
+        },
+      });
+
+      return tx.bookTranslation.update({
+        where: { id: translationId },
+        data: {
+          completedChapters: { increment: 1 },
+        },
+      });
     });
 
     this.logger.log(
       `Translation ${translationId}: chapter ${data.chapterId} completed (${updated.completedChapters}/${updated.totalChapters})`,
     );
 
-    // Check if all chapters are done
+    // Atomic completion: only mark TRANSLATED if still in TRANSLATING state
     if (updated.completedChapters >= updated.totalChapters) {
-      await this.prisma.bookTranslation.update({
-        where: { id: translationId },
+      const completed = await this.prisma.bookTranslation.updateMany({
+        where: {
+          id: translationId,
+          status: TranslationStatus.TRANSLATING,
+        },
         data: { status: TranslationStatus.TRANSLATED },
       });
 
-      await this.notifications.create({
-        userId: translation.book.userId,
-        type: NotificationType.TRANSLATION_COMPLETED,
-        title: 'Translation completed',
-        message: `Your book "${translation.book.title}" has been translated to ${translation.targetLanguage}.`,
-        data: {
-          bookId: translation.bookId,
-          translationId: translation.id,
-          targetLanguage: translation.targetLanguage,
-        },
-      });
+      // Only notify if we were the one to transition (prevents duplicate notifications)
+      if (completed.count > 0) {
+        await this.notifications.create({
+          userId: translation.book.userId,
+          type: NotificationType.TRANSLATION_COMPLETED,
+          title: 'Translation completed',
+          message: `Your book "${translation.book.title}" has been translated to ${translation.targetLanguage}.`,
+          data: {
+            bookId: translation.bookId,
+            translationId: translation.id,
+            targetLanguage: translation.targetLanguage,
+          },
+        });
 
-      this.logger.log(`Translation ${translationId} fully completed`);
+        this.logger.log(`Translation ${translationId} fully completed`);
+      }
     }
   }
 }

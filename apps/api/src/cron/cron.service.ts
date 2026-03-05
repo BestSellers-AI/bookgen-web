@@ -33,7 +33,7 @@ export class CronService {
         select: { id: true, userId: true },
       });
 
-      await Promise.all(
+      const results = await Promise.allSettled(
         wallets.map((w) =>
           this.notifications.create({
             userId: w.userId,
@@ -44,6 +44,11 @@ export class CronService {
           }),
         ),
       );
+
+      const failed = results.filter((r) => r.status === 'rejected');
+      if (failed.length > 0) {
+        this.logger.warn(`Failed to send ${failed.length} expiry notifications`);
+      }
     }
 
     this.logger.log(
@@ -99,13 +104,21 @@ export class CronService {
     });
 
     let synced = 0;
+    let errors = 0;
     for (const wallet of wallets) {
-      await this.creditLedgerService.syncWalletBalance(wallet.id);
-      synced++;
+      try {
+        await this.creditLedgerService.syncWalletBalance(wallet.id);
+        synced++;
+      } catch (error) {
+        errors++;
+        this.logger.error(
+          `Failed to sync wallet ${wallet.id}: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
     }
 
     this.logger.log(
-      `Cron: syncWalletBalances completed — ${synced} wallets synced`,
+      `Cron: syncWalletBalances completed — ${synced} synced, ${errors} errors`,
     );
   }
 }

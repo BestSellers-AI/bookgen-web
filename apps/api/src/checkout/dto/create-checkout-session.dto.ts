@@ -7,12 +7,4 @@ export class CreateCheckoutSessionDto {
   @IsOptional()
   @IsIn(['monthly', 'annual'])
   billingInterval?: 'monthly' | 'annual';
-
-  @IsOptional()
-  @IsString()
-  successUrl?: string;
-
-  @IsOptional()
-  @IsString()
-  cancelUrl?: string;
 }

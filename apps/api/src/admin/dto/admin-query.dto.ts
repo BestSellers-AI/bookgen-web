@@ -1,12 +1,16 @@
-import { IsOptional, IsString, IsInt, Min, Max } from 'class-validator';
+import { IsOptional, IsString, IsInt, Min, Max, MaxLength, IsEnum } from 'class-validator';
+import { Type } from 'class-transformer';
+import { UserRole } from '@prisma/client';
 
 export class AdminPaginationDto {
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   @Min(1)
   page?: number = 1;
 
   @IsOptional()
+  @Type(() => Number)
   @IsInt()
   @Min(1)
   @Max(100)
@@ -14,6 +18,7 @@ export class AdminPaginationDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(200)
   search?: string;
 }
 
@@ -28,6 +33,6 @@ export class AdminAddCreditsDto {
 }
 
 export class AdminChangeRoleDto {
-  @IsString()
-  role!: string;
+  @IsEnum(UserRole)
+  role!: UserRole;
 }

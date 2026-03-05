@@ -3,7 +3,6 @@ import {
   Logger,
   NotFoundException,
   BadRequestException,
-  ForbiddenException,
 } from '@nestjs/common';
 import { ProductKind, BillingInterval } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
@@ -49,12 +48,9 @@ export class CheckoutService {
       );
     }
 
-    // 5. Create checkout session
-    const successUrl =
-      dto.successUrl ||
-      `${this.appConfig.frontendUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`;
-    const cancelUrl =
-      dto.cancelUrl || `${this.appConfig.frontendUrl}/checkout/cancel`;
+    // 5. Create checkout session (URLs are server-configured to prevent open redirects)
+    const successUrl = `${this.appConfig.frontendUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${this.appConfig.frontendUrl}/checkout/cancel`;
 
     const { sessionUrl, sessionId } =
       await this.stripeService.createCheckoutSession({
@@ -73,7 +69,7 @@ export class CheckoutService {
 
     this.logger.log(`Checkout session ${sessionId} created for user ${userId}`);
 
-    return { sessionUrl, sessionId };
+    return { url: sessionUrl, sessionId };
   }
 
   /**

@@ -126,25 +126,47 @@ export class WalletService {
   ): Promise<void> {
     const wallet = await this.findOrCreateWallet(userId);
 
-    await this.creditLedgerService.addCredits(wallet.id, {
-      amount,
-      type: creditType,
-      expiresAt: params.expiresAt,
-      source: params.source,
-      sourceId: params.sourceId,
-    });
+    await this.prisma.$transaction(async (tx) => {
+      await tx.creditLedger.create({
+        data: {
+          walletId: wallet.id,
+          type: creditType,
+          amount,
+          remaining: amount,
+          expiresAt: params.expiresAt ?? null,
+          source: params.source ?? null,
+          sourceId: params.sourceId ?? null,
+        },
+      });
 
-    // Re-fetch balance after adding credits
-    const currentBalance = await this.creditLedgerService.getBalance(wallet.id);
+      // Compute balance inside the transaction
+      const result = await tx.creditLedger.aggregate({
+        where: {
+          walletId: wallet.id,
+          remaining: { gt: 0 },
+          OR: [
+            { expiresAt: null },
+            { expiresAt: { gt: new Date() } },
+          ],
+        },
+        _sum: { remaining: true },
+      });
+      const currentBalance = result._sum.remaining ?? 0;
 
-    await this.prisma.walletTransaction.create({
-      data: {
-        walletId: wallet.id,
-        type: params.transactionType,
-        amount,
-        balance: currentBalance,
-        description: params.description ?? null,
-      },
+      await tx.wallet.update({
+        where: { id: wallet.id },
+        data: { balance: currentBalance },
+      });
+
+      await tx.walletTransaction.create({
+        data: {
+          walletId: wallet.id,
+          type: params.transactionType,
+          amount,
+          balance: currentBalance,
+          description: params.description ?? null,
+        },
+      });
     });
 
     this.logger.log(
@@ -164,22 +186,16 @@ export class WalletService {
   ): Promise<void> {
     const wallet = await this.findOrCreateWallet(userId);
 
-    await this.creditLedgerService.debitCredits(wallet.id, amount);
-
-    // Re-fetch balance after debiting
-    const currentBalance = await this.creditLedgerService.getBalance(wallet.id);
-
-    await this.prisma.walletTransaction.create({
-      data: {
-        walletId: wallet.id,
+    await this.creditLedgerService.debitCreditsWithTransaction(
+      wallet.id,
+      amount,
+      {
         type: transactionType,
-        amount: -amount,
-        balance: currentBalance,
         description,
         bookId: refs?.bookId ?? null,
         addonId: refs?.addonId ?? null,
       },
-    });
+    );
 
     this.logger.log(
       `Debited ${amount} credits from user ${userId} (type: ${transactionType})`,

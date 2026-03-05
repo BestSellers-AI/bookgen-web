@@ -12,7 +12,11 @@ export class StripeService {
     private readonly appConfig: AppConfigService,
     private readonly prisma: PrismaService,
   ) {
-    this.stripe = new Stripe(this.appConfig.stripeSecretKey, {
+    const key = this.appConfig.stripeSecretKey;
+    if (!key) {
+      this.logger.warn('STRIPE_SECRET_KEY is not set — Stripe features will fail at runtime');
+    }
+    this.stripe = new Stripe(key || 'sk_test_placeholder_not_configured', {
       apiVersion: '2026-02-25.clover',
     });
   }
