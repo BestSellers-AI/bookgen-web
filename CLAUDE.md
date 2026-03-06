@@ -41,6 +41,10 @@ pnpm --filter @bestsellers/api prisma:generate  # Regenerate Prisma client
 
 # Formatting
 pnpm format                    # Prettier on all files
+
+# Docker — Production (Coolify)
+docker compose -f docker-compose.coolify.yml up -d   # API + DB + Redis
+docker build -f apps/api/Dockerfile -t bestsellers-api .  # Build API image
 ```
 
 ## Architecture
@@ -104,6 +108,16 @@ Barrel export from `src/index.ts`. Contains all domain enums (17), TypeScript ty
 - **Cloudflare R2** for file storage
 - **n8n** as the generation engine (external, HTTP webhooks)
 - **Pino** logger with pretty-print in dev
+- **Coolify** for API deployment (Docker Compose)
+
+## Deployment
+
+- **Coolify** hosts the API + PostgreSQL + Redis (`docker-compose.coolify.yml`)
+- **Web** is deployed separately (Vercel or standalone)
+- **Dockerfile** (`apps/api/Dockerfile`): multi-stage pnpm monorepo build, uses `pnpm deploy --prod` for standalone bundle, `node:22-alpine` + `dumb-init`
+- **Body-parser limit:** 5mb (configured in `main.ts` for large book context payloads)
+- **Redis** requires password in production (`REDIS_PASSWORD` env var)
+- **Migrations:** Run `prisma migrate deploy` manually on first deploy
 
 ## Key Reference Files
 
@@ -116,3 +130,6 @@ Barrel export from `src/index.ts`. Contains all domain enums (17), TypeScript ty
 - `plan/BACKLOG.md` — Remaining backlog items
 - `apps/web/messages/en.json` — i18n message keys (English)
 - `.env.example` — All required environment variables
+- `apps/api/Dockerfile` — Multi-stage production build
+- `docker-compose.coolify.yml` — Production compose (API + DB + Redis)
+- `plan/CURRENT_STATUS.md` — Where we stopped / current progress
