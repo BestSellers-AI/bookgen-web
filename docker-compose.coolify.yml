@@ -1,0 +1,76 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-bestsellers}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-bestsellers}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bestsellers} -d ${POSTGRES_DB:-bestsellers}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD:?Set REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      API_PORT: "3001"
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-bestsellers}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-bestsellers}?schema=public"
+      REDIS_URL: "redis://:${REDIS_PASSWORD}@redis:6379"
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?Set JWT_REFRESH_SECRET}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      N8N_WEBHOOK_BASE_URL: ${N8N_WEBHOOK_BASE_URL:-}
+      N8N_WEBHOOK_PREVIEW: ${N8N_WEBHOOK_PREVIEW:-/preview}
+      N8N_WEBHOOK_GENERATION: ${N8N_WEBHOOK_GENERATION:-/generate-book}
+      N8N_WEBHOOK_ADDON: ${N8N_WEBHOOK_ADDON:-/process-addon}
+      N8N_WEBHOOK_PREVIEW_COMPLETE: ${N8N_WEBHOOK_PREVIEW_COMPLETE:-/preview-complete}
+      N8N_CALLBACK_SECRET: ${N8N_CALLBACK_SECRET:?Set N8N_CALLBACK_SECRET}
+      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID:-}
+      R2_ACCESS_KEY: ${R2_ACCESS_KEY:-}
+      R2_SECRET_KEY: ${R2_SECRET_KEY:-}
+      R2_BUCKET: ${R2_BUCKET:-bestsellers-files}
+      R2_PUBLIC_URL: ${R2_PUBLIC_URL:-}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@bestsellers.ai}
+      API_URL: ${API_URL:-http://localhost:3001}
+      FRONTEND_URL: ${FRONTEND_URL:?Set FRONTEND_URL}
+    ports:
+      - "${API_PORT:-3001}:3001"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3001/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  postgres_data:
+  redis_data:
