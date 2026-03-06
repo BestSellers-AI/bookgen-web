@@ -28,10 +28,10 @@ RUN pnpm --filter @bestsellers/api deploy --legacy --prod /app/deploy
 # Copy Prisma schema + migrations into deploy (needed for runtime)
 RUN cp -r /app/apps/api/prisma /app/deploy/prisma
 
-# Copy built shared package so workspace:* resolves at runtime
+# Ensure built shared package dist is in deploy (pnpm deploy may link source only)
 RUN mkdir -p /app/deploy/node_modules/@bestsellers/shared \
- && cp -r /app/packages/shared/dist /app/deploy/node_modules/@bestsellers/shared/dist \
- && cp /app/packages/shared/package.json /app/deploy/node_modules/@bestsellers/shared/package.json
+ && cp -rn /app/packages/shared/dist /app/deploy/node_modules/@bestsellers/shared/dist || true \
+ && cp -n /app/packages/shared/package.json /app/deploy/node_modules/@bestsellers/shared/package.json || true
 
 # ── Stage 2: Production image ──────────────────────────────
 FROM node:22-alpine AS runner
