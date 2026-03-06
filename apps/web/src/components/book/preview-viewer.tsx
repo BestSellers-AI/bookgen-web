@@ -43,6 +43,8 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
 
   const planning = book.planning;
   const previewPdf = book.files.find((f: BookFileSummary) => f.fileType === "PREVIEW_PDF");
+  const previewDocx = book.files.find((f: BookFileSummary) => f.fileType === "DOCX");
+  const previewEpub = book.files.find((f: BookFileSummary) => f.fileType === "EPUB");
   const hasPlanning = planning && planning.chapters && planning.chapters.length > 0;
 
   const handleRegenerate = async () => {
@@ -123,6 +125,32 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
               <a href={previewPdf.fileUrl} target="_blank" rel="noopener noreferrer">
                 <FileDown className="mr-2 h-4 w-4" />
                 {t("downloadPreviewPdf")}
+              </a>
+            </Button>
+          )}
+
+          {previewDocx && (
+            <Button
+              variant="outline"
+              className="rounded-xl border-primary/20 bg-primary/5 text-primary hover:bg-primary/10"
+              asChild
+            >
+              <a href={previewDocx.fileUrl} target="_blank" rel="noopener noreferrer">
+                <FileDown className="mr-2 h-4 w-4" />
+                {t("downloadDocx")}
+              </a>
+            </Button>
+          )}
+
+          {previewEpub && (
+            <Button
+              variant="outline"
+              className="rounded-xl border-primary/20 bg-primary/5 text-primary hover:bg-primary/10"
+              asChild
+            >
+              <a href={previewEpub.fileUrl} target="_blank" rel="noopener noreferrer">
+                <FileDown className="mr-2 h-4 w-4" />
+                {t("downloadEpub")}
               </a>
             </Button>
           )}

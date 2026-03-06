@@ -72,6 +72,7 @@ export function BookViewer({ book, onRefetch }: BookViewerProps) {
 
   const pdfFile = getFileByType(book.files, "FULL_PDF");
   const docxFile = getFileByType(book.files, "DOCX");
+  const epubFile = getFileByType(book.files, "EPUB");
 
   // Free regens from wallet (fetched by parent or context)
   // For now default to 0, will be fetched
@@ -172,6 +173,15 @@ export function BookViewer({ book, onRefetch }: BookViewerProps) {
               <a href={docxFile.fileUrl} target="_blank" rel="noopener noreferrer">
                 <Download className="mr-2 h-4 w-4" />
                 {t("downloadDocx")}
+              </a>
+            </Button>
+          )}
+
+          {epubFile && (
+            <Button variant="outline" className="rounded-xl border-primary/20 bg-primary/5 text-primary hover:bg-primary/10" asChild>
+              <a href={epubFile.fileUrl} target="_blank" rel="noopener noreferrer">
+                <Download className="mr-2 h-4 w-4" />
+                {t("downloadEpub")}
               </a>
             </Button>
           )}

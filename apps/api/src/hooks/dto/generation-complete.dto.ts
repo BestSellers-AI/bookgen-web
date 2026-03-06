@@ -18,6 +18,14 @@ export class GenerationCompleteDto {
 
   @IsOptional()
   @IsString()
+  docxUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  epubUrl?: string;
+
+  @IsOptional()
+  @IsString()
   introduction?: string;
 
   @IsOptional()

@@ -134,6 +134,28 @@ export class HooksService {
       });
     }
 
+    if (dto.docxUrl) {
+      await this.prisma.bookFile.create({
+        data: {
+          bookId: dto.bookId,
+          fileType: FileType.DOCX,
+          fileName: 'preview.docx',
+          fileUrl: dto.docxUrl,
+        },
+      });
+    }
+
+    if (dto.epubUrl) {
+      await this.prisma.bookFile.create({
+        data: {
+          bookId: dto.bookId,
+          fileType: FileType.EPUB,
+          fileName: 'preview.epub',
+          fileUrl: dto.epubUrl,
+        },
+      });
+    }
+
     this.eventEmitter.emit('book.preview.progress', {
       bookId: dto.bookId,
       status: 'ready',
@@ -270,6 +292,28 @@ export class HooksService {
           fileType: FileType.FULL_PDF,
           fileName: 'book.pdf',
           fileUrl: dto.pdfUrl,
+        },
+      });
+    }
+
+    if (dto.docxUrl) {
+      await this.prisma.bookFile.create({
+        data: {
+          bookId: dto.bookId,
+          fileType: FileType.DOCX,
+          fileName: 'book.docx',
+          fileUrl: dto.docxUrl,
+        },
+      });
+    }
+
+    if (dto.epubUrl) {
+      await this.prisma.bookFile.create({
+        data: {
+          bookId: dto.bookId,
+          fileType: FileType.EPUB,
+          fileName: 'book.epub',
+          fileUrl: dto.epubUrl,
         },
       });
     }

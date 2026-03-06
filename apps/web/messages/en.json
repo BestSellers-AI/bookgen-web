@@ -160,6 +160,7 @@
     "viewPdf": "View PDF",
     "pdfLink": "PDF Link",
     "downloadDocx": "Download DOCX",
+    "downloadEpub": "Download EPUB",
     "createFullBook": "Create Full Book - 200 pages - $19",
     "deleteBook": "Delete",
     "generatingFullBook": "Generating your full book...",

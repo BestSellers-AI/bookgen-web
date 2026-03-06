@@ -239,6 +239,8 @@ POST /api/hooks/n8n/preview-result
   "title": "AI Health Revolution",
   "subtitle": "How AI transforms medicine",
   "pdfUrl": "https://r2.example.com/books/clxyz/preview.pdf",
+  "docxUrl": "https://r2.example.com/books/clxyz/preview.docx",
+  "epubUrl": "https://r2.example.com/books/clxyz/preview.epub",
   "conclusion": "A summary of what the reader will take away from this book...",
   "finalConsiderations": "Key takeaways and final thoughts for the reader...",
   "glossary": ["AI — Artificial Intelligence", "ML — Machine Learning", "NLP — Natural Language Processing"],
@@ -279,8 +281,10 @@ POST /api/hooks/n8n/preview-result
 2. Update book: `status → PREVIEW`, set title/subtitle/conclusion/finalConsiderations/glossary/appendix/closure if provided, store planning
 3. Delete existing chapters, create new ones from `planning.chapters[]`
 4. If `pdfUrl` provided: create `BookFile` record (type: `PREVIEW_PDF`)
-5. Emit SSE: `book.preview.progress` → `{ status: 'ready' }`
-6. Create notification: `BOOK_PREVIEW_READY`
+5. If `docxUrl` provided: create `BookFile` record (type: `DOCX`)
+6. If `epubUrl` provided: create `BookFile` record (type: `EPUB`)
+7. Emit SSE: `book.preview.progress` → `{ status: 'ready' }`
+8. Create notification: `BOOK_PREVIEW_READY`
 
 **Processing (error):**
 1. Update book: `status → ERROR`, store `generationError`
@@ -380,6 +384,8 @@ POST /api/hooks/n8n/generation-complete
   "wordCount": 45000,
   "pageCount": 180,
   "pdfUrl": "https://r2.example.com/books/clxyz/book.pdf",
+  "docxUrl": "https://r2.example.com/books/clxyz/book.docx",
+  "epubUrl": "https://r2.example.com/books/clxyz/book.epub",
   "introduction": "This book explores the frontier of AI in healthcare...",
   "conclusion": "As we have seen throughout this book...",
   "finalConsiderations": "The future of AI in medicine depends on...",
@@ -394,8 +400,10 @@ POST /api/hooks/n8n/generation-complete
 1. Idempotency: skip if book already `GENERATED`
 2. Update book: `status → GENERATED`, store wordCount/pageCount/generationCompletedAt + front/back matter (introduction, conclusion, finalConsiderations, resourcesReferences, glossary, appendix, closure)
 3. If `pdfUrl` provided: create `BookFile` record (type: `FULL_PDF`)
-4. Emit SSE: `book.generation.progress` → `{ status: 'complete' }`
-5. Create notification: `BOOK_GENERATED`
+4. If `docxUrl` provided: create `BookFile` record (type: `DOCX`)
+5. If `epubUrl` provided: create `BookFile` record (type: `EPUB`)
+6. Emit SSE: `book.generation.progress` → `{ status: 'complete' }`
+7. Create notification: `BOOK_GENERATED`
 
 ---
 
@@ -870,7 +878,7 @@ Every callback handler checks current status before processing to prevent duplic
    - Optionally retrieve all chapters: `GET ${callbackBaseUrl}/hooks/n8n/book-chapters/${bookId}`
 3. After all chapters:
    - Optionally compile PDF
-   - Call back: `POST ${callbackBaseUrl}/hooks/n8n/generation-complete` (include introduction, conclusion, finalConsiderations, resourcesReferences, glossary, appendix, closure if generated)
+   - Call back: `POST ${callbackBaseUrl}/hooks/n8n/generation-complete` (include introduction, conclusion, finalConsiderations, resourcesReferences, glossary, appendix, closure if generated; include docxUrl/epubUrl if DOCX/EPUB files were compiled)
 4. On any fatal error:
    - Call back: `POST ${callbackBaseUrl}/hooks/n8n/generation-error`
 

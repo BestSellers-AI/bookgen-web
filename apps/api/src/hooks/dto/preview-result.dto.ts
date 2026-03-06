@@ -46,5 +46,13 @@ export class PreviewResultDto {
 
   @IsOptional()
   @IsString()
+  docxUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  epubUrl?: string;
+
+  @IsOptional()
+  @IsString()
   error?: string;
 }
