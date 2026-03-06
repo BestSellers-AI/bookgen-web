@@ -26,11 +26,17 @@ RUN pnpm --filter @bestsellers/shared build \
 # Use pnpm deploy to create a standalone bundle with all deps
 RUN pnpm --filter @bestsellers/api deploy --legacy --prod /app/deploy
 
-# Copy Prisma schema + migrations into deploy, regenerate client, copy compiled seed
+# Copy Prisma schema + migrations + compiled seed into deploy
 RUN cp -r /app/apps/api/prisma /app/deploy/prisma \
- && cd /app/deploy \
- && npx prisma generate --schema=prisma/schema.prisma \
  && cp /tmp/seed/prisma/seed.js /app/deploy/prisma/seed.js
+
+# Copy generated Prisma Client into deploy (includes .prisma/client runtime)
+RUN PRISMA_CLIENT_DIR=$(find /app/node_modules/.pnpm -path '*/@prisma/client' -type d | head -1) \
+ && DEPLOY_CLIENT_DIR=$(find /app/deploy/node_modules/.pnpm -path '*/@prisma/client' -type d | head -1) \
+ && cp -r "$PRISMA_CLIENT_DIR/runtime" "$DEPLOY_CLIENT_DIR/runtime" \
+ && cp -r "$PRISMA_CLIENT_DIR/default.js" "$DEPLOY_CLIENT_DIR/default.js" \
+ && mkdir -p /app/deploy/node_modules/.prisma/client \
+ && cp -r /app/node_modules/.pnpm/@prisma+client@*/node_modules/.prisma/client/* /app/deploy/node_modules/.prisma/client/
 
 # Ensure built shared package dist is in deploy (pnpm deploy may link source only)
 RUN mkdir -p /app/deploy/node_modules/@bestsellers/shared \
