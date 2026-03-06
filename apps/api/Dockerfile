@@ -21,7 +21,7 @@ COPY apps/api/ apps/api/
 RUN pnpm --filter @bestsellers/shared build \
  && pnpm --filter @bestsellers/api prisma:generate \
  && pnpm --filter @bestsellers/api build \
- && npx -w apps/api tsc --esModuleInterop --module commonjs --outDir /tmp/seed apps/api/prisma/seed.ts
+ && pnpm --filter @bestsellers/api exec tsc --esModuleInterop --module commonjs --outDir /tmp/seed prisma/seed.ts
 
 # Use pnpm deploy to create a standalone bundle with all deps
 RUN pnpm --filter @bestsellers/api deploy --legacy --prod /app/deploy
@@ -30,7 +30,7 @@ RUN pnpm --filter @bestsellers/api deploy --legacy --prod /app/deploy
 RUN cp -r /app/apps/api/prisma /app/deploy/prisma \
  && cd /app/deploy \
  && npx prisma generate --schema=prisma/schema.prisma \
- && cp /tmp/seed/apps/api/prisma/seed.js /app/deploy/prisma/seed.js
+ && cp /tmp/seed/prisma/seed.js /app/deploy/prisma/seed.js
 
 # Ensure built shared package dist is in deploy (pnpm deploy may link source only)
 RUN mkdir -p /app/deploy/node_modules/@bestsellers/shared \
