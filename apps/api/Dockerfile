@@ -28,7 +28,7 @@ RUN pnpm --filter @bestsellers/api deploy --legacy --prod /app/deploy
 
 # Copy Prisma schema + migrations + compiled seed into deploy
 RUN cp -r /app/apps/api/prisma /app/deploy/prisma \
- && cp /tmp/seed/prisma/seed.js /app/deploy/prisma/seed.js
+ && cp /tmp/seed/seed.js /app/deploy/prisma/seed.js
 
 # Copy generated Prisma Client into deploy (includes .prisma/client runtime)
 RUN PRISMA_CLIENT_DIR=$(find /app/node_modules/.pnpm -path '*/@prisma/client' -type d | head -1) \
