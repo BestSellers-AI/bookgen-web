@@ -1,7 +1,8 @@
 #!/bin/sh
 set -e
 
-echo "DATABASE_URL=${DATABASE_URL}" | sed 's/:\/\/[^@]*@/:\/\/***@/g'
+echo "DB_URL_LENGTH=${#DATABASE_URL}"
+echo "DATABASE_URL=${DATABASE_URL}"
 echo "Running database migrations..."
 ./node_modules/.bin/prisma migrate deploy --schema=prisma/schema.prisma
 
