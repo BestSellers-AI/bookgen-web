@@ -23,7 +23,7 @@ RUN pnpm --filter @bestsellers/shared build \
  && pnpm --filter @bestsellers/api build
 
 # Use pnpm deploy to create a standalone bundle with all deps
-RUN pnpm --filter @bestsellers/api deploy --prod /app/deploy
+RUN pnpm --filter @bestsellers/api deploy --legacy --prod /app/deploy
 
 # Copy Prisma schema + migrations into deploy (needed for runtime)
 RUN cp -r /app/apps/api/prisma /app/deploy/prisma
