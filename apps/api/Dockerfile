@@ -21,7 +21,7 @@ COPY apps/api/ apps/api/
 RUN pnpm --filter @bestsellers/shared build \
  && pnpm --filter @bestsellers/api prisma:generate \
  && pnpm --filter @bestsellers/api build \
- && pnpm --filter @bestsellers/api exec tsc --esModuleInterop --module commonjs --outDir /tmp/seed prisma/seed.ts
+ && pnpm --filter @bestsellers/api exec tsc --esModuleInterop --module commonjs --target es2022 --skipLibCheck --outDir /tmp/seed prisma/seed.ts
 
 # Use pnpm deploy to create a standalone bundle with all deps
 RUN pnpm --filter @bestsellers/api deploy --legacy --prod /app/deploy
