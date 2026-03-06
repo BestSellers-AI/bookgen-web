@@ -16,6 +16,10 @@ export interface SharedBookPublicView {
   author: string;
   introduction: string | null;
   conclusion: string | null;
+  finalConsiderations: string | null;
+  glossary: string | null;
+  appendix: string | null;
+  closure: string | null;
   chapters: ChapterDetail[];
   coverUrl: string | null;
   wordCount: number | null;

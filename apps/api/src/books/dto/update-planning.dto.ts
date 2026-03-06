@@ -7,13 +7,22 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
+export class TopicDto {
+  @IsString()
+  title!: string;
+
+  @IsString()
+  content!: string;
+}
+
 export class PlanningChapterDto {
   @IsString()
   title!: string;
 
   @IsArray()
-  @IsString({ each: true })
-  topics!: string[];
+  @ValidateNested({ each: true })
+  @Type(() => TopicDto)
+  topics!: TopicDto[];
 }
 
 export class UpdatePlanningDto {

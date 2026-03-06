@@ -21,6 +21,7 @@ import {
   GenerationErrorDto,
   AddonResultDto,
   TranslationChapterResultDto,
+  BookContextDto,
 } from './dto';
 
 @Injectable()
@@ -96,6 +97,11 @@ export class HooksService {
         ...(dto.title && { title: dto.title }),
         ...(dto.subtitle && { subtitle: dto.subtitle }),
         ...(planning !== undefined && { planning }),
+        ...(dto.conclusion && { conclusion: dto.conclusion }),
+        ...(dto.glossary && { glossary: dto.glossary as unknown as Prisma.InputJsonValue }),
+        ...(dto.finalConsiderations && { finalConsiderations: dto.finalConsiderations }),
+        ...(dto.appendix && { appendix: dto.appendix }),
+        ...(dto.closure && { closure: dto.closure }),
       },
     });
 
@@ -114,6 +120,17 @@ export class HooksService {
           topics: (ch.topics ?? []) as Prisma.InputJsonValue,
           status: ChapterStatus.PENDING,
         })),
+      });
+    }
+
+    if (dto.pdfUrl) {
+      await this.prisma.bookFile.create({
+        data: {
+          bookId: dto.bookId,
+          fileType: FileType.PREVIEW_PDF,
+          fileName: 'preview.pdf',
+          fileUrl: dto.pdfUrl,
+        },
       });
     }
 
@@ -185,7 +202,7 @@ export class HooksService {
       where: { id: chapter.id },
       data: {
         content: dto.content,
-        topics: (dto.topics ?? []) as Prisma.InputJsonValue,
+        topics: (dto.topics ?? []) as unknown as Prisma.InputJsonValue,
         contextSummary: dto.contextSummary,
         wordCount: dto.wordCount,
         status: ChapterStatus.GENERATED,
@@ -236,6 +253,13 @@ export class HooksService {
         wordCount: dto.wordCount,
         pageCount: dto.pageCount,
         generationCompletedAt: new Date(),
+        ...(dto.introduction && { introduction: dto.introduction }),
+        ...(dto.conclusion && { conclusion: dto.conclusion }),
+        ...(dto.finalConsiderations && { finalConsiderations: dto.finalConsiderations }),
+        ...(dto.resourcesReferences && { resourcesReferences: dto.resourcesReferences }),
+        ...(dto.glossary && { glossary: dto.glossary as unknown as Prisma.InputJsonValue }),
+        ...(dto.appendix && { appendix: dto.appendix }),
+        ...(dto.closure && { closure: dto.closure }),
       },
     });
 
@@ -394,6 +418,68 @@ export class HooksService {
         translatedContent: dto.translatedContent,
       },
     );
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Book Chapters (for n8n)                                            */
+  /* ------------------------------------------------------------------ */
+  async getBookChapters(bookId: string) {
+    const book = await this.prisma.book.findUnique({
+      where: { id: bookId },
+      select: { id: true },
+    });
+
+    if (!book) {
+      throw new NotFoundException(`Book ${bookId} not found`);
+    }
+
+    const chapters = await this.prisma.chapter.findMany({
+      where: { bookId },
+      orderBy: { sequence: 'asc' },
+    });
+
+    return {
+      bookId,
+      chapters: chapters.map((ch) => ({
+        id: ch.id,
+        sequence: ch.sequence,
+        title: ch.title,
+        status: ch.status,
+        content: ch.content,
+        topics: ch.topics,
+        contextSummary: ch.contextSummary,
+        wordCount: ch.wordCount,
+      })),
+    };
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Book Context (GET + POST for n8n)                                  */
+  /* ------------------------------------------------------------------ */
+  async getBookContext(bookId: string) {
+    const book = await this.prisma.book.findUnique({
+      where: { id: bookId },
+      select: { id: true, context: true },
+    });
+
+    if (!book) {
+      throw new NotFoundException(`Book ${bookId} not found`);
+    }
+
+    return { bookId, context: book.context };
+  }
+
+  async updateBookContext(dto: BookContextDto) {
+    const result = await this.prisma.book.updateMany({
+      where: { id: dto.bookId },
+      data: { context: dto.context },
+    });
+
+    if (result.count === 0) {
+      throw new NotFoundException(`Book ${dto.bookId} not found`);
+    }
+
+    return { updated: true };
   }
 
   /* ------------------------------------------------------------------ */

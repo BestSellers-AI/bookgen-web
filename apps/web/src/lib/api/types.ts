@@ -144,8 +144,13 @@ export interface AdvancedSettings {
   customInstructions?: string;
 }
 
+export interface TopicItem {
+  title: string;
+  content: string;
+}
+
 export interface BookPlanning {
-  chapters: Array<{ title: string; topics: string[] }>;
+  chapters: Array<{ title: string; topics: TopicItem[] }>;
   conclusion?: string;
   glossary?: string[];
 }
@@ -159,7 +164,7 @@ export interface ChapterDetail {
   isEdited: boolean;
   content: string | null;
   editedContent: string | null;
-  topics: string[];
+  topics: TopicItem[];
   contextSummary: string | null;
 }
 
@@ -217,7 +222,10 @@ export interface BookDetail {
   planning: BookPlanning | null;
   introduction: string | null;
   conclusion: string | null;
+  finalConsiderations: string | null;
   glossary: string | null;
+  appendix: string | null;
+  closure: string | null;
   coverUrl: string | null;
   wordCount: number;
   pageCount: number;
@@ -319,6 +327,10 @@ export interface SharedBookPublicView {
   author: string;
   introduction: string | null;
   conclusion: string | null;
+  finalConsiderations: string | null;
+  glossary: string | null;
+  appendix: string | null;
+  closure: string | null;
   chapters: ChapterDetail[];
   coverUrl: string | null;
   wordCount: number;

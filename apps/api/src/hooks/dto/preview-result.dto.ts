@@ -1,4 +1,4 @@
-import { IsIn, IsObject, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsIn, IsObject, IsOptional, IsString } from 'class-validator';
 
 export class PreviewResultDto {
   @IsString()
@@ -18,6 +18,31 @@ export class PreviewResultDto {
   @IsOptional()
   @IsObject()
   planning?: Record<string, unknown>;
+
+  @IsOptional()
+  @IsString()
+  conclusion?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  glossary?: string[];
+
+  @IsOptional()
+  @IsString()
+  finalConsiderations?: string;
+
+  @IsOptional()
+  @IsString()
+  appendix?: string;
+
+  @IsOptional()
+  @IsString()
+  closure?: string;
+
+  @IsOptional()
+  @IsString()
+  pdfUrl?: string;
 
   @IsOptional()
   @IsString()

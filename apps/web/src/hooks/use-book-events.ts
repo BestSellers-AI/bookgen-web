@@ -113,7 +113,10 @@ function parseSSE(raw: string): SSEEvent | null {
   if (!dataStr) return null;
 
   try {
-    return { type, data: JSON.parse(dataStr) };
+    const parsed = JSON.parse(dataStr);
+    // SSE sends { type, data: { ...payload } } — unwrap to just payload
+    const unwrapped = parsed.data ?? parsed;
+    return { type, data: unwrapped };
   } catch {
     return null;
   }

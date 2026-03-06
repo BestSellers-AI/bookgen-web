@@ -179,9 +179,13 @@ export default function CreateBookPage() {
       setBookId(book.id);
       await booksApi.generatePreview(book.id);
       setStep(2);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to create book:", error);
-      setPreviewError(tErr("generateFailed"));
+      if (error?.response?.status === 403) {
+        setPreviewError(tErr("previewLimitReached"));
+      } else {
+        setPreviewError(tErr("generateFailed"));
+      }
     } finally {
       setLoading(false);
     }
@@ -257,7 +261,8 @@ export default function CreateBookPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-5xl mx-auto">
+            {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-5xl mx-xauto"> */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-5xl mx-auto">
               <button
                 onClick={() => handleModeSelect("simple")}
                 className="group relative p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] bg-accent/50 border border-border hover:border-blue-500/50 transition-all text-left overflow-hidden"
@@ -298,7 +303,7 @@ export default function CreateBookPage() {
                 </div>
               </button>
 
-              <button
+              {/* <button
                 onClick={() => handleModeSelect("advanced")}
                 className="group relative p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] bg-accent/50 border border-border hover:border-amber-500/50 transition-all text-left overflow-hidden"
               >
@@ -316,7 +321,7 @@ export default function CreateBookPage() {
                     </p>
                   </div>
                 </div>
-              </button>
+              </button> */}
             </div>
           </motion.div>
         )}

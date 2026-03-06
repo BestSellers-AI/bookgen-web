@@ -36,7 +36,7 @@ export interface BookQueryParams {
 }
 
 export interface UpdatePlanningInput {
-  chapters: Array<{ title: string; topics: string[] }>;
+  chapters: Array<{ title: string; topics: Array<{ title: string; content: string }> }>;
   conclusion?: string;
   glossary?: string[];
 }

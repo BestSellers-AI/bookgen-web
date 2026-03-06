@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
+  Param,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -16,6 +18,7 @@ import {
   GenerationErrorDto,
   AddonResultDto,
   TranslationChapterResultDto,
+  BookContextDto,
 } from './dto';
 
 @Controller('hooks/n8n')
@@ -65,5 +68,25 @@ export class HooksController {
   async translationChapter(@Body() dto: TranslationChapterResultDto) {
     await this.hooksService.processTranslationChapter(dto);
     return { received: true };
+  }
+
+  @Get('book-chapters/:bookId')
+  async getBookChapters(@Param('bookId') bookId: string) {
+    return this.hooksService.getBookChapters(bookId);
+  }
+
+  @Get('book-context/:bookId')
+  async getBookContext(@Param('bookId') bookId: string) {
+    return this.hooksService.getBookContext(bookId);
+  }
+
+  @Post('book-context/:bookId')
+  @HttpCode(200)
+  async updateBookContext(
+    @Param('bookId') bookId: string,
+    @Body() dto: BookContextDto,
+  ) {
+    dto.bookId = bookId;
+    return this.hooksService.updateBookContext(dto);
   }
 }

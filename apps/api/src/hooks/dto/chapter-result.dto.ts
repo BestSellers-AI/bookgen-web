@@ -4,7 +4,10 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+import { TopicDto } from '../../books/dto/update-planning.dto';
 
 export class ChapterResultDto {
   @IsString()
@@ -26,7 +29,9 @@ export class ChapterResultDto {
 
   @IsOptional()
   @IsArray()
-  topics?: string[];
+  @ValidateNested({ each: true })
+  @Type(() => TopicDto)
+  topics?: TopicDto[];
 
   @IsOptional()
   @IsString()

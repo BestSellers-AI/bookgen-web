@@ -169,6 +169,8 @@ export class BookService {
       finalConsiderations: book.finalConsiderations,
       glossary: book.glossary as BookDetail['glossary'],
       resourcesReferences: book.resourcesReferences,
+      appendix: book.appendix,
+      closure: book.closure,
       wordCount: book.wordCount,
       pageCount: book.pageCount,
       generationStartedAt: book.generationStartedAt?.toISOString() ?? null,
@@ -363,7 +365,15 @@ export class BookService {
       const previewCount = await this.prisma.book.count({
         where: {
           userId,
-          status: { not: BookStatus.DRAFT },
+          status: {
+            in: [
+              BookStatus.PREVIEW,
+              BookStatus.PREVIEW_APPROVED,
+              BookStatus.QUEUED,
+              BookStatus.GENERATING,
+              BookStatus.GENERATED,
+            ],
+          },
           createdAt: { gte: startOfMonth },
           deletedAt: null,
         },
@@ -471,7 +481,7 @@ export class BookService {
           bookId,
           sequence: index + 1,
           title: ch.title,
-          topics: ch.topics,
+          topics: ch.topics as unknown as Prisma.InputJsonValue,
           status: ChapterStatus.PENDING,
         })),
       });

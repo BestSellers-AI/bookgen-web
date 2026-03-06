@@ -167,6 +167,10 @@ export class ShareService {
       author: book.author,
       introduction: book.introduction,
       conclusion: book.conclusion,
+      finalConsiderations: book.finalConsiderations,
+      glossary: (book.glossary as string | null) ?? null,
+      appendix: book.appendix,
+      closure: book.closure,
       chapters: book.chapters.map((ch) => ({
         id: ch.id,
         sequence: ch.sequence,

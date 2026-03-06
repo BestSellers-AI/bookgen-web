@@ -9,16 +9,23 @@ import {
   Calendar,
   User,
   Loader2,
+  FileDown,
 } from "lucide-react";
 import { booksApi } from "@/lib/api/books";
 import { useRouter } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { PlanningEditor } from "./planning-editor";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import type { BookDetail } from "@/lib/api/types";
+import type { BookDetail, BookFileSummary } from "@/lib/api/types";
 
 interface PreviewViewerProps {
   book: BookDetail;
@@ -35,6 +42,7 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
   const tErr = useTranslations("errors");
 
   const planning = book.planning;
+  const previewPdf = book.files.find((f: BookFileSummary) => f.fileType === "PREVIEW_PDF");
   const hasPlanning = planning && planning.chapters && planning.chapters.length > 0;
 
   const handleRegenerate = async () => {
@@ -106,6 +114,19 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
 
         {/* Actions */}
         <div className="flex flex-wrap gap-3">
+          {previewPdf && (
+            <Button
+              variant="outline"
+              className="rounded-xl border-primary/20 bg-primary/5 text-primary hover:bg-primary/10"
+              asChild
+            >
+              <a href={previewPdf.fileUrl} target="_blank" rel="noopener noreferrer">
+                <FileDown className="mr-2 h-4 w-4" />
+                {t("downloadPreviewPdf")}
+              </a>
+            </Button>
+          )}
+
           <Button
             variant="outline"
             className="rounded-xl border-primary/20 bg-primary/5 text-primary hover:bg-primary/10"
@@ -177,84 +198,145 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
           onCancel={() => setIsEditing(false)}
         />
       ) : (
-        <>
+        <Accordion type="multiple" defaultValue={book.introduction ? ["section-introduction"] : []} className="space-y-4">
           {/* Introduction */}
           {book.introduction && (
-            <div className="glass rounded-[2.5rem] p-10 space-y-4 break-words whitespace-normal">
-              <h3 className="text-2xl font-heading font-bold text-foreground">
-                {t("introduction")}
-              </h3>
-              <p className="text-muted-foreground text-lg leading-relaxed">
-                {book.introduction}
-              </p>
-            </div>
+            <AccordionItem value="section-introduction" className="glass rounded-[2.5rem] border-none overflow-hidden">
+              <AccordionTrigger className="px-8 md:px-10 py-6 hover:no-underline">
+                <h3 className="text-2xl font-heading font-bold text-foreground">
+                  {t("introduction")}
+                </h3>
+              </AccordionTrigger>
+              <AccordionContent className="px-8 md:px-10 pb-8">
+                <p className="text-muted-foreground text-lg leading-relaxed break-words whitespace-pre-line">
+                  {book.introduction}
+                </p>
+              </AccordionContent>
+            </AccordionItem>
           )}
 
           {/* Chapters */}
-          {hasPlanning && (
-            <div className="space-y-6">
-              {planning!.chapters.map((chapter, i) => (
-                <div
-                  key={i}
-                  className="glass rounded-[2rem] p-8 space-y-4"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center font-heading font-black text-lg text-primary shrink-0">
-                      {i + 1}
-                    </div>
-                    <div className="flex-1 min-w-0 space-y-3">
-                      <h3 className="text-2xl font-heading font-bold text-foreground leading-tight">
-                        {chapter.title}
-                      </h3>
-                      <ul className="space-y-2">
-                        {chapter.topics?.map((topic, j) => (
-                          <li
-                            key={j}
-                            className="flex items-start gap-3 text-muted-foreground text-base leading-relaxed"
-                          >
-                            <div className="w-1.5 h-1.5 rounded-full bg-primary/40 mt-2.5 shrink-0" />
-                            <span>{topic}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+          {hasPlanning && planning!.chapters.map((chapter, i) => (
+            <AccordionItem key={i} value={`section-chapter-${i + 1}`} className="glass rounded-[2rem] border-none overflow-hidden">
+              <AccordionTrigger className="px-8 py-6 hover:no-underline">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center font-heading font-black text-lg text-primary shrink-0">
+                    {i + 1}
                   </div>
+                  <h3 className="text-2xl font-heading font-bold text-foreground text-left leading-tight">
+                    {chapter.title}
+                  </h3>
                 </div>
-              ))}
-            </div>
-          )}
+              </AccordionTrigger>
+              <AccordionContent className="px-8 pb-8">
+                <ul className="space-y-3">
+                  {chapter.topics?.map((topic, j) => (
+                    <li key={j} className="flex items-start gap-3 text-base leading-relaxed">
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary/40 mt-2.5 shrink-0" />
+                      <div className="space-y-1">
+                        <span className="font-semibold text-foreground">{topic.title}</span>
+                        <p className="text-muted-foreground text-sm leading-relaxed">{topic.content}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
 
           {/* Conclusion */}
           {(book.conclusion || planning?.conclusion) && (
-            <div className="glass rounded-[2.5rem] p-10 space-y-4">
-              <h3 className="text-2xl font-heading font-bold text-foreground">
-                {t("conclusion")}
-              </h3>
-              <p className="text-muted-foreground text-lg leading-relaxed italic">
-                {book.conclusion || planning?.conclusion}
-              </p>
-            </div>
+            <AccordionItem value="section-conclusion" className="glass rounded-[2.5rem] border-none overflow-hidden">
+              <AccordionTrigger className="px-8 md:px-10 py-6 hover:no-underline">
+                <h3 className="text-2xl font-heading font-bold text-foreground">
+                  {t("conclusion")}
+                </h3>
+              </AccordionTrigger>
+              <AccordionContent className="px-8 md:px-10 pb-8">
+                <p className="text-muted-foreground text-lg leading-relaxed italic break-words whitespace-pre-line">
+                  {book.conclusion || planning?.conclusion}
+                </p>
+              </AccordionContent>
+            </AccordionItem>
           )}
 
           {/* Glossary */}
-          {planning?.glossary && planning.glossary.length > 0 && (
-            <div className="glass rounded-[2.5rem] p-10 space-y-6">
-              <h3 className="text-2xl font-heading font-bold text-foreground">
-                {t("glossary")}
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {planning.glossary.map((item, i) => (
-                  <div
-                    key={i}
-                    className="p-4 rounded-xl bg-accent/30 border border-border text-muted-foreground"
-                  >
-                    {item}
+          {(book.glossary || (planning?.glossary && planning.glossary.length > 0)) && (
+            <AccordionItem value="section-glossary" className="glass rounded-[2.5rem] border-none overflow-hidden">
+              <AccordionTrigger className="px-8 md:px-10 py-6 hover:no-underline">
+                <h3 className="text-2xl font-heading font-bold text-foreground">
+                  {t("glossary")}
+                </h3>
+              </AccordionTrigger>
+              <AccordionContent className="px-8 md:px-10 pb-8">
+                {book.glossary ? (
+                  <div className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                    {book.glossary}
                   </div>
-                ))}
-              </div>
-            </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {(planning?.glossary ?? []).map((item, i) => (
+                      <div
+                        key={i}
+                        className="p-4 rounded-xl bg-accent/30 border border-border text-muted-foreground"
+                      >
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </AccordionContent>
+            </AccordionItem>
           )}
-        </>
+
+          {/* Final Considerations */}
+          {book.finalConsiderations && (
+            <AccordionItem value="section-final-considerations" className="glass rounded-[2.5rem] border-none overflow-hidden">
+              <AccordionTrigger className="px-8 md:px-10 py-6 hover:no-underline">
+                <h3 className="text-2xl font-heading font-bold text-foreground">
+                  {t("finalConsiderations")}
+                </h3>
+              </AccordionTrigger>
+              <AccordionContent className="px-8 md:px-10 pb-8">
+                <p className="text-muted-foreground text-lg leading-relaxed break-words whitespace-pre-line">
+                  {book.finalConsiderations}
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+          )}
+
+          {/* Appendix */}
+          {book.appendix && (
+            <AccordionItem value="section-appendix" className="glass rounded-[2.5rem] border-none overflow-hidden">
+              <AccordionTrigger className="px-8 md:px-10 py-6 hover:no-underline">
+                <h3 className="text-2xl font-heading font-bold text-foreground">
+                  {t("appendix")}
+                </h3>
+              </AccordionTrigger>
+              <AccordionContent className="px-8 md:px-10 pb-8">
+                <p className="text-muted-foreground text-lg leading-relaxed break-words whitespace-pre-line">
+                  {book.appendix}
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+          )}
+
+          {/* Closure */}
+          {book.closure && (
+            <AccordionItem value="section-closure" className="glass rounded-[2.5rem] border-none overflow-hidden">
+              <AccordionTrigger className="px-8 md:px-10 py-6 hover:no-underline">
+                <h3 className="text-2xl font-heading font-bold text-foreground">
+                  {t("closure")}
+                </h3>
+              </AccordionTrigger>
+              <AccordionContent className="px-8 md:px-10 pb-8">
+                <p className="text-muted-foreground text-lg leading-relaxed italic break-words whitespace-pre-line">
+                  {book.closure}
+                </p>
+              </AccordionContent>
+            </AccordionItem>
+          )}
+        </Accordion>
       )}
     </div>
   );

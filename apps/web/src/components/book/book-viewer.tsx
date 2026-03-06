@@ -19,6 +19,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { BookToc } from "./book-toc";
 import { ChapterContent } from "./chapter-content";
 import { ShareDialog } from "./share-dialog";
@@ -189,70 +195,140 @@ export function BookViewer({ book, onRefetch }: BookViewerProps) {
         </div>
 
         {/* Content */}
-        <div ref={contentRef} className="flex-1 space-y-8 min-w-0">
+        <div ref={contentRef} className="flex-1 min-w-0">
           {/* Mobile TOC */}
-          <div className="lg:hidden">
+          <div className="lg:hidden mb-8">
             <BookToc book={book} activeSection={activeSection} mobile />
           </div>
 
-          {/* Introduction */}
-          {book.introduction && (
-            <div
-              id="section-introduction"
-              className="glass rounded-[2.5rem] p-8 md:p-10 space-y-4 break-words whitespace-normal scroll-mt-12"
-            >
-              <h3 className="text-2xl font-heading font-bold text-foreground">
-                {t("introduction")}
-              </h3>
-              <p className="text-muted-foreground text-lg leading-relaxed">
-                {book.introduction}
-              </p>
-            </div>
-          )}
+          <Accordion type="multiple" defaultValue={["section-introduction"]} className="space-y-4">
+            {/* Introduction */}
+            {book.introduction && (
+              <AccordionItem value="section-introduction" id="section-introduction" className="glass rounded-[2.5rem] border-none scroll-mt-12 overflow-hidden">
+                <AccordionTrigger className="px-8 md:px-10 py-6 hover:no-underline">
+                  <h3 className="text-2xl font-heading font-bold text-foreground">
+                    {t("introduction")}
+                  </h3>
+                </AccordionTrigger>
+                <AccordionContent className="px-8 md:px-10 pb-8">
+                  <p className="text-muted-foreground text-lg leading-relaxed break-words whitespace-pre-line">
+                    {book.introduction}
+                  </p>
+                </AccordionContent>
+              </AccordionItem>
+            )}
 
-          {/* Chapters */}
-          {book.chapters
-            .sort((a, b) => a.sequence - b.sequence)
-            .map((chapter) => (
-              <div key={chapter.id} id={`section-chapter-${chapter.sequence}`} className="scroll-mt-12">
-                <ChapterContent
-                  chapter={chapter}
-                  bookId={book.id}
-                  freeRegensRemaining={freeRegensRemaining}
-                  onRegenerate={onRefetch}
-                />
-              </div>
-            ))}
+            {/* Chapters */}
+            {book.chapters
+              .sort((a, b) => a.sequence - b.sequence)
+              .map((chapter) => (
+                <AccordionItem
+                  key={chapter.id}
+                  value={`section-chapter-${chapter.sequence}`}
+                  id={`section-chapter-${chapter.sequence}`}
+                  className="glass rounded-[2.5rem] border-none scroll-mt-12 overflow-hidden"
+                >
+                  <AccordionTrigger className="px-8 md:px-10 py-6 hover:no-underline">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center font-heading font-black text-lg text-primary shrink-0">
+                        {chapter.sequence}
+                      </div>
+                      <h3 className="text-2xl font-heading font-bold text-foreground text-left">
+                        {chapter.title}
+                      </h3>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-8 md:px-10 pb-2">
+                    <ChapterContent
+                      chapter={chapter}
+                      bookId={book.id}
+                      freeRegensRemaining={freeRegensRemaining}
+                      onRegenerate={onRefetch}
+                    />
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
 
-          {/* Conclusion */}
-          {book.conclusion && (
-            <div
-              id="section-conclusion"
-              className="glass rounded-[2.5rem] p-8 md:p-10 space-y-4 break-words whitespace-normal scroll-mt-12"
-            >
-              <h3 className="text-2xl font-heading font-bold text-foreground">
-                {t("conclusion")}
-              </h3>
-              <p className="text-muted-foreground text-lg leading-relaxed italic">
-                {book.conclusion}
-              </p>
-            </div>
-          )}
+            {/* Conclusion */}
+            {book.conclusion && (
+              <AccordionItem value="section-conclusion" id="section-conclusion" className="glass rounded-[2.5rem] border-none scroll-mt-12 overflow-hidden">
+                <AccordionTrigger className="px-8 md:px-10 py-6 hover:no-underline">
+                  <h3 className="text-2xl font-heading font-bold text-foreground">
+                    {t("conclusion")}
+                  </h3>
+                </AccordionTrigger>
+                <AccordionContent className="px-8 md:px-10 pb-8">
+                  <p className="text-muted-foreground text-lg leading-relaxed italic break-words whitespace-pre-line">
+                    {book.conclusion}
+                  </p>
+                </AccordionContent>
+              </AccordionItem>
+            )}
 
-          {/* Glossary */}
-          {book.glossary && (
-            <div
-              id="section-glossary"
-              className="glass rounded-[2.5rem] p-8 md:p-10 space-y-6 break-words whitespace-normal scroll-mt-12"
-            >
-              <h3 className="text-2xl font-heading font-bold text-foreground">
-                {t("glossary")}
-              </h3>
-              <div className="prose prose-lg max-w-none text-muted-foreground leading-relaxed">
-                {book.glossary}
-              </div>
-            </div>
-          )}
+            {/* Final Considerations */}
+            {book.finalConsiderations && (
+              <AccordionItem value="section-final-considerations" id="section-final-considerations" className="glass rounded-[2.5rem] border-none scroll-mt-12 overflow-hidden">
+                <AccordionTrigger className="px-8 md:px-10 py-6 hover:no-underline">
+                  <h3 className="text-2xl font-heading font-bold text-foreground">
+                    {t("finalConsiderations")}
+                  </h3>
+                </AccordionTrigger>
+                <AccordionContent className="px-8 md:px-10 pb-8">
+                  <p className="text-muted-foreground text-lg leading-relaxed break-words whitespace-pre-line">
+                    {book.finalConsiderations}
+                  </p>
+                </AccordionContent>
+              </AccordionItem>
+            )}
+
+            {/* Glossary */}
+            {book.glossary && (
+              <AccordionItem value="section-glossary" id="section-glossary" className="glass rounded-[2.5rem] border-none scroll-mt-12 overflow-hidden">
+                <AccordionTrigger className="px-8 md:px-10 py-6 hover:no-underline">
+                  <h3 className="text-2xl font-heading font-bold text-foreground">
+                    {t("glossary")}
+                  </h3>
+                </AccordionTrigger>
+                <AccordionContent className="px-8 md:px-10 pb-8">
+                  <div className="text-muted-foreground text-lg leading-relaxed whitespace-pre-line">
+                    {book.glossary}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            )}
+
+            {/* Appendix */}
+            {book.appendix && (
+              <AccordionItem value="section-appendix" id="section-appendix" className="glass rounded-[2.5rem] border-none scroll-mt-12 overflow-hidden">
+                <AccordionTrigger className="px-8 md:px-10 py-6 hover:no-underline">
+                  <h3 className="text-2xl font-heading font-bold text-foreground">
+                    {t("appendix")}
+                  </h3>
+                </AccordionTrigger>
+                <AccordionContent className="px-8 md:px-10 pb-8">
+                  <p className="text-muted-foreground text-lg leading-relaxed break-words whitespace-pre-line">
+                    {book.appendix}
+                  </p>
+                </AccordionContent>
+              </AccordionItem>
+            )}
+
+            {/* Closure */}
+            {book.closure && (
+              <AccordionItem value="section-closure" id="section-closure" className="glass rounded-[2.5rem] border-none scroll-mt-12 overflow-hidden">
+                <AccordionTrigger className="px-8 md:px-10 py-6 hover:no-underline">
+                  <h3 className="text-2xl font-heading font-bold text-foreground">
+                    {t("closure")}
+                  </h3>
+                </AccordionTrigger>
+                <AccordionContent className="px-8 md:px-10 pb-8">
+                  <p className="text-muted-foreground text-lg leading-relaxed italic break-words whitespace-pre-line">
+                    {book.closure}
+                  </p>
+                </AccordionContent>
+              </AccordionItem>
+            )}
+          </Accordion>
         </div>
       </div>
 

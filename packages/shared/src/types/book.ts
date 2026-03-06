@@ -114,8 +114,10 @@ export interface BookDetail {
   introduction: string | null;
   conclusion: string | null;
   finalConsiderations: string | null;
-  glossary: Array<{ term: string; definition: string }> | null;
+  glossary: string | null;
   resourcesReferences: string | null;
+  appendix: string | null;
+  closure: string | null;
   wordCount: number | null;
   pageCount: number | null;
   generationStartedAt: string | null;

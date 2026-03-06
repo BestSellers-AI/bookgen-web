@@ -91,9 +91,9 @@ All dispatches use `N8nClientService.dispatch()`:
   "subtitle": "How AI transforms medicine",
   "creationMode": "ADVANCED",
   "settings": { "tone": "professional", "language": "en", ... },
-  "planning": { "chapters": [{ "title": "...", "topics": ["..."] }] },
+  "planning": { "chapters": [{ "title": "...", "topics": [{ "title": "...", "content": "..." }] }] },
   "chapters": [
-    { "id": "ch1...", "sequence": 1, "title": "Introduction", "topics": ["topic1"] }
+    { "id": "ch1...", "sequence": 1, "title": "Introduction", "topics": [{ "title": "Topic 1", "content": "Brief preview..." }] }
   ],
   "queuePriority": 5,
   "callbackBaseUrl": "http://localhost:3001/api"
@@ -125,7 +125,7 @@ All dispatches use `N8nClientService.dispatch()`:
   "chapterId": "ch1...",
   "chapterSequence": 3,
   "chapterTitle": "AI in Diagnostics",
-  "chapterTopics": ["imaging", "prediction"],
+  "chapterTopics": [{ "title": "Medical Imaging", "content": "How AI analyzes scans." }, { "title": "Predictive Models", "content": "Using data to predict outcomes." }],
   "bookTitle": "AI Health Revolution",
   "bookAuthor": "John Doe",
   "bookBriefing": "A book about...",
@@ -186,7 +186,46 @@ POST /api/hooks/n8n/*
 
 ---
 
-### 2.1 Preview Result
+### 2.1 Get Book Chapters
+
+```
+GET /api/hooks/n8n/book-chapters/:bookId
+```
+
+**Purpose:** Allows n8n to fetch all chapters of a book for use during generation workflows (e.g., building context from previously generated chapters).
+
+**Response:**
+```json
+{
+  "bookId": "clxyz...",
+  "chapters": [
+    {
+      "id": "ch1...",
+      "sequence": 1,
+      "title": "Introduction to AI",
+      "status": "GENERATED",
+      "content": "Full chapter plain text content...",
+      "topics": [{ "title": "What is AI", "content": "A brief overview..." }],
+      "contextSummary": "This chapter covers AI fundamentals...",
+      "wordCount": 3500
+    },
+    {
+      "id": "ch2...",
+      "sequence": 2,
+      "title": "AI in Diagnostics",
+      "status": "PENDING",
+      "content": null,
+      "topics": [{ "title": "Medical Imaging", "content": "How AI analyzes scans." }],
+      "contextSummary": null,
+      "wordCount": null
+    }
+  ]
+}
+```
+
+---
+
+### 2.2 Preview Result
 
 ```
 POST /api/hooks/n8n/preview-result
@@ -199,10 +238,28 @@ POST /api/hooks/n8n/preview-result
   "status": "success",
   "title": "AI Health Revolution",
   "subtitle": "How AI transforms medicine",
+  "pdfUrl": "https://r2.example.com/books/clxyz/preview.pdf",
+  "conclusion": "A summary of what the reader will take away from this book...",
+  "finalConsiderations": "Key takeaways and final thoughts for the reader...",
+  "glossary": ["AI — Artificial Intelligence", "ML — Machine Learning", "NLP — Natural Language Processing"],
+  "appendix": "Supplementary reference material...",
+  "closure": "Final words from the author...",
   "planning": {
     "chapters": [
-      { "title": "Introduction to AI", "topics": ["what is AI", "history"] },
-      { "title": "AI in Diagnostics", "topics": ["imaging", "prediction"] }
+      {
+        "title": "Introduction to AI",
+        "topics": [
+          { "title": "What is AI", "content": "A brief overview of artificial intelligence concepts and definitions." },
+          { "title": "History of AI", "content": "From Turing to modern deep learning — key milestones in AI development." }
+        ]
+      },
+      {
+        "title": "AI in Diagnostics",
+        "topics": [
+          { "title": "Medical Imaging", "content": "How AI analyzes X-rays, MRIs, and CT scans for early detection." },
+          { "title": "Predictive Models", "content": "Using patient data to predict disease risk and treatment outcomes." }
+        ]
+      }
     ]
   }
 }
@@ -219,10 +276,11 @@ POST /api/hooks/n8n/preview-result
 
 **Processing (success):**
 1. Idempotency check: skip if book already in `PREVIEW` or `PREVIEW_APPROVED`
-2. Update book: `status → PREVIEW`, set title/subtitle if provided, store planning
+2. Update book: `status → PREVIEW`, set title/subtitle/conclusion/finalConsiderations/glossary/appendix/closure if provided, store planning
 3. Delete existing chapters, create new ones from `planning.chapters[]`
-4. Emit SSE: `book.preview.progress` → `{ status: 'ready' }`
-5. Create notification: `BOOK_PREVIEW_READY`
+4. If `pdfUrl` provided: create `BookFile` record (type: `PREVIEW_PDF`)
+5. Emit SSE: `book.preview.progress` → `{ status: 'ready' }`
+6. Create notification: `BOOK_PREVIEW_READY`
 
 **Processing (error):**
 1. Update book: `status → ERROR`, store `generationError`
@@ -255,8 +313,11 @@ POST /api/hooks/n8n/chapter-result
   "chapterSequence": 1,
   "status": "success",
   "title": "Introduction to AI",
-  "content": "<p>Full chapter HTML content...</p>",
-  "topics": ["what is AI", "history"],
+  "content": "Full chapter plain text content...",
+  "topics": [
+    { "title": "What is AI", "content": "A brief overview of artificial intelligence concepts." },
+    { "title": "History of AI", "content": "Key milestones from Turing to modern deep learning." }
+  ],
   "contextSummary": "This chapter covers...",
   "wordCount": 3500
 }
@@ -272,7 +333,41 @@ POST /api/hooks/n8n/chapter-result
 
 ---
 
-### 2.3 Generation Complete
+### 2.3 Book Context
+
+```
+GET  /api/hooks/n8n/book-context/:bookId
+POST /api/hooks/n8n/book-context/:bookId
+```
+
+**Purpose:** Allows n8n to store/retrieve an aggregated context string for the entire book. n8n appends to this context as chapters are generated so each subsequent chapter can reference what came before.
+
+**GET response:**
+```json
+{
+  "bookId": "clxyz...",
+  "context": "Chapter 1 introduced AI fundamentals. Chapter 2 explored diagnostics with imaging and prediction models..."
+}
+```
+
+**POST payload** (bookId comes from URL path):
+```json
+{
+  "context": "Chapter 1 introduced AI fundamentals. Chapter 2 explored diagnostics..."
+}
+```
+
+**POST response:** `{ "updated": true }`
+
+**Processing (POST):**
+1. Updates `Book.context` field
+2. Returns 404 if book not found
+
+> **Note:** This is a single long text field on the Book model (`context`). n8n is responsible for building/appending the aggregated context and posting it back after each chapter generation.
+
+---
+
+### 2.4 Generation Complete
 
 ```
 POST /api/hooks/n8n/generation-complete
@@ -284,20 +379,27 @@ POST /api/hooks/n8n/generation-complete
   "bookId": "clxyz...",
   "wordCount": 45000,
   "pageCount": 180,
-  "pdfUrl": "https://r2.example.com/books/clxyz/book.pdf"
+  "pdfUrl": "https://r2.example.com/books/clxyz/book.pdf",
+  "introduction": "This book explores the frontier of AI in healthcare...",
+  "conclusion": "As we have seen throughout this book...",
+  "finalConsiderations": "The future of AI in medicine depends on...",
+  "resourcesReferences": "1. Smith et al. (2024) AI in Diagnostics...",
+  "glossary": "AI — Artificial Intelligence\nML — Machine Learning\n...",
+  "appendix": "Supplementary material...",
+  "closure": "Final words from the author..."
 }
 ```
 
 **Processing:**
 1. Idempotency: skip if book already `GENERATED`
-2. Update book: `status → GENERATED`, store wordCount/pageCount/generationCompletedAt
+2. Update book: `status → GENERATED`, store wordCount/pageCount/generationCompletedAt + front/back matter (introduction, conclusion, finalConsiderations, resourcesReferences, glossary, appendix, closure)
 3. If `pdfUrl` provided: create `BookFile` record (type: `FULL_PDF`)
 4. Emit SSE: `book.generation.progress` → `{ status: 'complete' }`
 5. Create notification: `BOOK_GENERATED`
 
 ---
 
-### 2.4 Generation Error
+### 2.5 Generation Error
 
 ```
 POST /api/hooks/n8n/generation-error
@@ -320,7 +422,7 @@ POST /api/hooks/n8n/generation-error
 
 ---
 
-### 2.5 Addon Result
+### 2.6 Addon Result
 
 ```
 POST /api/hooks/n8n/addon-result
@@ -357,7 +459,7 @@ POST /api/hooks/n8n/addon-result
 
 ---
 
-### 2.6 Translation Chapter
+### 2.7 Translation Chapter
 
 ```
 POST /api/hooks/n8n/translation-chapter
@@ -554,6 +656,7 @@ User clicks "Approve & Generate"
 │                                 │
 │ Status → GENERATED              │
 │ Store wordCount, pageCount      │
+│ Store front/back matter         │
 │ Create BookFile (PDF)           │
 │ SSE: { status: 'complete' }    │
 │ Notify: BOOK_GENERATED          │
@@ -754,16 +857,20 @@ Every callback handler checks current status before processing to prevent duplic
 2. Use LLM to generate:
    - Table of contents (chapter titles + topics per chapter)
    - Optionally refine title/subtitle
-3. Call back: `POST ${callbackBaseUrl}/hooks/n8n/preview-result`
+   - Optionally generate a preview PDF
+3. Call back: `POST ${callbackBaseUrl}/hooks/n8n/preview-result` (include `pdfUrl` if PDF was generated)
 
 #### Generation Workflow (`/webhook/generate-book`)
 1. Receive book data + planning + chapters list
 2. For each chapter:
-   - Generate full chapter content using LLM
+   - Generate full chapter content using LLM (plain text, not HTML)
    - Call back: `POST ${callbackBaseUrl}/hooks/n8n/chapter-result`
+   - Optionally update aggregated book context: `POST ${callbackBaseUrl}/hooks/n8n/book-context/${bookId}`
+   - Optionally retrieve current book context: `GET ${callbackBaseUrl}/hooks/n8n/book-context/${bookId}`
+   - Optionally retrieve all chapters: `GET ${callbackBaseUrl}/hooks/n8n/book-chapters/${bookId}`
 3. After all chapters:
    - Optionally compile PDF
-   - Call back: `POST ${callbackBaseUrl}/hooks/n8n/generation-complete`
+   - Call back: `POST ${callbackBaseUrl}/hooks/n8n/generation-complete` (include introduction, conclusion, finalConsiderations, resourcesReferences, glossary, appendix, closure if generated)
 4. On any fatal error:
    - Call back: `POST ${callbackBaseUrl}/hooks/n8n/generation-error`
 

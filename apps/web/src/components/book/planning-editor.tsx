@@ -5,6 +5,7 @@ import { Plus, X, Loader2 } from "lucide-react";
 import { booksApi } from "@/lib/api/books";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import type { BookPlanning } from "@/lib/api/types";
@@ -20,7 +21,7 @@ export function PlanningEditor({ planning, bookId, onSave, onCancel }: PlanningE
   const [chapters, setChapters] = useState(
     planning.chapters.map((ch) => ({
       title: ch.title,
-      topics: [...ch.topics],
+      topics: ch.topics.map((t) => ({ title: t.title, content: t.content })),
     })),
   );
   const [saving, setSaving] = useState(false);
@@ -32,11 +33,21 @@ export function PlanningEditor({ planning, bookId, onSave, onCancel }: PlanningE
     setChapters((prev) => prev.map((ch, i) => (i === idx ? { ...ch, title } : ch)));
   };
 
-  const updateTopic = (chIdx: number, topicIdx: number, value: string) => {
+  const updateTopicTitle = (chIdx: number, topicIdx: number, value: string) => {
     setChapters((prev) =>
       prev.map((ch, i) =>
         i === chIdx
-          ? { ...ch, topics: ch.topics.map((t, j) => (j === topicIdx ? value : t)) }
+          ? { ...ch, topics: ch.topics.map((t, j) => (j === topicIdx ? { ...t, title: value } : t)) }
+          : ch,
+      ),
+    );
+  };
+
+  const updateTopicContent = (chIdx: number, topicIdx: number, value: string) => {
+    setChapters((prev) =>
+      prev.map((ch, i) =>
+        i === chIdx
+          ? { ...ch, topics: ch.topics.map((t, j) => (j === topicIdx ? { ...t, content: value } : t)) }
           : ch,
       ),
     );
@@ -53,7 +64,7 @@ export function PlanningEditor({ planning, bookId, onSave, onCancel }: PlanningE
   const addTopic = (chIdx: number) => {
     setChapters((prev) =>
       prev.map((ch, i) =>
-        i === chIdx ? { ...ch, topics: [...ch.topics, ""] } : ch,
+        i === chIdx ? { ...ch, topics: [...ch.topics, { title: "", content: "" }] } : ch,
       ),
     );
   };
@@ -64,13 +75,13 @@ export function PlanningEditor({ planning, bookId, onSave, onCancel }: PlanningE
   };
 
   const addChapter = () => {
-    setChapters((prev) => [...prev, { title: "", topics: [""] }]);
+    setChapters((prev) => [...prev, { title: "", topics: [{ title: "", content: "" }] }]);
   };
 
   const handleSave = async () => {
     // Validate
     const valid = chapters.every(
-      (ch) => ch.title.trim() && ch.topics.some((t) => t.trim()),
+      (ch) => ch.title.trim() && ch.topics.some((t) => t.title.trim()),
     );
     if (!valid) {
       toast.error(t("planningValidationError"));
@@ -82,7 +93,9 @@ export function PlanningEditor({ planning, bookId, onSave, onCancel }: PlanningE
       await booksApi.updatePlanning(bookId, {
         chapters: chapters.map((ch) => ({
           title: ch.title.trim(),
-          topics: ch.topics.filter((t) => t.trim()),
+          topics: ch.topics
+            .filter((t) => t.title.trim())
+            .map((t) => ({ title: t.title.trim(), content: t.content.trim() })),
         })),
       });
       toast.success(t("planningUpdated"));
@@ -120,24 +133,35 @@ export function PlanningEditor({ planning, bookId, onSave, onCancel }: PlanningE
             )}
           </div>
 
-          <div className="pl-13 space-y-2 ml-13">
+          <div className="pl-13 space-y-3 ml-13">
             {chapter.topics.map((topic, topicIdx) => (
-              <div key={topicIdx} className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary/40 shrink-0" />
-                <Input
-                  value={topic}
-                  onChange={(e) => updateTopic(chIdx, topicIdx, e.target.value)}
-                  placeholder={t("topicPlaceholder")}
-                  className="h-10 rounded-lg bg-accent/30 border-border text-sm flex-1"
-                />
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-red-400 shrink-0"
-                  onClick={() => removeTopic(chIdx, topicIdx)}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
+              <div key={topicIdx} className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary/40 shrink-0" />
+                  <Input
+                    value={topic.title}
+                    onChange={(e) => updateTopicTitle(chIdx, topicIdx, e.target.value)}
+                    placeholder={t("topicTitlePlaceholder")}
+                    className="h-10 rounded-lg bg-accent/30 border-border text-sm font-semibold flex-1"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-red-400 shrink-0"
+                    onClick={() => removeTopic(chIdx, topicIdx)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+                <div className="pl-3.5">
+                  <Textarea
+                    value={topic.content}
+                    onChange={(e) => updateTopicContent(chIdx, topicIdx, e.target.value)}
+                    placeholder={t("topicContentPlaceholder")}
+                    className="rounded-lg bg-accent/20 border-border text-sm min-h-[60px] resize-none"
+                    rows={2}
+                  />
+                </div>
               </div>
             ))}
             <Button

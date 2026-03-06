@@ -33,8 +33,20 @@ export function BookToc({ book, activeSection, mobile }: BookTocProps) {
     items.push({ id: "section-conclusion", label: t("conclusion") });
   }
 
+  if (book.finalConsiderations) {
+    items.push({ id: "section-final-considerations", label: t("finalConsiderations") });
+  }
+
   if (book.glossary) {
     items.push({ id: "section-glossary", label: t("glossary") });
+  }
+
+  if (book.appendix) {
+    items.push({ id: "section-appendix", label: t("appendix") });
+  }
+
+  if (book.closure) {
+    items.push({ id: "section-closure", label: t("closure") });
   }
 
   if (mobile) {

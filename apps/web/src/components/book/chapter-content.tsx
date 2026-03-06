@@ -8,7 +8,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import type { ChapterDetail } from "@/lib/api/types";
-import { sanitizeHtml } from "@/lib/sanitize";
+
 
 interface ChapterContentProps {
   chapter: ChapterDetail;
@@ -50,29 +50,24 @@ export function ChapterContent({
       : t("useCreditsRegen");
 
   return (
-    <div className="glass rounded-[2.5rem] p-8 md:p-10 space-y-6 break-words whitespace-normal">
-      <div className="flex items-start gap-6">
-        <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center font-heading font-black text-xl text-primary shrink-0 mt-1">
-          {chapter.sequence}
-        </div>
-        <div className="flex-1 min-w-0 space-y-4">
-          <h3 className="text-3xl font-heading font-bold text-foreground leading-tight break-words">
-            {chapter.title}
-          </h3>
-          {chapter.content ? (
-            <div
-              className="prose prose-lg max-w-none text-muted-foreground leading-relaxed"
-              dangerouslySetInnerHTML={{
-                __html: sanitizeHtml(chapter.content.replace(/\n/g, "<br/>")),
-              }}
-            />
-          ) : (
-            <p className="text-muted-foreground italic">
-              {t("contentUnavailable")}
-            </p>
-          )}
-        </div>
-      </div>
+    <div className="space-y-6 break-words whitespace-normal">
+      {chapter.topics && chapter.topics.length > 0 ? (
+        <ul className="space-y-3">
+          {chapter.topics.map((topic, j) => (
+            <li key={j} className="flex items-start gap-3">
+              <div className="w-1.5 h-1.5 rounded-full bg-primary/40 mt-2.5 shrink-0" />
+              <div className="space-y-1">
+                <span className="font-semibold text-foreground">{topic.title}</span>
+                <p className="text-muted-foreground text-sm leading-relaxed">{topic.content}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-muted-foreground italic">
+          {t("contentUnavailable")}
+        </p>
+      )}
 
       {/* Regenerate */}
       <div className="flex justify-end pt-4 border-t border-border">
