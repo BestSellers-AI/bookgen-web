@@ -52,9 +52,6 @@ export function CreditCheckDialog({
   const handleConfirm = async () => {
     setLoading(true);
     try {
-      await booksApi.approve(bookId).catch(() => {
-        // Ignore — book may already be PREVIEW_APPROVED
-      });
       await booksApi.generate(bookId);
       toast.success(t("generationStarted"));
       onOpenChange(false);

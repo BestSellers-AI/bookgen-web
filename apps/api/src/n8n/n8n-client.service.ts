@@ -19,6 +19,18 @@ export class N8nClientService {
     await this.dispatch(url, body);
   }
 
+  async dispatchCompletePreview(bookId: string, request: object): Promise<void> {
+    const url = `${this.appConfig.n8nWebhookBaseUrl}${this.appConfig.n8nWebhookPreviewComplete}`;
+    const body = {
+      bookId,
+      ...request,
+      callbackBaseUrl: this.appConfig.apiUrl,
+    };
+
+    this.logger.log(`Dispatching complete preview for book ${bookId} → ${url}`);
+    await this.dispatch(url, body);
+  }
+
   async dispatchGeneration(bookId: string, request: object): Promise<void> {
     const url = `${this.appConfig.n8nWebhookBaseUrl}${this.appConfig.n8nWebhookGeneration}`;
     const body = {

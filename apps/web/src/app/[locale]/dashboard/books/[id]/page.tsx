@@ -51,12 +51,13 @@ export default function BookViewPage() {
     fetchBook();
   }, [fetchBook]);
 
-  // SSE for PREVIEW_GENERATING status
+  // SSE for PREVIEW_GENERATING and PREVIEW_COMPLETING status
   const isPreviewGenerating = book?.status === "PREVIEW_GENERATING";
+  const isPreviewCompleting = book?.status === "PREVIEW_COMPLETING";
   const handlePreviewEvent = useCallback(
     (type: string, data: Record<string, unknown>) => {
       if (type === "preview_progress") {
-        if (data.status === "ready") {
+        if (data.status === "ready" || data.status === "complete_ready") {
           fetchBook();
         } else if (data.status === "error") {
           fetchBook();
@@ -65,7 +66,7 @@ export default function BookViewPage() {
     },
     [fetchBook],
   );
-  useBookEvents(isPreviewGenerating ? (id as string) : null, handlePreviewEvent);
+  useBookEvents((isPreviewGenerating || isPreviewCompleting) ? (id as string) : null, handlePreviewEvent);
 
   const handleDelete = async () => {
     if (!book) return;
@@ -132,8 +133,26 @@ export default function BookViewPage() {
     );
   }
 
-  // PREVIEW / PREVIEW_APPROVED — preview viewer
-  if (status === "PREVIEW" || status === "PREVIEW_APPROVED") {
+  // PREVIEW_COMPLETING — SSE wait for complete preview
+  if (status === "PREVIEW_COMPLETING") {
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh] gap-6">
+        <div className="relative w-20 h-20">
+          <div className="absolute inset-0 border-4 border-primary/20 rounded-full" />
+          <div className="absolute inset-0 border-4 border-t-primary rounded-full animate-spin" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Sparkles className="w-8 h-8 text-primary animate-pulse" />
+          </div>
+        </div>
+        <p className="text-lg text-muted-foreground font-medium">
+          {t("statusPreviewCompleting")}
+        </p>
+      </div>
+    );
+  }
+
+  // PREVIEW / PREVIEW_COMPLETED / PREVIEW_APPROVED — preview viewer
+  if (status === "PREVIEW" || status === "PREVIEW_COMPLETED" || status === "PREVIEW_APPROVED") {
     return (
       <div className="pb-20">
         <div className="flex items-center mb-8">
@@ -151,13 +170,15 @@ export default function BookViewPage() {
           onRefetch={fetchBook}
           onApproveGenerate={() => setCreditDialogOpen(true)}
         />
-        <CreditCheckDialog
-          open={creditDialogOpen}
-          onOpenChange={setCreditDialogOpen}
-          bookId={book.id}
-          bookTitle={book.title}
-          onSuccess={fetchBook}
-        />
+        {(status === "PREVIEW_COMPLETED" || status === "PREVIEW_APPROVED") && (
+          <CreditCheckDialog
+            open={creditDialogOpen}
+            onOpenChange={setCreditDialogOpen}
+            bookId={book.id}
+            bookTitle={book.title}
+            onSuccess={fetchBook}
+          />
+        )}
       </div>
     );
   }

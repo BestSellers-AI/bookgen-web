@@ -39,6 +39,7 @@
 | `N8N_WEBHOOK_PREVIEW` | `/preview` | Preview generation path |
 | `N8N_WEBHOOK_GENERATION` | `/generate-book` | Full book generation path |
 | `N8N_WEBHOOK_ADDON` | `/process-addon` | Addon processing path |
+| `N8N_WEBHOOK_PREVIEW_COMPLETE` | `/preview-complete` | Complete preview generation path |
 | `N8N_CALLBACK_SECRET` | `dev-n8n-callback-secret-local` | Shared secret (≥16 chars) |
 
 ### Common Dispatch Behavior
@@ -75,11 +76,38 @@ All dispatches use `N8nClientService.dispatch()`:
 
 ---
 
-### 1.2 Book Generation Dispatch
+### 1.2 Complete Preview Dispatch
+
+**Trigger:** `BookService.approvePreview(bookId, userId)` (user approves structure)
+**URL:** `${N8N_WEBHOOK_BASE_URL}${N8N_WEBHOOK_PREVIEW_COMPLETE}`
+**Status transition:** `PREVIEW` → `PREVIEW_COMPLETING`
+
+```json
+{
+  "bookId": "clxyz...",
+  "briefing": "A book about AI in healthcare...",
+  "author": "John Doe",
+  "title": "AI Health Revolution",
+  "subtitle": "How AI transforms medicine",
+  "creationMode": "SIMPLE | GUIDED | ADVANCED",
+  "settings": { "tone": "professional", "language": "en", ... },
+  "planning": { "chapters": [...] },
+  "chapters": [
+    { "id": "ch1...", "sequence": 1, "title": "Introduction", "topics": [...] }
+  ],
+  "callbackBaseUrl": "http://localhost:3001/api"
+}
+```
+
+**Rollback on dispatch failure:** Reverts status to `PREVIEW`, sets `generationError`.
+
+---
+
+### 1.3 Book Generation Dispatch
 
 **Trigger:** `BookService.requestGeneration(bookId, userId)`
 **URL:** `${N8N_WEBHOOK_BASE_URL}${N8N_WEBHOOK_GENERATION}`
-**Status transition:** `PREVIEW_APPROVED` → `QUEUED` → `GENERATING`
+**Status transition:** `PREVIEW_COMPLETED` / `PREVIEW_APPROVED` → `QUEUED` → `GENERATING`
 **Credit cost:** 100 credits (debited before dispatch)
 
 ```json
@@ -107,11 +135,11 @@ All dispatches use `N8nClientService.dispatch()`:
 | BESTSELLER | 5 (priority) |
 | ASPIRANTE / None | 10 (standard) |
 
-**Rollback on dispatch failure:** Refunds 100 credits, reverts to `PREVIEW_APPROVED`.
+**Rollback on dispatch failure:** Refunds 100 credits, reverts to original status (`PREVIEW_COMPLETED` or `PREVIEW_APPROVED`).
 
 ---
 
-### 1.3 Chapter Regeneration Dispatch
+### 1.4 Chapter Regeneration Dispatch
 
 **Trigger:** `BookService.regenerateChapter(bookId, chapterSequence, userId)`
 **URL:** `${N8N_WEBHOOK_BASE_URL}${N8N_WEBHOOK_GENERATION}`
@@ -139,7 +167,7 @@ All dispatches use `N8nClientService.dispatch()`:
 
 ---
 
-### 1.4 Addon Dispatch
+### 1.5 Addon Dispatch
 
 **Trigger:** `AddonService.request(userId, bookId, dto)`
 **URL:** `${N8N_WEBHOOK_BASE_URL}${N8N_WEBHOOK_ADDON}`
@@ -231,35 +259,28 @@ GET /api/hooks/n8n/book-chapters/:bookId
 POST /api/hooks/n8n/preview-result
 ```
 
-**Payload (success):**
+**Payload (success) — structure only, NO front/back matter, NO files:**
 ```json
 {
   "bookId": "clxyz...",
   "status": "success",
   "title": "AI Health Revolution",
   "subtitle": "How AI transforms medicine",
-  "pdfUrl": "https://r2.example.com/books/clxyz/preview.pdf",
-  "docxUrl": "https://r2.example.com/books/clxyz/preview.docx",
-  "epubUrl": "https://r2.example.com/books/clxyz/preview.epub",
-  "conclusion": "A summary of what the reader will take away from this book...",
-  "finalConsiderations": "Key takeaways and final thoughts for the reader...",
-  "glossary": ["AI — Artificial Intelligence", "ML — Machine Learning", "NLP — Natural Language Processing"],
-  "appendix": "Supplementary reference material...",
-  "closure": "Final words from the author...",
+  "author": "John Doe",
   "planning": {
     "chapters": [
       {
         "title": "Introduction to AI",
         "topics": [
-          { "title": "What is AI", "content": "A brief overview of artificial intelligence concepts and definitions." },
-          { "title": "History of AI", "content": "From Turing to modern deep learning — key milestones in AI development." }
+          { "title": "What is AI", "content": "A brief overview of artificial intelligence." },
+          { "title": "History of AI", "content": "Key milestones from Turing to deep learning." }
         ]
       },
       {
         "title": "AI in Diagnostics",
         "topics": [
-          { "title": "Medical Imaging", "content": "How AI analyzes X-rays, MRIs, and CT scans for early detection." },
-          { "title": "Predictive Models", "content": "Using patient data to predict disease risk and treatment outcomes." }
+          { "title": "Medical Imaging", "content": "How AI analyzes X-rays, MRIs, and CT scans." },
+          { "title": "Predictive Models", "content": "Using patient data to predict disease risk." }
         ]
       }
     ]
@@ -277,14 +298,11 @@ POST /api/hooks/n8n/preview-result
 ```
 
 **Processing (success):**
-1. Idempotency check: skip if book already in `PREVIEW` or `PREVIEW_APPROVED`
-2. Update book: `status → PREVIEW`, set title/subtitle/conclusion/finalConsiderations/glossary/appendix/closure if provided, store planning
-3. Delete existing chapters, create new ones from `planning.chapters[]`
-4. If `pdfUrl` provided: create `BookFile` record (type: `PREVIEW_PDF`)
-5. If `docxUrl` provided: create `BookFile` record (type: `DOCX`)
-6. If `epubUrl` provided: create `BookFile` record (type: `EPUB`)
-7. Emit SSE: `book.preview.progress` → `{ status: 'ready' }`
-8. Create notification: `BOOK_PREVIEW_READY`
+1. Idempotency check: skip if book already in `PREVIEW`, `PREVIEW_APPROVED`, `PREVIEW_COMPLETING`, or `PREVIEW_COMPLETED`
+2. Update book: `status → PREVIEW`, set title/subtitle if provided, store planning (structure only — no front/back matter, no files)
+3. Delete existing chapters, create new ones from `planning.chapters[]` (topics are brief, one line each)
+4. Emit SSE: `book.preview.progress` → `{ status: 'ready' }`
+5. Create notification: `BOOK_PREVIEW_READY`
 
 **Processing (error):**
 1. Update book: `status → ERROR`, store `generationError`
@@ -304,7 +322,66 @@ PREVIEW_GENERATING
 
 ---
 
-### 2.2 Chapter Result
+### 2.2.1 Preview Complete Result
+
+```
+POST /api/hooks/n8n/preview-complete-result
+```
+
+**Payload (success) — full planning (expanded topics), front/back matter, and files:**
+```json
+{
+  "bookId": "clxyz...",
+  "status": "success",
+  "planning": {
+    "chapters": [
+      {
+        "title": "Introduction to AI",
+        "topics": [
+          { "title": "What is AI", "content": "Artificial intelligence encompasses a broad range of technologies and methodologies designed to enable machines to perform tasks that typically require human intelligence. From early rule-based systems to modern neural networks, AI has evolved dramatically..." },
+          { "title": "History of AI", "content": "The journey of artificial intelligence began with Alan Turing's seminal 1950 paper proposing the question 'Can machines think?' From the Dartmouth Conference in 1956 through the AI winters and the deep learning revolution..." }
+        ]
+      }
+    ]
+  },
+  "introduction": "This book explores the frontier of AI in healthcare...",
+  "conclusion": "As we have seen throughout this book...",
+  "finalConsiderations": "The future of AI in medicine depends on...",
+  "glossary": "AI — Artificial Intelligence\nML — Machine Learning\n...",
+  "appendix": "Supplementary material...",
+  "closure": "Final words from the author...",
+  "pdfUrl": "https://r2.example.com/books/clxyz/preview.pdf",
+  "docxUrl": "https://r2.example.com/books/clxyz/preview.docx",
+  "epubUrl": "https://r2.example.com/books/clxyz/preview.epub"
+}
+```
+
+**Payload (error):**
+```json
+{
+  "bookId": "clxyz...",
+  "status": "error",
+  "error": "Failed to generate complete preview: timeout"
+}
+```
+
+**Processing (success):**
+1. Idempotency check: skip if book already in `PREVIEW_COMPLETED` or `PREVIEW_APPROVED`
+2. Update book: `status → PREVIEW_COMPLETED`, store planning (expanded topics), introduction/conclusion/glossary/appendix/closure/finalConsiderations
+3. If planning provided: delete existing chapters and recreate with expanded topics (≥1 paragraph each)
+4. Delete old preview files (PREVIEW_PDF, DOCX, EPUB) for idempotency
+5. Create new `BookFile` records for pdfUrl/docxUrl/epubUrl
+6. Emit SSE: `book.preview.progress` → `{ status: 'complete_ready' }`
+7. Create notification: `BOOK_PREVIEW_READY`
+
+**Processing (error):**
+1. Revert book: `status → PREVIEW` (so user can retry), store `generationError`
+2. Emit SSE: `book.preview.progress` → `{ status: 'error', error: '...' }`
+3. Create notification: `BOOK_GENERATION_ERROR`
+
+---
+
+### 2.3 Chapter Result
 
 ```
 POST /api/hooks/n8n/chapter-result
@@ -337,7 +414,7 @@ POST /api/hooks/n8n/chapter-result
 
 ---
 
-### 2.3 Book Context
+### 2.4 Book Context
 
 ```
 GET  /api/hooks/n8n/book-context/:bookId
@@ -371,7 +448,7 @@ POST /api/hooks/n8n/book-context/:bookId
 
 ---
 
-### 2.4 Generation Complete
+### 2.5 Generation Complete
 
 ```
 POST /api/hooks/n8n/generation-complete
@@ -407,7 +484,7 @@ POST /api/hooks/n8n/generation-complete
 
 ---
 
-### 2.5 Generation Error
+### 2.6 Generation Error
 
 ```
 POST /api/hooks/n8n/generation-error
@@ -430,7 +507,7 @@ POST /api/hooks/n8n/generation-error
 
 ---
 
-### 2.6 Addon Result
+### 2.7 Addon Result
 
 ```
 POST /api/hooks/n8n/addon-result
@@ -467,7 +544,7 @@ POST /api/hooks/n8n/addon-result
 
 ---
 
-### 2.7 Translation Chapter
+### 2.8 Translation Chapter
 
 ```
 POST /api/hooks/n8n/translation-chapter
@@ -529,6 +606,9 @@ event: book.preview.progress
 data: {"type":"book.preview.progress","data":{"bookId":"...","status":"ready"}}
 
 event: book.preview.progress
+data: {"type":"book.preview.progress","data":{"bookId":"...","status":"complete_ready"}}
+
+event: book.preview.progress
 data: {"type":"book.preview.progress","data":{"bookId":"...","status":"error","error":"..."}}
 ```
 
@@ -566,7 +646,7 @@ data: {"type":"book.addon.progress","data":{"bookId":"...","addonId":"...","stat
 
 ## 5. Complete Flow Diagrams
 
-### Preview Flow
+### Preview Flow (2-Step)
 
 ```
 User clicks "Generate Preview"
@@ -584,48 +664,48 @@ User clicks "Generate Preview"
 │  │ Preview(bookId, {...}) │     │
 │  └────────────────────────┘     │
 └────────────┬────────────────────┘
-             │
-             │  Frontend opens SSE:
-             │  GET /api/books/:id/events
+             │  Frontend opens SSE
              ▼
 ┌─────────────────────────────────┐
-│ n8n processes preview           │  (generates TOC, chapter titles,
-│ (external, async)               │   topics, optionally title/subtitle)
+│ POST /hooks/n8n/preview-result  │  n8n returns STRUCTURE ONLY
+│                                 │  (planning + chapters/topics, NO files)
+│ Status → PREVIEW                │
+│ SSE: { status: 'ready' }       │
 └────────────┬────────────────────┘
              │
              ▼
+User reviews/edits structure, clicks "Approve Structure"
+         │
+         ▼
 ┌─────────────────────────────────┐
-│ POST /api/hooks/n8n/            │  n8n calls back
-│     preview-result              │
+│ POST /api/books/:id/approve     │  BookService.approvePreview()
+│                                 │  Status: PREVIEW → PREVIEW_COMPLETING
+│  ┌─────────────────────────┐    │
+│  │ N8nClient.dispatch      │────┼──▶ n8n /webhook/preview-complete
+│  │ CompletePreview(...)    │    │
+│  └─────────────────────────┘    │
+└────────────┬────────────────────┘
+             │  Frontend opens SSE
+             ▼
+┌─────────────────────────────────┐
+│ POST /hooks/n8n/                │  n8n returns front/back matter + files
+│   preview-complete-result       │
 │                                 │
-│ ┌─ success ───────────────────┐ │
-│ │ Status → PREVIEW            │ │
-│ │ Create chapters from plan   │ │
-│ │ SSE: { status: 'ready' }   │ │
-│ │ Notify: BOOK_PREVIEW_READY │ │
-│ └─────────────────────────────┘ │
-│                                 │
-│ ┌─ error ─────────────────────┐ │
-│ │ Status → ERROR              │ │
-│ │ SSE: { status: 'error' }   │ │
-│ │ Notify: BOOK_GENERATION_ERR│ │
-│ └─────────────────────────────┘ │
-└─────────────────────────────────┘
+│ Status → PREVIEW_COMPLETED      │
+│ SSE: { status: 'complete_ready'}│
+└────────────┬────────────────────┘
              │
              ▼
-Frontend receives SSE → redirects to book detail page
+Frontend shows complete preview (intro, chapters, conclusion, glossary, etc.)
+User clicks "Approve & Generate"
 ```
 
 ### Generation Flow
 
 ```
-User clicks "Approve & Generate"
+User clicks "Approve & Generate" (from PREVIEW_COMPLETED)
          │
          ▼
-┌─────────────────────────────────┐
-│ POST /api/books/:id/approve     │  Status: PREVIEW → PREVIEW_APPROVED
-└────────────┬────────────────────┘
-             ▼
 ┌─────────────────────────────────┐
 │ POST /api/books/:id/generate    │  BookService.requestGeneration()
 │                                 │
@@ -635,7 +715,7 @@ User clicks "Approve & Generate"
 │                                 │
 │  On failure:                    │
 │    Refund 100 credits           │
-│    Revert → PREVIEW_APPROVED    │
+│    Revert → original status     │
 └────────────┬────────────────────┘
              │
              │  Frontend opens SSE:
@@ -767,22 +847,26 @@ User requests translation addon
 ### Book Status
 
 ```
-                    ┌──────────────────────────────────────────────────────┐
-                    │                                                      │
-                    ▼                                                      │
-DRAFT ──▶ PREVIEW_GENERATING ──▶ PREVIEW ──▶ PREVIEW_APPROVED ──▶ QUEUED ─┤
-  │              │                  │              │                  │     │
-  │              │                  │              │                  ▼     │
-  │              ▼                  │              │             GENERATING │
-  │           ERROR ◀───────────────┘              │                  │     │
-  │              ▲                                 │                  ▼     │
-  │              │                                 │             GENERATED  │
-  │              └─────────────────────────────────┘                       │
-  │                                                                        │
-  └──▶ CANCELLED                                                           │
-                                                                           │
-  Note: ERROR can transition back to PREVIEW_GENERATING (retry preview)    │
-        or back to the previous state on dispatch failure rollback         │
+DRAFT ──▶ PREVIEW_GENERATING ──▶ PREVIEW ──▶ PREVIEW_COMPLETING ──▶ PREVIEW_COMPLETED ──▶ QUEUED
+  │              │                  │  │              │                      │                │
+  │              │                  │  │              │                      │                ▼
+  │              ▼                  │  │              ▼                      │           GENERATING
+  │           ERROR ◀───────────────┘  │           ERROR                    │                │
+  │              ▲                     │         (reverts to PREVIEW)       │                ▼
+  │              │                     │                                    │           GENERATED
+  │              │                     ▼                                    │
+  │              │              PREVIEW_APPROVED ───────────────────────────┘
+  │              │                     │
+  │              └─────────────────────┘
+  │
+  └──▶ CANCELLED
+
+  Notes:
+  - PREVIEW → PREVIEW_COMPLETING: user approves structure, dispatches to n8n
+  - PREVIEW_COMPLETING → PREVIEW_COMPLETED: n8n callback with front/back matter
+  - PREVIEW_COMPLETING error: reverts to PREVIEW
+  - Both PREVIEW_COMPLETED and PREVIEW_APPROVED can transition to QUEUED
+  - ERROR can transition back to PREVIEW_GENERATING (retry preview)
 ```
 
 ### Chapter Status
@@ -826,7 +910,8 @@ Every callback handler checks current status before processing to prevent duplic
 
 | Callback | Guard Condition | Action |
 |----------|----------------|--------|
-| Preview Result | Book status ∈ {PREVIEW, PREVIEW_APPROVED} | Skip |
+| Preview Result | Book status ∈ {PREVIEW, PREVIEW_APPROVED, PREVIEW_COMPLETING, PREVIEW_COMPLETED} | Skip |
+| Preview Complete Result | Book status ∈ {PREVIEW_COMPLETED, PREVIEW_APPROVED} | Skip |
 | Chapter Result | Chapter status = GENERATED AND dto.status = success | Skip |
 | Generation Complete | Book status = GENERATED | Skip |
 | Addon Result | Addon status ∈ {COMPLETED, CANCELLED} | Skip |
@@ -841,7 +926,8 @@ Every callback handler checks current status before processing to prevent duplic
 | Operation | Rollback |
 |-----------|----------|
 | Preview dispatch | Revert book status → original (DRAFT/ERROR), set generationError |
-| Generation dispatch | Refund 100 credits, revert → PREVIEW_APPROVED |
+| Complete preview dispatch | Revert book status → PREVIEW, set generationError |
+| Generation dispatch | Refund 100 credits, revert → original (PREVIEW_COMPLETED/PREVIEW_APPROVED) |
 | Chapter regen dispatch | Revert chapter → GENERATED, refund credits if debited |
 | Addon dispatch | Refund credits, set addon → ERROR |
 
@@ -863,10 +949,21 @@ Every callback handler checks current status before processing to prevent duplic
 #### Preview Workflow (`/webhook/preview`)
 1. Receive book data (briefing, author, title, settings)
 2. Use LLM to generate:
-   - Table of contents (chapter titles + topics per chapter)
+   - Table of contents (chapter titles + topics per chapter — brief, one line each)
    - Optionally refine title/subtitle
-   - Optionally generate a preview PDF
-3. Call back: `POST ${callbackBaseUrl}/hooks/n8n/preview-result` (include `pdfUrl` if PDF was generated)
+3. Call back: `POST ${callbackBaseUrl}/hooks/n8n/preview-result` with planning structure only (NO front/back matter, NO PDF/DOCX/EPUB files)
+
+#### Complete Preview Workflow (`/webhook/preview-complete`)
+1. Receive book data (briefing, author, title, settings, planning, chapters)
+2. Use LLM to:
+   - Expand each chapter topic (≥1 paragraph each, replacing the brief one-liners from preview-result)
+   - Generate front/back matter: introduction, conclusion, final considerations, glossary, appendix, closure
+3. Optionally compile preview PDF/DOCX/EPUB
+4. Call back: `POST ${callbackBaseUrl}/hooks/n8n/preview-complete-result`
+   - Include updated `planning` with expanded topics
+   - Include all generated front/back matter fields
+   - Include pdfUrl/docxUrl/epubUrl if files were compiled
+5. On error: Call back with `{ status: 'error', error: '...' }` — book reverts to PREVIEW
 
 #### Generation Workflow (`/webhook/generate-book`)
 1. Receive book data + planning + chapters list

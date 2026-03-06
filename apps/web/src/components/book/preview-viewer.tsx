@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import {
+  CheckCircle,
   Pencil,
   RotateCw,
   Sparkles,
@@ -38,14 +39,31 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
   const [isEditing, setIsEditing] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [approvingStructure, setApprovingStructure] = useState(false);
   const t = useTranslations("book");
   const tErr = useTranslations("errors");
+
+  const isStructureOnly = book.status === "PREVIEW";
+  const isCompletePreview = book.status === "PREVIEW_COMPLETED" || book.status === "PREVIEW_APPROVED";
 
   const planning = book.planning;
   const previewPdf = book.files.find((f: BookFileSummary) => f.fileType === "PREVIEW_PDF");
   const previewDocx = book.files.find((f: BookFileSummary) => f.fileType === "DOCX");
   const previewEpub = book.files.find((f: BookFileSummary) => f.fileType === "EPUB");
   const hasPlanning = planning && planning.chapters && planning.chapters.length > 0;
+
+  const handleApproveStructure = async () => {
+    setApprovingStructure(true);
+    try {
+      await booksApi.approve(book.id);
+      toast.success(t("structureApproved"));
+      onRefetch();
+    } catch {
+      toast.error(tErr("approveStructureFailed"));
+    } finally {
+      setApprovingStructure(false);
+    }
+  };
 
   const handleRegenerate = async () => {
     setRegenerating(true);
@@ -116,7 +134,8 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
 
         {/* Actions */}
         <div className="flex flex-wrap gap-3">
-          {previewPdf && (
+          {/* Downloads — only for complete preview */}
+          {isCompletePreview && previewPdf && (
             <Button
               variant="outline"
               className="rounded-xl border-primary/20 bg-primary/5 text-primary hover:bg-primary/10"
@@ -129,7 +148,7 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
             </Button>
           )}
 
-          {previewDocx && (
+          {isCompletePreview && previewDocx && (
             <Button
               variant="outline"
               className="rounded-xl border-primary/20 bg-primary/5 text-primary hover:bg-primary/10"
@@ -142,7 +161,7 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
             </Button>
           )}
 
-          {previewEpub && (
+          {isCompletePreview && previewEpub && (
             <Button
               variant="outline"
               className="rounded-xl border-primary/20 bg-primary/5 text-primary hover:bg-primary/10"
@@ -155,14 +174,17 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
             </Button>
           )}
 
-          <Button
-            variant="outline"
-            className="rounded-xl border-primary/20 bg-primary/5 text-primary hover:bg-primary/10"
-            onClick={() => setIsEditing(!isEditing)}
-          >
-            <Pencil className="mr-2 h-4 w-4" />
-            {isEditing ? t("cancelEdit") : t("editStructure")}
-          </Button>
+          {/* Edit Structure — only for structure-only preview */}
+          {isStructureOnly && (
+            <Button
+              variant="outline"
+              className="rounded-xl border-primary/20 bg-primary/5 text-primary hover:bg-primary/10"
+              onClick={() => setIsEditing(!isEditing)}
+            >
+              <Pencil className="mr-2 h-4 w-4" />
+              {isEditing ? t("cancelEdit") : t("editStructure")}
+            </Button>
+          )}
 
           <ConfirmDialog
             title={t("regeneratePreview")}
@@ -185,13 +207,32 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
             }
           />
 
-          <Button
-            onClick={onApproveGenerate}
-            className="rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-500/20 border-none"
-          >
-            <Sparkles className="mr-2 h-4 w-4" />
-            {t("approveGenerate")}
-          </Button>
+          {/* Approve Structure — only for structure-only preview */}
+          {isStructureOnly && (
+            <Button
+              onClick={handleApproveStructure}
+              disabled={approvingStructure}
+              className="rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-500/20 border-none"
+            >
+              {approvingStructure ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <CheckCircle className="mr-2 h-4 w-4" />
+              )}
+              {t("approveStructure")}
+            </Button>
+          )}
+
+          {/* Approve & Generate — only for complete preview */}
+          {isCompletePreview && (
+            <Button
+              onClick={onApproveGenerate}
+              className="rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-500/20 border-none"
+            >
+              <Sparkles className="mr-2 h-4 w-4" />
+              {t("approveGenerate")}
+            </Button>
+          )}
 
           <ConfirmDialog
             title={t("deleteTitle")}
@@ -218,7 +259,7 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
       </header>
 
       {/* Planning Editor or Viewer */}
-      {isEditing && planning ? (
+      {isEditing && planning && isStructureOnly ? (
         <PlanningEditor
           planning={planning}
           bookId={book.id}
@@ -226,9 +267,9 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
           onCancel={() => setIsEditing(false)}
         />
       ) : (
-        <Accordion type="multiple" defaultValue={book.introduction ? ["section-introduction"] : []} className="space-y-4">
-          {/* Introduction */}
-          {book.introduction && (
+        <Accordion type="multiple" defaultValue={isCompletePreview && book.introduction ? ["section-introduction"] : []} className="space-y-4">
+          {/* Introduction — only for complete preview */}
+          {isCompletePreview && book.introduction && (
             <AccordionItem value="section-introduction" className="glass rounded-[2.5rem] border-none overflow-hidden">
               <AccordionTrigger className="px-8 md:px-10 py-6 hover:no-underline">
                 <h3 className="text-2xl font-heading font-bold text-foreground">
@@ -243,7 +284,7 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
             </AccordionItem>
           )}
 
-          {/* Chapters */}
+          {/* Chapters — always shown */}
           {hasPlanning && planning!.chapters.map((chapter, i) => (
             <AccordionItem key={i} value={`section-chapter-${i + 1}`} className="glass rounded-[2rem] border-none overflow-hidden">
               <AccordionTrigger className="px-8 py-6 hover:no-underline">
@@ -272,8 +313,8 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
             </AccordionItem>
           ))}
 
-          {/* Conclusion */}
-          {(book.conclusion || planning?.conclusion) && (
+          {/* Conclusion — only for complete preview */}
+          {isCompletePreview && (book.conclusion || planning?.conclusion) && (
             <AccordionItem value="section-conclusion" className="glass rounded-[2.5rem] border-none overflow-hidden">
               <AccordionTrigger className="px-8 md:px-10 py-6 hover:no-underline">
                 <h3 className="text-2xl font-heading font-bold text-foreground">
@@ -288,8 +329,8 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
             </AccordionItem>
           )}
 
-          {/* Glossary */}
-          {(book.glossary || (planning?.glossary && planning.glossary.length > 0)) && (
+          {/* Glossary — only for complete preview */}
+          {isCompletePreview && (book.glossary || (planning?.glossary && planning.glossary.length > 0)) && (
             <AccordionItem value="section-glossary" className="glass rounded-[2.5rem] border-none overflow-hidden">
               <AccordionTrigger className="px-8 md:px-10 py-6 hover:no-underline">
                 <h3 className="text-2xl font-heading font-bold text-foreground">
@@ -317,8 +358,8 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
             </AccordionItem>
           )}
 
-          {/* Final Considerations */}
-          {book.finalConsiderations && (
+          {/* Final Considerations — only for complete preview */}
+          {isCompletePreview && book.finalConsiderations && (
             <AccordionItem value="section-final-considerations" className="glass rounded-[2.5rem] border-none overflow-hidden">
               <AccordionTrigger className="px-8 md:px-10 py-6 hover:no-underline">
                 <h3 className="text-2xl font-heading font-bold text-foreground">
@@ -333,8 +374,8 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
             </AccordionItem>
           )}
 
-          {/* Appendix */}
-          {book.appendix && (
+          {/* Appendix — only for complete preview */}
+          {isCompletePreview && book.appendix && (
             <AccordionItem value="section-appendix" className="glass rounded-[2.5rem] border-none overflow-hidden">
               <AccordionTrigger className="px-8 md:px-10 py-6 hover:no-underline">
                 <h3 className="text-2xl font-heading font-bold text-foreground">
@@ -349,8 +390,8 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
             </AccordionItem>
           )}
 
-          {/* Closure */}
-          {book.closure && (
+          {/* Closure — only for complete preview */}
+          {isCompletePreview && book.closure && (
             <AccordionItem value="section-closure" className="glass rounded-[2.5rem] border-none overflow-hidden">
               <AccordionTrigger className="px-8 md:px-10 py-6 hover:no-underline">
                 <h3 className="text-2xl font-heading font-bold text-foreground">

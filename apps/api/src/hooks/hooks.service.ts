@@ -16,6 +16,7 @@ import { NotificationService } from '../notifications/notification.service';
 import { TranslationService } from '../translations/translation.service';
 import {
   PreviewResultDto,
+  PreviewCompleteResultDto,
   ChapterResultDto,
   GenerationCompleteDto,
   GenerationErrorDto,
@@ -50,7 +51,12 @@ export class HooksService {
     }
 
     // Idempotency: skip if already processed
-    if (book.status === BookStatus.PREVIEW || book.status === BookStatus.PREVIEW_APPROVED) {
+    if (
+      book.status === BookStatus.PREVIEW ||
+      book.status === BookStatus.PREVIEW_APPROVED ||
+      book.status === BookStatus.PREVIEW_COMPLETING ||
+      book.status === BookStatus.PREVIEW_COMPLETED
+    ) {
       this.logger.warn(`Preview for book ${dto.bookId} already processed, skipping`);
       return;
     }
@@ -89,19 +95,15 @@ export class HooksService {
         | Array<{ title?: string; topics?: string[] }>
         | undefined;
 
-    // Update book
+    // Update book — structure only (no front/back matter, no files)
     await this.prisma.book.update({
       where: { id: dto.bookId },
       data: {
         status: BookStatus.PREVIEW,
         ...(dto.title && { title: dto.title }),
         ...(dto.subtitle && { subtitle: dto.subtitle }),
+        ...(dto.author && { author: dto.author }),
         ...(planning !== undefined && { planning }),
-        ...(dto.conclusion && { conclusion: dto.conclusion }),
-        ...(dto.glossary && { glossary: dto.glossary as unknown as Prisma.InputJsonValue }),
-        ...(dto.finalConsiderations && { finalConsiderations: dto.finalConsiderations }),
-        ...(dto.appendix && { appendix: dto.appendix }),
-        ...(dto.closure && { closure: dto.closure }),
       },
     });
 
@@ -123,6 +125,118 @@ export class HooksService {
       });
     }
 
+    this.eventEmitter.emit('book.preview.progress', {
+      bookId: dto.bookId,
+      status: 'ready',
+    });
+
+    await this.notifications.create({
+      userId: book.userId,
+      type: NotificationType.BOOK_PREVIEW_READY,
+      title: 'Preview ready',
+      message: `Your book preview "${dto.title ?? book.title}" is ready for review.`,
+      data: { bookId: dto.bookId },
+    });
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Preview Complete Result                                            */
+  /* ------------------------------------------------------------------ */
+  async processPreviewCompleteResult(dto: PreviewCompleteResultDto) {
+    this.logger.log(`Processing preview complete result for book ${dto.bookId}`);
+
+    const book = await this.prisma.book.findUnique({
+      where: { id: dto.bookId },
+    });
+
+    if (!book) {
+      throw new NotFoundException(`Book ${dto.bookId} not found`);
+    }
+
+    // Idempotency: skip if already processed
+    if (
+      book.status === BookStatus.PREVIEW_COMPLETED ||
+      book.status === BookStatus.PREVIEW_APPROVED
+    ) {
+      this.logger.warn(`Preview complete for book ${dto.bookId} already processed, skipping`);
+      return;
+    }
+
+    /* ---------- Error path ---------- */
+    if (dto.status === 'error') {
+      // Revert to PREVIEW so user can retry
+      await this.prisma.book.update({
+        where: { id: dto.bookId },
+        data: {
+          status: BookStatus.PREVIEW,
+          generationError: dto.error ?? 'Unknown preview complete error',
+        },
+      });
+
+      this.eventEmitter.emit('book.preview.progress', {
+        bookId: dto.bookId,
+        status: 'error',
+        error: dto.error,
+      });
+
+      await this.notifications.create({
+        userId: book.userId,
+        type: NotificationType.BOOK_GENERATION_ERROR,
+        title: 'Complete preview generation failed',
+        message: dto.error ?? 'An error occurred while generating the complete preview.',
+        data: { bookId: dto.bookId },
+      });
+
+      return;
+    }
+
+    /* ---------- Success path ---------- */
+    const planning = dto.planning as Prisma.InputJsonValue | undefined;
+    const chapters =
+      (dto.planning as Record<string, unknown>)?.chapters as
+        | Array<{ title?: string; topics?: string[] }>
+        | undefined;
+
+    await this.prisma.book.update({
+      where: { id: dto.bookId },
+      data: {
+        status: BookStatus.PREVIEW_COMPLETED,
+        ...(planning !== undefined && { planning }),
+        ...(dto.introduction && { introduction: dto.introduction }),
+        ...(dto.conclusion && { conclusion: dto.conclusion }),
+        ...(dto.finalConsiderations && { finalConsiderations: dto.finalConsiderations }),
+        ...(dto.glossary && { glossary: dto.glossary as unknown as Prisma.InputJsonValue }),
+        ...(dto.appendix && { appendix: dto.appendix }),
+        ...(dto.closure && { closure: dto.closure }),
+      },
+    });
+
+    // Recreate chapters with expanded topics from updated planning
+    if (chapters && chapters.length > 0) {
+      await this.prisma.chapter.deleteMany({
+        where: { bookId: dto.bookId },
+      });
+
+      await this.prisma.chapter.createMany({
+        data: chapters.map((ch, index) => ({
+          bookId: dto.bookId,
+          sequence: index + 1,
+          title: ch.title ?? `Chapter ${index + 1}`,
+          topics: (ch.topics ?? []) as Prisma.InputJsonValue,
+          status: ChapterStatus.PENDING,
+        })),
+      });
+    }
+
+    // Delete old preview files for idempotency
+    await this.prisma.bookFile.deleteMany({
+      where: {
+        bookId: dto.bookId,
+        fileType: { in: [FileType.PREVIEW_PDF, FileType.DOCX, FileType.EPUB] },
+      },
+    });
+
+    // Create new file records
     if (dto.pdfUrl) {
       await this.prisma.bookFile.create({
         data: {
@@ -158,14 +272,14 @@ export class HooksService {
 
     this.eventEmitter.emit('book.preview.progress', {
       bookId: dto.bookId,
-      status: 'ready',
+      status: 'complete_ready',
     });
 
     await this.notifications.create({
       userId: book.userId,
       type: NotificationType.BOOK_PREVIEW_READY,
-      title: 'Preview ready',
-      message: `Your book preview "${dto.title ?? book.title}" is ready for review.`,
+      title: 'Complete preview ready',
+      message: `Your complete book preview "${book.title}" is ready for review.`,
       data: { bookId: dto.bookId },
     });
   }

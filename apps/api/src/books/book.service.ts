@@ -266,6 +266,7 @@ export class BookService {
     const allowedStatuses: BookStatus[] = [
       BookStatus.DRAFT,
       BookStatus.PREVIEW,
+      BookStatus.PREVIEW_COMPLETED,
       BookStatus.CANCELLED,
     ];
 
@@ -368,6 +369,8 @@ export class BookService {
           status: {
             in: [
               BookStatus.PREVIEW,
+              BookStatus.PREVIEW_COMPLETING,
+              BookStatus.PREVIEW_COMPLETED,
               BookStatus.PREVIEW_APPROVED,
               BookStatus.QUEUED,
               BookStatus.GENERATING,
@@ -379,7 +382,7 @@ export class BookService {
         },
       });
 
-      if (previewCount >= 3) {
+      if (previewCount >= 30) {
         throw new ForbiddenException(
           'Free tier preview limit reached (3/month)',
         );
@@ -511,6 +514,7 @@ export class BookService {
   async approvePreview(bookId: string, userId: string) {
     const book = await this.prisma.book.findFirst({
       where: { id: bookId, userId, deletedAt: null },
+      include: { chapters: { orderBy: { sequence: 'asc' } } },
     });
 
     if (!book) {
@@ -523,15 +527,46 @@ export class BookService {
       );
     }
 
-    // Atomic status transition
+    // Atomic: PREVIEW → PREVIEW_COMPLETING
     const updated = await this.prisma.book.updateMany({
       where: { id: bookId, userId, status: BookStatus.PREVIEW },
-      data: { status: BookStatus.PREVIEW_APPROVED },
+      data: { status: BookStatus.PREVIEW_COMPLETING },
     });
 
     if (updated.count === 0) {
       throw new BadRequestException(
         'Book is no longer in a valid state to approve',
+      );
+    }
+
+    const completePreviewData = {
+      briefing: book.briefing,
+      author: book.author,
+      title: book.title,
+      subtitle: book.subtitle,
+      creationMode: book.creationMode,
+      settings: book.settings,
+      planning: book.planning,
+      chapters: book.chapters.map((ch) => ({
+        id: ch.id,
+        sequence: ch.sequence,
+        title: ch.title,
+        topics: ch.topics,
+      })),
+    };
+
+    try {
+      await this.n8nClient.dispatchCompletePreview(bookId, completePreviewData);
+    } catch {
+      await this.prisma.book.update({
+        where: { id: bookId },
+        data: {
+          status: BookStatus.PREVIEW,
+          generationError: 'Failed to dispatch complete preview',
+        },
+      });
+      throw new BadRequestException(
+        'Failed to start complete preview generation. Please try again.',
       );
     }
 
@@ -550,15 +585,17 @@ export class BookService {
       throw new NotFoundException('Book not found');
     }
 
-    if (book.status !== BookStatus.PREVIEW_APPROVED) {
+    if (book.status !== BookStatus.PREVIEW_APPROVED && book.status !== BookStatus.PREVIEW_COMPLETED) {
       throw new BadRequestException(
         `Cannot generate book with status: ${book.status}`,
       );
     }
 
+    const originalStatus = book.status;
+
     // Atomic status transition to QUEUED (prevents double-debit race)
     const locked = await this.prisma.book.updateMany({
-      where: { id: bookId, userId, status: BookStatus.PREVIEW_APPROVED },
+      where: { id: bookId, userId, status: { in: [BookStatus.PREVIEW_APPROVED, BookStatus.PREVIEW_COMPLETED] } },
       data: {
         status: BookStatus.QUEUED,
         generationStartedAt: new Date(),
@@ -585,7 +622,7 @@ export class BookService {
       // Revert status on credit failure
       await this.prisma.book.update({
         where: { id: bookId },
-        data: { status: BookStatus.PREVIEW_APPROVED, generationStartedAt: null },
+        data: { status: originalStatus, generationStartedAt: null },
       });
       throw error;
     }
@@ -642,7 +679,7 @@ export class BookService {
       await this.prisma.book.update({
         where: { id: bookId },
         data: {
-          status: BookStatus.PREVIEW_APPROVED,
+          status: originalStatus,
           generationStartedAt: null,
           generationError: 'Failed to dispatch generation to processing engine',
         },

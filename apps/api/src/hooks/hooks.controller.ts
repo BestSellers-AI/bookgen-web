@@ -13,6 +13,7 @@ import { N8nSecretGuard } from './guards/n8n-secret.guard';
 import { HooksService } from './hooks.service';
 import {
   PreviewResultDto,
+  PreviewCompleteResultDto,
   ChapterResultDto,
   GenerationCompleteDto,
   GenerationErrorDto,
@@ -32,6 +33,13 @@ export class HooksController {
   @HttpCode(200)
   async previewResult(@Body() dto: PreviewResultDto) {
     await this.hooksService.processPreviewResult(dto);
+    return { received: true };
+  }
+
+  @Post('preview-complete-result')
+  @HttpCode(200)
+  async previewCompleteResult(@Body() dto: PreviewCompleteResultDto) {
+    await this.hooksService.processPreviewCompleteResult(dto);
     return { received: true };
   }
 

@@ -59,6 +59,10 @@ export class AppConfigService {
     return this.configService.get('N8N_WEBHOOK_ADDON');
   }
 
+  get n8nWebhookPreviewComplete(): string {
+    return this.configService.get('N8N_WEBHOOK_PREVIEW_COMPLETE');
+  }
+
   get n8nCallbackSecret(): string {
     return this.configService.get('N8N_CALLBACK_SECRET');
   }

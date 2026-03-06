@@ -5,3 +5,4 @@ export { GenerationErrorDto } from './generation-error.dto';
 export { AddonResultDto } from './addon-result.dto';
 export { TranslationChapterResultDto } from './translation-chapter-result.dto';
 export { BookContextDto } from './book-context.dto';
+export { PreviewCompleteResultDto } from './preview-complete-result.dto';
