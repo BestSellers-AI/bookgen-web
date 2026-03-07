@@ -42,7 +42,8 @@ export type ChatStep =
   | 'creating_book'
   | 'generating_preview'
   | 'preview_ready'
-  | 'redirect';
+  | 'redirect'
+  | 'email_exists';
 
 export type ChatPath = 'generate' | 'custom' | null;
 

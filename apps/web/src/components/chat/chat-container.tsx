@@ -137,6 +137,10 @@ export function ChatContainer() {
           transitionToCollectTitle();
         }
         break;
+
+      case 'email_exists':
+        router.push('/auth/login');
+        break;
     }
   }
 
@@ -392,8 +396,14 @@ export function ChatContainer() {
       const status = (err as { response?: { status?: number } })?.response?.status;
 
       if (status === 409) {
-        store.setStep('welcome');
+        store.setStep('email_exists');
         addBotMessage(t('emailExists'));
+        store.addMessage({
+          role: 'bot',
+          content: '',
+          type: 'choices',
+          choices: [t('btnGoToLogin')],
+        });
       } else {
         store.setError(t('errorGeneric'));
         addBotMessage(t('errorGeneric'));
