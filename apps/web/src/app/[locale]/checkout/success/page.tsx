@@ -6,6 +6,7 @@ import { CheckCircle, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
+import { useWalletStore } from "@/stores/wallet-store";
 import { checkoutApi } from "@/lib/api/checkout";
 
 type SessionState = "loading" | "success" | "error";
@@ -15,6 +16,7 @@ export default function CheckoutSuccessPage() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
   const [state, setState] = useState<SessionState>("loading");
+  const fetchWallet = useWalletStore((s) => s.fetchWallet);
 
   useEffect(() => {
     if (!sessionId) {
@@ -26,7 +28,12 @@ export default function CheckoutSuccessPage() {
       .getSessionStatus(sessionId)
       .then((res) => {
         const status = res.paymentStatus ?? res.status;
-        setState(status === "paid" || status === "complete" ? "success" : "error");
+        if (status === "paid" || status === "complete") {
+          setState("success");
+          fetchWallet();
+        } else {
+          setState("error");
+        }
       })
       .catch(() => {
         // Even if verification fails, the payment likely went through

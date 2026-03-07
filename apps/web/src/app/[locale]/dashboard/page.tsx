@@ -7,6 +7,7 @@ import { walletApi } from "@/lib/api/wallet";
 import { notificationsApi } from "@/lib/api/notifications";
 import type { BookListItem, WalletInfo, NotificationItem } from "@/lib/api/types";
 import { useAuth } from "@/hooks/use-auth";
+import { useWalletStore } from "@/stores/wallet-store";
 import { useTranslations } from "next-intl";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/error-state";
@@ -20,6 +21,7 @@ import { RecentNotifications } from "@/components/dashboard/recent-notifications
 export default function DashboardPage() {
   const { user } = useAuth();
   const t = useTranslations("dashboard");
+  const setWalletStore = useWalletStore((s) => s.setWallet);
 
   const [books, setBooks] = useState<BookListItem[]>([]);
   const [wallet, setWallet] = useState<WalletInfo | null>(null);
@@ -39,7 +41,9 @@ export default function DashboardPage() {
       ]);
 
       setBooks(booksRes.status === "fulfilled" ? booksRes.value.data : []);
-      setWallet(walletRes.status === "fulfilled" ? walletRes.value : null);
+      const walletData = walletRes.status === "fulfilled" ? walletRes.value : null;
+      setWallet(walletData);
+      if (walletData) setWalletStore(walletData);
       setNotifications(
         notifRes.status === "fulfilled" ? notifRes.value.data : []
       );

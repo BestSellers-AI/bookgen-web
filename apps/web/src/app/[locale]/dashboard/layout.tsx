@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect } from "react";
 import { Library, PlusCircle, DollarSign, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useAuth } from "@/hooks/use-auth";
 import { useNotifications } from "@/hooks/use-notifications";
-import { walletApi } from "@/lib/api/wallet";
-import type { WalletInfo } from "@/lib/api/types";
+import { useWalletStore } from "@/stores/wallet-store";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Header } from "@/components/dashboard/header";
 import { Link, usePathname } from "@/i18n/navigation";
@@ -21,24 +20,13 @@ export default function DashboardLayout({
   const { user } = useAuth();
   const pathname = usePathname();
   const t = useTranslations("nav");
-  const [wallet, setWallet] = useState<WalletInfo | null>(null);
+  const fetchWallet = useWalletStore((s) => s.fetchWallet);
 
   useNotifications();
 
-  const fetchWallet = useCallback(async () => {
-    if (user?.id) {
-      try {
-        const data = await walletApi.get();
-        setWallet(data);
-      } catch (error) {
-        console.error("Error fetching wallet:", error);
-      }
-    }
-  }, [user?.id]);
-
   useEffect(() => {
-    fetchWallet();
-  }, [fetchWallet]);
+    if (user?.id) fetchWallet();
+  }, [user?.id, fetchWallet]);
 
   return (
     <ProtectedRoute>
@@ -52,8 +40,8 @@ export default function DashboardLayout({
             backgroundSize: "48px 48px",
           }}
         />
-        <Sidebar wallet={wallet} />
-        <Header wallet={wallet} />
+        <Sidebar />
+        <Header />
 
         {/* Mobile Bottom Nav */}
         <nav className="xl:hidden fixed bottom-0 left-0 right-0 h-20 bg-background/95 backdrop-blur-xl z-40 flex items-center justify-around px-4 border-t border-border pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.1)] dark:shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">

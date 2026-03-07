@@ -12,17 +12,14 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/use-auth";
+import { useWalletStore } from "@/stores/wallet-store";
 import { Link, usePathname } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { PlanBadge } from "./plan-badge";
-import type { WalletInfo } from "@/lib/api/types";
 
-interface MobileNavProps {
-  wallet: WalletInfo | null;
-}
-
-export function MobileNav({ wallet }: MobileNavProps) {
+export function MobileNav() {
+  const wallet = useWalletStore((s) => s.wallet);
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
   const { user, logout } = useAuth();

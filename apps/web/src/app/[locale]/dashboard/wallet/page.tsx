@@ -32,6 +32,7 @@ import {
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { walletApi } from "@/lib/api/wallet";
+import { useWalletStore } from "@/stores/wallet-store";
 import type {
   WalletInfo,
   WalletTransactionItem,
@@ -53,6 +54,7 @@ const TRANSACTION_TYPE_ICONS: Record<string, typeof Wallet> = {
 export default function WalletPage() {
   const t = useTranslations("wallet");
   const tCommon = useTranslations("common");
+  const setWalletStore = useWalletStore((s) => s.setWallet);
 
   const [wallet, setWallet] = useState<WalletInfo | null>(null);
   const [transactions, setTransactions] = useState<WalletTransactionItem[]>([]);
@@ -67,6 +69,7 @@ export default function WalletPage() {
     try {
       const data = await walletApi.get();
       setWallet(data);
+      setWalletStore(data);
     } catch {
       setError(true);
     }

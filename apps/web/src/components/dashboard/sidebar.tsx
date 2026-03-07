@@ -8,15 +8,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link, usePathname } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/use-auth";
+import { useWalletStore } from "@/stores/wallet-store";
 import { motion } from "framer-motion";
 import { PlanBadge } from "./plan-badge";
-import type { WalletInfo } from "@/lib/api/types";
 
-interface SidebarProps {
-  wallet: WalletInfo | null;
-}
-
-export function Sidebar({ wallet }: SidebarProps) {
+export function Sidebar() {
+  const wallet = useWalletStore((s) => s.wallet);
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const t = useTranslations("nav");

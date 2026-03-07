@@ -18,6 +18,7 @@ import {
 import { Link } from "@/i18n/navigation";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { useWalletStore } from "@/stores/wallet-store";
 import { CREDITS_COST } from "@bestsellers/shared";
 
 interface CreditCheckDialogProps {
@@ -39,6 +40,7 @@ export function CreditCheckDialog({
   const [loading, setLoading] = useState(false);
   const t = useTranslations("book");
   const tErr = useTranslations("errors");
+  const fetchWallet = useWalletStore((s) => s.fetchWallet);
   const cost = CREDITS_COST.BOOK_GENERATION;
 
   useEffect(() => {
@@ -55,6 +57,7 @@ export function CreditCheckDialog({
       await booksApi.generate(bookId);
       toast.success(t("generationStarted"));
       onOpenChange(false);
+      fetchWallet();
       onSuccess();
     } catch (err: any) {
       if (err?.response?.status === 402) {

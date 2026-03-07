@@ -36,6 +36,7 @@ import {
 import { useTranslations } from "next-intl";
 import { addonsApi } from "@/lib/api/addons";
 import { walletApi } from "@/lib/api/wallet";
+import { useWalletStore } from "@/stores/wallet-store";
 import { Link } from "@/i18n/navigation";
 import { toast } from "sonner";
 import { ProductKind, AddonStatus } from "@bestsellers/shared";
@@ -127,6 +128,7 @@ interface AddonSectionProps {
 export function AddonSection({ book, onRefetch }: AddonSectionProps) {
   const t = useTranslations("addons");
   const tCommon = useTranslations("common");
+  const fetchWalletStore = useWalletStore((s) => s.fetchWallet);
 
   const [addons, setAddons] = useState<BookAddonSummary[]>(book.addons ?? []);
   const [balance, setBalance] = useState<number | null>(null);
@@ -175,6 +177,7 @@ export function AddonSection({ book, onRefetch }: AddonSectionProps) {
       setDialogOpen(false);
       fetchAddons();
       walletApi.get().then((w) => setBalance(w.balance)).catch(() => {});
+      fetchWalletStore();
       onRefetch();
     } catch (err: unknown) {
       const error = err as { response?: { status?: number } };
