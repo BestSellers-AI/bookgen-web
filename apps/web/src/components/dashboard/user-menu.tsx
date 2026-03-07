@@ -20,6 +20,8 @@ import { useLocale, useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import { useRouter } from "@/i18n/navigation";
 import { locales, type Locale } from "@/i18n/config";
+import { useAuthStore } from "@/stores/auth-store";
+import { authApi } from "@/lib/api/auth";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useState } from "react";
 
@@ -39,8 +41,18 @@ export function UserMenu() {
   const pathname = usePathname();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  const handleLocaleChange = (newLocale: Locale) => {
+  const { setUser } = useAuthStore();
+
+  const handleLocaleChange = async (newLocale: Locale) => {
     router.replace(pathname, { locale: newLocale });
+    if (user && newLocale !== user.locale) {
+      try {
+        const updated = await authApi.updateProfile({ locale: newLocale });
+        setUser(updated);
+      } catch {
+        // URL already changed — silently ignore DB sync failure
+      }
+    }
   };
 
   const getInitials = (name: string) =>

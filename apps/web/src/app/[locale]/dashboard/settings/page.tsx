@@ -20,8 +20,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useAuth } from "@/hooks/use-auth";
 import { subscriptionsApi } from "@/lib/api/subscriptions";
-import { Link } from "@/i18n/navigation";
-import { useTranslations } from "next-intl";
+import { Link, useRouter, usePathname } from "@/i18n/navigation";
+import { useTranslations, useLocale } from "next-intl";
+import type { Locale } from "@/i18n/config";
 import { toast } from "sonner";
 import { PlanBadge } from "@/components/dashboard/plan-badge";
 import { PageHeader } from "@/components/ui/page-header";
@@ -30,6 +31,9 @@ export default function SettingsPage() {
   const { user, updateProfile } = useAuth();
   const t = useTranslations("settings");
   const tErr = useTranslations("errors");
+  const urlLocale = useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
   const [name, setName] = useState(user?.name || "");
   const [locale, setLocale] = useState(user?.locale || "en");
   const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || "");
@@ -48,6 +52,9 @@ export default function SettingsPage() {
     try {
       await updateProfile({ name, locale, phoneNumber: phoneNumber || undefined });
       toast.success(tErr("profileUpdateSuccess"));
+      if (locale !== urlLocale) {
+        router.replace(pathname, { locale: locale as Locale });
+      }
     } catch {
       toast.error(tErr("profileUpdateFailed"));
     } finally {

@@ -3,6 +3,8 @@
 import { useLocale } from "next-intl";
 import { useRouter, usePathname } from "@/i18n/navigation";
 import { locales, type Locale } from "@/i18n/config";
+import { useAuthStore } from "@/stores/auth-store";
+import { authApi } from "@/lib/api/auth";
 import {
   Select,
   SelectContent,
@@ -21,9 +23,18 @@ export function LocaleSwitcher() {
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
+  const { user, setUser } = useAuthStore();
 
-  const handleChange = (value: string) => {
+  const handleChange = async (value: string) => {
     router.replace(pathname, { locale: value as Locale });
+    if (user && value !== user.locale) {
+      try {
+        const updated = await authApi.updateProfile({ locale: value });
+        setUser(updated);
+      } catch {
+        // URL already changed — silently ignore DB sync failure
+      }
+    }
   };
 
   return (
