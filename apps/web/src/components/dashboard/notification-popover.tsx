@@ -15,6 +15,7 @@ export function NotificationPopover() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [open, setOpen] = useState(false);
   const t = useTranslations("notifications");
+  const tTypes = useTranslations("notificationTypes");
 
   useEffect(() => {
     if (open) {
@@ -76,9 +77,11 @@ export function NotificationPopover() {
                     !notification.readAt ? "bg-primary/5" : ""
                   }`}
                 >
-                  <p className="font-medium leading-tight">{notification.title}</p>
+                  <p className="font-medium leading-tight">
+                    {tTypes.has(`${notification.type}_title`) ? tTypes(`${notification.type}_title`) : notification.title}
+                  </p>
                   <p className="text-muted-foreground text-xs mt-1 line-clamp-2">
-                    {notification.message}
+                    {tTypes.has(`${notification.type}_message`) ? tTypes(`${notification.type}_message`) : notification.message}
                   </p>
                   <p className="text-muted-foreground text-[10px] mt-1">
                     {new Date(notification.createdAt).toLocaleDateString()}

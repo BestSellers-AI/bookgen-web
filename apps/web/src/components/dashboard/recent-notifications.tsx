@@ -18,6 +18,7 @@ export function RecentNotifications({ notifications: initialNotifications }: Rec
   const { decrementUnread } = useNotificationStore();
   const t = useTranslations("dashboard");
   const tNotif = useTranslations("notifications");
+  const tTypes = useTranslations("notificationTypes");
 
   const handleMarkRead = async (id: string) => {
     try {
@@ -61,10 +62,10 @@ export function RecentNotifications({ notifications: initialNotifications }: Rec
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium leading-tight">
-                {notification.title}
+                {tTypes.has(`${notification.type}_title`) ? tTypes(`${notification.type}_title`) : notification.title}
               </p>
               <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                {notification.message}
+                {tTypes.has(`${notification.type}_message`) ? tTypes(`${notification.type}_message`) : notification.message}
               </p>
               <p className="text-[10px] text-muted-foreground mt-1">
                 {new Date(notification.createdAt).toLocaleDateString()}
