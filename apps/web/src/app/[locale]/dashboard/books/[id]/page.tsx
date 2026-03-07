@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import {
   ChevronLeft,
@@ -54,8 +54,17 @@ export default function BookViewPage() {
   // SSE for PREVIEW_GENERATING and PREVIEW_COMPLETING status
   const isPreviewGenerating = book?.status === "PREVIEW_GENERATING";
   const isPreviewCompleting = book?.status === "PREVIEW_COMPLETING";
+  const sseConnectedRef = useRef(false);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   const handlePreviewEvent = useCallback(
     (type: string, data: Record<string, unknown>) => {
+      sseConnectedRef.current = true;
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+
       if (type === "preview_progress") {
         if (data.status === "ready" || data.status === "complete_ready") {
           fetchBook();
@@ -67,6 +76,47 @@ export default function BookViewPage() {
     [fetchBook],
   );
   useBookEvents((isPreviewGenerating || isPreviewCompleting) ? (id as string) : null, handlePreviewEvent);
+
+  // Fallback polling if SSE doesn't connect in 5s
+  useEffect(() => {
+    if (!isPreviewGenerating && !isPreviewCompleting) {
+      sseConnectedRef.current = false;
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      if (!sseConnectedRef.current && !pollRef.current) {
+        pollRef.current = setInterval(async () => {
+          try {
+            const data = await booksApi.getById(id as string);
+            const s = data.status;
+            if (
+              s !== "PREVIEW_GENERATING" &&
+              s !== "PREVIEW_COMPLETING"
+            ) {
+              if (pollRef.current) clearInterval(pollRef.current);
+              pollRef.current = null;
+              setBook(data);
+            }
+          } catch {
+            // ignore polling errors
+          }
+        }, 3000);
+      }
+    }, 5000);
+
+    return () => {
+      clearTimeout(timeout);
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+    };
+  }, [isPreviewGenerating, isPreviewCompleting, id]);
 
   const handleDelete = async () => {
     if (!book) return;

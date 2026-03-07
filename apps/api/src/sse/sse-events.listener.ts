@@ -18,7 +18,7 @@ export class SseEventsListener {
     });
 
     // Complete the stream on terminal states
-    if (payload.status === 'ready' || payload.status === 'error') {
+    if (payload.status === 'ready' || payload.status === 'complete_ready' || payload.status === 'error') {
       this.sseManager.complete(payload.bookId);
     }
   }
