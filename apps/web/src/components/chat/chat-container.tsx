@@ -6,6 +6,7 @@ import { useRouter } from '@/i18n/navigation';
 import { useChatStore } from '@/stores/chat-store';
 import { useAuthStore } from '@/stores/auth-store';
 import { authApi } from '@/lib/api/auth';
+import { tokenStorage } from '@/lib/api-client';
 import { booksApi } from '@/lib/api/books';
 import { useBookEvents } from '@/hooks/use-book-events';
 import { BookCreationMode } from '@bestsellers/shared';
@@ -347,7 +348,8 @@ export function ChatContainer() {
         phoneNumber: state.userPhone,
       });
 
-      // Auto-login
+      // Auto-login — must save to localStorage so Axios interceptor picks up the token
+      tokenStorage.setTokens(authResult.tokens.accessToken, authResult.tokens.refreshToken);
       setAuth(authResult.user, authResult.tokens.accessToken, authResult.tokens.refreshToken);
 
       await showTypingThenMessage(t('accountCreated'), 'text', 500);
