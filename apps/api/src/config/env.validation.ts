@@ -25,6 +25,7 @@ const envSchema = z.object({
   N8N_WEBHOOK_ADDON: z.string().default('/process-addon'),
   N8N_WEBHOOK_PREVIEW_COMPLETE: z.string().default('/preview-complete'),
   N8N_CALLBACK_SECRET: z.string().min(16).default('dev-secret-not-for-production'),
+  N8N_CALLBACK_BASE_URL: z.string().default('http://localhost:3001'),
 
   // Storage (R2)
   R2_ACCOUNT_ID: z.string().default(''),

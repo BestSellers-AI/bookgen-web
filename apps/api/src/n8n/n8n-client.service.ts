@@ -12,7 +12,7 @@ export class N8nClientService {
     const body = {
       bookId,
       ...request,
-      callbackBaseUrl: this.appConfig.apiUrl,
+      callbackBaseUrl: this.appConfig.n8nCallbackBaseUrl,
     };
 
     this.logger.log(`Dispatching preview for book ${bookId} → ${url}`);
@@ -24,7 +24,7 @@ export class N8nClientService {
     const body = {
       bookId,
       ...request,
-      callbackBaseUrl: this.appConfig.apiUrl,
+      callbackBaseUrl: this.appConfig.n8nCallbackBaseUrl,
     };
 
     this.logger.log(`Dispatching complete preview for book ${bookId} → ${url}`);
@@ -36,7 +36,7 @@ export class N8nClientService {
     const body = {
       bookId,
       ...request,
-      callbackBaseUrl: this.appConfig.apiUrl,
+      callbackBaseUrl: this.appConfig.n8nCallbackBaseUrl,
     };
 
     this.logger.log(`Dispatching generation for book ${bookId} → ${url}`);
@@ -55,7 +55,7 @@ export class N8nClientService {
       addonId,
       addonKind,
       ...request,
-      callbackBaseUrl: this.appConfig.apiUrl,
+      callbackBaseUrl: this.appConfig.n8nCallbackBaseUrl,
     };
 
     this.logger.log(

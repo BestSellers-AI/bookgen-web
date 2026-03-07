@@ -14,6 +14,9 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationService } from '../notifications/notification.service';
 import { TranslationService } from '../translations/translation.service';
+import { EmailService } from '../email/email.service';
+import { AppConfigService } from '../config/app-config.service';
+import { bookGeneratedEmail } from '../email/email-templates';
 import {
   PreviewResultDto,
   PreviewCompleteResultDto,
@@ -34,6 +37,8 @@ export class HooksService {
     private readonly notifications: NotificationService,
     private readonly translationService: TranslationService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly emailService: EmailService,
+    private readonly appConfig: AppConfigService,
   ) {}
 
   /* ------------------------------------------------------------------ */
@@ -444,6 +449,23 @@ export class HooksService {
       message: `Your book "${book.title}" has been fully generated.`,
       data: { bookId: dto.bookId },
     });
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: book.userId },
+      select: { email: true, name: true },
+    });
+    if (user) {
+      const bookUrl = `${this.appConfig.frontendUrl}/dashboard/books/${dto.bookId}`;
+      this.emailService.send({
+        to: user.email,
+        subject: `Your book "${book.title}" is ready! — BestSellers AI`,
+        html: bookGeneratedEmail({
+          userName: user.name ?? 'there',
+          bookTitle: book.title,
+          bookUrl,
+        }),
+      });
+    }
   }
 
   /* ------------------------------------------------------------------ */

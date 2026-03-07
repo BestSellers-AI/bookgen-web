@@ -26,6 +26,7 @@ import { StorageModule } from './storage/storage.module';
 import { FilesModule } from './files/files.module';
 import { AdminModule } from './admin/admin.module';
 import { CronModule } from './cron/cron.module';
+import { EmailModule } from './email/email.module';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 
 @Module({
@@ -71,6 +72,7 @@ import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
     FilesModule,
     AdminModule,
     CronModule,
+    EmailModule,
   ],
   providers: [
     {

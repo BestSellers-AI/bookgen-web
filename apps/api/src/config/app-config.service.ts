@@ -117,4 +117,8 @@ export class AppConfigService {
   get frontendUrl(): string {
     return this.configService.get('FRONTEND_URL');
   }
+
+  get n8nCallbackBaseUrl(): string {
+    return this.configService.get('N8N_CALLBACK_BASE_URL');
+  }
 }

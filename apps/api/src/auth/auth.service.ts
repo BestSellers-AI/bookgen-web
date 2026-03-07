@@ -11,6 +11,8 @@ import { OAuth2Client } from 'google-auth-library';
 import { PrismaService } from '../prisma/prisma.service';
 import { AppConfigService } from '../config/app-config.service';
 import { UsersService } from '../users/users.service';
+import { EmailService } from '../email/email.service';
+import { passwordResetEmail, welcomeEmail } from '../email/email-templates';
 import {
   RegisterDto,
   LoginDto,
@@ -40,6 +42,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly appConfig: AppConfigService,
     private readonly usersService: UsersService,
+    private readonly emailService: EmailService,
   ) {
     this.googleClient = new OAuth2Client(this.appConfig.googleClientId);
   }
@@ -64,6 +67,15 @@ export class AuthService {
     await this.saveSession(user.id, tokens.refreshToken);
 
     const profile = await this.usersService.buildUserProfile(user);
+
+    this.emailService.send({
+      to: user.email,
+      subject: 'Welcome to BestSellers AI!',
+      html: welcomeEmail({
+        userName: user.name ?? 'there',
+        loginUrl: `${this.appConfig.frontendUrl}/dashboard`,
+      }),
+    });
 
     return { user: profile, tokens };
   }
@@ -292,12 +304,14 @@ export class AuthService {
     // In development, log the token for testing
     if (!this.appConfig.isProduction) {
       this.logger.debug(`Password reset token for ${user.email}: ${rawToken}`);
-    } else {
-      // TODO: Integrate email service (SendGrid, SES, etc.)
-      this.logger.warn(
-        `Password reset requested for ${user.email} but email service is not configured`,
-      );
     }
+
+    const resetUrl = `${this.appConfig.frontendUrl}/auth/reset-password?token=${rawToken}`;
+    this.emailService.send({
+      to: user.email,
+      subject: 'Reset your password — BestSellers AI',
+      html: passwordResetEmail({ resetUrl, userName: user.name ?? undefined }),
+    });
   }
 
   // ─── Reset Password ─────────────────────────────────────────────────
