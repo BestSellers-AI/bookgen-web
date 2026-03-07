@@ -6,6 +6,7 @@ export interface RegisterInput {
   password: string;
   name?: string;
   locale?: string;
+  phoneNumber?: string;
 }
 
 export interface LoginInput {

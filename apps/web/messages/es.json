@@ -108,6 +108,8 @@
     "googleLogin": "Continuar con Google",
     "orContinueWith": "o continúa con",
     "confirmPassword": "Confirmar Contraseña",
+    "phoneNumber": "Telefono (opcional)",
+    "phoneNumberPlaceholder": "+34 612 345 678",
     "resetPassword": "Restablecer Contraseña",
     "resetPasswordTitle": "Establecer nueva contraseña",
     "resetPasswordDescription": "Ingresa tu nueva contraseña a continuación.",

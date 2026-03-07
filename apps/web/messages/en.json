@@ -108,6 +108,8 @@
     "googleLogin": "Continue with Google",
     "orContinueWith": "or continue with",
     "confirmPassword": "Confirm Password",
+    "phoneNumber": "Phone Number (optional)",
+    "phoneNumberPlaceholder": "+1 555 123-4567",
     "resetPassword": "Reset Password",
     "resetPasswordTitle": "Set new password",
     "resetPasswordDescription": "Enter your new password below.",

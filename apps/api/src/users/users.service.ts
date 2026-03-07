@@ -50,6 +50,7 @@ export class UsersService {
     avatarUrl?: string;
     emailVerified?: Date;
     locale?: string;
+    phoneNumber?: string;
     provider?: string;
     providerAccountId?: string;
   }): Promise<User> {
@@ -62,6 +63,7 @@ export class UsersService {
           avatarUrl: data.avatarUrl ?? null,
           emailVerified: data.emailVerified ?? null,
           locale: data.locale ?? 'en',
+          phoneNumber: data.phoneNumber ?? null,
         },
       });
 

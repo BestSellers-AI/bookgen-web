@@ -18,4 +18,9 @@ export class RegisterDto {
   @IsString()
   @IsIn(['en', 'pt-BR', 'es'])
   locale?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  phoneNumber?: string;
 }

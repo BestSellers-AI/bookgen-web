@@ -13,6 +13,7 @@ export const registerSchema = z
     email: z.string().email(),
     password: z.string().min(6),
     confirmPassword: z.string().min(6),
+    phoneNumber: z.string().max(20).optional().or(z.literal('')),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'passwordMismatch',

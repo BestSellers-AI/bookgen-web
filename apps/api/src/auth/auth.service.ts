@@ -62,6 +62,7 @@ export class AuthService {
       name: dto.name,
       passwordHash,
       locale: dto.locale,
+      phoneNumber: dto.phoneNumber,
     });
 
     const tokens = await this.generateTokens(user.id);

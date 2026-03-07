@@ -30,7 +30,7 @@ export default function RegisterPage() {
 
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
+    defaultValues: { name: "", email: "", password: "", confirmPassword: "", phoneNumber: "" },
   });
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export default function RegisterPage() {
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
-      await signup({ name: data.name, email: data.email, password: data.password, locale });
+      await signup({ name: data.name, email: data.email, password: data.password, locale, phoneNumber: data.phoneNumber || undefined });
     } catch (err: any) {
       form.setError("root", {
         message: err.message || tErr("signupFailed"),
@@ -113,6 +113,27 @@ export default function RegisterPage() {
                   <Input
                     type="email"
                     placeholder="m@example.com"
+                    className="h-11 bg-card/60 border-white/5 focus:border-primary/50 transition-all rounded-xl"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="phoneNumber"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground ml-1">
+                  {t("phoneNumber")}
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    type="tel"
+                    placeholder={t("phoneNumberPlaceholder")}
                     className="h-11 bg-card/60 border-white/5 focus:border-primary/50 transition-all rounded-xl"
                     {...field}
                   />

@@ -16,13 +16,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useAuth } from "@/hooks/use-auth";
@@ -149,16 +142,15 @@ export default function SettingsPage() {
               </label>
               <div className="relative group">
                 <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10 pointer-events-none transition-colors group-focus-within:text-primary" />
-                <Select value={locale} onValueChange={setLocale}>
-                  <SelectTrigger className="pl-12 h-12 rounded-2xl bg-muted/50 border-border focus:border-primary/50 transition-all">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="en">{t("languageEn")}</SelectItem>
-                    <SelectItem value="pt-BR">{t("languagePtBR")}</SelectItem>
-                    <SelectItem value="es">{t("languageEs")}</SelectItem>
-                  </SelectContent>
-                </Select>
+                <select
+                  value={locale}
+                  onChange={(e) => setLocale(e.target.value)}
+                  className="w-full pl-12 h-12 rounded-2xl bg-muted/50 border border-border focus:border-primary/50 transition-all appearance-none text-sm text-foreground"
+                >
+                  <option value="en">{t("languageEn")}</option>
+                  <option value="pt-BR">{t("languagePtBR")}</option>
+                  <option value="es">{t("languageEs")}</option>
+                </select>
               </div>
             </div>
 

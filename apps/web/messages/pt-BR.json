@@ -108,6 +108,8 @@
     "googleLogin": "Continuar com Google",
     "orContinueWith": "ou continue com",
     "confirmPassword": "Confirmar Senha",
+    "phoneNumber": "Telefone (opcional)",
+    "phoneNumberPlaceholder": "+55 11 99999-9999",
     "resetPassword": "Redefinir Senha",
     "resetPasswordTitle": "Definir nova senha",
     "resetPasswordDescription": "Digite sua nova senha abaixo.",
