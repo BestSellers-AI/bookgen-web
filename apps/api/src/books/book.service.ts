@@ -338,7 +338,15 @@ export class BookService {
       throw new NotFoundException('Book not found');
     }
 
-    if (book.status !== BookStatus.DRAFT && book.status !== BookStatus.ERROR) {
+    const allowedForPreview: BookStatus[] = [
+      BookStatus.DRAFT,
+      BookStatus.ERROR,
+      BookStatus.PREVIEW,
+      BookStatus.PREVIEW_COMPLETED,
+      BookStatus.PREVIEW_APPROVED,
+    ];
+
+    if (!allowedForPreview.includes(book.status)) {
       throw new BadRequestException(
         `Cannot request preview for book with status: ${book.status}`,
       );
@@ -395,7 +403,7 @@ export class BookService {
         id: bookId,
         userId,
         deletedAt: null,
-        status: { in: [BookStatus.DRAFT, BookStatus.ERROR] },
+        status: { in: allowedForPreview },
       },
       data: {
         status: BookStatus.PREVIEW_GENERATING,
