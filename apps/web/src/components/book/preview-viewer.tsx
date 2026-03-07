@@ -69,10 +69,9 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
     setRegenerating(true);
     try {
       await booksApi.generatePreview(book.id);
-      router.push(`/dashboard/create?regenerate=${book.id}`);
+      onRefetch();
     } catch {
       toast.error(tErr("generateFailed"));
-    } finally {
       setRegenerating(false);
     }
   };
