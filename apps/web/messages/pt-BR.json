@@ -555,6 +555,18 @@
     "SYSTEM_title": "Notificação do sistema",
     "SYSTEM_message": "Você tem uma nova notificação do sistema."
   },
+  "checkoutResult": {
+    "verifying": "Verificando seu pagamento...",
+    "successTitle": "Pagamento Realizado!",
+    "successMessage": "Seu pagamento foi processado. Os créditos serão adicionados à sua carteira em instantes.",
+    "goToDashboard": "Ir para o Dashboard",
+    "viewWallet": "Ver Carteira",
+    "errorTitle": "Algo deu errado",
+    "errorMessage": "Não conseguimos verificar seu pagamento. Se você foi cobrado, os créditos serão adicionados automaticamente.",
+    "cancelTitle": "Pagamento Cancelado",
+    "cancelMessage": "Seu pagamento foi cancelado. Nenhuma cobrança foi realizada.",
+    "tryAgain": "Tentar Novamente"
+  },
   "addons": {
     "title": "Complementos",
     "subtitle": "Aprimore seu livro com recursos e serviços adicionais.",

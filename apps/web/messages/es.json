@@ -555,6 +555,18 @@
     "SYSTEM_title": "Notificación del sistema",
     "SYSTEM_message": "Tienes una nueva notificación del sistema."
   },
+  "checkoutResult": {
+    "verifying": "Verificando tu pago...",
+    "successTitle": "Pago Exitoso!",
+    "successMessage": "Tu pago ha sido procesado. Los créditos se agregarán a tu billetera en breve.",
+    "goToDashboard": "Ir al Dashboard",
+    "viewWallet": "Ver Billetera",
+    "errorTitle": "Algo salió mal",
+    "errorMessage": "No pudimos verificar tu pago. Si se te cobró, los créditos se agregarán automáticamente.",
+    "cancelTitle": "Pago Cancelado",
+    "cancelMessage": "Tu pago fue cancelado. No se realizó ningún cargo.",
+    "tryAgain": "Intentar de Nuevo"
+  },
   "addons": {
     "title": "Complementos",
     "subtitle": "Mejora tu libro con características y servicios adicionales.",

@@ -555,6 +555,18 @@
     "SYSTEM_title": "System notification",
     "SYSTEM_message": "You have a new system notification."
   },
+  "checkoutResult": {
+    "verifying": "Verifying your payment...",
+    "successTitle": "Payment Successful!",
+    "successMessage": "Your payment has been processed. Credits will be added to your wallet shortly.",
+    "goToDashboard": "Go to Dashboard",
+    "viewWallet": "View Wallet",
+    "errorTitle": "Something went wrong",
+    "errorMessage": "We couldn't verify your payment. If you were charged, your credits will be added automatically.",
+    "cancelTitle": "Payment Cancelled",
+    "cancelMessage": "Your payment was cancelled. No charges were made.",
+    "tryAgain": "Try Again"
+  },
   "addons": {
     "title": "Addons",
     "subtitle": "Enhance your book with additional features and services.",
