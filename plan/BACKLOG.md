@@ -72,6 +72,10 @@
 ## P3 — Baixa Prioridade (Backlog)
 
 ### Features Novas
+- [x] Chatbot funnel para trafego pago (`/chat`) — ver `plan/CHATBOT/CHATBOT_FUNNEL.md`
+  - [ ] Assets de social proof em `/public/chat/` (imagens do pitch)
+  - [ ] Analytics de funil (tracking drop-off por step)
+  - [ ] Integracao com UTM params para rastreamento de campanhas
 - [ ] Notificacoes por email (alem das in-app) — ex: livro pronto, creditos expirando
 - [ ] Dashboard analytics — graficos de uso, livros gerados por mes, gastos
 - [ ] Tema personalizado por usuario (alem de dark/light/system)

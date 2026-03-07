@@ -1,8 +1,30 @@
-# Current Status — 2026-03-06
+# Current Status — 2026-03-07
 
 ## What was done this session
 
-### 1. `author` field in preview-result callback
+### 1. Chatbot Funnel — Conversao para trafego pago
+
+Implementado funil conversacional nativo no Next.js que substitui o Typebot externo.
+Documentacao completa: `plan/CHATBOT/CHATBOT_FUNNEL.md`
+
+**Arquivos criados (8):**
+- `apps/web/src/stores/chat-store.ts` — Zustand store (step machine, mensagens, dados coletados)
+- `apps/web/src/app/[locale]/chat/layout.tsx` — Layout minimalista (logo + locale switcher)
+- `apps/web/src/app/[locale]/chat/page.tsx` — Pagina que renderiza ChatContainer
+- `apps/web/src/components/chat/chat-container.tsx` — Orquestrador (welcome → coleta → registro → livro → SSE → redirect)
+- `apps/web/src/components/chat/message-bubble.tsx` — Bolhas de mensagem com animacao Framer Motion
+- `apps/web/src/components/chat/chat-input.tsx` — Input dinamico (text/textarea/email/phone)
+- `apps/web/src/components/chat/typing-indicator.tsx` — 3 dots animados
+- `apps/web/src/components/chat/planning-card.tsx` — Card rico com planning do livro
+
+**Arquivos modificados (3):**
+- `apps/web/messages/en.json` — +45 keys no namespace `chat`
+- `apps/web/messages/pt-BR.json` — +45 keys no namespace `chat`
+- `apps/web/messages/es.json` — +45 keys no namespace `chat`
+
+**Zero alteracoes no backend** — usa endpoints existentes (register, create book, preview, SSE).
+
+### 2. `author` field in preview-result callback (sessao anterior)
 n8n can refine the author name during preview generation. Added support:
 - **`apps/api/src/hooks/dto/preview-result.dto.ts`** — added optional `author` field (`@IsOptional() @IsString()`)
 - **`apps/api/src/hooks/hooks.service.ts`** — spreads `dto.author` into book update in `processPreviewResult`
