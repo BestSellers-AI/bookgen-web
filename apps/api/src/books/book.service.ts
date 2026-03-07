@@ -173,6 +173,10 @@ export class BookService {
       closure: book.closure,
       wordCount: book.wordCount,
       pageCount: book.pageCount,
+      chaptersCount: book.chapters.length,
+      completedChaptersCount: book.chapters.filter(
+        (ch) => ch.status === ChapterStatus.GENERATED,
+      ).length,
       generationStartedAt: book.generationStartedAt?.toISOString() ?? null,
       generationCompletedAt: book.generationCompletedAt?.toISOString() ?? null,
       generationError: book.generationError,
@@ -241,6 +245,7 @@ export class BookService {
             isActive: share.isActive,
             viewCount: share.viewCount,
             expiresAt: share.expiresAt?.toISOString() ?? null,
+            shareUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/share/${share.shareToken}`,
             createdAt: share.createdAt.toISOString(),
           }
         : null,

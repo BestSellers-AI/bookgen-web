@@ -98,6 +98,7 @@ export interface SharedBookSummary {
   isActive: boolean;
   viewCount: number;
   expiresAt: string | null;
+  shareUrl: string;
   createdAt: string;
 }
 
@@ -120,6 +121,8 @@ export interface BookDetail {
   closure: string | null;
   wordCount: number | null;
   pageCount: number | null;
+  chaptersCount: number;
+  completedChaptersCount: number;
   generationStartedAt: string | null;
   generationCompletedAt: string | null;
   generationError: string | null;
