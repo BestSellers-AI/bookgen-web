@@ -11,6 +11,7 @@ import { PageHeader } from "@/components/ui/page-header";
 
 export default function AdminPurchasesPage() {
   const t = useTranslations("admin");
+  const tStatus = useTranslations("statusLabels");
   const [purchases, setPurchases] = useState<AdminPurchaseSummary[]>([]);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [loading, setLoading] = useState(true);
@@ -86,7 +87,7 @@ export default function AdminPurchasesPage() {
                               : "bg-muted text-muted-foreground"
                         }`}
                       >
-                        {purchase.status}
+                        {tStatus.has(purchase.status) ? tStatus(purchase.status) : purchase.status}
                       </Badge>
                     </td>
                     <td className="px-6 py-4 text-muted-foreground capitalize">

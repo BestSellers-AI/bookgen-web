@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { getStatusBadgeClass } from "@/lib/book-utils";
+
 import { EmptyState } from "@/components/ui/empty-state";
 import type { BookListItem } from "@/lib/api/types";
 
@@ -14,6 +15,7 @@ interface RecentBooksListProps {
 
 export function RecentBooksList({ books }: RecentBooksListProps) {
   const t = useTranslations("dashboard");
+  const tStatus = useTranslations("statusLabels");
 
   if (books.length === 0) {
     return (
@@ -51,7 +53,7 @@ export function RecentBooksList({ books }: RecentBooksListProps) {
                   variant="secondary"
                   className={`text-[9px] font-black uppercase tracking-widest px-2 rounded-md ${getStatusBadgeClass(book.status)}`}
                 >
-                  {book.status.replace(/_/g, " ")}
+                  {tStatus.has(book.status) ? tStatus(book.status) : book.status}
                 </Badge>
                 <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
                   <Clock size={10} />

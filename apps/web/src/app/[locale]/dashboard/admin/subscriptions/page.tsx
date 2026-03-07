@@ -12,6 +12,7 @@ import { PageHeader } from "@/components/ui/page-header";
 
 export default function AdminSubscriptionsPage() {
   const t = useTranslations("admin");
+  const tStatus = useTranslations("statusLabels");
   const [subs, setSubs] = useState<AdminSubscriptionSummary[]>([]);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [loading, setLoading] = useState(true);
@@ -95,7 +96,7 @@ export default function AdminSubscriptionsPage() {
                               : "bg-amber-500/10 text-amber-400"
                         }`}
                       >
-                        {sub.status}
+                        {tStatus.has(sub.status) ? tStatus(sub.status) : sub.status}
                       </Badge>
                     </td>
                     <td className="px-6 py-4 capitalize text-muted-foreground">

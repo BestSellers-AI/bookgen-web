@@ -35,6 +35,7 @@ import { toast } from "sonner";
 export default function AdminUserDetailPage() {
   const params = useParams<{ id: string }>();
   const t = useTranslations("admin");
+  const tStatus = useTranslations("statusLabels");
 
   const [user, setUser] = useState<AdminUserDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -260,7 +261,7 @@ export default function AdminUserDetailPage() {
             </div>
             <div>
               <p className="text-muted-foreground">{t("status")}</p>
-              <p className="font-bold">{user.subscription.status}</p>
+              <p className="font-bold">{tStatus.has(user.subscription.status) ? tStatus(user.subscription.status) : user.subscription.status}</p>
             </div>
             <div>
               <p className="text-muted-foreground">{t("billing")}</p>

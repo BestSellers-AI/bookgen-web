@@ -378,6 +378,27 @@
     "type_BONUS": "Bônus",
     "type_ADJUSTMENT": "Ajuste"
   },
+  "statusLabels": {
+    "DRAFT": "Rascunho",
+    "PREVIEW_GENERATING": "Gerando Preview",
+    "PREVIEW": "Preview",
+    "PREVIEW_COMPLETING": "Completando Preview",
+    "PREVIEW_COMPLETED": "Preview Completo",
+    "PREVIEW_APPROVED": "Aprovado",
+    "QUEUED": "Na Fila",
+    "GENERATING": "Gerando",
+    "GENERATED": "Pronto",
+    "ERROR": "Erro",
+    "CANCELLED": "Cancelado",
+    "ACTIVE": "Ativa",
+    "TRIALING": "Teste",
+    "PAST_DUE": "Atrasada",
+    "UNPAID": "Não Paga",
+    "INCOMPLETE": "Incompleta",
+    "PAID": "Pago",
+    "REFUNDED": "Reembolsado",
+    "PENDING": "Pendente"
+  },
   "errors": {
     "loginFailed": "Falha no login. Verifique suas credenciais.",
     "signupFailed": "Falha no cadastro. Tente novamente.",

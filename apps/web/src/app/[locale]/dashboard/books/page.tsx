@@ -116,19 +116,10 @@ export default function BooksListPage() {
     setDeleteId(null);
   };
 
+  const tStatus = useTranslations("statusLabels");
+
   const getStatusLabel = (status: string) => {
-    const labels: Record<string, string> = {
-      DRAFT: "Draft",
-      PREVIEW_GENERATING: "Generating",
-      PREVIEW: "Preview",
-      PREVIEW_APPROVED: "Approved",
-      QUEUED: "Queued",
-      GENERATING: "Generating",
-      GENERATED: "Ready",
-      ERROR: "Error",
-      CANCELLED: "Cancelled",
-    };
-    return labels[status] || status;
+    return tStatus.has(status) ? tStatus(status) : status;
   };
 
   const canDelete = (status: string) =>

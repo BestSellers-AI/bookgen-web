@@ -16,6 +16,7 @@ import { getStatusBadgeClass } from "@/lib/book-utils";
 
 export default function AdminBooksPage() {
   const t = useTranslations("admin");
+  const tStatus = useTranslations("statusLabels");
   const [books, setBooks] = useState<AdminBookSummary[]>([]);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [loading, setLoading] = useState(true);
@@ -113,7 +114,7 @@ export default function AdminBooksPage() {
                         variant="secondary"
                         className={`text-[9px] font-black uppercase ${getStatusBadgeClass(book.status)}`}
                       >
-                        {book.status}
+                        {tStatus.has(book.status) ? tStatus(book.status) : book.status}
                       </Badge>
                     </td>
                     <td className="px-6 py-4 text-muted-foreground text-xs">

@@ -378,6 +378,27 @@
     "type_BONUS": "Bonificación",
     "type_ADJUSTMENT": "Ajuste"
   },
+  "statusLabels": {
+    "DRAFT": "Borrador",
+    "PREVIEW_GENERATING": "Generando Vista Previa",
+    "PREVIEW": "Vista Previa",
+    "PREVIEW_COMPLETING": "Completando Vista Previa",
+    "PREVIEW_COMPLETED": "Vista Previa Completa",
+    "PREVIEW_APPROVED": "Aprobado",
+    "QUEUED": "En Cola",
+    "GENERATING": "Generando",
+    "GENERATED": "Listo",
+    "ERROR": "Error",
+    "CANCELLED": "Cancelado",
+    "ACTIVE": "Activa",
+    "TRIALING": "Prueba",
+    "PAST_DUE": "Vencida",
+    "UNPAID": "No Pagada",
+    "INCOMPLETE": "Incompleta",
+    "PAID": "Pagado",
+    "REFUNDED": "Reembolsado",
+    "PENDING": "Pendiente"
+  },
   "errors": {
     "loginFailed": "Inicio de sesión fallido. Verifica tus credenciales.",
     "signupFailed": "Registro fallido. Inténtalo de nuevo.",

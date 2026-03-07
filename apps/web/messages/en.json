@@ -401,6 +401,27 @@
     "deleteConfirmDesc": "This action cannot be undone. The book and all its content will be permanently deleted.",
     "deleteSuccess": "Book deleted successfully"
   },
+  "statusLabels": {
+    "DRAFT": "Draft",
+    "PREVIEW_GENERATING": "Generating Preview",
+    "PREVIEW": "Preview",
+    "PREVIEW_COMPLETING": "Completing Preview",
+    "PREVIEW_COMPLETED": "Preview Complete",
+    "PREVIEW_APPROVED": "Approved",
+    "QUEUED": "Queued",
+    "GENERATING": "Generating",
+    "GENERATED": "Ready",
+    "ERROR": "Error",
+    "CANCELLED": "Cancelled",
+    "ACTIVE": "Active",
+    "TRIALING": "Trial",
+    "PAST_DUE": "Past Due",
+    "UNPAID": "Unpaid",
+    "INCOMPLETE": "Incomplete",
+    "PAID": "Paid",
+    "REFUNDED": "Refunded",
+    "PENDING": "Pending"
+  },
   "errors": {
     "loginFailed": "Login failed. Please check your credentials.",
     "signupFailed": "Signup failed. Please try again.",
