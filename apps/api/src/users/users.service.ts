@@ -49,6 +49,7 @@ export class UsersService {
     passwordHash?: string;
     avatarUrl?: string;
     emailVerified?: Date;
+    locale?: string;
     provider?: string;
     providerAccountId?: string;
   }): Promise<User> {
@@ -60,6 +61,7 @@ export class UsersService {
           passwordHash: data.passwordHash ?? null,
           avatarUrl: data.avatarUrl ?? null,
           emailVerified: data.emailVerified ?? null,
+          locale: data.locale ?? 'en',
         },
       });
 
@@ -92,11 +94,13 @@ export class UsersService {
    */
   async updateProfile(
     id: string,
-    data: { name?: string; avatarUrl?: string },
+    data: { name?: string; avatarUrl?: string; locale?: string; phoneNumber?: string },
   ): Promise<Omit<User, 'passwordHash'>> {
     const updateData: Prisma.UserUpdateInput = {};
     if (data.name !== undefined) updateData.name = data.name;
     if (data.avatarUrl !== undefined) updateData.avatarUrl = data.avatarUrl;
+    if (data.locale !== undefined) updateData.locale = data.locale;
+    if (data.phoneNumber !== undefined) updateData.phoneNumber = data.phoneNumber;
 
     const user = await this.prisma.user.update({
       where: { id },
@@ -184,6 +188,8 @@ export class UsersService {
       stripeCustomerId: user.stripeCustomerId,
       onboardingCompleted: user.onboardingCompleted,
       emailVerified: user.emailVerified,
+      locale: user.locale,
+      phoneNumber: user.phoneNumber,
       planInfo,
       createdAt: user.createdAt.toISOString(),
     };

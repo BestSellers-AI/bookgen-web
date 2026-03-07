@@ -18,12 +18,13 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 import { Link, useRouter } from "@/i18n/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { GoogleOAuthButton } from "@/components/auth/google-oauth-button";
 
 export default function RegisterPage() {
   const { signup, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
+  const locale = useLocale();
   const t = useTranslations("auth");
   const tErr = useTranslations("errors");
 
@@ -48,7 +49,7 @@ export default function RegisterPage() {
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
-      await signup({ name: data.name, email: data.email, password: data.password });
+      await signup({ name: data.name, email: data.email, password: data.password, locale });
     } catch (err: any) {
       form.setError("root", {
         message: err.message || tErr("signupFailed"),

@@ -66,6 +66,8 @@ export interface UserProfile {
   stripeCustomerId: string | null;
   onboardingCompleted: boolean;
   emailVerified: Date | null;
+  locale: string;
+  phoneNumber: string | null;
   planInfo: UserPlanInfo;
   createdAt: string;
 }

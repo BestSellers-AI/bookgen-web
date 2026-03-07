@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsUrl, MaxLength } from 'class-validator';
+import { IsIn, IsOptional, IsString, IsUrl, MaxLength } from 'class-validator';
 
 export class UpdateProfileDto {
   @IsOptional()
@@ -9,4 +9,14 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsUrl()
   avatarUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['en', 'pt-BR', 'es'])
+  locale?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  phoneNumber?: string;
 }

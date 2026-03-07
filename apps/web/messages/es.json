@@ -481,7 +481,13 @@
     "subscriptionCancelled": "Suscripción cancelada. Permanecerá activa hasta el final del período de facturación.",
     "cancelError": "Error al cancelar la suscripción. Inténtalo de nuevo.",
     "dangerZone": "Zona de Peligro",
-    "dangerZoneDesc": "La eliminación de cuenta estará disponible en una actualización futura."
+    "dangerZoneDesc": "La eliminación de cuenta estará disponible en una actualización futura.",
+    "preferredLanguage": "Idioma Preferido",
+    "phoneNumber": "Telefono",
+    "phoneNumberPlaceholder": "+34 612 345 678",
+    "languageEn": "English",
+    "languagePtBR": "Portugues (Brasil)",
+    "languageEs": "Espanol"
   },
   "notificationsPage": {
     "title": "Notificaciones",

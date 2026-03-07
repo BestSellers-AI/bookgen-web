@@ -481,7 +481,13 @@
     "subscriptionCancelled": "Subscription cancelled. It will remain active until the end of your billing period.",
     "cancelError": "Failed to cancel subscription. Please try again.",
     "dangerZone": "Danger Zone",
-    "dangerZoneDesc": "Account deletion will be available in a future update."
+    "dangerZoneDesc": "Account deletion will be available in a future update.",
+    "preferredLanguage": "Preferred Language",
+    "phoneNumber": "Phone Number",
+    "phoneNumberPlaceholder": "+1 555 123-4567",
+    "languageEn": "English",
+    "languagePtBR": "Portugues (Brasil)",
+    "languageEs": "Espanol"
   },
   "notificationsPage": {
     "title": "Notifications",

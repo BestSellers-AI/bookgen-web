@@ -452,18 +452,20 @@ export class HooksService {
 
     const user = await this.prisma.user.findUnique({
       where: { id: book.userId },
-      select: { email: true, name: true },
+      select: { email: true, name: true, locale: true },
     });
     if (user) {
       const bookUrl = `${this.appConfig.frontendUrl}/dashboard/books/${dto.bookId}`;
+      const email = bookGeneratedEmail({
+        userName: user.name ?? 'there',
+        bookTitle: book.title,
+        bookUrl,
+        locale: user.locale,
+      });
       this.emailService.send({
         to: user.email,
-        subject: `Your book "${book.title}" is ready! — BestSellers AI`,
-        html: bookGeneratedEmail({
-          userName: user.name ?? 'there',
-          bookTitle: book.title,
-          bookUrl,
-        }),
+        subject: email.subject,
+        html: email.html,
       });
     }
   }

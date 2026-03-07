@@ -172,6 +172,8 @@ model User {
   stripeCustomerId    String?   @unique @map("stripe_customer_id")
   onboardingCompleted Boolean   @default(false) @map("onboarding_completed")
   emailVerified       DateTime? @map("email_verified")
+  locale              String    @default("en")
+  phoneNumber         String?   @map("phone_number")
   deletedAt           DateTime? @map("deleted_at")
   createdAt           DateTime  @default(now()) @map("created_at")
   updatedAt           DateTime  @updatedAt @map("updated_at")

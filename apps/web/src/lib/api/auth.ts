@@ -5,6 +5,7 @@ export interface RegisterInput {
   email: string;
   password: string;
   name?: string;
+  locale?: string;
 }
 
 export interface LoginInput {
@@ -20,6 +21,8 @@ export interface ResetPasswordInput {
 export interface UpdateProfileInput {
   name?: string;
   avatarUrl?: string;
+  locale?: string;
+  phoneNumber?: string;
 }
 
 export const authApi = {

@@ -11,9 +11,18 @@ import {
   AlertTriangle,
   ArrowRight,
   Calendar,
+  Globe,
+  Phone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useAuth } from "@/hooks/use-auth";
@@ -29,18 +38,22 @@ export default function SettingsPage() {
   const t = useTranslations("settings");
   const tErr = useTranslations("errors");
   const [name, setName] = useState(user?.name || "");
+  const [locale, setLocale] = useState(user?.locale || "en");
+  const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || "");
   const [saving, setSaving] = useState(false);
   const [cancellingSubscription, setCancellingSubscription] = useState(false);
 
   useEffect(() => {
     if (user?.name) setName(user.name);
-  }, [user?.name]);
+    if (user?.locale) setLocale(user.locale);
+    setPhoneNumber(user?.phoneNumber || "");
+  }, [user?.name, user?.locale, user?.phoneNumber]);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     try {
-      await updateProfile({ name });
+      await updateProfile({ name, locale, phoneNumber: phoneNumber || undefined });
       toast.success(tErr("profileUpdateSuccess"));
     } catch {
       toast.error(tErr("profileUpdateFailed"));
@@ -130,9 +143,44 @@ export default function SettingsPage() {
               </div>
             </div>
 
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-muted-foreground ml-1">
+                {t("preferredLanguage")}
+              </label>
+              <div className="relative group">
+                <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10 pointer-events-none transition-colors group-focus-within:text-primary" />
+                <Select value={locale} onValueChange={setLocale}>
+                  <SelectTrigger className="pl-12 h-12 rounded-2xl bg-muted/50 border-border focus:border-primary/50 transition-all">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="en">{t("languageEn")}</SelectItem>
+                    <SelectItem value="pt-BR">{t("languagePtBR")}</SelectItem>
+                    <SelectItem value="es">{t("languageEs")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-muted-foreground ml-1">
+                {t("phoneNumber")}
+              </label>
+              <div className="relative group">
+                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
+                <Input
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  placeholder={t("phoneNumberPlaceholder")}
+                  className="pl-12 h-12 rounded-2xl bg-muted/50 border-border focus:border-primary/50 transition-all"
+                />
+              </div>
+            </div>
+
             <Button
               type="submit"
-              disabled={saving || name === user?.name}
+              disabled={saving || (name === user?.name && locale === user?.locale && (phoneNumber || "") === (user?.phoneNumber || ""))}
               className="w-full h-12 rounded-2xl font-bold"
             >
               {saving ? (

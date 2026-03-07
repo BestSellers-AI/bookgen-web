@@ -481,7 +481,13 @@
     "subscriptionCancelled": "Assinatura cancelada. Permanecerá ativa até o final do período de cobrança.",
     "cancelError": "Falha ao cancelar assinatura. Tente novamente.",
     "dangerZone": "Zona de Perigo",
-    "dangerZoneDesc": "A exclusão de conta estará disponível em uma atualização futura."
+    "dangerZoneDesc": "A exclusão de conta estará disponível em uma atualização futura.",
+    "preferredLanguage": "Idioma Preferido",
+    "phoneNumber": "Telefone",
+    "phoneNumberPlaceholder": "+55 11 99999-9999",
+    "languageEn": "English",
+    "languagePtBR": "Portugues (Brasil)",
+    "languageEs": "Espanol"
   },
   "notificationsPage": {
     "title": "Notificações",

@@ -1,6 +1,10 @@
-const baseLayout = (content: string) => `
+import { getTranslations } from './email-translations';
+
+const baseLayout = (content: string, locale: string) => {
+  const t = getTranslations(locale);
+  return `
 <!DOCTYPE html>
-<html lang="en">
+<html lang="${locale}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,7 +27,7 @@ const baseLayout = (content: string) => `
           </tr>
           <tr>
             <td style="padding:20px 40px;text-align:center;border-top:1px solid #e4e4e7;color:#a1a1aa;font-size:12px;">
-              &copy; ${new Date().getFullYear()} BestSellers AI. All rights reserved.
+              &copy; ${new Date().getFullYear()} BestSellers AI. ${t.footer}
             </td>
           </tr>
         </table>
@@ -33,6 +37,7 @@ const baseLayout = (content: string) => `
 </body>
 </html>
 `;
+};
 
 const button = (url: string, label: string) =>
   `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px auto;">
@@ -46,52 +51,64 @@ const button = (url: string, label: string) =>
 export function passwordResetEmail(params: {
   resetUrl: string;
   userName?: string;
-}): string {
-  const greeting = params.userName ? `Hi ${params.userName},` : 'Hi,';
-  return baseLayout(`
+  locale?: string;
+}): { subject: string; html: string } {
+  const locale = params.locale ?? 'en';
+  const t = getTranslations(locale);
+  const greeting = t.greeting(params.userName);
+  const html = baseLayout(`
     <p style="margin:0 0 16px;font-size:16px;color:#18181b;">${greeting}</p>
     <p style="margin:0 0 16px;font-size:16px;color:#3f3f46;">
-      We received a request to reset your password. Click the button below to choose a new password.
+      ${t.resetBody}
     </p>
-    ${button(params.resetUrl, 'Reset Password')}
+    ${button(params.resetUrl, t.resetButton)}
     <p style="margin:0 0 8px;font-size:14px;color:#71717a;">
-      This link will expire in <strong>1 hour</strong>.
+      ${t.resetExpiry}
     </p>
     <p style="margin:0;font-size:14px;color:#71717a;">
-      If you didn't request a password reset, you can safely ignore this email.
+      ${t.resetIgnore}
     </p>
-  `);
+  `, locale);
+  return { subject: t.resetSubject, html };
 }
 
 export function welcomeEmail(params: {
   userName: string;
   loginUrl: string;
-}): string {
-  return baseLayout(`
-    <p style="margin:0 0 16px;font-size:16px;color:#18181b;">Hi ${params.userName},</p>
+  locale?: string;
+}): { subject: string; html: string } {
+  const locale = params.locale ?? 'en';
+  const t = getTranslations(locale);
+  const html = baseLayout(`
+    <p style="margin:0 0 16px;font-size:16px;color:#18181b;">${t.greeting(params.userName)}</p>
     <p style="margin:0 0 16px;font-size:16px;color:#3f3f46;">
-      Welcome to <strong>BestSellers AI</strong>! Your account has been created and you're all set to start generating amazing books with AI.
+      ${t.welcomeBody(params.userName)}
     </p>
-    ${button(params.loginUrl, 'Go to Dashboard')}
+    ${button(params.loginUrl, t.welcomeButton)}
     <p style="margin:0;font-size:14px;color:#71717a;">
-      If you have any questions, feel free to reach out to our support team.
+      ${t.welcomeHelp}
     </p>
-  `);
+  `, locale);
+  return { subject: t.welcomeSubject, html };
 }
 
 export function bookGeneratedEmail(params: {
   userName: string;
   bookTitle: string;
   bookUrl: string;
-}): string {
-  return baseLayout(`
-    <p style="margin:0 0 16px;font-size:16px;color:#18181b;">Hi ${params.userName},</p>
+  locale?: string;
+}): { subject: string; html: string } {
+  const locale = params.locale ?? 'en';
+  const t = getTranslations(locale);
+  const html = baseLayout(`
+    <p style="margin:0 0 16px;font-size:16px;color:#18181b;">${t.greeting(params.userName)}</p>
     <p style="margin:0 0 16px;font-size:16px;color:#3f3f46;">
-      Great news! Your book <strong>"${params.bookTitle}"</strong> has been fully generated and is ready for you to review.
+      ${t.bookBody(params.bookTitle)}
     </p>
-    ${button(params.bookUrl, 'View Your Book')}
+    ${button(params.bookUrl, t.bookButton)}
     <p style="margin:0;font-size:14px;color:#71717a;">
-      You can access all your books from your dashboard at any time.
+      ${t.bookHelp}
     </p>
-  `);
+  `, locale);
+  return { subject: t.bookSubject(params.bookTitle), html };
 }

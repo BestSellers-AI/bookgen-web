@@ -61,6 +61,7 @@ export class AuthService {
       email: dto.email,
       name: dto.name,
       passwordHash,
+      locale: dto.locale,
     });
 
     const tokens = await this.generateTokens(user.id);
@@ -68,13 +69,15 @@ export class AuthService {
 
     const profile = await this.usersService.buildUserProfile(user);
 
+    const email = welcomeEmail({
+      userName: user.name ?? 'there',
+      loginUrl: `${this.appConfig.frontendUrl}/dashboard`,
+      locale: user.locale,
+    });
     this.emailService.send({
       to: user.email,
-      subject: 'Welcome to BestSellers AI!',
-      html: welcomeEmail({
-        userName: user.name ?? 'there',
-        loginUrl: `${this.appConfig.frontendUrl}/dashboard`,
-      }),
+      subject: email.subject,
+      html: email.html,
     });
 
     return { user: profile, tokens };
@@ -307,10 +310,15 @@ export class AuthService {
     }
 
     const resetUrl = `${this.appConfig.frontendUrl}/auth/reset-password?token=${rawToken}`;
+    const email = passwordResetEmail({
+      resetUrl,
+      userName: user.name ?? undefined,
+      locale: user.locale,
+    });
     this.emailService.send({
       to: user.email,
-      subject: 'Reset your password — BestSellers AI',
-      html: passwordResetEmail({ resetUrl, userName: user.name ?? undefined }),
+      subject: email.subject,
+      html: email.html,
     });
   }
 
@@ -398,6 +406,8 @@ export class AuthService {
     const updatedUser = await this.usersService.updateProfile(userId, {
       name: dto.name,
       avatarUrl: dto.avatarUrl,
+      locale: dto.locale,
+      phoneNumber: dto.phoneNumber,
     });
 
     return this.usersService.buildUserProfile(updatedUser);
