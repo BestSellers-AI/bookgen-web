@@ -1064,6 +1064,8 @@
     "btnGoToLogin": "IR PARA O LOGIN",
     "errorGeneric": "Algo deu errado. Tente novamente mais tarde.",
     "errorPreview": "Houve um problema ao gerar a preview. Tente novamente pelo seu painel.",
+    "previewTimeout": "Seu livro foi criado com sucesso! A preview ainda esta sendo gerada e pode levar mais alguns minutos. Voce pode acompanhar o progresso no seu painel.",
+    "btnGoToDashboard": "Ir para meu painel",
     "topicPlaceholder": "Descreva o tema do seu livro em detalhes...",
     "titlePlaceholder": "Ex: O Clube das 5 da Manha",
     "subtitlePlaceholder": "Ex: Como Acordar Cedo Pode Transformar Sua Vida",

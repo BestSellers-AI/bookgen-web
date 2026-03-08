@@ -1064,6 +1064,8 @@
     "btnGoToLogin": "IR AL LOGIN",
     "errorGeneric": "Algo salio mal. Intentalo de nuevo mas tarde.",
     "errorPreview": "Hubo un problema al generar la vista previa. Intentalo de nuevo desde tu panel.",
+    "previewTimeout": "Tu libro fue creado con exito! La vista previa aun se esta generando y puede tardar unos minutos mas. Puedes seguir el progreso en tu panel.",
+    "btnGoToDashboard": "Ir a mi panel",
     "topicPlaceholder": "Describe el tema de tu libro en detalle...",
     "titlePlaceholder": "Ej: El Club de las 5 de la Manana",
     "subtitlePlaceholder": "Ej: Como Despertar Temprano Puede Transformar Tu Vida",

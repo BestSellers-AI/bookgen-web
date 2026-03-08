@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import type { ChatMessage } from '@/stores/chat-store';
+import { useChatStore, type ChatMessage } from '@/stores/chat-store';
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -9,6 +9,7 @@ interface MessageBubbleProps {
 }
 
 export function MessageBubble({ message, onChoice }: MessageBubbleProps) {
+  const answerMessage = useChatStore((s) => s.answerMessage);
   const isBot = message.role === 'bot';
 
   return (
@@ -57,8 +58,17 @@ export function MessageBubble({ message, onChoice }: MessageBubbleProps) {
               {message.choices?.map((choice) => (
                 <button
                   key={choice}
-                  onClick={() => onChoice?.(choice)}
-                  className="px-4 py-2.5 min-h-[44px] rounded-xl border border-primary/30 bg-primary/5 hover:bg-primary/15 text-sm font-medium text-primary transition-colors text-left"
+                  disabled={message.answered}
+                  onClick={() => {
+                    if (message.answered) return;
+                    answerMessage(message.id);
+                    onChoice?.(choice);
+                  }}
+                  className={`px-4 py-2.5 min-h-[44px] rounded-xl border text-sm font-medium transition-colors text-left ${
+                    message.answered
+                      ? 'border-muted bg-muted/50 text-muted-foreground cursor-not-allowed opacity-60'
+                      : 'border-primary/30 bg-primary/5 hover:bg-primary/15 text-primary'
+                  }`}
                 >
                   {choice}
                 </button>

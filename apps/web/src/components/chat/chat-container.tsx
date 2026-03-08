@@ -8,7 +8,6 @@ import { useAuthStore } from '@/stores/auth-store';
 import { authApi } from '@/lib/api/auth';
 import { tokenStorage } from '@/lib/api-client';
 import { booksApi } from '@/lib/api/books';
-import { useBookEvents } from '@/hooks/use-book-events';
 import { BookCreationMode } from '@bestsellers/shared';
 import { MessageBubble } from './message-bubble';
 import { ChatInput } from './chat-input';
@@ -26,21 +25,6 @@ export function ChatContainer() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isTyping, setIsTyping] = useState(false);
   const hasInitialized = useRef(false);
-
-  // --- SSE for preview ---
-  const [previewBookId, setPreviewBookId] = useState<string | null>(null);
-
-  useBookEvents(previewBookId, (type, data) => {
-    if (type === 'preview-complete' || type === 'preview-result') {
-      setPreviewBookId(null);
-      handlePreviewReady(data);
-    } else if (type === 'preview-failed' || type === 'error') {
-      setPreviewBookId(null);
-      store.setProcessing(false);
-      store.setError(t('errorPreview'));
-      addBotMessage(t('errorPreview'));
-    }
-  });
 
   // --- Auto-scroll ---
   useEffect(() => {
@@ -141,7 +125,14 @@ export function ChatContainer() {
       case 'email_exists':
         router.push('/auth/login');
         break;
+
     }
+  }
+
+  // --- Redirect to dashboard ---
+  function handleViewBook() {
+    const { bookId } = useChatStore.getState();
+    router.push(bookId ? `/dashboard/books/${bookId}` : '/dashboard');
   }
 
   // ================================================================
@@ -293,6 +284,7 @@ export function ChatContainer() {
   function handleInput(value: string) {
     const { step } = useChatStore.getState();
     store.addMessage({ role: 'user', content: value, type: 'text' });
+    store.setStep('transitioning');
 
     switch (step) {
       case 'collect_name_early':
@@ -380,17 +372,11 @@ export function ChatContainer() {
       const book = await booksApi.create(bookInput);
       store.setField('bookId', book.id);
 
-      // 3. Request preview
-      await booksApi.generatePreview(book.id);
+      // 3. Request preview (fire and forget)
+      booksApi.generatePreview(book.id).catch(() => {});
 
-      store.setStep('generating_preview');
-      await showTypingThenMessage(t('generatingPreview'), 'text', 500);
-
-      // Start SSE listening
-      setPreviewBookId(book.id);
-
-      // Polling fallback
-      startPolling(book.id);
+      // Redirect to book detail — preview progress continues there
+      router.push(`/dashboard/books/${book.id}`);
     } catch (err: unknown) {
       store.setProcessing(false);
       const status = (err as { response?: { status?: number } })?.response?.status;
@@ -411,62 +397,6 @@ export function ChatContainer() {
     }
   }
 
-  // --- Polling fallback ---
-  function startPolling(bookId: string) {
-    const interval = setInterval(async () => {
-      try {
-        const result = await booksApi.getPreviewStatus(bookId);
-        if (result.status === 'PREVIEW_READY' || result.status === 'PLANNING_READY') {
-          clearInterval(interval);
-          setPreviewBookId(null);
-
-          const book = await booksApi.getById(bookId);
-          handlePreviewReady({
-            title: book.title,
-            subtitle: book.subtitle,
-            planning: book.planning,
-          });
-        } else if (result.status === 'PREVIEW_FAILED' || result.status === 'FAILED') {
-          clearInterval(interval);
-          setPreviewBookId(null);
-          store.setProcessing(false);
-          addBotMessage(t('errorPreview'));
-        }
-      } catch {
-        // Polling will retry
-      }
-    }, 3000);
-
-    // Cleanup after 5 minutes
-    setTimeout(() => clearInterval(interval), 300000);
-  }
-
-  // --- Preview ready ---
-  function handlePreviewReady(data: Record<string, unknown>) {
-    store.setProcessing(false);
-    store.setStep('preview_ready');
-
-    const planning = data.planning as { chapters?: Array<{ title: string }> } | undefined;
-    const title = (data.title as string) || t('yourBook');
-    const subtitle = data.subtitle as string | undefined;
-    const chapters = planning?.chapters || [];
-
-    store.addMessage({
-      role: 'bot',
-      content: '',
-      type: 'planning',
-      planning: { title, subtitle, chapters },
-    });
-  }
-
-  // --- Redirect to dashboard ---
-  function handleViewBook() {
-    const { bookId } = useChatStore.getState();
-    if (bookId) {
-      router.push(`/dashboard/books/${bookId}`);
-    }
-  }
-
   // ================================================================
   // INPUT CONFIG
   // ================================================================
@@ -480,13 +410,13 @@ export function ChatContainer() {
       case 'collect_name_early':
         return { mode: 'text', placeholder: t('namePlaceholder'), minLength: 2 };
       case 'collect_topic':
-        return { mode: 'textarea', placeholder: t('topicPlaceholder'), minLength: 50 };
+        return { mode: 'textarea', placeholder: t('topicPlaceholder'), minLength: 100 };
       case 'collect_title':
         return { mode: 'text', placeholder: t('titlePlaceholder'), minLength: 3 };
       case 'collect_subtitle':
         return { mode: 'text', placeholder: t('subtitlePlaceholder'), minLength: 3 };
       case 'collect_briefing_custom':
-        return { mode: 'textarea', placeholder: t('briefingPlaceholder'), minLength: 30 };
+        return { mode: 'textarea', placeholder: t('briefingPlaceholder'), minLength: 100 };
       case 'collect_author':
         return { mode: 'text', placeholder: t('authorPlaceholder'), minLength: 2 };
       case 'collect_email':

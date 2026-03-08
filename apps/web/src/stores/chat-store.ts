@@ -15,6 +15,7 @@ export interface ChatMessage {
   content: string;
   type: ChatMessageType;
   choices?: string[];
+  answered?: boolean;
   planning?: {
     title: string;
     subtitle?: string;
@@ -38,6 +39,7 @@ export type ChatStep =
   | 'collect_author'
   | 'collect_email'
   | 'collect_phone'
+  | 'transitioning'
   | 'creating_account'
   | 'creating_book'
   | 'generating_preview'
@@ -65,6 +67,7 @@ interface ChatState {
 
 interface ChatActions {
   addMessage: (msg: Omit<ChatMessage, 'id'>) => void;
+  answerMessage: (id: string) => void;
   removeMessage: (id: string) => void;
   setStep: (step: ChatStep) => void;
   setPath: (path: ChatPath) => void;
@@ -101,6 +104,13 @@ export const useChatStore = create<ChatState & ChatActions>()((set) => ({
         ...state.messages,
         { ...msg, id: `msg-${++messageCounter}` },
       ],
+    })),
+
+  answerMessage: (id) =>
+    set((state) => ({
+      messages: state.messages.map((m) =>
+        m.id === id ? { ...m, answered: true } : m,
+      ),
     })),
 
   removeMessage: (id) =>

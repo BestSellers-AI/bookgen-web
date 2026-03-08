@@ -1064,6 +1064,8 @@
     "btnGoToLogin": "GO TO LOGIN",
     "errorGeneric": "Something went wrong. Please try again later.",
     "errorPreview": "There was an issue generating the preview. Please try again from your dashboard.",
+    "previewTimeout": "Your book was created successfully! The preview is still being generated and may take a few more minutes. You can check the progress in your dashboard.",
+    "btnGoToDashboard": "Go to my dashboard",
     "topicPlaceholder": "Describe the topic of your book in detail...",
     "titlePlaceholder": "e.g. The 5 AM Club",
     "subtitlePlaceholder": "e.g. How Waking Up Early Can Transform Your Life",
