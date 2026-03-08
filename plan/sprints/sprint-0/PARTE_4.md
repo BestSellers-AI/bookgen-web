@@ -636,7 +636,7 @@ R2_PUBLIC_URL="https://files.bestsellers.ai"
 
 # EMAIL
 RESEND_API_KEY="re_..."
-EMAIL_FROM="noreply@bestsellers.ai"
+EMAIL_FROM="noreply@updates.bestsellers-ai.com"
 
 # APP
 NODE_ENV="development"

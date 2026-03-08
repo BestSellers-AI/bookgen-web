@@ -36,7 +36,7 @@ const envSchema = z.object({
 
   // Email
   RESEND_API_KEY: z.string().default(''),
-  EMAIL_FROM: z.string().default('noreply@bestsellers.ai'),
+  EMAIL_FROM: z.string().default('noreply@updates.bestsellers-ai.com'),
 
   // App
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),

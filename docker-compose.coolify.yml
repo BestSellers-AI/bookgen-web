@@ -59,7 +59,7 @@ services:
       R2_BUCKET: ${R2_BUCKET:-bestsellers-files}
       R2_PUBLIC_URL: ${R2_PUBLIC_URL:-}
       RESEND_API_KEY: ${RESEND_API_KEY:-}
-      EMAIL_FROM: ${EMAIL_FROM:-noreply@bestsellers.ai}
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@updates.bestsellers-ai.com}
       API_URL: ${API_URL:-http://localhost:3001}
       FRONTEND_URL: ${FRONTEND_URL:?Set FRONTEND_URL}
     ports:
