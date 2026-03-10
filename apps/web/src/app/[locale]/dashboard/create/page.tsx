@@ -48,9 +48,9 @@ import {
   BRIEFING_MAX_LENGTH,
 } from "@bestsellers/shared";
 import {
-  simpleBookSchema,
-  guidedBookSchema,
-  advancedBookSchema,
+  createSimpleBookSchema,
+  createGuidedBookSchema,
+  createAdvancedBookSchema,
   type SimpleBookFormData,
   type GuidedBookFormData,
   type AdvancedBookFormData,
@@ -71,18 +71,28 @@ export default function CreateBookPage() {
   const tCommon = useTranslations("common");
   const tErr = useTranslations("errors");
 
+  const validationMsgs = {
+    titleMin: t("validation.titleRequired"),
+    subtitleMin: t("validation.subtitleRequired"),
+    authorMin: t("validation.authorRequired"),
+    briefingMin: t("validation.briefingMin"),
+    briefingMax: t("validation.briefingMax"),
+    targetAudienceMin: t("validation.targetAudienceRequired"),
+    languageMin: t("validation.languageRequired"),
+  };
+
   const simpleForm = useForm<SimpleBookFormData>({
-    resolver: zodResolver(simpleBookSchema),
+    resolver: zodResolver(createSimpleBookSchema(validationMsgs)),
     defaultValues: { title: "", subtitle: "", author: "", briefing: "" },
   });
 
   const guidedForm = useForm<GuidedBookFormData>({
-    resolver: zodResolver(guidedBookSchema),
+    resolver: zodResolver(createGuidedBookSchema(validationMsgs)),
     defaultValues: { author: "", briefing: "" },
   });
 
   const advancedForm = useForm<AdvancedBookFormData>({
-    resolver: zodResolver(advancedBookSchema),
+    resolver: zodResolver(createAdvancedBookSchema(validationMsgs)),
     defaultValues: {
       title: "",
       subtitle: "",
@@ -401,7 +411,7 @@ export default function CreateBookPage() {
                         name="subtitle"
                         render={({ field }) => (
                           <FormItem className="md:col-span-2">
-                            <FormLabel className={labelClass}>{t("subtitleOptional")}</FormLabel>
+                            <FormLabel className={labelClass}>{t("subtitle")}</FormLabel>
                             <FormControl>
                               <Input placeholder={t("subtitlePlaceholder")} className={inputClass} {...field} />
                             </FormControl>
@@ -495,7 +505,7 @@ export default function CreateBookPage() {
                         name="subtitle"
                         render={({ field }) => (
                           <FormItem className="md:col-span-2">
-                            <FormLabel className={labelClass}>{t("subtitleOptional")}</FormLabel>
+                            <FormLabel className={labelClass}>{t("subtitle")}</FormLabel>
                             <FormControl>
                               <Input placeholder={t("subtitlePlaceholder")} className={inputClass} {...field} />
                             </FormControl>
@@ -765,6 +775,14 @@ export default function CreateBookPage() {
                       />
                     ))}
                   </div>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="mt-4 rounded-xl"
+                    onClick={() => router.push("/dashboard")}
+                  >
+                    {tCommon("goToDashboard")}
+                  </Button>
                 </div>
               </div>
             )}

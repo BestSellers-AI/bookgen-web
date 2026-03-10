@@ -270,6 +270,16 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
           onSave={handleSavePlanning}
           onCancel={() => setIsEditing(false)}
         />
+      ) : isCompletePreview && previewPdf ? (
+        /* Embedded PDF for complete preview */
+        <div className="glass rounded-[2.5rem] border-none overflow-hidden p-2">
+          <iframe
+            src={previewPdf.fileUrl}
+            title={book.title}
+            className="w-full rounded-[2rem]"
+            style={{ height: "80vh", minHeight: "600px" }}
+          />
+        </div>
       ) : (
         <Accordion type="multiple" defaultValue={isCompletePreview && book.introduction ? ["section-introduction"] : []} className="space-y-4">
           {/* Introduction — only for complete preview */}

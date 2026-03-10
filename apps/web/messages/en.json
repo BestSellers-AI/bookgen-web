@@ -13,7 +13,8 @@
     "no": "No",
     "or": "or",
     "credits": "credits",
-    "USD": "USD"
+    "USD": "USD",
+    "goToDashboard": "Go to Dashboard"
   },
   "nav": {
     "features": "Features",
@@ -281,7 +282,7 @@
     "manualMode": "Manual Mode",
     "bookTitle": "Book Title",
     "authorName": "Author Name",
-    "subtitleOptional": "Subtitle (Optional)",
+    "subtitle": "Subtitle",
     "whatIsBookAbout": "What is your book about?",
     "detailedBriefing": "Detailed Briefing",
     "minCharacters": "Min. 50 characters",
@@ -326,7 +327,16 @@
     "previewReady": "Preview Ready",
     "previewError": "Preview Generation Failed",
     "tryAgain": "Try Again",
-    "charCount": "{count}/5000"
+    "charCount": "{count}/5000",
+    "validation": {
+      "titleRequired": "Please enter a title (at least 2 characters).",
+      "subtitleRequired": "Please enter a subtitle (at least 2 characters).",
+      "authorRequired": "Please enter the author name (at least 2 characters).",
+      "briefingMin": "The briefing must be at least 100 characters.",
+      "briefingMax": "The briefing must be at most 5000 characters.",
+      "targetAudienceRequired": "Please specify the target audience.",
+      "languageRequired": "Please select a language."
+    }
   },
   "credits": {
     "title": "Buy Credits",

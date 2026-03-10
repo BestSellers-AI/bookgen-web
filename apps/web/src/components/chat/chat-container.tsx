@@ -9,13 +9,16 @@ import { authApi } from '@/lib/api/auth';
 import { tokenStorage } from '@/lib/api-client';
 import { booksApi } from '@/lib/api/books';
 import { BookCreationMode } from '@bestsellers/shared';
+import { Loader2, Sparkles } from 'lucide-react';
 import { usePlanningStream } from '@/hooks/use-planning-stream';
+import { Button } from '@/components/ui/button';
 import { MessageBubble } from './message-bubble';
 import { ChatInput } from './chat-input';
 import { TypingIndicator } from './typing-indicator';
 
 export function ChatContainer() {
   const t = useTranslations('chat');
+  const tCommon = useTranslations('common');
   const locale = useLocale();
   const router = useRouter();
 
@@ -29,10 +32,18 @@ export function ChatContainer() {
 
   // --- Auto-scroll ---
   useEffect(() => {
+    // Immediate scroll
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [store.messages, isTyping]);
+    // Delayed scroll to catch input animations / layout shifts
+    const timer = setTimeout(() => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      }
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [store.messages, store.step, isTyping]);
 
   // --- Initialize welcome ---
   useEffect(() => {
@@ -502,8 +513,52 @@ export function ChatContainer() {
 
   const inputConfig = getInputConfig();
 
+  const isCreating = store.step === 'creating_account' || store.step === 'creating_book';
+
   return (
     <div className="flex flex-col h-full">
+      {/* Full-screen loader during account/book creation */}
+      {isCreating && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-xl">
+          <div className="relative">
+            <div className="absolute inset-0 bg-primary/20 blur-[100px] rounded-full animate-pulse" />
+            <div className="relative space-y-8 text-center px-6">
+              <div className="flex justify-center">
+                <div className="relative w-24 h-24">
+                  <div className="absolute inset-0 border-4 border-primary/20 rounded-full" />
+                  <div className="absolute inset-0 border-4 border-t-primary rounded-full animate-spin" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Sparkles className="w-10 h-10 text-primary animate-pulse" />
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <h2 className="text-3xl md:text-4xl font-heading font-black tracking-tight text-foreground">
+                  {store.step === 'creating_account' ? t('creatingAccount') : t('creatingBook')}
+                </h2>
+              </div>
+              <div className="flex justify-center gap-2">
+                {[0, 1, 2].map((i) => (
+                  <div
+                    key={i}
+                    className="w-2 h-2 rounded-full bg-primary animate-pulse"
+                    style={{ animationDelay: `${i * 200}ms` }}
+                  />
+                ))}
+              </div>
+              <Button
+                variant="outline"
+                size="lg"
+                className="mt-4 rounded-xl"
+                onClick={() => router.push('/dashboard')}
+              >
+                {tCommon('goToDashboard')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Messages area */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto py-4 space-y-3">
         {store.messages.map((msg) => (

@@ -32,6 +32,7 @@ export default function BookViewPage() {
   const [error, setError] = useState<string | null>(null);
   const [creditDialogOpen, setCreditDialogOpen] = useState(false);
   const t = useTranslations("book");
+  const tCommon = useTranslations("common");
   const tErr = useTranslations("errors");
 
   const fetchBook = useCallback(async () => {
@@ -168,17 +169,41 @@ export default function BookViewPage() {
   // PREVIEW_GENERATING — SSE wait
   if (status === "PREVIEW_GENERATING") {
     return (
-      <div className="flex flex-col items-center justify-center h-[60vh] gap-6">
-        <div className="relative w-20 h-20">
-          <div className="absolute inset-0 border-4 border-primary/20 rounded-full" />
-          <div className="absolute inset-0 border-4 border-t-primary rounded-full animate-spin" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Sparkles className="w-8 h-8 text-primary animate-pulse" />
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-xl">
+        <div className="relative">
+          <div className="absolute inset-0 bg-primary/20 blur-[100px] rounded-full animate-pulse" />
+          <div className="relative space-y-8 text-center px-6">
+            <div className="flex justify-center">
+              <div className="relative w-24 h-24">
+                <div className="absolute inset-0 border-4 border-primary/20 rounded-full" />
+                <div className="absolute inset-0 border-4 border-t-primary rounded-full animate-spin" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Sparkles className="w-10 h-10 text-primary animate-pulse" />
+                </div>
+              </div>
+            </div>
+            <p className="text-xl text-muted-foreground font-medium max-w-md mx-auto">
+              {t("statusPreviewGenerating")}
+            </p>
+            <div className="flex justify-center gap-2">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="w-2 h-2 rounded-full bg-primary animate-pulse"
+                  style={{ animationDelay: `${i * 200}ms` }}
+                />
+              ))}
+            </div>
+            <Button
+              variant="outline"
+              size="lg"
+              className="mt-4 rounded-xl"
+              onClick={() => router.push("/dashboard")}
+            >
+              {tCommon("goToDashboard")}
+            </Button>
           </div>
         </div>
-        <p className="text-lg text-muted-foreground font-medium">
-          {t("statusPreviewGenerating")}
-        </p>
       </div>
     );
   }
@@ -186,17 +211,41 @@ export default function BookViewPage() {
   // PREVIEW_COMPLETING — SSE wait for complete preview
   if (status === "PREVIEW_COMPLETING") {
     return (
-      <div className="flex flex-col items-center justify-center h-[60vh] gap-6">
-        <div className="relative w-20 h-20">
-          <div className="absolute inset-0 border-4 border-primary/20 rounded-full" />
-          <div className="absolute inset-0 border-4 border-t-primary rounded-full animate-spin" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Sparkles className="w-8 h-8 text-primary animate-pulse" />
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/80 backdrop-blur-xl">
+        <div className="relative">
+          <div className="absolute inset-0 bg-primary/20 blur-[100px] rounded-full animate-pulse" />
+          <div className="relative space-y-8 text-center px-6">
+            <div className="flex justify-center">
+              <div className="relative w-24 h-24">
+                <div className="absolute inset-0 border-4 border-primary/20 rounded-full" />
+                <div className="absolute inset-0 border-4 border-t-primary rounded-full animate-spin" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Sparkles className="w-10 h-10 text-primary animate-pulse" />
+                </div>
+              </div>
+            </div>
+            <p className="text-xl text-muted-foreground font-medium max-w-md mx-auto">
+              {t("statusPreviewCompleting")}
+            </p>
+            <div className="flex justify-center gap-2">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="w-2 h-2 rounded-full bg-primary animate-pulse"
+                  style={{ animationDelay: `${i * 200}ms` }}
+                />
+              ))}
+            </div>
+            <Button
+              variant="outline"
+              size="lg"
+              className="mt-4 rounded-xl"
+              onClick={() => router.push("/dashboard")}
+            >
+              {tCommon("goToDashboard")}
+            </Button>
           </div>
         </div>
-        <p className="text-lg text-muted-foreground font-medium">
-          {t("statusPreviewCompleting")}
-        </p>
       </div>
     );
   }

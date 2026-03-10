@@ -10,7 +10,9 @@ import {
 } from "lucide-react";
 import { booksApi } from "@/lib/api/books";
 import { useBookEvents } from "@/hooks/use-book-events";
+import { useRouter } from "@/i18n/navigation";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -25,6 +27,8 @@ interface GenerationProgressProps {
 
 export function GenerationProgress({ book, onComplete }: GenerationProgressProps) {
   const t = useTranslations("book");
+  const tCommon = useTranslations("common");
+  const router = useRouter();
 
   // Initialize chapter statuses from book data
   const [chapterStatuses, setChapterStatuses] = useState<Record<number, ChapterState>>(() => {
@@ -245,6 +249,18 @@ export function GenerationProgress({ book, onComplete }: GenerationProgressProps
             </div>
           );
         })()}
+      </div>
+
+      {/* Go to Dashboard */}
+      <div className="flex justify-center">
+        <Button
+          variant="outline"
+          size="lg"
+          className="rounded-xl"
+          onClick={() => router.push("/dashboard")}
+        >
+          {tCommon("goToDashboard")}
+        </Button>
       </div>
     </div>
   );

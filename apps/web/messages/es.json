@@ -13,7 +13,8 @@
     "no": "No",
     "or": "o",
     "credits": "créditos",
-    "USD": "USD"
+    "USD": "USD",
+    "goToDashboard": "Ir al Dashboard"
   },
   "nav": {
     "features": "Características",
@@ -281,7 +282,7 @@
     "manualMode": "Modo Manual",
     "bookTitle": "Título del Libro",
     "authorName": "Nombre del Autor",
-    "subtitleOptional": "Subtítulo (Opcional)",
+    "subtitle": "Subtítulo",
     "whatIsBookAbout": "¿De qué trata tu libro?",
     "detailedBriefing": "Briefing Detallado",
     "minCharacters": "Mín. 50 caracteres",
@@ -326,7 +327,16 @@
     "previewReady": "Vista Previa Lista",
     "previewError": "Error en la Generación de Vista Previa",
     "tryAgain": "Intentar de Nuevo",
-    "charCount": "{count}/5000"
+    "charCount": "{count}/5000",
+    "validation": {
+      "titleRequired": "Ingresa el título (mínimo 2 caracteres).",
+      "subtitleRequired": "Ingresa el subtítulo (mínimo 2 caracteres).",
+      "authorRequired": "Ingresa el nombre del autor (mínimo 2 caracteres).",
+      "briefingMin": "El briefing debe tener al menos 100 caracteres.",
+      "briefingMax": "El briefing debe tener como máximo 5000 caracteres.",
+      "targetAudienceRequired": "Especifica el público objetivo.",
+      "languageRequired": "Selecciona un idioma."
+    }
   },
   "credits": {
     "title": "Comprar Créditos",
