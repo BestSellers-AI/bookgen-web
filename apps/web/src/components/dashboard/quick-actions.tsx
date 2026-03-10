@@ -30,12 +30,12 @@ export function QuickActions() {
   ];
 
   return (
-    <div className="flex flex-wrap gap-3">
+    <div className="grid grid-cols-1 sm:grid-flow-col sm:auto-cols-fr gap-3">
       {actions.map((action) => (
         <Button
           key={action.href}
           asChild
-          className={`h-11 px-6 rounded-xl font-semibold gap-2 ${action.className}`}
+          className={`h-11 px-6 rounded-xl font-semibold gap-2 w-full ${action.className}`}
         >
           <Link href={action.href}>
             <action.icon className="w-4 h-4" />

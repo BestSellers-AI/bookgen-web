@@ -135,12 +135,20 @@ export default function BooksListPage() {
           </h1>
           <p className="text-muted-foreground mt-1">{t("subtitle")}</p>
         </div>
-        <Button asChild className="rounded-xl font-bold gap-2 glow-primary">
-          <Link href="/dashboard/create">
-            <PlusCircle className="w-4 h-4" />
-            {t("createBook")}
-          </Link>
-        </Button>
+        <div className="relative rounded-xl p-[2px] overflow-hidden w-full sm:w-auto">
+          <div
+            className="absolute top-1/2 left-1/2 w-[200%] aspect-square animate-border-spin"
+            style={{
+              background: "conic-gradient(from 0deg, transparent 0%, transparent 60%, #f4eee6 75%, #ffffff 85%, #f4eee6 95%, transparent 100%)",
+            }}
+          />
+          <Button asChild className="relative w-full sm:w-auto rounded-[calc(0.75rem-2px)] font-bold gap-2 glow-primary">
+            <Link href="/dashboard/create">
+              <PlusCircle className="w-4 h-4" />
+              {t("createBook")}
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -243,7 +251,7 @@ export default function BooksListPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="h-8 w-8 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
                       >
                         <MoreVertical className="h-4 w-4" />
                       </Button>

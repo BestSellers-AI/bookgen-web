@@ -148,7 +148,28 @@
     "currentPlan": "Current Plan",
     "freePlan": "Free",
     "upgrade": "Upgrade",
-    "manage": "Manage"
+    "manage": "Manage",
+    "planCard": {
+      "upgradeHook": "Unlock more with {plan}:",
+      "upgradeCta": "Upgrade to {plan}",
+      "perks": {
+        "ASPIRANTE": [
+          "300 credits/month to create books",
+          "Up to 3 books per month",
+          "1 free regeneration included"
+        ],
+        "BESTSELLER": [
+          "750 credits/month — 2.5x more",
+          "Commercial license for your books",
+          "Priority queue — faster generation"
+        ],
+        "ELITE": [
+          "2,000 credits/month — unlimited scale",
+          "Credits accumulate for up to 3 months",
+          "Priority support + express queue"
+        ]
+      }
+    }
   },
   "book": {
     "backToLibrary": "Back to Library",

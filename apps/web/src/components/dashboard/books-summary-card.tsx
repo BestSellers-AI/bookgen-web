@@ -58,26 +58,58 @@ export function BooksSummaryCard({ books }: BooksSummaryCardProps) {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {stats.map((stat) => (
-        <div
-          key={stat.label}
-          className="glass rounded-[1.5rem] p-5 flex flex-col gap-3"
-        >
+      {stats.map((stat) => {
+        const isPreview = stat === stats[1];
+
+        if (isPreview) {
+          return (
+            <div key={stat.label} className="relative rounded-[1.5rem] p-[2px] overflow-hidden">
+              <div
+                className="absolute top-1/2 left-1/2 w-[200%] aspect-square animate-border-spin"
+                style={{
+                  background: "conic-gradient(from 0deg, transparent 0%, transparent 60%, #f59e0b 75%, #fbbf24 85%, #f59e0b 95%, transparent 100%)",
+                }}
+              />
+              <div className="relative glass rounded-[calc(1.5rem-2px)] p-5 flex flex-col gap-3" style={{ background: "color-mix(in srgb, var(--card), transparent 5%)" }}>
+                <div
+                  className={`w-10 h-10 rounded-xl ${stat.bg} border flex items-center justify-center`}
+                >
+                  <stat.icon className={`w-5 h-5 ${stat.color}`} />
+                </div>
+                <div>
+                  <div className="text-2xl font-black text-foreground">
+                    {stat.value}
+                  </div>
+                  <div className="text-xs font-medium text-muted-foreground">
+                    {stat.label}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        return (
           <div
-            className={`w-10 h-10 rounded-xl ${stat.bg} border flex items-center justify-center`}
+            key={stat.label}
+            className="glass rounded-[1.5rem] p-5 flex flex-col gap-3"
           >
-            <stat.icon className={`w-5 h-5 ${stat.color}`} />
-          </div>
-          <div>
-            <div className="text-2xl font-black text-foreground">
-              {stat.value}
+            <div
+              className={`w-10 h-10 rounded-xl ${stat.bg} border flex items-center justify-center`}
+            >
+              <stat.icon className={`w-5 h-5 ${stat.color}`} />
             </div>
-            <div className="text-xs font-medium text-muted-foreground">
-              {stat.label}
+            <div>
+              <div className="text-2xl font-black text-foreground">
+                {stat.value}
+              </div>
+              <div className="text-xs font-medium text-muted-foreground">
+                {stat.label}
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

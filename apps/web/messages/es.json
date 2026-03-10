@@ -148,7 +148,28 @@
     "currentPlan": "Plan Actual",
     "freePlan": "Gratuito",
     "upgrade": "Mejorar Plan",
-    "manage": "Gestionar"
+    "manage": "Gestionar",
+    "planCard": {
+      "upgradeHook": "Desbloquea más con {plan}:",
+      "upgradeCta": "Mejorar a {plan}",
+      "perks": {
+        "ASPIRANTE": [
+          "300 créditos/mes para crear libros",
+          "Hasta 3 libros por mes",
+          "1 regeneración gratuita incluida"
+        ],
+        "BESTSELLER": [
+          "750 créditos/mes — 2,5x más",
+          "Licencia comercial para tus libros",
+          "Cola prioritaria — generación más rápida"
+        ],
+        "ELITE": [
+          "2.000 créditos/mes — escala ilimitada",
+          "Los créditos se acumulan hasta 3 meses",
+          "Soporte prioritario + cola exprés"
+        ]
+      }
+    }
   },
   "book": {
     "backToLibrary": "Volver a la Biblioteca",

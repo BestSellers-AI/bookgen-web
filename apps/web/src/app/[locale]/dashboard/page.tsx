@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { booksApi } from "@/lib/api/books";
 import { walletApi } from "@/lib/api/wallet";
-import { notificationsApi } from "@/lib/api/notifications";
-import type { BookListItem, WalletInfo, NotificationItem } from "@/lib/api/types";
+import type { BookListItem, WalletInfo } from "@/lib/api/types";
 import { useAuth } from "@/hooks/use-auth";
 import { useWalletStore } from "@/stores/wallet-store";
 import { useTranslations } from "next-intl";
@@ -16,7 +15,7 @@ import { QuickActions } from "@/components/dashboard/quick-actions";
 import { RecentBooksList } from "@/components/dashboard/recent-books-list";
 import { CreditsCard } from "@/components/dashboard/credits-card";
 import { PlanCard } from "@/components/dashboard/plan-card";
-import { RecentNotifications } from "@/components/dashboard/recent-notifications";
+
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -25,7 +24,7 @@ export default function DashboardPage() {
 
   const [books, setBooks] = useState<BookListItem[]>([]);
   const [wallet, setWallet] = useState<WalletInfo | null>(null);
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -34,19 +33,15 @@ export default function DashboardPage() {
     setLoading(true);
     setError(false);
     try {
-      const [booksRes, walletRes, notifRes] = await Promise.allSettled([
+      const [booksRes, walletRes] = await Promise.allSettled([
         booksApi.list({ sortBy: "createdAt", sortOrder: "desc", perPage: 5 }),
         walletApi.get(),
-        notificationsApi.list({ perPage: 5, sortOrder: "desc" }),
       ]);
 
       setBooks(booksRes.status === "fulfilled" ? booksRes.value.data : []);
       const walletData = walletRes.status === "fulfilled" ? walletRes.value : null;
       setWallet(walletData);
       if (walletData) setWalletStore(walletData);
-      setNotifications(
-        notifRes.status === "fulfilled" ? notifRes.value.data : []
-      );
     } catch {
       setError(true);
     } finally {
@@ -101,10 +96,14 @@ export default function DashboardPage() {
         <h1 className="text-4xl md:text-5xl font-heading font-black tracking-tight text-gradient">
           {t("welcomeBack")}{user?.name ? `, ${user.name.split(" ")[0]}` : ""}
         </h1>
+        <p className="text-muted-foreground text-lg">{t("welcomeSubtitle")}</p>
       </div>
 
       {/* Summary Stats */}
       <BooksSummaryCard books={books} />
+
+      {/* Upgrade Banner */}
+      <PlanCard user={user} />
 
       {/* Quick Actions */}
       <QuickActions />
@@ -119,8 +118,6 @@ export default function DashboardPage() {
         {/* Right Column */}
         <div className="space-y-6">
           <CreditsCard wallet={wallet} user={user} />
-          <PlanCard user={user} />
-          <RecentNotifications notifications={notifications} />
         </div>
       </div>
     </div>
