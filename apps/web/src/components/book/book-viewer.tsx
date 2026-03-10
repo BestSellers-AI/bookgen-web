@@ -1,10 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import {
   Download,
-  Eye,
-  FileText,
   Share2,
   Calendar,
   User,
@@ -12,21 +10,11 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { BookToc } from "./book-toc";
-import { ChapterContent } from "./chapter-content";
+// Dialog, Accordion, BookToc, ChapterContent — kept for future use (content blocks hidden, PDF embedded instead)
+// import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+// import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+// import { BookToc } from "./book-toc";
+// import { ChapterContent } from "./chapter-content";
 import { ShareDialog } from "./share-dialog";
 import { AddonSection } from "./addon-section";
 import { useTranslations } from "next-intl";
@@ -45,38 +33,12 @@ interface BookViewerProps {
 }
 
 export function BookViewer({ book, onRefetch }: BookViewerProps) {
-  const [activeSection, setActiveSection] = useState("section-introduction");
   const [shareOpen, setShareOpen] = useState(false);
-  const contentRef = useRef<HTMLDivElement>(null);
   const t = useTranslations("book");
-
-  // Track active section via IntersectionObserver
-  useEffect(() => {
-    const sections = contentRef.current?.querySelectorAll("[id^='section-']");
-    if (!sections?.length) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id);
-          }
-        }
-      },
-      { rootMargin: "-20% 0px -60% 0px", threshold: 0 },
-    );
-
-    sections.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
-  }, [book]);
 
   const pdfFile = getFileByType(book.files, "FULL_PDF");
   const docxFile = getFileByType(book.files, "DOCX");
   const epubFile = getFileByType(book.files, "EPUB");
-
-  // Free regens from wallet (fetched by parent or context)
-  // For now default to 0, will be fetched
-  const freeRegensRemaining = 0;
 
   return (
     <div className="max-w-6xl mx-auto space-y-10">
@@ -135,37 +97,12 @@ export function BookViewer({ book, onRefetch }: BookViewerProps) {
         {/* Action bar */}
         <div className="flex flex-wrap gap-3">
           {pdfFile && (
-            <>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="outline" className="rounded-xl border-primary/20 bg-primary/5 text-primary hover:bg-primary/10">
-                    <Eye className="mr-2 h-4 w-4" />
-                    {t("viewPdfFull")}
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-6xl w-[95vw] h-[90vh] p-0 overflow-hidden bg-background border-border flex flex-col">
-                  <DialogHeader className="p-4 border-b border-border shrink-0">
-                    <DialogTitle className="text-foreground flex items-center gap-2">
-                      <FileText className="h-5 w-5 text-primary" />
-                      {book.title} - {t("finalPdf")}
-                    </DialogTitle>
-                  </DialogHeader>
-                  <div className="flex-1 w-full bg-slate-900 overflow-hidden">
-                    <iframe
-                      src={`${pdfFile.fileUrl}#toolbar=0`}
-                      className="w-full h-full border-none"
-                      title="PDF Viewer"
-                    />
-                  </div>
-                </DialogContent>
-              </Dialog>
-              <Button variant="outline" className="rounded-xl border-border" asChild>
-                <a href={pdfFile.fileUrl} target="_blank" rel="noopener noreferrer">
-                  <Download className="mr-2 h-4 w-4" />
-                  {t("downloadPdf")}
-                </a>
-              </Button>
-            </>
+            <Button variant="outline" className="rounded-xl border-primary/20 bg-primary/5 text-primary hover:bg-primary/10" asChild>
+              <a href={pdfFile.fileUrl} target="_blank" rel="noopener noreferrer">
+                <Download className="mr-2 h-4 w-4" />
+                {t("downloadPdf")}
+              </a>
+            </Button>
           )}
 
           {docxFile && (
@@ -197,22 +134,30 @@ export function BookViewer({ book, onRefetch }: BookViewerProps) {
         </div>
       </header>
 
-      {/* 2-column layout */}
+      {/* Embedded PDF */}
+      {pdfFile && (
+        <div className="glass rounded-[2.5rem] border-none overflow-hidden p-2">
+          <iframe
+            src={pdfFile.fileUrl}
+            title={book.title}
+            className="w-full rounded-[2rem]"
+            style={{ height: "80vh", minHeight: "600px" }}
+          />
+        </div>
+      )}
+
+      {/* --- TOC + Content blocks (hidden — kept for future use) ---
       <div className="flex gap-8">
-        {/* TOC sidebar */}
         <div className="hidden lg:block w-64 shrink-0">
           <BookToc book={book} activeSection={activeSection} />
         </div>
 
-        {/* Content */}
         <div ref={contentRef} className="flex-1 min-w-0">
-          {/* Mobile TOC */}
           <div className="lg:hidden mb-8">
             <BookToc book={book} activeSection={activeSection} mobile />
           </div>
 
           <Accordion type="multiple" defaultValue={["section-introduction"]} className="space-y-4">
-            {/* Introduction */}
             {book.introduction && (
               <AccordionItem value="section-introduction" id="section-introduction" className="glass rounded-[2.5rem] border-none scroll-mt-12 overflow-hidden">
                 <AccordionTrigger className="px-8 md:px-10 py-6 hover:no-underline">
@@ -228,7 +173,6 @@ export function BookViewer({ book, onRefetch }: BookViewerProps) {
               </AccordionItem>
             )}
 
-            {/* Chapters */}
             {book.chapters
               .sort((a, b) => a.sequence - b.sequence)
               .map((chapter) => (
@@ -259,7 +203,6 @@ export function BookViewer({ book, onRefetch }: BookViewerProps) {
                 </AccordionItem>
               ))}
 
-            {/* Conclusion */}
             {book.conclusion && (
               <AccordionItem value="section-conclusion" id="section-conclusion" className="glass rounded-[2.5rem] border-none scroll-mt-12 overflow-hidden">
                 <AccordionTrigger className="px-8 md:px-10 py-6 hover:no-underline">
@@ -275,7 +218,6 @@ export function BookViewer({ book, onRefetch }: BookViewerProps) {
               </AccordionItem>
             )}
 
-            {/* Final Considerations */}
             {book.finalConsiderations && (
               <AccordionItem value="section-final-considerations" id="section-final-considerations" className="glass rounded-[2.5rem] border-none scroll-mt-12 overflow-hidden">
                 <AccordionTrigger className="px-8 md:px-10 py-6 hover:no-underline">
@@ -291,7 +233,6 @@ export function BookViewer({ book, onRefetch }: BookViewerProps) {
               </AccordionItem>
             )}
 
-            {/* Glossary */}
             {book.glossary && (
               <AccordionItem value="section-glossary" id="section-glossary" className="glass rounded-[2.5rem] border-none scroll-mt-12 overflow-hidden">
                 <AccordionTrigger className="px-8 md:px-10 py-6 hover:no-underline">
@@ -307,7 +248,6 @@ export function BookViewer({ book, onRefetch }: BookViewerProps) {
               </AccordionItem>
             )}
 
-            {/* Appendix */}
             {book.appendix && (
               <AccordionItem value="section-appendix" id="section-appendix" className="glass rounded-[2.5rem] border-none scroll-mt-12 overflow-hidden">
                 <AccordionTrigger className="px-8 md:px-10 py-6 hover:no-underline">
@@ -323,7 +263,6 @@ export function BookViewer({ book, onRefetch }: BookViewerProps) {
               </AccordionItem>
             )}
 
-            {/* Closure */}
             {book.closure && (
               <AccordionItem value="section-closure" id="section-closure" className="glass rounded-[2.5rem] border-none scroll-mt-12 overflow-hidden">
                 <AccordionTrigger className="px-8 md:px-10 py-6 hover:no-underline">
@@ -341,6 +280,7 @@ export function BookViewer({ book, onRefetch }: BookViewerProps) {
           </Accordion>
         </div>
       </div>
+      --- end hidden TOC + Content blocks --- */}
 
       {/* Addons */}
       <AddonSection book={book} onRefetch={onRefetch} />
