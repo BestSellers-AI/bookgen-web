@@ -26,6 +26,12 @@ export function LocaleSwitcher() {
   const { user, setUser } = useAuthStore();
 
   const handleChange = async (value: string) => {
+    // Hard navigation for /chat — async sequences can't be cancelled client-side
+    if (pathname === '/chat') {
+      window.location.href = `/${value}/chat`;
+      return;
+    }
+
     router.replace(pathname, { locale: value as Locale });
     if (user && value !== user.locale) {
       try {
