@@ -47,6 +47,13 @@ export function MessageBubble({ message, onChoice }: MessageBubbleProps) {
           </p>
         )}
 
+        {message.type === 'streaming' && (
+          <p className="text-sm whitespace-pre-line leading-relaxed">
+            {message.content}
+            <span className="inline-block w-0.5 h-4 ml-0.5 bg-primary align-middle animate-pulse" />
+          </p>
+        )}
+
         {message.type === 'choices' && (
           <div className="space-y-3">
             {message.content && (
