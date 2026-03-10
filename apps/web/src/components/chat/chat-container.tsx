@@ -9,10 +9,10 @@ import { authApi } from '@/lib/api/auth';
 import { tokenStorage } from '@/lib/api-client';
 import { booksApi } from '@/lib/api/books';
 import { BookCreationMode } from '@bestsellers/shared';
+import { usePlanningStream } from '@/hooks/use-planning-stream';
 import { MessageBubble } from './message-bubble';
 import { ChatInput } from './chat-input';
 import { TypingIndicator } from './typing-indicator';
-import { PlanningCard } from './planning-card';
 
 export function ChatContainer() {
   const t = useTranslations('chat');
@@ -21,6 +21,7 @@ export function ChatContainer() {
 
   const store = useChatStore();
   const { setAuth } = useAuthStore();
+  const { startStream, isStreaming } = usePlanningStream();
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isTyping, setIsTyping] = useState(false);
@@ -122,17 +123,28 @@ export function ChatContainer() {
         }
         break;
 
+      case 'ai_planning_approval':
+        if (choice === t('aiPlanningYes')) {
+          transitionToCollectAuthor();
+        } else if (choice === t('aiPlanningRestart')) {
+          store.setAiPlanningText(null);
+          const { path } = useChatStore.getState();
+          if (path === 'generate') {
+            transitionToCollectTopic();
+          } else {
+            transitionToCollectTitle();
+          }
+        } else {
+          // "TRY AGAIN" after error — retry AI planning
+          transitionToAiPlanning();
+        }
+        break;
+
       case 'email_exists':
         router.push('/auth/login');
         break;
 
     }
-  }
-
-  // --- Redirect to dashboard ---
-  function handleViewBook() {
-    const { bookId } = useChatStore.getState();
-    router.push(bookId ? `/dashboard/books/${bookId}` : '/dashboard');
   }
 
   // ================================================================
@@ -278,6 +290,61 @@ export function ChatContainer() {
   }
 
   // ================================================================
+  // AI PLANNING — Stream from OpenAI Assistants
+  // ================================================================
+
+  async function transitionToAiPlanning() {
+    const state = useChatStore.getState();
+
+    // Show thinking message
+    await showTypingThenMessage(t('aiPlanningThinking'), 'text', 600);
+
+    // Create streaming message placeholder
+    store.addMessage({ role: 'bot', content: '', type: 'streaming' });
+    const msgs = useChatStore.getState().messages;
+    const streamMsgId = msgs[msgs.length - 1].id;
+
+    store.setStep('ai_planning_streaming');
+
+    // Start streaming
+    const planningText = await startStream({
+      path: state.path as 'generate' | 'custom',
+      briefing: state.briefing,
+      title: state.title || undefined,
+      subtitle: state.subtitle || undefined,
+      locale,
+      messageId: streamMsgId,
+    });
+
+    // Change streaming message to regular text
+    store.updateMessageType(streamMsgId, 'text');
+
+    if (planningText) {
+      store.setAiPlanningText(planningText);
+
+      // Show approval choices as chat message
+      await showTypingThenMessage(t('aiPlanningReady'), 'text', 500);
+      store.addMessage({
+        role: 'bot',
+        content: '',
+        type: 'choices',
+        choices: [t('aiPlanningYes'), t('aiPlanningRestart')],
+      });
+      store.setStep('ai_planning_approval');
+    } else {
+      // Streaming failed
+      await showTypingThenMessage(t('aiPlanningError'), 'text', 500);
+      store.addMessage({
+        role: 'bot',
+        content: '',
+        type: 'choices',
+        choices: [t('aiPlanningRetry')],
+      });
+      store.setStep('ai_planning_approval');
+    }
+  }
+
+  // ================================================================
   // HANDLE TEXT INPUT
   // ================================================================
 
@@ -293,7 +360,7 @@ export function ChatContainer() {
         break;
       case 'collect_topic':
         store.setField('briefing', value);
-        transitionToCollectAuthor();
+        transitionToAiPlanning();
         break;
       case 'collect_title':
         store.setField('title', value);
@@ -305,7 +372,7 @@ export function ChatContainer() {
         break;
       case 'collect_briefing_custom':
         store.setField('briefing', value);
-        transitionToCollectAuthor();
+        transitionToAiPlanning();
         break;
       case 'collect_author':
         store.setField('authorName', value);
@@ -354,18 +421,23 @@ export function ChatContainer() {
       store.setStep('creating_book');
       await showTypingThenMessage(t('creatingBook'), 'text', 500);
 
+      // Enrich briefing with AI planning output
+      const enrichedBriefing = state.aiPlanningText
+        ? `${state.briefing}\n\n---\n\n${state.aiPlanningText}`
+        : state.briefing;
+
       const bookInput =
         state.path === 'generate'
           ? {
               mode: BookCreationMode.GUIDED,
-              briefing: state.briefing,
+              briefing: enrichedBriefing,
               author: state.authorName,
             }
           : {
               mode: BookCreationMode.SIMPLE,
               title: state.title,
               subtitle: state.subtitle,
-              briefing: state.briefing,
+              briefing: enrichedBriefing,
               author: state.authorName,
             };
 
@@ -434,27 +506,13 @@ export function ChatContainer() {
     <div className="flex flex-col h-full">
       {/* Messages area */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto py-4 space-y-3">
-        {store.messages.map((msg) => {
-          if (msg.type === 'planning' && msg.planning) {
-            return (
-              <PlanningCard
-                key={msg.id}
-                title={msg.planning.title}
-                subtitle={msg.planning.subtitle}
-                chapters={msg.planning.chapters}
-                onContinue={handleViewBook}
-              />
-            );
-          }
-
-          return (
-            <MessageBubble
-              key={msg.id}
-              message={msg}
-              onChoice={handleChoice}
-            />
-          );
-        })}
+        {store.messages.map((msg) => (
+          <MessageBubble
+            key={msg.id}
+            message={msg}
+            onChoice={handleChoice}
+          />
+        ))}
 
         {isTyping && <TypingIndicator />}
       </div>
@@ -465,7 +523,7 @@ export function ChatContainer() {
         placeholder={inputConfig.placeholder}
         minLength={inputConfig.minLength}
         onSubmit={handleInput}
-        disabled={store.isProcessing}
+        disabled={store.isProcessing || isStreaming}
       />
     </div>
   );

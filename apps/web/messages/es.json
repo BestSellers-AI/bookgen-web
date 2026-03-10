@@ -132,6 +132,7 @@
     "author": "Autor",
     "welcome": "Bienvenido",
     "welcomeBack": "Bienvenido de vuelta",
+    "welcomeSubtitle": "¿Escribimos un nuevo proyecto hoy?",
     "totalBooks": "Total de Libros",
     "inPreview": "En Vista Previa",
     "generating": "Generando",
@@ -1074,6 +1075,12 @@
     "namePlaceholder": "Tu nombre",
     "emailPlaceholder": "tu@email.com",
     "phonePlaceholder": "+52 (55) 1234-5678",
-    "minChars": "Minimo {count} caracteres"
+    "minChars": "Minimo {count} caracteres",
+    "aiPlanningThinking": "Dejame pensar en la mejor estructura para tu libro...",
+    "aiPlanningReady": "¡Todo listo! ¿Avanzamos?",
+    "aiPlanningYes": "SÍ, AVANCEMOS",
+    "aiPlanningRestart": "REINICIAR",
+    "aiPlanningError": "Algo salio mal al planificar tu libro. Quieres intentar de nuevo?",
+    "aiPlanningRetry": "INTENTAR DE NUEVO"
   }
 }

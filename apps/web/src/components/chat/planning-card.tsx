@@ -9,7 +9,7 @@ interface PlanningCardProps {
   title: string;
   subtitle?: string;
   chapters: Array<{ title: string }>;
-  onContinue: () => void;
+  onContinue?: () => void;
 }
 
 export function PlanningCard({
@@ -58,12 +58,17 @@ export function PlanningCard({
           ))}
         </div>
 
-        <div className="px-5 py-4 border-t border-border/30">
-          <Button onClick={onContinue} className="w-full min-h-[48px] rounded-xl text-base font-semibold">
-            {t('viewMyBook')}
-            <ChevronRight size={18} className="ml-1" />
-          </Button>
-        </div>
+        {onContinue && (
+          <div className="px-5 py-4 border-t border-border/30">
+            <Button
+              onClick={onContinue}
+              className="w-full min-h-[48px] rounded-xl text-base font-semibold"
+            >
+              {t('viewMyBook')}
+              <ChevronRight size={18} className="ml-1" />
+            </Button>
+          </div>
+        )}
       </div>
     </motion.div>
   );

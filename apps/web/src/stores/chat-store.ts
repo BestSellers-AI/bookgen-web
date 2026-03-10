@@ -6,7 +6,7 @@ export type ChatMessageType =
   | 'text'
   | 'choices'
   | 'image'
-  | 'planning'
+  | 'streaming'
   | 'loading';
 
 export interface ChatMessage {
@@ -16,11 +16,6 @@ export interface ChatMessage {
   type: ChatMessageType;
   choices?: string[];
   answered?: boolean;
-  planning?: {
-    title: string;
-    subtitle?: string;
-    chapters: Array<{ title: string }>;
-  };
   imageUrl?: string;
 }
 
@@ -36,6 +31,8 @@ export type ChatStep =
   | 'collect_title'
   | 'collect_subtitle'
   | 'collect_briefing_custom'
+  | 'ai_planning_streaming'
+  | 'ai_planning_approval'
   | 'collect_author'
   | 'collect_email'
   | 'collect_phone'
@@ -61,6 +58,7 @@ interface ChatState {
   userEmail: string;
   userPhone: string;
   bookId: string | null;
+  aiPlanningText: string | null;
   error: string | null;
   isProcessing: boolean;
 }
@@ -72,6 +70,9 @@ interface ChatActions {
   setStep: (step: ChatStep) => void;
   setPath: (path: ChatPath) => void;
   setField: (field: keyof ChatState, value: string | null) => void;
+  updateMessageContent: (id: string, content: string) => void;
+  updateMessageType: (id: string, type: ChatMessageType) => void;
+  setAiPlanningText: (text: string | null) => void;
   setProcessing: (processing: boolean) => void;
   setError: (error: string | null) => void;
   reset: () => void;
@@ -89,6 +90,7 @@ const initialState: ChatState = {
   userEmail: '',
   userPhone: '',
   bookId: null,
+  aiPlanningText: null,
   error: null,
   isProcessing: false,
 };
@@ -123,6 +125,22 @@ export const useChatStore = create<ChatState & ChatActions>()((set) => ({
   setPath: (path) => set({ path }),
 
   setField: (field, value) => set({ [field]: value } as Partial<ChatState>),
+
+  updateMessageContent: (id, content) =>
+    set((state) => ({
+      messages: state.messages.map((m) =>
+        m.id === id ? { ...m, content } : m,
+      ),
+    })),
+
+  updateMessageType: (id, type) =>
+    set((state) => ({
+      messages: state.messages.map((m) =>
+        m.id === id ? { ...m, type } : m,
+      ),
+    })),
+
+  setAiPlanningText: (aiPlanningText) => set({ aiPlanningText }),
 
   setProcessing: (isProcessing) => set({ isProcessing }),
 
