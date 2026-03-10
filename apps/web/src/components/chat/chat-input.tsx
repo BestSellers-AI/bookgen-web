@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslations } from 'next-intl';
+import { PhoneInput } from './phone-input';
 
 interface ChatInputProps {
   mode: 'text' | 'textarea' | 'email' | 'phone' | 'hidden';
@@ -28,7 +29,7 @@ export function ChatInput({
   const t = useTranslations('chat');
 
   useEffect(() => {
-    if (mode !== 'hidden') {
+    if (mode !== 'hidden' && mode !== 'phone') {
       // Small delay to let animations finish before focusing
       const timer = setTimeout(() => inputRef.current?.focus(), 300);
       return () => clearTimeout(timer);
@@ -36,6 +37,22 @@ export function ChatInput({
   }, [mode]);
 
   if (mode === 'hidden') return null;
+
+  if (mode === 'phone') {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="border-t border-border/50 bg-background px-4 py-3 pb-safe"
+      >
+        <PhoneInput
+          placeholder={placeholder}
+          onSubmit={onSubmit}
+          disabled={disabled}
+        />
+      </motion.div>
+    );
+  }
 
   const handleSubmit = () => {
     const trimmed = value.trim();
@@ -82,7 +99,7 @@ export function ChatInput({
         ) : (
           <Input
             ref={inputRef as React.Ref<HTMLInputElement>}
-            type={mode === 'email' ? 'email' : mode === 'phone' ? 'tel' : 'text'}
+            type={mode === 'email' ? 'email' : 'text'}
             value={value}
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={handleKeyDown}
