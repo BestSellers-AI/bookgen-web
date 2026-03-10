@@ -502,7 +502,7 @@ export class BookService {
         })),
       });
 
-      // Update book planning
+      // Update book planning + optional title/subtitle/author
       await tx.book.update({
         where: { id: bookId },
         data: {
@@ -515,6 +515,9 @@ export class BookService {
             ...(dto.conclusion ? { conclusion: dto.conclusion } : {}),
             ...(dto.glossary ? { glossary: dto.glossary } : {}),
           } as unknown as Prisma.JsonObject,
+          ...(dto.title ? { title: dto.title } : {}),
+          ...(dto.subtitle !== undefined ? { subtitle: dto.subtitle || null } : {}),
+          ...(dto.author ? { author: dto.author } : {}),
         },
       });
     });

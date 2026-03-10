@@ -40,4 +40,19 @@ export class UpdatePlanningDto {
   @IsArray()
   @IsString({ each: true })
   glossary?: string[];
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  title?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(300)
+  subtitle?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  author?: string;
 }

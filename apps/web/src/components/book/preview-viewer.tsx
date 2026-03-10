@@ -185,6 +185,7 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
             </Button>
           )}
 
+          {/* Regenerate preview — hidden for now, uncomment to re-enable
           <ConfirmDialog
             title={t("regeneratePreview")}
             description={t("regenerateConfirmDesc")}
@@ -205,6 +206,7 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
               </Button>
             }
           />
+          */}
 
           {/* Approve Structure — only for structure-only preview */}
           {isStructureOnly && (
@@ -262,6 +264,9 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
         <PlanningEditor
           planning={planning}
           bookId={book.id}
+          bookTitle={book.title}
+          bookSubtitle={book.subtitle ?? ''}
+          bookAuthor={book.author ?? ''}
           onSave={handleSavePlanning}
           onCancel={() => setIsEditing(false)}
         />

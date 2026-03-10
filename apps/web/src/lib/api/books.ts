@@ -39,6 +39,9 @@ export interface UpdatePlanningInput {
   chapters: Array<{ title: string; topics: Array<{ title: string; content: string }> }>;
   conclusion?: string;
   glossary?: string[];
+  title?: string;
+  subtitle?: string;
+  author?: string;
 }
 
 export const booksApi = {

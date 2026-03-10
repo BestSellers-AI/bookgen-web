@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, X, Loader2 } from "lucide-react";
+import { Plus, X, Loader2, Save } from "lucide-react";
 import { booksApi } from "@/lib/api/books";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,11 +13,25 @@ import type { BookPlanning } from "@/lib/api/types";
 interface PlanningEditorProps {
   planning: BookPlanning;
   bookId: string;
+  bookTitle: string;
+  bookSubtitle: string;
+  bookAuthor: string;
   onSave: () => void;
   onCancel: () => void;
 }
 
-export function PlanningEditor({ planning, bookId, onSave, onCancel }: PlanningEditorProps) {
+export function PlanningEditor({
+  planning,
+  bookId,
+  bookTitle,
+  bookSubtitle,
+  bookAuthor,
+  onSave,
+  onCancel,
+}: PlanningEditorProps) {
+  const [title, setTitle] = useState(bookTitle);
+  const [subtitle, setSubtitle] = useState(bookSubtitle);
+  const [author, setAuthor] = useState(bookAuthor);
   const [chapters, setChapters] = useState(
     planning.chapters.map((ch) => ({
       title: ch.title,
@@ -29,8 +43,8 @@ export function PlanningEditor({ planning, bookId, onSave, onCancel }: PlanningE
   const tCommon = useTranslations("common");
   const tErr = useTranslations("errors");
 
-  const updateChapterTitle = (idx: number, title: string) => {
-    setChapters((prev) => prev.map((ch, i) => (i === idx ? { ...ch, title } : ch)));
+  const updateChapterTitle = (idx: number, value: string) => {
+    setChapters((prev) => prev.map((ch, i) => (i === idx ? { ...ch, title: value } : ch)));
   };
 
   const updateTopicTitle = (chIdx: number, topicIdx: number, value: string) => {
@@ -79,7 +93,15 @@ export function PlanningEditor({ planning, bookId, onSave, onCancel }: PlanningE
   };
 
   const handleSave = async () => {
-    // Validate
+    if (!title.trim()) {
+      toast.error(t("titleRequired"));
+      return;
+    }
+    if (!author.trim()) {
+      toast.error(t("authorRequired"));
+      return;
+    }
+
     const valid = chapters.every(
       (ch) => ch.title.trim() && ch.topics.some((t) => t.title.trim()),
     );
@@ -91,6 +113,9 @@ export function PlanningEditor({ planning, bookId, onSave, onCancel }: PlanningE
     setSaving(true);
     try {
       await booksApi.updatePlanning(bookId, {
+        title: title.trim(),
+        subtitle: subtitle.trim(),
+        author: author.trim(),
         chapters: chapters.map((ch) => ({
           title: ch.title.trim(),
           topics: ch.topics
@@ -107,8 +132,74 @@ export function PlanningEditor({ planning, bookId, onSave, onCancel }: PlanningE
     }
   };
 
+  const actionButtons = (
+    <div className="flex gap-3">
+      <Button variant="ghost" onClick={onCancel}>
+        {tCommon("cancel")}
+      </Button>
+      <Button onClick={handleSave} disabled={saving}>
+        {saving ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            {tCommon("save")}
+          </>
+        ) : (
+          <>
+            <Save className="mr-2 h-4 w-4" />
+            {t("saveStructure")}
+          </>
+        )}
+      </Button>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
+      {/* Top action buttons */}
+      <div className="flex justify-end">
+        {actionButtons}
+      </div>
+
+      {/* Title / Subtitle / Author */}
+      <div className="glass rounded-[2rem] p-6 space-y-4">
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 block">
+              {t("titleLabel")}
+            </label>
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder={t("titlePlaceholder")}
+              className="h-12 rounded-xl bg-accent/50 border-border text-lg font-bold"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 block">
+              {t("subtitleLabel")}
+            </label>
+            <Input
+              value={subtitle}
+              onChange={(e) => setSubtitle(e.target.value)}
+              placeholder={t("subtitlePlaceholder")}
+              className="h-11 rounded-xl bg-accent/50 border-border text-base italic"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-1.5 block">
+              {t("author")}
+            </label>
+            <Input
+              value={author}
+              onChange={(e) => setAuthor(e.target.value)}
+              placeholder={t("authorPlaceholder")}
+              className="h-11 rounded-xl bg-accent/50 border-border text-base"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Chapters */}
       {chapters.map((chapter, chIdx) => (
         <div key={chIdx} className="glass rounded-[2rem] p-6 space-y-4">
           <div className="flex items-center gap-3">
@@ -186,20 +277,9 @@ export function PlanningEditor({ planning, bookId, onSave, onCancel }: PlanningE
         {t("addChapter")}
       </Button>
 
-      <div className="flex justify-end gap-3 pt-4">
-        <Button variant="ghost" onClick={onCancel}>
-          {tCommon("cancel")}
-        </Button>
-        <Button onClick={handleSave} disabled={saving}>
-          {saving ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {tCommon("save")}
-            </>
-          ) : (
-            t("saveStructure")
-          )}
-        </Button>
+      {/* Bottom action buttons */}
+      <div className="flex justify-end pt-4">
+        {actionButtons}
       </div>
     </div>
   );
