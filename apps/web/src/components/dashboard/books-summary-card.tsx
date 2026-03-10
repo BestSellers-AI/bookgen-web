@@ -2,6 +2,7 @@
 
 import { Sparkles, Zap, CheckCircle2, BookOpen } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import type { BookListItem } from "@/lib/api/types";
 import { DASHBOARD_TAB_STATUSES } from "@/lib/book-utils";
 
@@ -32,6 +33,7 @@ export function BooksSummaryCard({ books }: BooksSummaryCardProps) {
       icon: BookOpen,
       color: "text-primary",
       bg: "bg-primary/10 border-primary/20",
+      filter: "ALL",
     },
     {
       label: t("inPreview"),
@@ -39,6 +41,7 @@ export function BooksSummaryCard({ books }: BooksSummaryCardProps) {
       icon: Sparkles,
       color: "text-amber-400",
       bg: "bg-amber-500/10 border-amber-500/20",
+      filter: "PREVIEW",
     },
     {
       label: t("generating"),
@@ -46,6 +49,7 @@ export function BooksSummaryCard({ books }: BooksSummaryCardProps) {
       icon: Zap,
       color: "text-orange-400",
       bg: "bg-orange-500/10 border-orange-500/20",
+      filter: "GENERATING",
     },
     {
       label: t("ready"),
@@ -53,17 +57,38 @@ export function BooksSummaryCard({ books }: BooksSummaryCardProps) {
       icon: CheckCircle2,
       color: "text-emerald-400",
       bg: "bg-emerald-500/10 border-emerald-500/20",
+      filter: "GENERATED",
     },
   ];
+
+  const cardContent = (stat: typeof stats[number]) => (
+    <>
+      <div
+        className={`w-10 h-10 rounded-xl ${stat.bg} border flex items-center justify-center`}
+      >
+        <stat.icon className={`w-5 h-5 ${stat.color}`} />
+      </div>
+      <div>
+        <div className="text-2xl font-black text-foreground">
+          {stat.value}
+        </div>
+        <div className="text-xs font-medium text-muted-foreground">
+          {stat.label}
+        </div>
+      </div>
+    </>
+  );
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       {stats.map((stat) => {
+        const href = `/dashboard/books${stat.filter !== "ALL" ? `?filter=${stat.filter}` : ""}`;
         const isPreview = stat === stats[1];
+        const isGenerating = stat === stats[2] && stat.value > 0;
 
         if (isPreview) {
           return (
-            <div key={stat.label} className="relative rounded-[1.5rem] p-[2px] overflow-hidden">
+            <Link key={stat.label} href={href} className="relative rounded-[1.5rem] p-[2px] overflow-hidden hover:opacity-90 transition-opacity">
               <div
                 className="absolute top-1/2 left-1/2 w-[200%] aspect-square animate-border-spin"
                 style={{
@@ -71,43 +96,20 @@ export function BooksSummaryCard({ books }: BooksSummaryCardProps) {
                 }}
               />
               <div className="relative glass rounded-[calc(1.5rem-2px)] p-5 flex flex-col gap-3" style={{ background: "color-mix(in srgb, var(--card), transparent 5%)" }}>
-                <div
-                  className={`w-10 h-10 rounded-xl ${stat.bg} border flex items-center justify-center`}
-                >
-                  <stat.icon className={`w-5 h-5 ${stat.color}`} />
-                </div>
-                <div>
-                  <div className="text-2xl font-black text-foreground">
-                    {stat.value}
-                  </div>
-                  <div className="text-xs font-medium text-muted-foreground">
-                    {stat.label}
-                  </div>
-                </div>
+                {cardContent(stat)}
               </div>
-            </div>
+            </Link>
           );
         }
 
         return (
-          <div
+          <Link
             key={stat.label}
-            className="glass rounded-[1.5rem] p-5 flex flex-col gap-3"
+            href={href}
+            className={`glass rounded-[1.5rem] p-5 flex flex-col gap-3 hover:border-primary/30 transition-colors ${isGenerating ? "animate-pulse" : ""}`}
           >
-            <div
-              className={`w-10 h-10 rounded-xl ${stat.bg} border flex items-center justify-center`}
-            >
-              <stat.icon className={`w-5 h-5 ${stat.color}`} />
-            </div>
-            <div>
-              <div className="text-2xl font-black text-foreground">
-                {stat.value}
-              </div>
-              <div className="text-xs font-medium text-muted-foreground">
-                {stat.label}
-              </div>
-            </div>
-          </div>
+            {cardContent(stat)}
+          </Link>
         );
       })}
     </div>

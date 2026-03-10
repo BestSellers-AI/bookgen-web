@@ -42,10 +42,13 @@ export function GenerationProgress({ book, onComplete }: GenerationProgressProps
     return statuses;
   });
 
+  const [backMatterDone, setBackMatterDone] = useState(false);
+
   const totalCount = book.chaptersCount || book.chapters.length;
   const completedCount = Object.values(chapterStatuses).filter(
     (s) => s === "generated",
   ).length;
+  const allChaptersDone = completedCount === totalCount && totalCount > 0;
 
   // Fallback poll timer
   const lastEventRef = useRef(Date.now());
@@ -67,8 +70,10 @@ export function GenerationProgress({ book, onComplete }: GenerationProgressProps
         } else if (status === "generating" && currentChapter) {
           setChapterStatuses((prev) => ({ ...prev, [currentChapter]: "generating" }));
         } else if (status === "complete") {
+          setBackMatterDone(true);
           toast.success(t("generationComplete"));
-          onComplete();
+          // Small delay so user sees the back matter turn green
+          setTimeout(() => onComplete(), 1500);
         }
       }
     },
@@ -112,7 +117,10 @@ export function GenerationProgress({ book, onComplete }: GenerationProgressProps
     };
   }, [book.id, onComplete]);
 
-  const progressPercent = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+  // +1 for the back matter step
+  const totalSteps = totalCount + 1;
+  const completedSteps = completedCount + (backMatterDone ? 1 : 0);
+  const progressPercent = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0;
 
   return (
     <div className="max-w-3xl mx-auto space-y-8">
@@ -132,7 +140,7 @@ export function GenerationProgress({ book, onComplete }: GenerationProgressProps
       <div className="space-y-3">
         <Progress value={progressPercent} className="h-3" />
         <p className="text-sm font-medium text-muted-foreground">
-          {t("chaptersOf", { completed: completedCount, total: totalCount })}
+          {t("stepsOf", { completed: completedSteps, total: totalSteps })}
         </p>
       </div>
 
@@ -190,6 +198,53 @@ export function GenerationProgress({ book, onComplete }: GenerationProgressProps
               </div>
             );
           })}
+
+        {/* Back matter (conclusion, glossary, appendix, etc.) */}
+        {(() => {
+          const backMatterState: ChapterState = backMatterDone
+            ? "generated"
+            : allChaptersDone
+              ? "generating"
+              : "pending";
+          const isActive = backMatterState === "generating";
+
+          return (
+            <div
+              className={`flex items-center gap-4 p-4 rounded-xl transition-colors ${
+                isActive ? "bg-orange-500/5 border border-orange-500/20" : "bg-accent/30 border border-transparent"
+              }`}
+            >
+              {backMatterState === "pending" && (
+                <Circle className="h-5 w-5 text-muted-foreground/40 shrink-0" />
+              )}
+              {backMatterState === "generating" && (
+                <Loader2 className="h-5 w-5 text-orange-400 animate-spin shrink-0" />
+              )}
+              {backMatterState === "generated" && (
+                <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
+              )}
+
+              <span
+                className={`text-sm font-medium flex-1 flex items-center gap-2 ${
+                  backMatterState === "generated"
+                    ? "text-foreground"
+                    : backMatterState === "generating"
+                      ? "text-orange-400"
+                      : "text-muted-foreground"
+                }`}
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                {t("backMatter")}
+              </span>
+
+              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
+                {backMatterState === "pending" && t("chapterPending")}
+                {backMatterState === "generating" && t("chapterGenerating")}
+                {backMatterState === "generated" && t("chapterCompleted")}
+              </span>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Search,
   PlusCircle,
@@ -60,11 +61,15 @@ const STATUS_FILTER_MAP: Record<string, BookStatus | undefined> = {
 
 export default function BooksListPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialFilter = searchParams.get("filter") ?? "ALL";
   const [books, setBooks] = useState<BookListItem[]>([]);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [statusFilter, setStatusFilter] = useState(
+    Object.keys(STATUS_FILTER_MAP).includes(initialFilter) ? initialFilter : "ALL"
+  );
   const [sortBy, setSortBy] = useState<"createdAt" | "title" | "updatedAt">("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);

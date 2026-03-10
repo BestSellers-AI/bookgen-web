@@ -26,6 +26,8 @@ export function QuickActions() {
       icon: Library,
       href: "/dashboard/books",
       className: "bg-accent hover:bg-accent/80 text-foreground",
+      /* Hidden on mobile — remove 'hidden sm:flex' to show on all breakpoints */
+      hideOnMobile: true,
     },
   ];
 
@@ -35,7 +37,7 @@ export function QuickActions() {
         <Button
           key={action.href}
           asChild
-          className={`h-11 px-6 rounded-xl font-semibold gap-2 w-full ${action.className}`}
+          className={`h-11 px-6 rounded-xl font-semibold gap-2 w-full ${'hideOnMobile' in action && action.hideOnMobile ? 'hidden sm:flex' : ''} ${action.className}`}
         >
           <Link href={action.href}>
             <action.icon className="w-4 h-4" />

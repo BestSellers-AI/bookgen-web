@@ -240,6 +240,8 @@
     "generationStarted": "¡Generación del libro iniciada!",
     "generationInProgress": "Generando",
     "chaptersOf": "{completed} de {total} capítulos",
+    "stepsOf": "{completed} de {total} pasos",
+    "backMatter": "Secciones finales",
     "chapterPending": "Pendiente",
     "chapterGenerating": "Generando",
     "chapterCompleted": "Listo",
