@@ -66,6 +66,16 @@ export class AddonController {
     return this.addonService.selectCover(bookId, fileId, userId);
   }
 
+  @Patch('chapters/:chapterId/image/:imageId')
+  async selectChapterImage(
+    @CurrentUser('id') userId: string,
+    @Param('bookId') bookId: string,
+    @Param('chapterId') chapterId: string,
+    @Param('imageId') imageId: string,
+  ) {
+    return this.addonService.selectChapterImage(bookId, chapterId, imageId, userId);
+  }
+
   @Delete(':id')
   async cancel(
     @CurrentUser('id') userId: string,

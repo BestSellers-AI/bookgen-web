@@ -39,6 +39,7 @@ export interface ChapterDetail extends ChapterSummary {
   editedContent: string | null;
   topics: Array<{ title: string; content?: string }> | null;
   contextSummary: string | null;
+  selectedImageId: string | null;
 }
 
 export interface BookFileSummary {

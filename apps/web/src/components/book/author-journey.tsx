@@ -61,7 +61,7 @@ import {
   BUNDLE_GLOBAL_LAUNCH,
 } from "@bestsellers/shared";
 import type { BundleConfig } from "@bestsellers/shared";
-import type { BookAddonSummary, BookDetail } from "@/lib/api/types";
+import type { BookAddonSummary, BookDetail, BookImageSummary } from "@/lib/api/types";
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -237,6 +237,12 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
   const [selectingCover, setSelectingCover] = useState<string | null>(null);
   const [requestingMoreCovers, setRequestingMoreCovers] = useState(false);
 
+  // Image gallery state
+  const [imageGalleryOpen, setImageGalleryOpen] = useState(false);
+  const [expandedImage, setExpandedImage] = useState<{ id: string; url: string; caption: string | null; chapterId: string | null } | null>(null);
+  const [selectingImage, setSelectingImage] = useState<string | null>(null);
+  const [requestingMoreImages, setRequestingMoreImages] = useState(false);
+
   // Bundle state
   const [bundleDialogOpen, setBundleDialogOpen] = useState(false);
   const [selectedBundle, setSelectedBundle] = useState<BundleConfig | null>(null);
@@ -408,6 +414,53 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
       }
     } finally {
       setRequestingMoreCovers(false);
+    }
+  };
+
+  // Chapter images from book
+  const chapterImages = (book.images ?? []) as BookImageSummary[];
+  const imagesByChapter = book.chapters.reduce<Record<string, BookImageSummary[]>>((acc, ch) => {
+    acc[ch.id] = chapterImages.filter((img) => img.chapterId === ch.id);
+    return acc;
+  }, {});
+
+  const handleSelectChapterImage = async (chapterId: string, imageId: string) => {
+    setSelectingImage(imageId);
+    try {
+      await addonsApi.selectChapterImage(book.id, chapterId, imageId);
+      toast.success(tj("imageSelected"));
+      setImageGalleryOpen(false);
+      setExpandedImage(null);
+      onRefetch();
+    } catch {
+      toast.error(t("requestError"));
+    } finally {
+      setSelectingImage(null);
+    }
+  };
+
+  const hasProcessingImages = addons.some(
+    (a) => a.kind === ProductKind.ADDON_IMAGES && isAddonProcessing(a.status),
+  );
+
+  const handleRequestMoreImages = async () => {
+    setRequestingMoreImages(true);
+    try {
+      await addonsApi.create(book.id, { kind: ProductKind.ADDON_IMAGES });
+      toast.success(t("requestSuccess"));
+      fetchAddons();
+      walletApi.get().then((w) => setBalance(w.balance)).catch(() => {});
+      fetchWalletStore();
+      onRefetch();
+    } catch (err: unknown) {
+      const error = err as { response?: { status?: number } };
+      if (error?.response?.status === 402) {
+        toast.error(t("insufficientCredits"));
+      } else {
+        toast.error(t("requestError"));
+      }
+    } finally {
+      setRequestingMoreImages(false);
     }
   };
 
@@ -677,6 +730,23 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
                               );
                             }
 
+                            // Images step: open image gallery
+                            if (step.id === "images" && chapterImages.length > 0) {
+                              return (
+                                <div className="mt-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="rounded-xl text-xs gap-1.5 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10"
+                                    onClick={() => setImageGalleryOpen(true)}
+                                  >
+                                    <ImageIcon className="w-3.5 h-3.5" />
+                                    {tj("viewImages")}
+                                  </Button>
+                                </div>
+                              );
+                            }
+
                             const completed = addons.find(
                               (a) =>
                                 step.kinds.includes(a.kind as ProductKind) &&
@@ -880,6 +950,161 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
                     <span className="text-xs font-bold">{tj("generateMoreCovers")}</span>
                     <span className="text-[10px] text-muted-foreground">
                       {CREDITS_COST[ProductKind.ADDON_COVER]} {tCommon("credits")}
+                    </span>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      {/* ─── Image Gallery Sheet ─── */}
+      <Sheet open={imageGalleryOpen} onOpenChange={(open) => {
+        setImageGalleryOpen(open);
+        if (!open) setExpandedImage(null);
+      }}>
+        <SheetContent
+          side="bottom"
+          className="rounded-t-[2rem] max-h-[85vh] overflow-y-auto"
+        >
+          <SheetHeader className="text-left pb-4">
+            <SheetTitle className="flex items-center gap-2">
+              <ImageIcon className="w-5 h-5 text-indigo-500" />
+              {tj("imageGalleryTitle")}
+            </SheetTitle>
+            <SheetDescription>{tj("imageGallerySubtitle")}</SheetDescription>
+          </SheetHeader>
+
+          {/* Expanded view */}
+          {expandedImage ? (
+            <div className="pb-6 space-y-4">
+              <button
+                type="button"
+                onClick={() => setExpandedImage(null)}
+                className="text-xs font-bold text-primary flex items-center gap-1"
+              >
+                <ArrowRight className="w-3 h-3 rotate-180" />
+                {tj("backToGallery")}
+              </button>
+
+              <div className="flex justify-center">
+                <img
+                  src={expandedImage.url}
+                  alt={expandedImage.caption ?? ""}
+                  className="max-h-[50vh] w-auto rounded-xl border-2 border-border shadow-xl object-contain"
+                />
+              </div>
+
+              {expandedImage.caption && (
+                <p className="text-xs text-muted-foreground text-center italic">
+                  {expandedImage.caption}
+                </p>
+              )}
+
+              {expandedImage.chapterId && (() => {
+                const chapter = book.chapters.find((ch) => ch.id === expandedImage.chapterId);
+                if (!chapter) return null;
+                const isSelected = chapter.selectedImageId === expandedImage.id;
+
+                return isSelected ? (
+                  <div className="flex items-center justify-center gap-2 py-3 text-emerald-400 font-bold text-sm">
+                    <CheckCircle2 className="w-5 h-5" />
+                    {tj("currentImage")}
+                  </div>
+                ) : (
+                  <Button
+                    className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:from-indigo-500/90 hover:to-purple-500/90 font-bold"
+                    size="lg"
+                    onClick={() => handleSelectChapterImage(expandedImage.chapterId!, expandedImage.id)}
+                    disabled={selectingImage === expandedImage.id}
+                  >
+                    {selectingImage === expandedImage.id ? (
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    ) : (
+                      <ImageIcon className="w-4 h-4 mr-2" />
+                    )}
+                    {tj("selectAsImage")}
+                  </Button>
+                );
+              })()}
+            </div>
+          ) : (
+            /* Chapter-grouped grid view */
+            <div className="pb-6 space-y-6">
+              {book.chapters.map((chapter) => {
+                const imgs = imagesByChapter[chapter.id] ?? [];
+                if (imgs.length === 0) return null;
+
+                return (
+                  <div key={chapter.id}>
+                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
+                      {chapter.sequence}. {chapter.title}
+                    </h4>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {imgs.map((img) => {
+                        const isSelected = chapter.selectedImageId === img.id;
+
+                        return (
+                          <button
+                            key={img.id}
+                            type="button"
+                            onClick={() => setExpandedImage({ id: img.id, url: img.imageUrl, caption: img.caption, chapterId: img.chapterId })}
+                            className={`relative group rounded-xl overflow-hidden border-2 transition-all aspect-square ${
+                              isSelected
+                                ? "border-emerald-400 shadow-lg shadow-emerald-500/20"
+                                : "border-border hover:border-indigo-500/50"
+                            }`}
+                          >
+                            <img
+                              src={img.imageUrl}
+                              alt={img.caption ?? ""}
+                              className="w-full h-full object-cover"
+                            />
+
+                            {isSelected && (
+                              <div className="absolute top-2 right-2">
+                                <div className="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg">
+                                  <CheckCircle2 className="w-4 h-4 text-white" />
+                                </div>
+                              </div>
+                            )}
+
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-end justify-center pb-3 opacity-0 group-hover:opacity-100">
+                              <span className="text-white text-[10px] font-bold bg-black/60 px-2.5 py-1 rounded-lg backdrop-blur-sm">
+                                {tj("tapToExpand")}
+                              </span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Generate more images button */}
+              <button
+                type="button"
+                onClick={handleRequestMoreImages}
+                disabled={requestingMoreImages || hasProcessingImages}
+                className="w-full rounded-xl border-2 border-dashed border-indigo-500/30 hover:border-indigo-500/60 transition-all py-6 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {requestingMoreImages || hasProcessingImages ? (
+                  <>
+                    <Loader2 className="w-8 h-8 animate-spin text-indigo-500/60" />
+                    <span className="text-[10px] font-bold text-indigo-500/60">
+                      {tj("generatingImages")}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-12 h-12 rounded-full bg-indigo-500/10 flex items-center justify-center">
+                      <Plus className="w-6 h-6 text-indigo-500" />
+                    </div>
+                    <span className="text-xs font-bold">{tj("generateMoreImages")}</span>
+                    <span className="text-[10px] text-muted-foreground">
+                      {CREDITS_COST[ProductKind.ADDON_IMAGES]} {tCommon("credits")}
                     </span>
                   </>
                 )}

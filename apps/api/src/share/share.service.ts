@@ -185,6 +185,7 @@ export class ShareService {
         editedContent: ch.editedContent,
         topics: ch.topics as SharedBookPublicView['chapters'][number]['topics'],
         contextSummary: null,
+        selectedImageId: ch.selectedImageId,
       })),
       coverUrl: book.selectedCoverFile?.fileUrl ?? book.files[0]?.fileUrl ?? null,
       wordCount: book.wordCount,

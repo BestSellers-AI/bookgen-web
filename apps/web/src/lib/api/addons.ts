@@ -37,4 +37,9 @@ export const addonsApi = {
     apiClient
       .patch<{ coverUrl: string }>(`/books/${bookId}/addons/cover/${fileId}`)
       .then((r) => r.data),
+
+  selectChapterImage: (bookId: string, chapterId: string, imageId: string) =>
+    apiClient
+      .patch<{ imageUrl: string }>(`/books/${bookId}/addons/chapters/${chapterId}/image/${imageId}`)
+      .then((r) => r.data),
 };

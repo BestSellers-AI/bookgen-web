@@ -53,6 +53,10 @@ export class AddonService {
         closure: true,
         wordCount: true,
         pageCount: true,
+        chapters: {
+          orderBy: { sequence: 'asc' as const },
+          select: { id: true, sequence: true, title: true },
+        },
       },
     });
 
@@ -94,8 +98,8 @@ export class AddonService {
     // Build addon-specific params
     const dispatchParams: Record<string, unknown> = { ...(dto.params ?? {}) };
 
-    // Enrich cover addon dispatch with full book context (excluding chapter content)
-    if (dto.kind === 'ADDON_COVER') {
+    // Enrich cover/images addon dispatch with book context
+    if (dto.kind === 'ADDON_COVER' || dto.kind === 'ADDON_IMAGES') {
       dispatchParams.bookContext = {
         title: book.title,
         subtitle: book.subtitle,
@@ -111,6 +115,11 @@ export class AddonService {
         closure: book.closure,
         wordCount: book.wordCount,
         pageCount: book.pageCount,
+        chapters: book.chapters.map((ch) => ({
+          id: ch.id,
+          sequence: ch.sequence,
+          title: ch.title,
+        })),
       };
     }
 
@@ -424,5 +433,48 @@ export class AddonService {
     this.logger.log(`Cover selected: file ${fileId} for book ${bookId}`);
 
     return { coverUrl: file.fileUrl };
+  }
+
+  async selectChapterImage(
+    bookId: string,
+    chapterId: string,
+    imageId: string,
+    userId: string,
+  ): Promise<{ imageUrl: string }> {
+    const book = await this.prisma.book.findFirst({
+      where: { id: bookId, userId, deletedAt: null },
+      select: { id: true },
+    });
+
+    if (!book) {
+      throw new NotFoundException('Book not found');
+    }
+
+    const chapter = await this.prisma.chapter.findFirst({
+      where: { id: chapterId, bookId },
+    });
+
+    if (!chapter) {
+      throw new NotFoundException('Chapter not found');
+    }
+
+    const image = await this.prisma.bookImage.findFirst({
+      where: { id: imageId, bookId, chapterId },
+    });
+
+    if (!image) {
+      throw new NotFoundException('Image not found for this chapter');
+    }
+
+    await this.prisma.chapter.update({
+      where: { id: chapterId },
+      data: { selectedImageId: imageId },
+    });
+
+    this.logger.log(
+      `Chapter image selected: image ${imageId} for chapter ${chapterId} (book ${bookId})`,
+    );
+
+    return { imageUrl: image.imageUrl };
   }
 }

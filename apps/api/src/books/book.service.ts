@@ -201,6 +201,7 @@ export class BookService {
         editedContent: ch.editedContent,
         topics: ch.topics as BookDetail['chapters'][number]['topics'],
         contextSummary: ch.contextSummary,
+        selectedImageId: ch.selectedImageId,
       })),
       files: book.files.map((f) => ({
         id: f.id,

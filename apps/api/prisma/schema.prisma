@@ -380,7 +380,10 @@ model Chapter {
   createdAt      DateTime      @default(now()) @map("created_at")
   updatedAt      DateTime      @updatedAt @map("updated_at")
 
+  selectedImageId String?   @map("selected_image_id")
+
   book                Book                 @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  selectedImage       BookImage?           @relation("SelectedChapterImage", fields: [selectedImageId], references: [id], onDelete: SetNull)
   versions            BookContentVersion[]
   translationChapters TranslationChapter[]
   audiobookChapters   AudiobookChapter[]
@@ -494,8 +497,9 @@ model BookImage {
   position  Int
   createdAt DateTime @default(now()) @map("created_at")
 
-  book    Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  chapter Chapter? @relation(fields: [chapterId], references: [id], onDelete: SetNull)
+  book              Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  chapter           Chapter?  @relation(fields: [chapterId], references: [id], onDelete: SetNull)
+  selectedForChapters Chapter[] @relation("SelectedChapterImage")
 
   @@index([bookId])
   @@map("book_images")

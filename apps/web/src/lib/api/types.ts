@@ -168,6 +168,7 @@ export interface ChapterDetail {
   editedContent: string | null;
   topics: TopicItem[];
   contextSummary: string | null;
+  selectedImageId: string | null;
 }
 
 export interface BookFileSummary {
@@ -176,6 +177,16 @@ export interface BookFileSummary {
   fileName: string;
   fileUrl: string;
   fileSizeBytes: number | null;
+  createdAt: string;
+}
+
+export interface BookImageSummary {
+  id: string;
+  chapterId: string | null;
+  prompt: string;
+  imageUrl: string;
+  caption: string | null;
+  position: number;
   createdAt: string;
 }
 
@@ -238,6 +249,7 @@ export interface BookDetail {
   files: BookFileSummary[];
   addons: BookAddonSummary[];
   translations: BookTranslationSummary[];
+  images: BookImageSummary[];
   share: SharedBookInfo | null;
   createdAt: string;
   updatedAt: string;
