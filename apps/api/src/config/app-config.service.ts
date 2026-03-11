@@ -97,6 +97,40 @@ export class AppConfigService {
     return this.configService.get('EMAIL_FROM');
   }
 
+  // LLM (OpenRouter)
+  get openRouterApiKey(): string {
+    return this.configService.get('OPENROUTER_API_KEY');
+  }
+
+  get llmModelPreview(): string {
+    return this.configService.get('LLM_MODEL_PREVIEW');
+  }
+
+  get llmModelGeneration(): string {
+    return this.configService.get('LLM_MODEL_GENERATION');
+  }
+
+  get llmMaxRetries(): number {
+    return this.configService.get('LLM_MAX_RETRIES');
+  }
+
+  get llmTimeoutMs(): number {
+    return this.configService.get('LLM_TIMEOUT_MS');
+  }
+
+  // Generation
+  get useInternalGeneration(): boolean {
+    return this.configService.get('USE_INTERNAL_GENERATION');
+  }
+
+  get generationConcurrency(): number {
+    return this.configService.get('GENERATION_CONCURRENCY');
+  }
+
+  get generationJobTimeoutMs(): number {
+    return this.configService.get('GENERATION_JOB_TIMEOUT_MS');
+  }
+
   // App
   get nodeEnv(): string {
     return this.configService.get('NODE_ENV');

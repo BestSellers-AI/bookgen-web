@@ -16,6 +16,8 @@ import {
   ProductKind,
 } from '@prisma/client';
 import { ConfigDataService } from '../config-data/config-data.service';
+import { AppConfigService } from '../config/app-config.service';
+import { GenerationService } from '../generation/generation.service';
 import type { BookAddonSummary } from '@bestsellers/shared';
 import { RequestAddonDto } from './dto';
 
@@ -28,6 +30,8 @@ export class AddonService {
     private readonly walletService: WalletService,
     private readonly n8nClient: N8nClientService,
     private readonly configDataService: ConfigDataService,
+    private readonly appConfig: AppConfigService,
+    private readonly generationService: GenerationService,
   ) {}
 
   async request(
@@ -125,9 +129,17 @@ export class AddonService {
       };
     }
 
-    // Dispatch to n8n
+    // Dispatch to processing engine
     try {
-      await this.n8nClient.dispatchAddon(bookId, addon.id, dto.kind, dispatchParams);
+      if (this.appConfig.useInternalGeneration) {
+        await this.generationService.addAddonJob(bookId, {
+          addonId: addon.id,
+          addonKind: dto.kind as ProductKind,
+          params: dispatchParams,
+        });
+      } else {
+        await this.n8nClient.dispatchAddon(bookId, addon.id, dto.kind, dispatchParams);
+      }
     } catch {
       // Refund credits and mark addon as ERROR on dispatch failure
       await this.walletService.addCredits(userId, creditsCost, CreditType.REFUND, {
@@ -236,11 +248,18 @@ export class AddonService {
       { bookId },
     );
 
-    // Dispatch each addon to n8n
+    // Dispatch each addon to processing engine
     const dispatched: typeof addonRecords = [];
     try {
       for (const addon of addonRecords) {
-        await this.n8nClient.dispatchAddon(bookId, addon.id, addon.kind as string, {});
+        if (this.appConfig.useInternalGeneration) {
+          await this.generationService.addAddonJob(bookId, {
+            addonId: addon.id,
+            addonKind: addon.kind,
+          });
+        } else {
+          await this.n8nClient.dispatchAddon(bookId, addon.id, addon.kind as string, {});
+        }
         dispatched.push(addon);
       }
     } catch {

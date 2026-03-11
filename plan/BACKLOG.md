@@ -11,7 +11,8 @@
 - [ ] Configurar variaveis de ambiente em producao (ver `.env.example`)
 - [ ] Configurar dominio + CORS multi-origin no backend (`main.ts` aceita apenas 1 origin hoje)
 - [ ] Configurar Stripe webhooks em producao (endpoint URL, signing secret)
-- [ ] Configurar n8n em producao (webhook URLs, callback secret)
+- [x] ~~Configurar n8n em producao~~ — replaced by internal BullMQ generation
+- [ ] Configurar OpenRouter API key em producao (`OPENROUTER_API_KEY`)
 - [ ] Configurar Cloudflare R2 buckets e credenciais
 - [ ] CI/CD pipeline (build + type-check + lint em PR)
 - [ ] Migrar banco de dados em producao (`pnpm db:migrate`)
@@ -76,6 +77,15 @@
   - [ ] Assets de social proof em `/public/chat/` (imagens do pitch)
   - [ ] Analytics de funil (tracking drop-off por step)
   - [ ] Integracao com UTM params para rastreamento de campanhas
+- [x] KDP PDF generation client-side (`@react-pdf/renderer`) — ver `plan/PDF_GENERATION.md`
+  - [ ] Custom fonts (Crimson Text + Montserrat) — aguardando react-pdf estabilizar font loading
+  - [ ] Dynamic page numbers in footer (react-pdf `render` prop crasheia)
+  - [ ] Odd/even page gutter switching (recto/verso)
+  - [ ] TOC with actual page numbers (requires two-pass rendering)
+  - [ ] DOCX generation using `docx` package
+  - [ ] PDF download button (client-generated, not n8n URL)
+  - [ ] Embed PDF in share page (public book view)
+- [ ] Implement real addon processing (currently mock — returns placeholder image)
 - [ ] Notificacoes por email (alem das in-app) — ex: livro pronto, creditos expirando
 - [ ] Dashboard analytics — graficos de uso, livros gerados por mes, gastos
 - [ ] Tema personalizado por usuario (alem de dark/light/system)

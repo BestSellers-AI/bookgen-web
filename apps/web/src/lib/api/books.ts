@@ -78,6 +78,9 @@ export const booksApi = {
       .post<{ message: string }>(`/books/${bookId}/chapters/${chapterSequence}/regenerate`)
       .then((r) => r.data),
 
+  retry: (id: string) =>
+    apiClient.post<{ message: string }>(`/books/${id}/retry`).then((r) => r.data),
+
   delete: (id: string) =>
     apiClient.delete<{ message: string }>(`/books/${id}`).then((r) => r.data),
 };

@@ -125,4 +125,15 @@ export class BooksController {
     await this.bookService.regenerateChapter(id, +seq, userId);
     return { message: 'Chapter regeneration started' };
   }
+
+  // POST /books/:id/retry
+  @Post(':id/retry')
+  @HttpCode(HttpStatus.ACCEPTED)
+  async retryGeneration(
+    @CurrentUser('id') userId: string,
+    @Param('id') id: string,
+  ): Promise<{ message: string }> {
+    await this.bookService.retryGeneration(id, userId);
+    return { message: 'Generation retry started' };
+  }
 }

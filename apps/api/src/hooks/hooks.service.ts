@@ -340,7 +340,11 @@ export class HooksService {
     }
 
     /* ---------- Success path ---------- */
-    const chapterWordCount = countWords(dto.content);
+    // Count words from topics content (primary) or fallback to dto.content
+    const topicsContent = (dto.topics ?? [])
+      .map((t: { content?: string }) => t.content ?? '')
+      .join(' ');
+    const chapterWordCount = countWords(topicsContent || dto.content);
 
     await this.prisma.chapter.update({
       where: { id: chapter.id },

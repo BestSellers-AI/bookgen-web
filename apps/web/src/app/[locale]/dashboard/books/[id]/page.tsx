@@ -322,6 +322,15 @@ export default function BookViewPage() {
 
   // ERROR
   if (status === "ERROR") {
+    const handleRetry = async () => {
+      try {
+        await booksApi.retry(book.id);
+        await fetchBook();
+      } catch {
+        toast.error(tErr("generic"));
+      }
+    };
+
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] gap-6 text-center">
         <div className="w-20 h-20 rounded-2xl bg-red-500/20 flex items-center justify-center">
@@ -336,7 +345,7 @@ export default function BookViewPage() {
           </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" onClick={fetchBook}>
+          <Button variant="outline" onClick={handleRetry}>
             {t("errorRetry")}
           </Button>
           <ConfirmDialog

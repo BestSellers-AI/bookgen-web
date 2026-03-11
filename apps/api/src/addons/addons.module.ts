@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '../prisma/prisma.module';
 import { WalletModule } from '../wallet/wallet.module';
+import { GenerationModule } from '../generation/generation.module';
 import { AddonController } from './addon.controller';
 import { AddonService } from './addon.service';
 
 @Module({
-  imports: [PrismaModule, WalletModule],
+  imports: [PrismaModule, WalletModule, GenerationModule],
   controllers: [AddonController],
   providers: [AddonService],
   exports: [AddonService],

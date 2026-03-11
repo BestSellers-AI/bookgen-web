@@ -38,6 +38,21 @@ const envSchema = z.object({
   RESEND_API_KEY: z.string().default(''),
   EMAIL_FROM: z.string().default('noreply@updates.bestsellers-ai.com'),
 
+  // LLM (OpenRouter)
+  OPENROUTER_API_KEY: z.string().default(''),
+  LLM_MODEL_PREVIEW: z.string().default('x-ai/grok-4.1-fast'),
+  LLM_MODEL_GENERATION: z.string().default('openai/gpt-5-nano'),
+  LLM_MAX_RETRIES: z.coerce.number().default(3),
+  LLM_TIMEOUT_MS: z.coerce.number().default(120_000),
+
+  // Generation
+  USE_INTERNAL_GENERATION: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((v) => v === 'true'),
+  GENERATION_CONCURRENCY: z.coerce.number().default(2),
+  GENERATION_JOB_TIMEOUT_MS: z.coerce.number().default(2_700_000),
+
   // App
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   API_PORT: z.coerce.number().default(3001),

@@ -4,7 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuthService } from '../auth/auth.service';
 import { CreditLedgerService } from '../wallet/credit-ledger.service';
 import { NotificationService } from '../notifications/notification.service';
-import { NotificationType } from '@prisma/client';
+import { AddonStatus, BookStatus, NotificationType } from '@prisma/client';
 
 @Injectable()
 export class CronService {
@@ -120,5 +120,105 @@ export class CronService {
     this.logger.log(
       `Cron: syncWalletBalances completed — ${synced} synced, ${errors} errors`,
     );
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Recover Stuck Generations — every 10 minutes                       */
+  /* ------------------------------------------------------------------ */
+  @Cron('*/10 * * * *', { name: 'recoverStuckGenerations', timeZone: 'UTC' })
+  async recoverStuckGenerations() {
+    // Books stuck in GENERATING/QUEUED/PREVIEW_GENERATING/PREVIEW_COMPLETING for > 45 min
+    const stuckThreshold = new Date(Date.now() - 45 * 60 * 1000);
+
+    const stuckBooks = await this.prisma.book.findMany({
+      where: {
+        status: {
+          in: [
+            BookStatus.GENERATING,
+            BookStatus.QUEUED,
+            BookStatus.PREVIEW_GENERATING,
+            BookStatus.PREVIEW_COMPLETING,
+          ],
+        },
+        updatedAt: { lt: stuckThreshold },
+        deletedAt: null,
+      },
+      select: { id: true, userId: true, status: true, title: true },
+    });
+
+    if (stuckBooks.length === 0) return;
+
+    this.logger.warn(
+      `Cron: recoverStuckGenerations — found ${stuckBooks.length} stuck books`,
+    );
+
+    for (const book of stuckBooks) {
+      try {
+        await this.prisma.book.updateMany({
+          where: { id: book.id, status: book.status },
+          data: {
+            status: BookStatus.ERROR,
+            generationError: `Generation timed out (stuck in ${book.status} for over 45 minutes). Please try again.`,
+          },
+        });
+
+        await this.notifications.create({
+          userId: book.userId,
+          type: NotificationType.BOOK_GENERATION_ERROR,
+          title: 'Generation timed out',
+          message: `"${book.title}" was stuck and has been marked as failed. You can retry.`,
+          data: { bookId: book.id },
+        });
+
+        this.logger.log(`Recovered stuck book ${book.id} (was ${book.status})`);
+      } catch (error) {
+        this.logger.error(
+          `Failed to recover stuck book ${book.id}: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    }
+
+    // Also recover stuck addons (PENDING/QUEUED for > 30 min)
+    const addonThreshold = new Date(Date.now() - 30 * 60 * 1000);
+
+    const stuckAddons = await this.prisma.bookAddon.findMany({
+      where: {
+        status: { in: [AddonStatus.PENDING, AddonStatus.QUEUED] },
+        updatedAt: { lt: addonThreshold },
+      },
+      include: { book: { select: { userId: true } } },
+    });
+
+    for (const addon of stuckAddons) {
+      try {
+        await this.prisma.bookAddon.updateMany({
+          where: { id: addon.id, status: addon.status },
+          data: {
+            status: AddonStatus.ERROR,
+            error: `Add-on timed out (stuck in ${addon.status} for over 30 minutes).`,
+          },
+        });
+
+        await this.notifications.create({
+          userId: addon.book.userId,
+          type: NotificationType.ADDON_COMPLETED,
+          title: 'Add-on failed',
+          message: `Add-on ${addon.kind} timed out. You can retry.`,
+          data: { bookId: addon.bookId, addonId: addon.id },
+        });
+
+        this.logger.log(`Recovered stuck addon ${addon.id} (was ${addon.status})`);
+      } catch (error) {
+        this.logger.error(
+          `Failed to recover stuck addon ${addon.id}: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    }
+
+    if (stuckAddons.length > 0) {
+      this.logger.warn(
+        `Cron: recoverStuckGenerations — recovered ${stuckAddons.length} stuck addons`,
+      );
+    }
   }
 }

@@ -12,5 +12,6 @@ import { N8nSecretGuard } from './guards/n8n-secret.guard';
   imports: [PrismaModule, NotificationsModule, TranslationsModule, EmailModule, AppConfigModule],
   controllers: [HooksController],
   providers: [HooksService, N8nSecretGuard],
+  exports: [HooksService],
 })
 export class HooksModule {}

@@ -21,8 +21,10 @@ import {
 import { paginate, buildPaginatedResponse } from '../common/utils/paginate';
 import { BookQueryDto, CreateBookDto, UpdatePlanningDto } from './dto';
 import { N8nClientService } from '../n8n/n8n-client.service';
+import { GenerationService } from '../generation/generation.service';
 import { WalletService } from '../wallet/wallet.service';
 import { MonthlyUsageService } from '../wallet/monthly-usage.service';
+import { AppConfigService } from '../config/app-config.service';
 import {
   QUEUE_PRIORITIES,
 } from '@bestsellers/shared';
@@ -40,9 +42,11 @@ export class BookService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly n8nClient: N8nClientService,
+    private readonly generationService: GenerationService,
     private readonly walletService: WalletService,
     private readonly monthlyUsageService: MonthlyUsageService,
     private readonly configDataService: ConfigDataService,
+    private readonly appConfig: AppConfigService,
   ) {}
 
   async findAllByUser(
@@ -439,11 +443,15 @@ export class BookService {
       title: book.title,
       subtitle: book.subtitle,
       creationMode: book.creationMode,
-      settings: book.settings,
+      settings: book.settings as Record<string, unknown> | null,
     };
 
     try {
-      await this.n8nClient.dispatchPreview(bookId, previewRequest);
+      if (this.appConfig.useInternalGeneration) {
+        await this.generationService.addPreviewJob(bookId, previewRequest);
+      } else {
+        await this.n8nClient.dispatchPreview(bookId, previewRequest);
+      }
     } catch {
       // Revert status on dispatch failure
       await this.prisma.book.update({
@@ -572,18 +580,22 @@ export class BookService {
       title: book.title,
       subtitle: book.subtitle,
       creationMode: book.creationMode,
-      settings: book.settings,
+      settings: book.settings as Record<string, unknown> | null,
       planning: book.planning,
       chapters: book.chapters.map((ch) => ({
         id: ch.id,
         sequence: ch.sequence,
         title: ch.title,
-        topics: ch.topics,
+        topics: ch.topics as Array<{ title: string; content: string }>,
       })),
     };
 
     try {
-      await this.n8nClient.dispatchCompletePreview(bookId, completePreviewData);
+      if (this.appConfig.useInternalGeneration) {
+        await this.generationService.addPreviewCompleteJob(bookId, completePreviewData);
+      } else {
+        await this.n8nClient.dispatchCompletePreview(bookId, completePreviewData);
+      }
     } catch {
       await this.prisma.book.update({
         where: { id: bookId },
@@ -680,19 +692,23 @@ export class BookService {
       title: book.title,
       subtitle: book.subtitle,
       creationMode: book.creationMode,
-      settings: book.settings,
+      settings: book.settings as Record<string, unknown> | null,
       planning: book.planning,
       chapters: book.chapters.map((ch) => ({
         id: ch.id,
         sequence: ch.sequence,
         title: ch.title,
-        topics: ch.topics,
+        topics: ch.topics as Array<{ title: string; content: string }>,
       })),
       queuePriority,
     };
 
     try {
-      await this.n8nClient.dispatchGeneration(bookId, generationData);
+      if (this.appConfig.useInternalGeneration) {
+        await this.generationService.addGenerationJob(bookId, generationData, queuePriority);
+      } else {
+        await this.n8nClient.dispatchGeneration(bookId, generationData);
+      }
     } catch {
       // Refund credits and revert status on dispatch failure
       await this.walletService.addCredits(
@@ -795,24 +811,28 @@ export class BookService {
       data: { status: ChapterStatus.GENERATING },
     });
 
-    // Dispatch to n8n
+    // Dispatch to generation engine
     const chapterData = {
       chapterId: chapter.id,
       chapterSequence: chapter.sequence,
       chapterTitle: chapter.title,
-      chapterTopics: chapter.topics,
+      chapterTopics: chapter.topics as Array<{ title: string; content: string }>,
       bookTitle: book.title,
       bookAuthor: book.author,
       bookBriefing: book.briefing,
-      bookSettings: book.settings,
+      bookSettings: book.settings as Record<string, unknown> | null,
       bookPlanning: book.planning,
     };
 
     try {
-      await this.n8nClient.dispatchGeneration(bookId, {
-        type: 'chapter-regeneration',
-        ...chapterData,
-      });
+      if (this.appConfig.useInternalGeneration) {
+        await this.generationService.addChapterRegenJob(bookId, chapterData);
+      } else {
+        await this.n8nClient.dispatchGeneration(bookId, {
+          type: 'chapter-regeneration',
+          ...chapterData,
+        });
+      }
     } catch {
       // Revert chapter status on dispatch failure
       await this.prisma.chapter.update({
@@ -842,5 +862,129 @@ export class BookService {
     this.logger.log(
       `Chapter ${chapterSequence} regeneration started for book ${bookId}`,
     );
+  }
+
+  // ─── Retry Generation (from ERROR status) ──────────────────────────
+
+  async retryGeneration(bookId: string, userId: string) {
+    const book = await this.prisma.book.findFirst({
+      where: { id: bookId, userId, deletedAt: null },
+      include: { chapters: { orderBy: { sequence: 'asc' } } },
+    });
+
+    if (!book) {
+      throw new NotFoundException('Book not found');
+    }
+
+    if (book.status !== BookStatus.ERROR) {
+      throw new BadRequestException(
+        `Cannot retry generation for book with status: ${book.status}`,
+      );
+    }
+
+    // Determine what phase was interrupted based on what exists
+    const hasPlanning = !!book.planning;
+    const hasChapters = book.chapters.length > 0;
+    const hasGeneratedChapters = book.chapters.some(
+      (ch) => ch.status === ChapterStatus.GENERATED,
+    );
+    const hasGenerationTimestamp = !!book.generationStartedAt;
+
+    // If no planning exists, must start from preview
+    if (!hasPlanning) {
+      return this.requestPreview(bookId, userId);
+    }
+
+    // If has planning but no generated chapters and no generation timestamp,
+    // the error was during preview-complete phase — re-approve preview
+    if (hasChapters && !hasGeneratedChapters && !hasGenerationTimestamp) {
+      // Reset to PREVIEW so approvePreview works
+      await this.prisma.book.update({
+        where: { id: bookId },
+        data: { status: BookStatus.PREVIEW, generationError: null },
+      });
+      return this.approvePreview(bookId, userId);
+    }
+
+    // If chapters exist and generation was started — resume generation
+    // No re-charge: credits were already debited on the original requestGeneration
+    if (hasChapters && hasGenerationTimestamp) {
+      // Atomic status transition
+      const locked = await this.prisma.book.updateMany({
+        where: { id: bookId, userId, status: BookStatus.ERROR },
+        data: {
+          status: BookStatus.GENERATING,
+          generationError: null,
+        },
+      });
+
+      if (locked.count === 0) {
+        throw new BadRequestException(
+          'Book is no longer in a valid state for retry',
+        );
+      }
+
+      // Determine queue priority
+      const activeSubscription = await this.prisma.subscription.findFirst({
+        where: {
+          userId,
+          status: {
+            in: [
+              SubscriptionStatus.ACTIVE,
+              SubscriptionStatus.TRIALING,
+              SubscriptionStatus.PAST_DUE,
+            ],
+          },
+        },
+      });
+
+      const plan = activeSubscription?.plan as SubscriptionPlan | null;
+      const planConfig = plan ? await this.configDataService.getPlanConfig(plan) : null;
+      const queuePriority = planConfig
+        ? QUEUE_PRIORITIES[planConfig.queuePriority as keyof typeof QUEUE_PRIORITIES]
+        : QUEUE_PRIORITIES.standard;
+
+      const generationData = {
+        briefing: book.briefing,
+        author: book.author,
+        title: book.title,
+        subtitle: book.subtitle,
+        creationMode: book.creationMode,
+        settings: book.settings as Record<string, unknown> | null,
+        planning: book.planning,
+        chapters: book.chapters.map((ch) => ({
+          id: ch.id,
+          sequence: ch.sequence,
+          title: ch.title,
+          topics: ch.topics as Array<{ title: string; content: string }>,
+        })),
+        queuePriority,
+      };
+
+      try {
+        if (this.appConfig.useInternalGeneration) {
+          await this.generationService.addGenerationJob(bookId, generationData, queuePriority);
+        } else {
+          await this.n8nClient.dispatchGeneration(bookId, generationData);
+        }
+      } catch {
+        await this.prisma.book.update({
+          where: { id: bookId },
+          data: {
+            status: BookStatus.ERROR,
+            generationError: 'Failed to dispatch generation retry',
+          },
+        });
+        throw new BadRequestException(
+          'Failed to retry generation. Please try again later.',
+        );
+      }
+
+      this.logger.log(`Generation retry started for book ${bookId} (resumable)`);
+      return;
+    }
+
+    // Fallback: re-do preview
+    return this.requestPreview(bookId, userId);
   }
 }

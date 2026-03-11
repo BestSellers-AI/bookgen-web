@@ -53,11 +53,13 @@ docker build -f apps/api/Dockerfile -t bestsellers-api .  # Build API image
 
 NestJS 11 with Prisma 6, 27 models, 17 enums. Global prefix `/api`. Builder: `tsc` (not swc). Dist path: `dist/apps/api/src/main`.
 
-**Key modules:** Auth, Books, Wallet (CreditLedger FIFO), Hooks (n8n callbacks), SSE (real-time progress), Checkout/Stripe, Addons, Translations, Share, Files/Storage, Admin, Cron, Notifications, Health.
+**Key modules:** Auth, Books, Wallet (CreditLedger FIFO), Hooks (callbacks), SSE (real-time progress), Checkout/Stripe, Addons, Translations, Share, Files/Storage, Admin, Cron, Notifications, Health, LLM, Generation.
 
 **Auth pattern:** JWT access (15min) + refresh (7d) as DB `Session` records. `JwtAuthGuard` applied per-controller (not global) + `@Public()` decorator. `@CurrentUser('id')` extracts user. Google OAuth via ID token verification.
 
-**n8n integration:** Backend dispatches work to n8n via HTTP, n8n calls back to `/hooks/n8n/*` endpoints. Callbacks secured by `x-n8n-secret` header (`N8nSecretGuard`). `dispatch()` throws on failure — callers handle rollback.
+**Generation engine:** Internal BullMQ queues + OpenRouter LLM calls (replaced n8n). Feature flag `USE_INTERNAL_GENERATION`. Single unified `GenerationProcessor` with `switch(job.name)` routing. Jobs: preview, preview-complete, generate-book, chapter-regen, addon. Resilience: stalled detection (60s), 3 attempts with exponential backoff, content validation, cron recovery (10min), graceful shutdown. Smart retry endpoint `POST /books/:id/retry` resumes from interrupted phase without re-charging.
+
+**n8n legacy:** `/hooks/n8n/*` endpoints still exist for backwards compatibility. `N8nSecretGuard` secures them. When `USE_INTERNAL_GENERATION=false`, dispatch goes to n8n instead of BullMQ.
 
 **SSE:** `SseManager` uses RxJS `Subject` per bookId with subscriber ref-counting and `finalize()` cleanup. Completes on terminal states.
 
@@ -106,7 +108,8 @@ Barrel export from `src/index.ts`. Contains all domain enums (17), TypeScript ty
 - **Redis 7** on port 6379
 - **Stripe** for payments + webhooks (POST `/webhooks/stripe`, raw body required)
 - **Cloudflare R2** for file storage
-- **n8n** as the generation engine (external, HTTP webhooks)
+- **BullMQ** + **OpenRouter** as the generation engine (internal, replaced n8n)
+- **n8n** legacy endpoints still available (feature flag `USE_INTERNAL_GENERATION`)
 - **Pino** logger with pretty-print in dev
 - **Coolify** for API deployment (Docker Compose)
 
@@ -126,7 +129,9 @@ Barrel export from `src/index.ts`. Contains all domain enums (17), TypeScript ty
 - `packages/shared/src/enums.ts` — All 17 domain enums
 - `apps/api/AUDIT.md` — Backend audit results (26 fixes, patterns established)
 - `plan/sprints/sprint-0/PARTE_1.md` through `PARTE_4.md` — Full migration plan (12 phases, 62 endpoints)
-- `plan/N8N_INTEGRATION.md` — n8n webhook integration documentation
+- `plan/N8N_INTEGRATION.md` — n8n webhook integration documentation (legacy)
+- `apps/api/src/generation/` — Internal generation module (BullMQ + OpenRouter)
+- `apps/api/src/generation/prompts/` — All LLM prompts (preview, chapter, context, back-matter)
 - `plan/BACKLOG.md` — Remaining backlog items
 - `apps/web/messages/en.json` — i18n message keys (English)
 - `.env.example` — All required environment variables
