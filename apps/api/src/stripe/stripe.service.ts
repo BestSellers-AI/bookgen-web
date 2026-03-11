@@ -85,19 +85,29 @@ export class StripeService {
     successUrl: string;
     cancelUrl: string;
     metadata?: Record<string, string>;
+    subscriptionMetadata?: Record<string, string>;
   }): Promise<{ sessionUrl: string; sessionId: string }> {
     this.logger.log(
       `Creating checkout session for user ${params.userId} (mode: ${params.mode})`,
     );
 
-    const session = await this.stripe.checkout.sessions.create({
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
       customer: params.customerId,
       mode: params.mode,
       line_items: params.lineItems,
       success_url: params.successUrl,
       cancel_url: params.cancelUrl,
       metadata: params.metadata,
-    });
+    };
+
+    // Pass metadata to the subscription so webhooks can resolve the plan
+    if (params.mode === 'subscription' && params.subscriptionMetadata) {
+      sessionParams.subscription_data = {
+        metadata: params.subscriptionMetadata,
+      };
+    }
+
+    const session = await this.stripe.checkout.sessions.create(sessionParams);
 
     this.logger.log(`Created checkout session ${session.id}`);
 

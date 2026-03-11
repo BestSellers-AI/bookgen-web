@@ -4,6 +4,39 @@ import * as bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 const BCRYPT_ROUNDS = 12;
 
+/** Upsert prices for a product — ensures stripePriceId and billingInterval are always set. */
+async function upsertPrices(
+  productId: string,
+  prices: Array<{ currency: string; amount: number; stripePriceId?: string | null; billingInterval?: string | null; creditsCost?: number }>,
+) {
+  for (const p of prices) {
+    const existing = await prisma.productPrice.findFirst({
+      where: { productId, amount: p.amount, currency: p.currency },
+    });
+
+    if (existing) {
+      await prisma.productPrice.update({
+        where: { id: existing.id },
+        data: {
+          stripePriceId: p.stripePriceId ?? existing.stripePriceId,
+          billingInterval: (p.billingInterval as any) ?? existing.billingInterval,
+        },
+      });
+    } else {
+      await prisma.productPrice.create({
+        data: {
+          productId,
+          currency: p.currency,
+          amount: p.amount,
+          stripePriceId: p.stripePriceId,
+          billingInterval: p.billingInterval as any,
+          creditsCost: p.creditsCost,
+        },
+      });
+    }
+  }
+}
+
 async function main() {
   console.log('Seeding database...');
 
@@ -21,14 +54,12 @@ async function main() {
       creditsAmount: 300,
       metadata: { plan: 'ASPIRANTE' },
       sortOrder: 1,
-      prices: {
-        create: [
-          { currency: 'usd', amount: 2900, stripePriceId: null }, // monthly
-          { currency: 'usd', amount: 22800, stripePriceId: null }, // annual
-        ],
-      },
     },
   });
+  await upsertPrices(aspirante.id, [
+    { currency: 'usd', amount: 2900, billingInterval: 'MONTHLY', stripePriceId: 'price_1T9cTt9UYPL3yWYT7FnF6Ma3' },
+    { currency: 'usd', amount: 22800, billingInterval: 'ANNUAL', stripePriceId: 'price_1T9cTt9UYPL3yWYTMQAKeG1W' },
+  ]);
 
   const bestseller = await prisma.product.upsert({
     where: { slug: 'plan-bestseller' },
@@ -41,14 +72,12 @@ async function main() {
       creditsAmount: 750,
       metadata: { plan: 'BESTSELLER' },
       sortOrder: 2,
-      prices: {
-        create: [
-          { currency: 'usd', amount: 5900, stripePriceId: null },
-          { currency: 'usd', amount: 46800, stripePriceId: null },
-        ],
-      },
     },
   });
+  await upsertPrices(bestseller.id, [
+    { currency: 'usd', amount: 5900, billingInterval: 'MONTHLY', stripePriceId: 'price_1T9cTu9UYPL3yWYTBl1ASRLr' },
+    { currency: 'usd', amount: 46800, billingInterval: 'ANNUAL', stripePriceId: 'price_1T9cTu9UYPL3yWYT3alUpW00' },
+  ]);
 
   const elite = await prisma.product.upsert({
     where: { slug: 'plan-elite' },
@@ -61,19 +90,17 @@ async function main() {
       creditsAmount: 2000,
       metadata: { plan: 'ELITE' },
       sortOrder: 3,
-      prices: {
-        create: [
-          { currency: 'usd', amount: 13900, stripePriceId: null },
-          { currency: 'usd', amount: 106800, stripePriceId: null },
-        ],
-      },
     },
   });
+  await upsertPrices(elite.id, [
+    { currency: 'usd', amount: 13900, billingInterval: 'MONTHLY', stripePriceId: 'price_1T9cTv9UYPL3yWYTp94au7DE' },
+    { currency: 'usd', amount: 106800, billingInterval: 'ANNUAL', stripePriceId: 'price_1T9cTv9UYPL3yWYTi6i0RsZk' },
+  ]);
 
   // ============================================
   // One-Time Book Purchase
   // ============================================
-  await prisma.product.upsert({
+  const oneTimeBook = await prisma.product.upsert({
     where: { slug: 'one-time-book' },
     update: {},
     create: {
@@ -83,16 +110,16 @@ async function main() {
       description: 'Generate 1 complete book (DOCX + PDF, personal license)',
       creditsAmount: 100,
       sortOrder: 10,
-      prices: {
-        create: [{ currency: 'usd', amount: 1900 }],
-      },
     },
   });
+  await upsertPrices(oneTimeBook.id, [
+    { currency: 'usd', amount: 1900, stripePriceId: 'price_1T9cTx9UYPL3yWYT00SbEksm' },
+  ]);
 
   // ============================================
   // Credit Packs
   // ============================================
-  await prisma.product.upsert({
+  const pack100 = await prisma.product.upsert({
     where: { slug: 'pack-100' },
     update: {},
     create: {
@@ -102,13 +129,13 @@ async function main() {
       description: '100 credits that never expire',
       creditsAmount: 100,
       sortOrder: 20,
-      prices: {
-        create: [{ currency: 'usd', amount: 990 }],
-      },
     },
   });
+  await upsertPrices(pack100.id, [
+    { currency: 'usd', amount: 990, stripePriceId: 'price_1T9cTv9UYPL3yWYTGZlVwqUb' },
+  ]);
 
-  await prisma.product.upsert({
+  const pack300 = await prisma.product.upsert({
     where: { slug: 'pack-300' },
     update: {},
     create: {
@@ -118,13 +145,13 @@ async function main() {
       description: '300 credits that never expire',
       creditsAmount: 300,
       sortOrder: 21,
-      prices: {
-        create: [{ currency: 'usd', amount: 2490 }],
-      },
     },
   });
+  await upsertPrices(pack300.id, [
+    { currency: 'usd', amount: 2490, stripePriceId: 'price_1T9cTw9UYPL3yWYTI2JXSIt6' },
+  ]);
 
-  await prisma.product.upsert({
+  const pack500 = await prisma.product.upsert({
     where: { slug: 'pack-500' },
     update: {},
     create: {
@@ -134,16 +161,16 @@ async function main() {
       description: '500 credits that never expire',
       creditsAmount: 500,
       sortOrder: 22,
-      prices: {
-        create: [{ currency: 'usd', amount: 3490 }],
-      },
     },
   });
+  await upsertPrices(pack500.id, [
+    { currency: 'usd', amount: 3490, stripePriceId: 'price_1T9cTw9UYPL3yWYThkXcbvBf' },
+  ]);
 
   // ============================================
   // Book Generation Product
   // ============================================
-  await prisma.product.upsert({
+  const bookGen = await prisma.product.upsert({
     where: { slug: 'book-generation' },
     update: {},
     create: {
@@ -152,11 +179,11 @@ async function main() {
       kind: 'BOOK_GENERATION',
       description: 'Generate a complete book',
       sortOrder: 30,
-      prices: {
-        create: [{ currency: 'usd', amount: 0, creditsCost: 100 }],
-      },
     },
   });
+  await upsertPrices(bookGen.id, [
+    { currency: 'usd', amount: 0, creditsCost: 100 },
+  ]);
 
   // ============================================
   // Addons
@@ -172,7 +199,7 @@ async function main() {
   ];
 
   for (const addon of addons) {
-    await prisma.product.upsert({
+    const product = await prisma.product.upsert({
       where: { slug: addon.slug },
       update: {},
       create: {
@@ -180,11 +207,11 @@ async function main() {
         slug: addon.slug,
         kind: addon.kind,
         sortOrder: addon.sort,
-        prices: {
-          create: [{ currency: 'usd', amount: 0, creditsCost: addon.credits }],
-        },
       },
     });
+    await upsertPrices(product.id, [
+      { currency: 'usd', amount: 0, creditsCost: addon.credits },
+    ]);
   }
 
   // ============================================

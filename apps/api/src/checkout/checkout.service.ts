@@ -52,6 +52,12 @@ export class CheckoutService {
     const successUrl = `${this.appConfig.frontendUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`;
     const cancelUrl = `${this.appConfig.frontendUrl}/checkout/cancel`;
 
+    // For subscriptions, pass plan metadata so webhooks can resolve the plan
+    const subscriptionMetadata =
+      mode === 'subscription' && product.metadata
+        ? { plan: (product.metadata as Record<string, string>).plan }
+        : undefined;
+
     const { sessionUrl, sessionId } =
       await this.stripeService.createCheckoutSession({
         userId,
@@ -65,6 +71,7 @@ export class CheckoutService {
           productSlug: product.slug,
           productId: product.id,
         },
+        subscriptionMetadata,
       });
 
     this.logger.log(`Checkout session ${sessionId} created for user ${userId}`);
