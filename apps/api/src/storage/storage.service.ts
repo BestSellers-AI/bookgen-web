@@ -14,19 +14,29 @@ export class StorageService {
   private readonly s3: S3Client;
   private readonly bucket: string;
   private readonly publicUrl: string;
+  private readonly region: string;
 
   constructor(private readonly appConfig: AppConfigService) {
-    this.bucket = this.appConfig.r2Bucket;
-    this.publicUrl = this.appConfig.r2PublicUrl;
+    this.bucket = this.appConfig.s3Bucket;
+    this.publicUrl = this.appConfig.s3PublicUrl;
+    this.region = this.appConfig.s3Region;
 
-    this.s3 = new S3Client({
-      region: 'auto',
-      endpoint: `https://${this.appConfig.r2AccountId}.r2.cloudflarestorage.com`,
+    const s3Options: ConstructorParameters<typeof S3Client>[0] = {
+      region: this.region,
       credentials: {
-        accessKeyId: this.appConfig.r2AccessKey,
-        secretAccessKey: this.appConfig.r2SecretKey,
+        accessKeyId: this.appConfig.s3AccessKey,
+        secretAccessKey: this.appConfig.s3SecretKey,
       },
-    });
+    };
+
+    // Custom endpoint for S3-compatible services (R2, MinIO, etc.)
+    const endpoint = this.appConfig.s3Endpoint;
+    if (endpoint) {
+      s3Options.endpoint = endpoint.startsWith('http') ? endpoint : `https://${endpoint}`;
+      s3Options.forcePathStyle = true;
+    }
+
+    this.s3 = new S3Client(s3Options);
   }
 
   async upload(
@@ -45,7 +55,7 @@ export class StorageService {
 
     const url = this.publicUrl
       ? `${this.publicUrl}/${key}`
-      : `https://${this.appConfig.r2AccountId}.r2.cloudflarestorage.com/${this.bucket}/${key}`;
+      : `https://${this.bucket}.s3.${this.region}.amazonaws.com/${key}`;
 
     this.logger.log(`Uploaded file: ${key}`);
     return url;

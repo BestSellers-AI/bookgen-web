@@ -4,6 +4,8 @@ import {
   BookStatus,
   ChapterStatus,
   AddonStatus,
+  CreditType,
+  WalletTransactionType,
   FileType,
   NotificationType,
   ProductKind,
@@ -14,6 +16,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationService } from '../notifications/notification.service';
 import { TranslationService } from '../translations/translation.service';
+import { WalletService } from '../wallet/wallet.service';
 import { EmailService } from '../email/email.service';
 import { AppConfigService } from '../config/app-config.service';
 import { bookGeneratedEmail } from '../email/email-templates';
@@ -37,6 +40,7 @@ export class HooksService {
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationService,
     private readonly translationService: TranslationService,
+    private readonly walletService: WalletService,
     private readonly eventEmitter: EventEmitter2,
     private readonly emailService: EmailService,
     private readonly appConfig: AppConfigService,
@@ -560,6 +564,28 @@ export class HooksService {
           error: dto.error ?? 'Unknown addon error',
         },
       });
+
+      // Refund credits on addon failure
+      if (addon.creditsCost && addon.creditsCost > 0) {
+        try {
+          await this.walletService.addCredits(
+            addon.book.userId,
+            addon.creditsCost,
+            CreditType.REFUND,
+            {
+              description: `Refund: ${dto.addonKind} add-on failed`,
+              transactionType: WalletTransactionType.REFUND,
+            },
+          );
+          this.logger.log(
+            `Refunded ${addon.creditsCost} credits for failed addon ${dto.addonId}`,
+          );
+        } catch (refundError) {
+          this.logger.error(
+            `Failed to refund credits for addon ${dto.addonId}: ${refundError}`,
+          );
+        }
+      }
 
       await this.notifications.create({
         userId: addon.book.userId,

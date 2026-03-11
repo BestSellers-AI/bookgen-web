@@ -16,6 +16,25 @@ function ensureFonts() {
   }
 }
 
+/**
+ * Fetches an external image via Next.js proxy to avoid CORS, returns base64 data URL.
+ */
+async function proxyImageToBase64(imageUrl: string): Promise<string | null> {
+  try {
+    const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`;
+    const response = await fetch(proxyUrl);
+    if (!response.ok) return null;
+    const blob = await response.blob();
+    return new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
 interface BookPdfViewerProps {
   book: BookDetail;
   className?: string;
@@ -36,18 +55,40 @@ export function BookPdfViewer({ book, className, style }: BookPdfViewerProps) {
 
     async function generate() {
       try {
-        console.log('[BookPdfViewer] Starting PDF generation...');
-        console.log('[BookPdfViewer] Book data:', {
-          title: renderableBook.title,
-          author: renderableBook.author,
-          chapters: renderableBook.chapters.length,
-          wordCount: renderableBook.wordCount,
-          hasIntro: !!renderableBook.introduction,
-          hasConclusion: !!renderableBook.conclusion,
-          hasCover: !!renderableBook.coverUrl,
-        });
+        // Proxy all external images through Next.js API to avoid CORS issues with react-pdf
+        let bookForPdf = { ...renderableBook };
 
-        const doc = <BookDocument book={renderableBook} />;
+        // Proxy cover image
+        if (renderableBook.coverUrl) {
+          const coverBase64 = await proxyImageToBase64(renderableBook.coverUrl);
+          if (coverBase64) bookForPdf.coverUrl = coverBase64;
+        }
+
+        // Proxy chapter images (in parallel)
+        const chaptersWithImages = renderableBook.chapters.filter((ch) => ch.imageUrl);
+        if (chaptersWithImages.length > 0) {
+          const imageResults = await Promise.all(
+            chaptersWithImages.map(async (ch) => ({
+              sequence: ch.sequence,
+              base64: await proxyImageToBase64(ch.imageUrl!),
+            })),
+          );
+
+          const imageMap = new Map(
+            imageResults
+              .filter((r) => r.base64)
+              .map((r) => [r.sequence, r.base64!]),
+          );
+
+          if (imageMap.size > 0) {
+            bookForPdf.chapters = renderableBook.chapters.map((ch) => ({
+              ...ch,
+              imageUrl: imageMap.get(ch.sequence) ?? ch.imageUrl,
+            }));
+          }
+        }
+
+        const doc = <BookDocument book={bookForPdf} />;
         const blob = await pdf(doc).toBlob();
 
         if (cancelled) return;

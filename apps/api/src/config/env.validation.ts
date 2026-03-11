@@ -27,12 +27,13 @@ const envSchema = z.object({
   N8N_CALLBACK_SECRET: z.string().min(16).default('dev-secret-not-for-production'),
   N8N_CALLBACK_BASE_URL: z.string().default('http://localhost:3001'),
 
-  // Storage (R2)
-  R2_ACCOUNT_ID: z.string().default(''),
-  R2_ACCESS_KEY: z.string().default(''),
-  R2_SECRET_KEY: z.string().default(''),
-  R2_BUCKET: z.string().default('bestsellers-files'),
-  R2_PUBLIC_URL: z.string().default(''),
+  // Storage (S3)
+  S3_ACCESS_KEY: z.string().default(''),
+  S3_SECRET_KEY: z.string().default(''),
+  S3_BUCKET: z.string().default('bestsellers-files'),
+  S3_REGION: z.string().default('us-east-1'),
+  S3_ENDPOINT: z.string().default(''),
+  S3_PUBLIC_URL: z.string().default(''),
 
   // Email
   RESEND_API_KEY: z.string().default(''),
@@ -42,6 +43,7 @@ const envSchema = z.object({
   OPENROUTER_API_KEY: z.string().default(''),
   LLM_MODEL_PREVIEW: z.string().default('x-ai/grok-4.1-fast'),
   LLM_MODEL_GENERATION: z.string().default('openai/gpt-5-nano'),
+  LLM_MODEL_IMAGE: z.string().default('google/gemini-3.1-flash-image-preview'),
   LLM_MAX_RETRIES: z.coerce.number().default(3),
   LLM_TIMEOUT_MS: z.coerce.number().default(120_000),
 

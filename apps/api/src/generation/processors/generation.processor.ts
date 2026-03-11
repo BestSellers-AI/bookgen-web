@@ -6,7 +6,8 @@ import { LlmService } from '../../llm/llm.service';
 import { HooksService } from '../../hooks/hooks.service';
 import { AppConfigService } from '../../config/app-config.service';
 import { PrismaService } from '../../prisma/prisma.service';
-import { ChapterStatus, type ProductKind } from '@prisma/client';
+import { ChapterStatus, ProductKind } from '@prisma/client';
+import { StorageService } from '../../storage/storage.service';
 import {
   getGuidedPreviewSystemPrompt,
   getSimplePreviewSystemPrompt,
@@ -26,6 +27,18 @@ import {
   type BackMatterSection,
 } from '../prompts/back-matter.prompts';
 import {
+  getCoverConceptSystemPrompt,
+  buildCoverConceptUserPrompt,
+  buildImageGenerationPrompt,
+  COVER_CONCEPTS_SCHEMA,
+} from '../prompts/cover.prompts';
+import {
+  getChapterImagesSystemPrompt,
+  buildChapterImagesUserPrompt,
+  buildChapterImageGenerationPrompt,
+  CHAPTER_IMAGES_SCHEMA,
+} from '../prompts/chapter-images.prompts';
+import {
   capitalizeTitle,
   getPromptLanguage,
   calculateTopicMinWords,
@@ -42,12 +55,13 @@ export interface AddonJobData {
   params?: Record<string, unknown>;
 }
 
-const MOCK_ADDON_RESULT_URL =
-  'https://m.media-amazon.com/images/G/01/Prelogin/img_about_hero_quotes.png';
-
-const MOCK_ADDON_VARIATIONS = [
-  { url: 'https://m.media-amazon.com/images/G/01/Prelogin/img_about_hero_quotes.png', label: 'Dark theme' },
-  { url: 'https://m.media-amazon.com/images/G/01/Prelogin/img_about_hero_quotes.png', label: 'Light theme' },
+const COVER_STYLE_LABELS = [
+  'Minimalist',
+  'Abstract',
+  'Cinematic',
+  'Editorial',
+  'Illustrated',
+  'Bold Graphic',
 ];
 
 interface PreviewResult {
@@ -92,6 +106,7 @@ export class GenerationProcessor extends WorkerHost {
     private readonly config: AppConfigService,
     private readonly prisma: PrismaService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly storageService: StorageService,
   ) {
     super();
   }
@@ -553,25 +568,29 @@ export class GenerationProcessor extends WorkerHost {
     }
   }
 
-  // ─── Addon (mock) ────────────────────────────────────────────────────
+  // ─── Addon ──────────────────────────────────────────────────────────
 
   private async processAddon(job: Job<AddonJobData>): Promise<void> {
-    const { bookId, addonId, addonKind } = job.data;
+    const { bookId, addonId, addonKind, params } = job.data;
 
     try {
-      // Simulate processing delay (1-2 seconds)
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      await this.hooksService.processAddonResult({
-        bookId,
-        addonId,
-        addonKind,
-        status: 'success',
-        resultUrl: MOCK_ADDON_RESULT_URL,
-        resultData: { variations: MOCK_ADDON_VARIATIONS },
-      });
-
-      this.logger.log(`Mock addon ${addonKind} completed for book ${bookId}`);
+      if (addonKind === ProductKind.ADDON_COVER) {
+        await this.processAddonCover(job);
+      } else if (addonKind === ProductKind.ADDON_IMAGES) {
+        await this.processAddonImages(job);
+      } else {
+        // Other addon types not yet implemented — mock result
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        await this.hooksService.processAddonResult({
+          bookId,
+          addonId,
+          addonKind,
+          status: 'success',
+          resultUrl: '',
+          resultData: { mock: true },
+        });
+        this.logger.log(`Mock addon ${addonKind} completed for book ${bookId}`);
+      }
     } catch (error) {
       this.logger.error(
         `Addon ${addonKind} failed for book ${bookId}: ${error instanceof Error ? error.message : String(error)}`,
@@ -587,6 +606,287 @@ export class GenerationProcessor extends WorkerHost {
 
       throw error;
     }
+  }
+
+  // ─── Cover Generation ──────────────────────────────────────────────
+
+  private async processAddonCover(job: Job<AddonJobData>): Promise<void> {
+    const { bookId, addonId, addonKind, params } = job.data;
+    const bookContext = (params?.bookContext ?? {}) as Record<string, unknown>;
+
+    const title = (bookContext.title as string) || 'Untitled';
+    const subtitle = (bookContext.subtitle as string) || '';
+    const author = (bookContext.author as string) || '';
+    const briefing = (bookContext.briefing as string) || '';
+    const planning = bookContext.planning;
+    const settings = (bookContext.settings as Record<string, unknown>) || null;
+
+    // Step 1: Generate 6 cover concept prompts via LLM
+    this.logger.log(`[cover] Generating 6 concept prompts for book ${bookId}`);
+    await job.updateProgress(10);
+
+    const conceptInput = { title, subtitle, author, briefing, planning, settings };
+
+    const concepts = await this.llmService.chatCompletionJson<{
+      concepts: Array<{ style: string; description: string; prompt: string }>;
+    }>({
+      model: this.config.llmModelPreview,
+      systemPrompt: getCoverConceptSystemPrompt(conceptInput),
+      userPrompt: buildCoverConceptUserPrompt(conceptInput),
+      schema: COVER_CONCEPTS_SCHEMA,
+      schemaName: 'cover_concepts',
+      temperature: 0.9,
+    });
+
+    if (!concepts.concepts?.length) {
+      throw new Error('LLM returned no cover concepts');
+    }
+
+    // Ensure exactly 6 concepts (pad or trim)
+    const conceptList = concepts.concepts.slice(0, 6);
+    while (conceptList.length < 6) {
+      conceptList.push(conceptList[conceptList.length - 1]);
+    }
+
+    this.logger.log(`[cover] Got ${conceptList.length} concepts, generating images for book ${bookId}`);
+    await job.updateProgress(20);
+
+    // Step 2: Generate images in parallel (batches of 2 to avoid rate limits)
+    const variations: Array<{ url: string; fileName: string; label: string }> = [];
+
+    for (let batch = 0; batch < 3; batch++) {
+      const batchStart = batch * 2;
+      const batchConcepts = conceptList.slice(batchStart, batchStart + 2);
+
+      const imageResults = await Promise.allSettled(
+        batchConcepts.map(async (concept, indexInBatch) => {
+          const index = batchStart + indexInBatch;
+          const imagePrompt = buildImageGenerationPrompt(concept.prompt);
+
+          const result = await this.llmService.generateImage({
+            model: this.config.llmModelImage,
+            prompt: imagePrompt,
+            temperature: 0.8,
+          });
+
+          return { index, result, concept };
+        }),
+      );
+
+      for (const settled of imageResults) {
+        if (settled.status === 'fulfilled') {
+          const { index, result, concept } = settled.value;
+
+          // Step 3: Upload to S3
+          const ext = result.mimeType.includes('png') ? 'png' : 'jpg';
+          const key = `covers/${bookId}/cover-${index + 1}.${ext}`;
+          const buffer = Buffer.from(result.imageBase64, 'base64');
+
+          const url = await this.storageService.upload(key, buffer, result.mimeType);
+
+          const label = concept.style || COVER_STYLE_LABELS[index] || `Variation ${index + 1}`;
+          variations.push({
+            url,
+            fileName: `cover-${index + 1}-${label.toLowerCase().replace(/\s+/g, '-')}.${ext}`,
+            label,
+          });
+
+          this.logger.log(`[cover] Image ${index + 1}/6 uploaded for book ${bookId}`);
+        } else {
+          this.logger.warn(
+            `[cover] Image generation failed for concept ${batchStart}: ${settled.reason}`,
+          );
+        }
+      }
+
+      await job.updateProgress(20 + ((batch + 1) / 3) * 70);
+    }
+
+    if (variations.length === 0) {
+      throw new Error('All 6 cover image generations failed');
+    }
+
+    // Step 4: Save results
+    await this.hooksService.processAddonResult({
+      bookId,
+      addonId,
+      addonKind,
+      status: 'success',
+      resultUrl: variations[0].url,
+      resultData: {
+        variations: variations.map((v) => ({
+          url: v.url,
+          fileName: v.fileName,
+          label: v.label,
+        })),
+      },
+    });
+
+    this.logger.log(
+      `[cover] Cover generation completed for book ${bookId}: ${variations.length}/6 images`,
+    );
+  }
+
+  // ─── Chapter Images Generation ──────────────────────────────────────
+
+  private async processAddonImages(job: Job<AddonJobData>): Promise<void> {
+    const { bookId, addonId, addonKind, params } = job.data;
+    const bookContext = (params?.bookContext ?? {}) as Record<string, unknown>;
+
+    const title = (bookContext.title as string) || 'Untitled';
+    const subtitle = (bookContext.subtitle as string) || '';
+    const briefing = (bookContext.briefing as string) || '';
+    const planning = bookContext.planning;
+    const chapters = (bookContext.chapters ?? []) as Array<{
+      id: string;
+      sequence: number;
+      title: string;
+    }>;
+
+    if (chapters.length === 0) {
+      throw new Error('No chapters found in book context for image generation');
+    }
+
+    // Step 1: Generate one image prompt per chapter via LLM
+    this.logger.log(
+      `[images] Generating ${chapters.length} chapter image prompts for book ${bookId}`,
+    );
+    await job.updateProgress(5);
+
+    const conceptResult = await this.llmService.chatCompletionJson<{
+      images: Array<{
+        chapterSequence: number;
+        chapterTitle: string;
+        description: string;
+        prompt: string;
+      }>;
+    }>({
+      model: this.config.llmModelPreview,
+      systemPrompt: getChapterImagesSystemPrompt(),
+      userPrompt: buildChapterImagesUserPrompt({
+        title,
+        subtitle,
+        briefing,
+        chapters,
+        planning,
+      }),
+      schema: CHAPTER_IMAGES_SCHEMA,
+      schemaName: 'chapter_images',
+      temperature: 0.9,
+    });
+
+    if (!conceptResult.images?.length) {
+      throw new Error('LLM returned no chapter image concepts');
+    }
+
+    // Map concepts by sequence, pad missing chapters
+    const conceptMap = new Map(
+      conceptResult.images.map((img) => [img.chapterSequence, img]),
+    );
+    const orderedConcepts = chapters
+      .sort((a, b) => a.sequence - b.sequence)
+      .map((ch) => {
+        const concept = conceptMap.get(ch.sequence);
+        return {
+          chapterId: ch.id,
+          sequence: ch.sequence,
+          title: ch.title,
+          description: concept?.description || '',
+          prompt: concept?.prompt || `Artistic illustration for a book chapter titled "${ch.title}"`,
+        };
+      });
+
+    this.logger.log(
+      `[images] Got ${conceptResult.images.length} concepts, generating images for book ${bookId}`,
+    );
+    await job.updateProgress(15);
+
+    // Step 2: Generate images in batches of 2
+    const generatedImages: Array<{
+      chapterId: string;
+      prompt: string;
+      imageUrl: string;
+      caption: string;
+      position: number;
+    }> = [];
+
+    const totalChapters = orderedConcepts.length;
+    const batchSize = 2;
+
+    for (let batch = 0; batch < Math.ceil(totalChapters / batchSize); batch++) {
+      const batchStart = batch * batchSize;
+      const batchConcepts = orderedConcepts.slice(batchStart, batchStart + batchSize);
+
+      const imageResults = await Promise.allSettled(
+        batchConcepts.map(async (concept) => {
+          const imagePrompt = buildChapterImageGenerationPrompt(
+            concept.title,
+            concept.prompt,
+          );
+
+          const result = await this.llmService.generateImage({
+            model: this.config.llmModelImage,
+            prompt: imagePrompt,
+            temperature: 0.8,
+          });
+
+          return { concept, result };
+        }),
+      );
+
+      for (const settled of imageResults) {
+        if (settled.status === 'fulfilled') {
+          const { concept, result } = settled.value;
+
+          // Upload to S3
+          const ext = result.mimeType.includes('png') ? 'png' : 'jpg';
+          const key = `chapter-images/${bookId}/chapter-${concept.sequence}.${ext}`;
+          const buffer = Buffer.from(result.imageBase64, 'base64');
+          const url = await this.storageService.upload(key, buffer, result.mimeType);
+
+          generatedImages.push({
+            chapterId: concept.chapterId,
+            prompt: concept.prompt,
+            imageUrl: url,
+            caption: concept.description,
+            position: concept.sequence,
+          });
+
+          this.logger.log(
+            `[images] Chapter ${concept.sequence}/${totalChapters} image uploaded for book ${bookId}`,
+          );
+        } else {
+          const failedIndex = batchStart;
+          this.logger.warn(
+            `[images] Image generation failed for chapter ${failedIndex + 1}: ${settled.reason}`,
+          );
+        }
+      }
+
+      await job.updateProgress(
+        15 + Math.round(((batch + 1) / Math.ceil(totalChapters / batchSize)) * 80),
+      );
+    }
+
+    if (generatedImages.length === 0) {
+      throw new Error('All chapter image generations failed');
+    }
+
+    // Step 3: Save results
+    await this.hooksService.processAddonResult({
+      bookId,
+      addonId,
+      addonKind,
+      status: 'success',
+      resultUrl: generatedImages[0].imageUrl,
+      resultData: {
+        images: generatedImages,
+      },
+    });
+
+    this.logger.log(
+      `[images] Chapter images completed for book ${bookId}: ${generatedImages.length}/${totalChapters} images`,
+    );
   }
 
   // ─── Shared helpers ───────────────────────────────────────────────────

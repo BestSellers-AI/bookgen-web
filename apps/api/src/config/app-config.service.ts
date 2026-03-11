@@ -67,25 +67,29 @@ export class AppConfigService {
     return this.configService.get('N8N_CALLBACK_SECRET');
   }
 
-  // Storage
-  get r2AccountId(): string {
-    return this.configService.get('R2_ACCOUNT_ID');
+  // Storage (S3)
+  get s3AccessKey(): string {
+    return this.configService.get('S3_ACCESS_KEY');
   }
 
-  get r2AccessKey(): string {
-    return this.configService.get('R2_ACCESS_KEY');
+  get s3SecretKey(): string {
+    return this.configService.get('S3_SECRET_KEY');
   }
 
-  get r2SecretKey(): string {
-    return this.configService.get('R2_SECRET_KEY');
+  get s3Bucket(): string {
+    return this.configService.get('S3_BUCKET');
   }
 
-  get r2Bucket(): string {
-    return this.configService.get('R2_BUCKET');
+  get s3Region(): string {
+    return this.configService.get('S3_REGION');
   }
 
-  get r2PublicUrl(): string {
-    return this.configService.get('R2_PUBLIC_URL');
+  get s3Endpoint(): string {
+    return this.configService.get('S3_ENDPOINT');
+  }
+
+  get s3PublicUrl(): string {
+    return this.configService.get('S3_PUBLIC_URL');
   }
 
   // Email
@@ -108,6 +112,10 @@ export class AppConfigService {
 
   get llmModelGeneration(): string {
     return this.configService.get('LLM_MODEL_GENERATION');
+  }
+
+  get llmModelImage(): string {
+    return this.configService.get('LLM_MODEL_IMAGE');
   }
 
   get llmMaxRetries(): number {

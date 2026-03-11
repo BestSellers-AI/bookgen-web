@@ -106,7 +106,6 @@ function buildStyles(gutter: number) {
     },
     chapterImg: {
       width: '100%',
-      maxHeight: 180,
       marginBottom: 16,
     },
     chapterDivider: {

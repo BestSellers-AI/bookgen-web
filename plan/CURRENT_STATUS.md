@@ -110,6 +110,65 @@ See `plan/ADMIN_PRICING_CONFIG.md` for full architecture docs.
 - All pricing/credit values in the app are now dynamic (config store or API)
 - Dead code found: `/dashboard/credits/` + `/hotmart` (legacy Hotmart gateway, unused)
 
+### 5. Real Addons — ADDON_COVER + ADDON_IMAGES
+
+Replaced mock addon processor with real image generation using OpenRouter + Gemini Flash Image.
+
+**S3 migration (from Cloudflare R2):**
+- Same `@aws-sdk/client-s3` library, changed config (region-based endpoint, no custom account ID)
+- Env vars: `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_BUCKET`, `S3_REGION`, `S3_ENDPOINT`, `S3_PUBLIC_URL`
+- Removed `ACL: 'public-read'` from PutObjectCommand — bucket policy handles public access
+- Public URLs: `https://{bucket}.s3.{region}.amazonaws.com/{key}`
+
+**ADDON_COVER (6 cover variations):**
+- LLM (`llmModelPreview`) generates 6 concept prompts via `getCoverConceptSystemPrompt()` — structured JSON
+- Gemini Flash Image (`llmModelImage`) generates 6 images from those prompts (batches of 2)
+- Upload to S3: `covers/{bookId}/cover-{n}.png`
+- `processAddonResult()` creates `BookFile` records (`FileType.COVER_IMAGE`)
+- 6 style variations: Minimalist, Abstract, Cinematic, Editorial, Illustrated, Bold Graphic
+- Partial success: `Promise.allSettled` — if 4/6 succeed, saves those 4
+
+**ADDON_IMAGES (1 image per chapter):**
+- LLM generates N prompts (1 per chapter) via `getChapterImagesSystemPrompt()` — structured JSON
+- Gemini Flash Image generates N images (batches of 2)
+- Upload to S3: `chapter-images/{bookId}/chapter-{sequence}.png`
+- `processAddonResult()` creates `BookImage` records with `chapterId`, `imageUrl`, `prompt`, `caption`
+- Style variety: watercolor, digital art, ink, geometric — varied per chapter
+
+**Image generation model:**
+- `LLM_MODEL_IMAGE` env var (default: `google/gemini-3.1-flash-image-preview`)
+- `LlmService.generateImage()` sends `modalities: ["image", "text"]` to OpenRouter
+- 3 min timeout, retry with exponential backoff
+
+**Addon failure refund:**
+- `processAddonResult` error path now calls `walletService.addCredits(REFUND)` automatically
+- `onFailed` handler catches BullMQ exhausted retries → same refund path
+
+**PDF image integration (CORS fix):**
+- `@react-pdf/renderer` runs in browser, can't fetch cross-origin S3 URLs
+- Created `/api/proxy-image` Next.js API route — fetches server-side, returns image bytes
+- `BookPdfViewer` proxies ALL images (cover + chapter) to base64 data URLs before rendering
+- Cover: full-page as first page; Chapter images: below chapter title, full width, natural height
+
+**New files:**
+- `apps/api/src/generation/prompts/cover.prompts.ts`
+- `apps/api/src/generation/prompts/chapter-images.prompts.ts`
+- `apps/web/src/app/api/proxy-image/route.ts`
+
+**Modified files:**
+- `apps/api/src/config/env.validation.ts` — S3 vars + `LLM_MODEL_IMAGE`
+- `apps/api/src/config/app-config.service.ts` — S3 getters + `llmModelImage`
+- `apps/api/src/storage/storage.service.ts` — S3 migration, removed ACL
+- `apps/api/src/llm/llm.service.ts` — `generateImage()` method
+- `apps/api/src/llm/llm.types.ts` — image generation types
+- `apps/api/src/generation/processors/generation.processor.ts` — real cover + images processing
+- `apps/api/src/generation/generation.module.ts` — `StorageModule` import
+- `apps/api/src/hooks/hooks.module.ts` — `WalletModule` import
+- `apps/api/src/hooks/hooks.service.ts` — refund on addon failure
+- `apps/web/src/components/book/book-pdf-viewer.tsx` — image proxy logic
+- `apps/web/src/lib/book-template/pdf/book-document.tsx` — removed `maxHeight` from chapter images
+- `.env.example` — S3 vars + `LLM_MODEL_IMAGE`
+
 ## Previous sessions
 
 ### KDP PDF Generation (2026-03-11 earlier)
@@ -135,7 +194,6 @@ All internal generation, mock addons, resilience, Stripe integration, admin pane
 - [ ] Deploy to Coolify (API + DB + Redis)
 - [ ] Run `prisma migrate deploy` on first deploy
 - [ ] Deploy web separately (Vercel or Coolify)
-- [ ] Configure production env vars (OpenRouter key, Stripe, R2, etc.)
-- [ ] Implement real addon processing (currently mock)
+- [ ] Configure production env vars (OpenRouter key, Stripe, S3, etc.)
 - [ ] Monitor generation in production (check stalled detection, cron recovery)
 - [ ] Remove dead code: `/dashboard/credits/` + `/hotmart` pages (legacy Hotmart)
