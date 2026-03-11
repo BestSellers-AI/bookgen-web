@@ -320,3 +320,41 @@ Esses servicos do backend usavam constantes hardcoded e agora puxam do ConfigDat
    - Backend (quanto debitar do wallet)
    - Dashboard (dialogo de confirmacao, addons)
    - Landing (tabela de servicos)
+
+---
+
+## Auditoria de Hardcodes — 2026-03-11
+
+Auditoria completa do frontend para encontrar valores hardcoded de creditos, precos ou planos.
+
+### Resultado: Tudo migrado
+
+| Area | Fonte de dados | Status |
+|---|---|---|
+| Landing (PricingSection — planos) | `useConfigStore` → `buildPlans()` | OK |
+| Landing (PricingSection — credit packs) | `useConfigStore` → `buildCreditPacks()` | OK |
+| Landing (PricingSection — tabela de servicos) | `useConfigStore` → `buildServices()` | OK |
+| Dashboard upgrade | `useConfigStore.getPlanConfig()` | OK |
+| Dashboard buy-credits | `useConfigStore.getCreditPacks()` | OK |
+| Credit check dialog | `useConfigStore.getCreditsCost()` | OK |
+| Addon section | `useConfigStore.getCreditsCost()` | OK |
+| Author journey (bundles) | `useConfigStore.getBundles()` | OK |
+| Credits card (dashboard home) | API `user.planInfo.limits` | OK |
+| Sidebar / header / menus | Sem valores de credito | OK |
+| Admin products | API direta (`adminApi`) | OK |
+
+### Dead code encontrado (nao migrado, nao usado)
+
+| Rota | Arquivo | Motivo |
+|---|---|---|
+| `/dashboard/credits` | `credits/page.tsx` | Legacy Hotmart — nenhum link externo aponta pra ca |
+| `/dashboard/credits/hotmart` | `credits/hotmart/page.tsx` | Valores totalmente hardcoded ($20/$50/$100) |
+
+> Essas paginas sao do gateway anterior (Hotmart) e foram substituidas por `/dashboard/wallet/buy-credits` (Stripe).
+> Mantidas por ora — podem ser removidas futuramente.
+
+### Fallbacks intencionais (nao sao bugs)
+
+- `landing-pricing-data.ts`: `PLAN_PRICE_FALLBACKS` e `CREDIT_PACK_FALLBACKS` — usados so se config store nao carregou
+- `config-store.ts`: `buildFallbackConfig()` — usa constantes do `@bestsellers/shared` como fallback
+- `SERVICES` em `landing-pricing-data.ts`: campo `credits` como fallback se `creditsCost` nao carregou

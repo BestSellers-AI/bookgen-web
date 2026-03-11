@@ -55,6 +55,43 @@ Feature flag in `AddonService.request()` and `requestBundle()`.
 - `apps/web/src/lib/api/books.ts` — `booksApi.retry()`
 - `apps/web/src/app/[locale]/dashboard/books/[id]/page.tsx` — retry button handler
 
+### 4. Stripe Integration + Admin as Source of Truth
+
+Full Stripe integration and admin panel as single source of truth for all pricing.
+See `plan/ADMIN_PRICING_CONFIG.md` for full architecture docs.
+
+**Stripe setup:**
+- 7 products + 10 prices created (live) via Stripe MCP
+- Seed updated with real Stripe price IDs (idempotent `upsertPrices()`)
+- `subscription_data.metadata` fix — webhooks can now resolve plan correctly
+- 6 webhook events configured (checkout, invoice, subscription CRUD, refund)
+
+**ConfigDataService (backend):**
+- Global module, loads Products + ProductPrices + AppConfig from DB
+- 5-min cache TTL, falls back to `@bestsellers/shared` constants
+- Replaces hardcoded constants in: users, stripe-webhook, book, addon, monthly-usage services
+
+**Admin panel (4 tabs):**
+- Subscriptions: structured plan feature editor (credits, books/month, regens, license, queue, etc.)
+- Credit Packs: USD pricing + credits granted
+- Credit Costs: dedicated form per operation (not raw JSON)
+- Settings: FREE_TIER, BUNDLES (JSON)
+- All mutations sync to Stripe (name/description) and invalidate config cache
+- 78+ i18n keys in 3 languages
+
+**Frontend config store:**
+- `useConfigStore` (Zustand) fetches `GET /api/config` on mount via `ConfigInitializer` in root layout
+- Migrated: upgrade, buy-credits, credit-check-dialog, addon-section, author-journey
+
+**Landing page migration:**
+- `PricingSection` now merges config store data with static UI (features, CTAs, badges)
+- Plan prices, credits, books/month, credit pack prices, service costs — all from config store
+- `landing-pricing-data.ts` refactored: exports `buildPlans()`, `buildCreditPacks()`, `buildServices()`
+
+**Hardcode audit result:**
+- All pricing/credit values in the app are now dynamic (config store or API)
+- Dead code found: `/dashboard/credits/` + `/hotmart` (legacy Hotmart gateway, unused)
+
 ## Previous sessions
 
 ### KDP PDF Generation (2026-03-11 earlier)
@@ -63,28 +100,17 @@ Client-side PDF via `@react-pdf/renderer`, Amazon KDP 6"×9", localized labels. 
 ### Chatbot Funnel (2026-03-07)
 Chatbot funnel at `/chat` for paid traffic. See `plan/CHATBOT/CHATBOT_FUNNEL.md`.
 
-### 4. Guided Tour Planning
-
-Created detailed implementation plan for in-app guided tour using `onborda` (Next.js + Framer Motion + shadcn/ui).
-
-**Plan document:** `plan/GUIDED_TOUR.md`
-
-**Key decisions:**
-- Library: `onborda` v1.2.5 (all peer deps already installed — Framer Motion, React 19, Next.js 16)
-- 10-step onboarding tour across 4 pages (dashboard → books → wallet → settings)
-- Custom shadcn/ui card component, progress dots, i18n via next-intl
-- Zustand store + localStorage for tracking seen tours
-- Auto-start on first login, replay via "?" button in header
-- Mobile-aware: skip sidebar step on mobile (< xl breakpoint)
-
-**Not yet implemented** — plan only, ready for coding.
+### Guided Tour Planning
+Created detailed plan for in-app guided tour using `onborda`. See `plan/GUIDED_TOUR.md`. Not yet implemented.
 
 ## Where we stopped
 
 ### Committed on `develop` branch
-All internal generation, mock addons, resilience changes, and guided tour plan.
+All internal generation, mock addons, resilience, Stripe integration, admin panel, config store, and landing page migration.
 
 ### Pending items
+- [ ] Configure Stripe webhook endpoint in Dashboard (URL: `https://<domain>/api/webhooks/stripe`)
+- [ ] Set `STRIPE_WEBHOOK_SECRET` in production after webhook creation
 - [ ] Implement guided tour (`plan/GUIDED_TOUR.md`)
 - [ ] Test full Docker build locally (new LLM/Generation modules)
 - [ ] Deploy to Coolify (API + DB + Redis)
@@ -93,3 +119,4 @@ All internal generation, mock addons, resilience changes, and guided tour plan.
 - [ ] Configure production env vars (OpenRouter key, Stripe, R2, etc.)
 - [ ] Implement real addon processing (currently mock)
 - [ ] Monitor generation in production (check stalled detection, cron recovery)
+- [ ] Remove dead code: `/dashboard/credits/` + `/hotmart` pages (legacy Hotmart)
