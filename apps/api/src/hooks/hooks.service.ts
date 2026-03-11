@@ -758,26 +758,43 @@ export class HooksService {
       }
 
       case ProductKind.ADDON_IMAGES: {
-        // Create BookImage records
-        const images = (resultData?.images ?? []) as Array<{
+        // Create BookImage records — supports both formats:
+        // Format A (structured): resultData.images = [{ chapterId, prompt, imageUrl, caption, position }]
+        // Format B (variations): resultData.variations = [{ url, label }]
+        const rawImages = (resultData?.images ?? []) as Array<{
           chapterId?: string;
-          prompt: string;
-          imageUrl: string;
+          prompt?: string;
+          imageUrl?: string;
+          url?: string;
           caption?: string;
-          position: number;
+          label?: string;
+          position?: number;
+        }>;
+        const rawVariations = (resultData?.variations ?? []) as Array<{
+          url: string;
+          label?: string;
         }>;
 
-        if (images.length > 0) {
-          await this.prisma.bookImage.createMany({
-            data: images.map((img) => ({
+        const normalized = rawImages.length > 0
+          ? rawImages.map((img, i) => ({
               bookId: dto.bookId,
               chapterId: img.chapterId ?? null,
-              prompt: img.prompt,
-              imageUrl: img.imageUrl,
-              caption: img.caption ?? null,
-              position: img.position,
-            })),
-          });
+              prompt: img.prompt ?? img.label ?? '',
+              imageUrl: img.imageUrl ?? img.url ?? '',
+              caption: img.caption ?? img.label ?? null,
+              position: img.position ?? i,
+            }))
+          : rawVariations.map((v, i) => ({
+              bookId: dto.bookId,
+              chapterId: null,
+              prompt: v.label ?? '',
+              imageUrl: v.url,
+              caption: v.label ?? null,
+              position: i,
+            }));
+
+        if (normalized.length > 0) {
+          await this.prisma.bookImage.createMany({ data: normalized });
         }
         break;
       }
