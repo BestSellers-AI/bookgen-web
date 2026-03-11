@@ -10,6 +10,7 @@ import {
   Info,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/ui/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/error-state";
@@ -73,9 +74,23 @@ function isCreditPack(p: AdminProduct) {
 }
 
 // ---------------------------------------------------------------------------
+// Config descriptions helper
+// ---------------------------------------------------------------------------
+function getConfigDescriptions(
+  t: ReturnType<typeof useTranslations>,
+): Record<string, string> {
+  return {
+    CREDITS_COST: t("creditsCostDesc"),
+    FREE_TIER: t("freeTierDesc"),
+    BUNDLES: t("bundlesDesc"),
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Main page
 // ---------------------------------------------------------------------------
 export default function AdminProductsPage() {
+  const t = useTranslations("adminProducts");
   const [products, setProducts] = useState<AdminProduct[]>([]);
   const [configs, setConfigs] = useState<AdminAppConfig[]>([]);
   const [loading, setLoading] = useState(true);
@@ -133,97 +148,103 @@ export default function AdminProductsPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <PageHeader
-        title="Products & Pricing"
-        subtitle="Manage subscription plans, credit packs, and app configuration"
+        title={t("title")}
+        subtitle={t("subtitle")}
       />
 
       <Tabs defaultValue="subscriptions" className="space-y-6">
         <TabsList className="rounded-xl">
           <TabsTrigger value="subscriptions" className="rounded-lg">
-            Subscription Plans
+            {t("tabSubscriptionPlans")}
           </TabsTrigger>
           <TabsTrigger value="credit-packs" className="rounded-lg">
-            Credit Packs
+            {t("tabCreditPacks")}
           </TabsTrigger>
           <TabsTrigger value="addons" className="rounded-lg">
-            Addons & One-Time
+            {t("tabAddons")}
           </TabsTrigger>
           <TabsTrigger value="config" className="rounded-lg">
-            App Config
+            {t("tabAppConfig")}
           </TabsTrigger>
         </TabsList>
 
         {/* ── Subscription Plans ────────────────────────────────────────── */}
         <TabsContent value="subscriptions" className="space-y-4">
           <HintBox>
-            <p className="font-semibold text-foreground">How subscription pricing works</p>
-            <p>Each plan has <strong>two prices</strong>: Monthly and Annual. Users pay via Stripe Checkout and receive <strong>monthly credits</strong> on each billing cycle.</p>
-            <p>Plan features (credits/month, books/month, regens, commercial license, etc.) are stored in the product <strong>Metadata</strong> field. Click the pencil icon to edit.</p>
+            <p className="font-semibold text-foreground">{t("hintTitle")}</p>
+            <p>{t("hintDesc")}</p>
+            <p>{t("hintMetadata")}</p>
             <ul className="list-disc list-inside space-y-0.5 text-xs">
-              <li><strong>Aspirante</strong> — Entry tier: 300 cr/mo, 3 books, no commercial license</li>
-              <li><strong>BestSeller</strong> — Mid tier: 750 cr/mo, 7 books, commercial license, credit rollover 1 month</li>
-              <li><strong>Elite</strong> — Top tier: 2000 cr/mo, 20 books, express queue, credit rollover 3 months</li>
+              <li>{t("hintAspiranteDesc")}</li>
+              <li>{t("hintBestsellerDesc")}</li>
+              <li>{t("hintEliteDesc")}</li>
             </ul>
-            <p className="text-xs text-amber-400">Stripe prices are immutable. To change a price, add a new one and deactivate the old one.</p>
+            <p className="text-xs text-amber-400">{t("hintPriceWarning")}</p>
           </HintBox>
           <ProductTable
             products={subscriptionProducts}
             showBilling
             onRefresh={fetchAll}
+            t={t}
           />
         </TabsContent>
 
         {/* ── Credit Packs ─────────────────────────────────────────────── */}
         <TabsContent value="credit-packs" className="space-y-4">
           <HintBox>
-            <p className="font-semibold text-foreground">How credit packs work</p>
-            <p>One-time purchases via Stripe. User pays, gets credits added to wallet. <strong>Credits never expire.</strong></p>
-            <p>The <strong>Credits</strong> column shows how many credits the user receives. The price is what they pay in dollars.</p>
-            <p className="text-xs">Example: "300 Credits" pack costs $24.90 and grants 300 credits ($0.083/credit).</p>
+            <p className="font-semibold text-foreground">{t("creditPacksHintTitle")}</p>
+            <p>{t("creditPacksHintDesc")}</p>
+            <p>{t("creditPacksHintCreditsCol")}</p>
+            <p className="text-xs">{t("creditPacksHintExample")}</p>
           </HintBox>
           <ProductTable
             products={creditPacks}
             onRefresh={fetchAll}
+            t={t}
           />
         </TabsContent>
 
         {/* ── Addons & One-Time ────────────────────────────────────────── */}
         <TabsContent value="addons" className="space-y-4">
           <HintBox>
-            <p className="font-semibold text-foreground">How addons and one-time purchases work</p>
-            <p><strong>Addons</strong> are paid with credits (not money). The credit cost for each addon is configured in the <strong>App Config</strong> tab under <code className="bg-accent/50 px-1 rounded">CREDITS_COST</code>.</p>
-            <p><strong>One-Time Book</strong> ("Obra Aspirante") is a Stripe payment that grants credits equal to 1 book generation (100 credits for $19).</p>
-            <p><strong>Book Generation</strong> is an internal product — no Stripe price. It just defines the credit cost for generating a book.</p>
+            <p className="font-semibold text-foreground">{t("addonsHintTitle")}</p>
+            <p>{t("addonsHintDesc")}</p>
+            <p>{t("addonsHintOneTime")}</p>
+            <p>{t("addonsHintBookGen")}</p>
             <ul className="list-disc list-inside space-y-0.5 text-xs">
-              <li>Book generation = 100 credits</li>
-              <li>Chapter regen = 10 credits (free regens depend on plan)</li>
-              <li>Cover = 30 cr · Translation = 50 cr · Amazon Premium = 80 cr · Images = 20 cr · Audiobook = 60 cr</li>
+              <li>{t("addonsHintCosts")}</li>
             </ul>
           </HintBox>
           <ProductTable
             products={otherProducts}
             onRefresh={fetchAll}
+            t={t}
           />
         </TabsContent>
 
         {/* ── App Config ───────────────────────────────────────────────── */}
         <TabsContent value="config" className="space-y-4">
           <HintBox>
-            <p className="font-semibold text-foreground">App Configuration — JSON key-value store</p>
-            <p>These settings control the app behavior globally. Changes apply immediately after saving (cache refreshes in up to 5 minutes).</p>
+            <p className="font-semibold text-foreground">{t("configHintTitle")}</p>
+            <p>{t("configHintDesc")}</p>
             <ul className="list-disc list-inside space-y-1 text-xs">
-              <li><code className="bg-accent/50 px-1 rounded">CREDITS_COST</code> — How many credits each action costs (book generation, chapter regen, each addon). This is the <strong>source of truth</strong> for all credit deductions in the system.</li>
-              <li><code className="bg-accent/50 px-1 rounded">FREE_TIER</code> — Limits for users without a subscription (previews/month, etc.).</li>
-              <li><code className="bg-accent/50 px-1 rounded">BUNDLES</code> — Addon bundles with discounts. Each bundle has a list of addon <code>kinds</code>, original cost, discounted cost, and discount percentage. Bundles are shown in the Author Journey UI.</li>
+              <li>{t("configHintCreditsCost")}</li>
+              <li>{t("configHintFreeTier")}</li>
+              <li>{t("configHintBundles")}</li>
             </ul>
-            <p className="text-xs text-amber-400">Be careful editing JSON — invalid JSON will be rejected. Changes affect all users immediately.</p>
+            <p className="text-xs text-amber-400">{t("configHintWarning")}</p>
           </HintBox>
-          <AppConfigSection configs={configs} onRefresh={fetchAll} />
+          <AppConfigSection configs={configs} onRefresh={fetchAll} t={t} />
         </TabsContent>
       </Tabs>
     </div>
   );
 }
+
+// ===========================================================================
+// Translations type alias
+// ===========================================================================
+type T = ReturnType<typeof useTranslations>;
 
 // ===========================================================================
 // ProductTable — reusable table for any product kind
@@ -232,10 +253,12 @@ function ProductTable({
   products,
   showBilling,
   onRefresh,
+  t,
 }: {
   products: AdminProduct[];
   showBilling?: boolean;
   onRefresh: () => Promise<void>;
+  t: T;
 }) {
   const [editProduct, setEditProduct] = useState<AdminProduct | null>(null);
   const [priceProduct, setPriceProduct] = useState<AdminProduct | null>(null);
@@ -243,7 +266,7 @@ function ProductTable({
   if (products.length === 0) {
     return (
       <div className="glass rounded-[2rem] p-10 text-center text-muted-foreground">
-        No products in this category.
+        {t("noProducts")}
       </div>
     );
   }
@@ -255,12 +278,12 @@ function ProductTable({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-left">
-                <th className="px-6 py-4 font-bold text-muted-foreground">Name</th>
-                <th className="px-6 py-4 font-bold text-muted-foreground">Kind</th>
-                <th className="px-6 py-4 font-bold text-muted-foreground">Credits</th>
-                <th className="px-6 py-4 font-bold text-muted-foreground">Prices</th>
-                <th className="px-6 py-4 font-bold text-muted-foreground">Status</th>
-                <th className="px-6 py-4 font-bold text-muted-foreground">Order</th>
+                <th className="px-6 py-4 font-bold text-muted-foreground">{t("thName")}</th>
+                <th className="px-6 py-4 font-bold text-muted-foreground">{t("thKind")}</th>
+                <th className="px-6 py-4 font-bold text-muted-foreground">{t("thCredits")}</th>
+                <th className="px-6 py-4 font-bold text-muted-foreground">{t("thPrices")}</th>
+                <th className="px-6 py-4 font-bold text-muted-foreground">{t("thStatus")}</th>
+                <th className="px-6 py-4 font-bold text-muted-foreground">{t("thOrder")}</th>
                 <th className="px-6 py-4" />
               </tr>
             </thead>
@@ -286,12 +309,12 @@ function ProductTable({
                       </Badge>
                     </td>
                     <td className="px-6 py-4 font-mono">
-                      {product.creditsAmount ?? "—"}
+                      {product.creditsAmount ?? "\u2014"}
                     </td>
                     <td className="px-6 py-4">
                       <div className="space-y-1">
                         {activePrices.length === 0 && (
-                          <span className="text-muted-foreground text-xs">No prices</span>
+                          <span className="text-muted-foreground text-xs">{t("noPrices")}</span>
                         )}
                         {activePrices.map((price) => (
                           <div key={price.id} className="flex items-center gap-2 text-xs">
@@ -321,7 +344,7 @@ function ProductTable({
                             : "bg-red-500/10 text-red-400"
                         }`}
                       >
-                        {product.isActive ? "Active" : "Inactive"}
+                        {product.isActive ? t("active") : t("inactive")}
                       </Badge>
                     </td>
                     <td className="px-6 py-4 font-mono text-muted-foreground">
@@ -364,6 +387,7 @@ function ProductTable({
             setEditProduct(null);
             await onRefresh();
           }}
+          t={t}
         />
       )}
 
@@ -376,6 +400,7 @@ function ProductTable({
             setPriceProduct(null);
             await onRefresh();
           }}
+          t={t}
         />
       )}
     </>
@@ -389,10 +414,12 @@ function EditProductDialog({
   product,
   onClose,
   onSaved,
+  t,
 }: {
   product: AdminProduct;
   onClose: () => void;
   onSaved: () => Promise<void>;
+  t: T;
 }) {
   const [name, setName] = useState(product.name);
   const [description, setDescription] = useState(product.description ?? "");
@@ -408,7 +435,7 @@ function EditProductDialog({
     try {
       metadata = JSON.parse(metadataStr);
     } catch {
-      toast.error("Invalid JSON in metadata field");
+      toast.error(t("invalidJson"));
       return;
     }
 
@@ -421,10 +448,10 @@ function EditProductDialog({
         sortOrder,
         metadata,
       });
-      toast.success("Product updated");
+      toast.success(t("productUpdated"));
       await onSaved();
     } catch {
-      toast.error("Failed to update product");
+      toast.error(t("productUpdateFailed"));
     } finally {
       setSaving(false);
     }
@@ -436,10 +463,10 @@ function EditProductDialog({
     setDeactivating(priceId);
     try {
       await adminApi.deactivatePrice(product.id, priceId);
-      toast.success("Price deactivated");
+      toast.success(t("priceDeactivated"));
       await onSaved();
     } catch {
-      toast.error("Failed to deactivate price");
+      toast.error(t("priceDeactivateFailed"));
     } finally {
       setDeactivating(null);
     }
@@ -449,28 +476,28 @@ function EditProductDialog({
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Product</DialogTitle>
+          <DialogTitle>{t("editProduct")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Name</Label>
+            <Label>{t("thName")}</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div className="space-y-2">
-            <Label>Description</Label>
+            <Label>{t("description")}</Label>
             <Input
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Optional description"
+              placeholder={t("descriptionPlaceholder")}
             />
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <Switch checked={isActive} onCheckedChange={setIsActive} />
-              <Label>Active</Label>
+              <Label>{t("active")}</Label>
             </div>
             <div className="flex items-center gap-2">
-              <Label>Sort Order</Label>
+              <Label>{t("sortOrder")}</Label>
               <Input
                 type="number"
                 value={sortOrder}
@@ -480,7 +507,7 @@ function EditProductDialog({
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Metadata (JSON)</Label>
+            <Label>{t("metadataJson")}</Label>
             <textarea
               value={metadataStr}
               onChange={(e) => setMetadataStr(e.target.value)}
@@ -492,7 +519,7 @@ function EditProductDialog({
           {/* Existing prices */}
           {product.prices.length > 0 && (
             <div className="space-y-2">
-              <Label>Prices</Label>
+              <Label>{t("prices")}</Label>
               <div className="space-y-2">
                 {product.prices.map((price) => (
                   <div
@@ -512,12 +539,12 @@ function EditProductDialog({
                       )}
                       {price.creditsCost != null && (
                         <span className="text-muted-foreground">
-                          {price.creditsCost} credits
+                          {price.creditsCost} {t("credits")}
                         </span>
                       )}
                       {!price.isActive && (
                         <Badge variant="secondary" className="text-[8px] bg-red-500/10 text-red-400">
-                          Inactive
+                          {t("inactive")}
                         </Badge>
                       )}
                     </div>
@@ -544,12 +571,12 @@ function EditProductDialog({
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={onClose}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button onClick={handleSave} disabled={saving}>
             {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             <Save className="w-4 h-4 mr-2" />
-            Save
+            {t("save")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -564,10 +591,12 @@ function AddPriceDialog({
   product,
   onClose,
   onSaved,
+  t,
 }: {
   product: AdminProduct;
   onClose: () => void;
   onSaved: () => Promise<void>;
+  t: T;
 }) {
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState("usd");
@@ -578,7 +607,7 @@ function AddPriceDialog({
   const handleSave = async () => {
     const amountCents = Math.round(Number(amount) * 100);
     if (isNaN(amountCents) || amountCents < 0) {
-      toast.error("Enter a valid amount");
+      toast.error(t("invalidAmount"));
       return;
     }
 
@@ -590,10 +619,10 @@ function AddPriceDialog({
         billingInterval: billingInterval || undefined,
         creditsCost: creditsCost ? Number(creditsCost) : undefined,
       });
-      toast.success("Price created");
+      toast.success(t("priceCreated"));
       await onSaved();
     } catch {
-      toast.error("Failed to create price");
+      toast.error(t("priceCreateFailed"));
     } finally {
       setSaving(false);
     }
@@ -603,11 +632,11 @@ function AddPriceDialog({
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Add Price to {product.name}</DialogTitle>
+          <DialogTitle>{t("addPriceTo", { name: product.name })}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Amount (dollars)</Label>
+            <Label>{t("amountDollars")}</Label>
             <Input
               type="number"
               step="0.01"
@@ -618,7 +647,7 @@ function AddPriceDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label>Currency</Label>
+            <Label>{t("currency")}</Label>
             <Input
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
@@ -626,7 +655,7 @@ function AddPriceDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label>Billing Interval (optional)</Label>
+            <Label>{t("billingInterval")}</Label>
             <select
               value={billingInterval}
               onChange={(e) =>
@@ -634,13 +663,13 @@ function AddPriceDialog({
               }
               className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             >
-              <option value="">None (one-time)</option>
-              <option value="MONTHLY">Monthly</option>
-              <option value="ANNUAL">Annual</option>
+              <option value="">{t("noneOneTime")}</option>
+              <option value="MONTHLY">{t("monthly")}</option>
+              <option value="ANNUAL">{t("annual")}</option>
             </select>
           </div>
           <div className="space-y-2">
-            <Label>Credits Cost (optional)</Label>
+            <Label>{t("creditsCostLabel")}</Label>
             <Input
               type="number"
               value={creditsCost}
@@ -651,11 +680,11 @@ function AddPriceDialog({
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={onClose}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button onClick={handleSave} disabled={saving}>
             {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Create Price
+            {t("createPrice")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -669,40 +698,36 @@ function AddPriceDialog({
 function AppConfigSection({
   configs,
   onRefresh,
+  t,
 }: {
   configs: AdminAppConfig[];
   onRefresh: () => Promise<void>;
+  t: T;
 }) {
   return (
     <div className="space-y-6">
       {configs.length === 0 && (
         <div className="glass rounded-[2rem] p-10 text-center text-muted-foreground">
-          No app configurations found.
+          {t("noConfigs")}
         </div>
       )}
       {configs.map((config) => (
-        <ConfigCard key={config.id} config={config} onRefresh={onRefresh} />
+        <ConfigCard key={config.id} config={config} onRefresh={onRefresh} t={t} />
       ))}
     </div>
   );
 }
 
-const CONFIG_DESCRIPTIONS: Record<string, string> = {
-  CREDITS_COST:
-    "Credit cost for each operation. Keys: BOOK_GENERATION (full book), CHAPTER_REGENERATION (single chapter redo), ADDON_COVER, ADDON_TRANSLATION, ADDON_COVER_TRANSLATION, ADDON_AMAZON_STANDARD, ADDON_AMAZON_PREMIUM, ADDON_IMAGES, ADDON_AUDIOBOOK. Values are integers (number of credits deducted).",
-  FREE_TIER:
-    "Limits for users without a paid subscription. previewsPerMonth = how many book previews they can create. credits/booksPerMonth/freeRegensPerMonth = always 0 for free tier. commercialLicense and fullEditor = false.",
-  BUNDLES:
-    'Addon bundles with discounts shown in the Author Journey UI. Each bundle has: "id" (unique key), "kinds" (array of addon ProductKind values), "originalCost" (sum of individual addon costs), "cost" (discounted total), "discountPercent". The frontend calculates savings from originalCost - cost.',
-};
-
 function ConfigCard({
   config,
   onRefresh,
+  t,
 }: {
   config: AdminAppConfig;
   onRefresh: () => Promise<void>;
+  t: T;
 }) {
+  const configDescriptions = getConfigDescriptions(t);
   const [valueStr, setValueStr] = useState(
     JSON.stringify(config.value, null, 2),
   );
@@ -719,24 +744,24 @@ function ConfigCard({
     try {
       parsed = JSON.parse(valueStr);
     } catch {
-      toast.error("Invalid JSON");
+      toast.error(t("invalidJson"));
       return;
     }
 
     setSaving(true);
     try {
       await adminApi.updateAppConfig(config.key, parsed);
-      toast.success(`Config "${config.key}" updated`);
+      toast.success(t("configUpdated", { key: config.key }));
       setDirty(false);
       await onRefresh();
     } catch {
-      toast.error(`Failed to update "${config.key}"`);
+      toast.error(t("configUpdateFailed", { key: config.key }));
     } finally {
       setSaving(false);
     }
   };
 
-  const description = CONFIG_DESCRIPTIONS[config.key];
+  const description = configDescriptions[config.key];
 
   return (
     <div className="glass rounded-[2rem] p-6 space-y-4">
@@ -750,8 +775,10 @@ function ConfigCard({
           )}
           {config.updatedBy && (
             <p className="text-[10px] text-muted-foreground/60 mt-1">
-              Last updated by {config.updatedBy} on{" "}
-              {new Date(config.updatedAt).toLocaleString()}
+              {t("lastUpdatedBy", {
+                user: config.updatedBy,
+                date: new Date(config.updatedAt).toLocaleString(),
+              })}
             </p>
           )}
         </div>
@@ -763,7 +790,7 @@ function ConfigCard({
         >
           {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
           <Save className="w-4 h-4 mr-1" />
-          Save
+          {t("save")}
         </Button>
       </div>
       <textarea
