@@ -17,6 +17,7 @@ import { TranslationService } from '../translations/translation.service';
 import { EmailService } from '../email/email.service';
 import { AppConfigService } from '../config/app-config.service';
 import { bookGeneratedEmail } from '../email/email-templates';
+import { countWords, estimatePageCount } from '../common/word-count';
 import {
   PreviewResultDto,
   PreviewCompleteResultDto,
@@ -339,13 +340,15 @@ export class HooksService {
     }
 
     /* ---------- Success path ---------- */
+    const chapterWordCount = countWords(dto.content);
+
     await this.prisma.chapter.update({
       where: { id: chapter.id },
       data: {
         content: dto.content,
         topics: (dto.topics ?? []) as unknown as Prisma.InputJsonValue,
         contextSummary: dto.contextSummary,
-        wordCount: dto.wordCount,
+        wordCount: chapterWordCount,
         status: ChapterStatus.GENERATED,
       },
     });
@@ -387,12 +390,28 @@ export class HooksService {
       return;
     }
 
+    // Calculate word count internally from all chapters + sections
+    const chapters = await this.prisma.chapter.findMany({
+      where: { bookId: dto.bookId, status: ChapterStatus.GENERATED },
+      select: { wordCount: true },
+    });
+    const chaptersWordCount = chapters.reduce((sum, ch) => sum + (ch.wordCount ?? 0), 0);
+    const sectionsWordCount =
+      countWords(dto.introduction) +
+      countWords(dto.conclusion) +
+      countWords(dto.finalConsiderations) +
+      countWords(dto.glossary) +
+      countWords(dto.appendix) +
+      countWords(dto.closure);
+    const totalWordCount = chaptersWordCount + sectionsWordCount;
+    const totalPageCount = estimatePageCount(totalWordCount);
+
     await this.prisma.book.update({
       where: { id: dto.bookId },
       data: {
         status: BookStatus.GENERATED,
-        wordCount: dto.wordCount,
-        pageCount: dto.pageCount,
+        wordCount: totalWordCount,
+        pageCount: totalPageCount,
         generationCompletedAt: new Date(),
         ...(dto.introduction && { introduction: dto.introduction }),
         ...(dto.conclusion && { conclusion: dto.conclusion }),

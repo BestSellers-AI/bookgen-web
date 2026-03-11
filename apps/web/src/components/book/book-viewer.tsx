@@ -7,6 +7,7 @@ import {
   Calendar,
   User,
   BookOpen,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 // import { ChapterContent } from "./chapter-content";
 import { ShareDialog } from "./share-dialog";
 import { AuthorJourney } from "./author-journey";
+import { BookPdfViewerDynamic } from "./book-pdf-viewer-dynamic";
 import { useTranslations } from "next-intl";
 import type { BookDetail, BookFileSummary } from "@/lib/api/types";
 
@@ -36,6 +38,7 @@ export function BookViewer({ book, onRefetch }: BookViewerProps) {
   const [shareOpen, setShareOpen] = useState(false);
   const t = useTranslations("book");
 
+  const [viewMode, setViewMode] = useState<"kdp" | "original">("kdp");
   const pdfFile = getFileByType(book.files, "FULL_PDF");
   const docxFile = getFileByType(book.files, "DOCX");
   const epubFile = getFileByType(book.files, "EPUB");
@@ -87,17 +90,50 @@ export function BookViewer({ book, onRefetch }: BookViewerProps) {
       {/* Author Journey — publishing track + extras */}
       <AuthorJourney book={book} onRefetch={onRefetch} />
 
-      {/* Embedded PDF */}
-      {pdfFile && (
-        <div className="glass rounded-[2.5rem] border-none overflow-hidden p-2">
-          <iframe
-            src={pdfFile.fileUrl}
-            title={book.title}
-            className="w-full rounded-[2rem]"
-            style={{ height: "80vh", minHeight: "600px" }}
-          />
-        </div>
-      )}
+      {/* PDF Viewer — KDP template (client-generated) or original (n8n) */}
+      <div className="space-y-4">
+        {pdfFile && (
+          <div className="flex items-center gap-2">
+            <Button
+              variant={viewMode === "kdp" ? "default" : "outline"}
+              size="sm"
+              className="rounded-xl"
+              onClick={() => setViewMode("kdp")}
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              {t("viewKdp")}
+            </Button>
+            <Button
+              variant={viewMode === "original" ? "default" : "outline"}
+              size="sm"
+              className="rounded-xl"
+              onClick={() => setViewMode("original")}
+            >
+              <BookOpen className="mr-2 h-4 w-4" />
+              {t("viewOriginal")}
+            </Button>
+          </div>
+        )}
+
+        {viewMode === "kdp" ? (
+          <div className="glass rounded-[2.5rem] border-none overflow-hidden p-2">
+            <BookPdfViewerDynamic
+              book={book}
+              className="w-full rounded-[2rem]"
+              style={{ height: "80vh", minHeight: "600px" }}
+            />
+          </div>
+        ) : pdfFile ? (
+          <div className="glass rounded-[2.5rem] border-none overflow-hidden p-2">
+            <iframe
+              src={pdfFile.fileUrl}
+              title={book.title}
+              className="w-full rounded-[2rem]"
+              style={{ height: "80vh", minHeight: "600px" }}
+            />
+          </div>
+        ) : null}
+      </div>
 
       {/* Author + Downloads + Share */}
       <div className="space-y-5">

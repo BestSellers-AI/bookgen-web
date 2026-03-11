@@ -22,6 +22,7 @@ export function createSimpleBookSchema(msgs: ErrorMessages = {}) {
     title: z.string().min(2, msgs.titleMin),
     subtitle: z.string().min(2, msgs.subtitleMin),
     author: z.string().min(2, msgs.authorMin),
+    language: z.string().min(2, msgs.languageMin),
     briefing: z
       .string()
       .min(BRIEFING_MIN_LENGTH, msgs.briefingMin)
@@ -35,6 +36,7 @@ export type SimpleBookFormData = z.infer<typeof simpleBookSchema>;
 export function createGuidedBookSchema(msgs: ErrorMessages = {}) {
   return z.object({
     author: z.string().min(2, msgs.authorMin),
+    language: z.string().min(2, msgs.languageMin),
     briefing: z
       .string()
       .min(BRIEFING_MIN_LENGTH, msgs.briefingMin)

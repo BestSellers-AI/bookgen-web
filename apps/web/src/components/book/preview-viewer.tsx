@@ -11,6 +11,8 @@ import {
   User,
   Loader2,
   FileDown,
+  FileText,
+  BookOpen,
 } from "lucide-react";
 import { booksApi } from "@/lib/api/books";
 import { useRouter } from "@/i18n/navigation";
@@ -24,6 +26,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { PlanningEditor } from "./planning-editor";
+import { BookPdfViewerDynamic } from "./book-pdf-viewer-dynamic";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import type { BookDetail, BookFileSummary } from "@/lib/api/types";
@@ -40,6 +43,7 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
   const [regenerating, setRegenerating] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [approvingStructure, setApprovingStructure] = useState(false);
+  const [viewMode, setViewMode] = useState<"kdp" | "original">("kdp");
   const t = useTranslations("book");
   const tErr = useTranslations("errors");
 
@@ -270,15 +274,58 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
           onSave={handleSavePlanning}
           onCancel={() => setIsEditing(false)}
         />
-      ) : isCompletePreview && previewPdf ? (
-        /* Embedded PDF for complete preview */
-        <div className="glass rounded-[2.5rem] border-none overflow-hidden p-2">
-          <iframe
-            src={previewPdf.fileUrl}
-            title={book.title}
-            className="w-full rounded-[2rem]"
-            style={{ height: "80vh", minHeight: "600px" }}
-          />
+      ) : isCompletePreview ? (
+        /* PDF viewer for complete preview — KDP or original */
+        <div className="space-y-4">
+          {previewPdf && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant={viewMode === "kdp" ? "default" : "outline"}
+                size="sm"
+                className="rounded-xl"
+                onClick={() => setViewMode("kdp")}
+              >
+                <FileText className="mr-2 h-4 w-4" />
+                {t("viewKdp")}
+              </Button>
+              <Button
+                variant={viewMode === "original" ? "default" : "outline"}
+                size="sm"
+                className="rounded-xl"
+                onClick={() => setViewMode("original")}
+              >
+                <BookOpen className="mr-2 h-4 w-4" />
+                {t("viewOriginal")}
+              </Button>
+            </div>
+          )}
+
+          {viewMode === "kdp" ? (
+            <div className="glass rounded-[2.5rem] border-none overflow-hidden p-2">
+              <BookPdfViewerDynamic
+                book={book}
+                className="w-full rounded-[2rem]"
+                style={{ height: "80vh", minHeight: "600px" }}
+              />
+            </div>
+          ) : previewPdf ? (
+            <div className="glass rounded-[2.5rem] border-none overflow-hidden p-2">
+              <iframe
+                src={previewPdf.fileUrl}
+                title={book.title}
+                className="w-full rounded-[2rem]"
+                style={{ height: "80vh", minHeight: "600px" }}
+              />
+            </div>
+          ) : (
+            <div className="glass rounded-[2.5rem] border-none overflow-hidden p-2">
+              <BookPdfViewerDynamic
+                book={book}
+                className="w-full rounded-[2rem]"
+                style={{ height: "80vh", minHeight: "600px" }}
+              />
+            </div>
+          )}
         </div>
       ) : (
         <Accordion type="multiple" defaultValue={isCompletePreview && book.introduction ? ["section-introduction"] : []} className="space-y-4">

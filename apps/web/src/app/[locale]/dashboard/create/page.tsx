@@ -39,7 +39,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import {
   BOOK_TONES,
   SUPPORTED_LANGUAGES,
@@ -67,6 +67,7 @@ export default function CreateBookPage() {
   const [bookId, setBookId] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
+  const locale = useLocale();
   const t = useTranslations("create");
   const tCommon = useTranslations("common");
   const tErr = useTranslations("errors");
@@ -83,12 +84,12 @@ export default function CreateBookPage() {
 
   const simpleForm = useForm<SimpleBookFormData>({
     resolver: zodResolver(createSimpleBookSchema(validationMsgs)),
-    defaultValues: { title: "", subtitle: "", author: "", briefing: "" },
+    defaultValues: { title: "", subtitle: "", author: "", language: locale, briefing: "" },
   });
 
   const guidedForm = useForm<GuidedBookFormData>({
     resolver: zodResolver(createGuidedBookSchema(validationMsgs)),
-    defaultValues: { author: "", briefing: "" },
+    defaultValues: { author: "", language: locale, briefing: "" },
   });
 
   const advancedForm = useForm<AdvancedBookFormData>({
@@ -101,7 +102,7 @@ export default function CreateBookPage() {
       settings: {
         tone: "professional",
         targetAudience: "",
-        language: "en",
+        language: locale,
         pageTarget: 200,
         chapterCount: 10,
         writingStyle: "",
@@ -208,6 +209,15 @@ export default function CreateBookPage() {
       author: data.author || user?.name || "Author",
       title: data.title || undefined,
       subtitle: data.subtitle || undefined,
+      settings: {
+        tone: "professional",
+        targetAudience: "general",
+        language: data.language,
+        pageTarget: 150,
+        chapterCount: 10,
+        includeExamples: true,
+        includeCaseStudies: false,
+      },
     });
   };
 
@@ -216,6 +226,15 @@ export default function CreateBookPage() {
       mode: "GUIDED" as any,
       briefing: data.briefing,
       author: data.author || user?.name || "Author",
+      settings: {
+        tone: "professional",
+        targetAudience: "general",
+        language: data.language,
+        pageTarget: 150,
+        chapterCount: 10,
+        includeExamples: true,
+        includeCaseStudies: false,
+      },
     });
   };
 
@@ -410,11 +429,33 @@ export default function CreateBookPage() {
                         control={simpleForm.control}
                         name="subtitle"
                         render={({ field }) => (
-                          <FormItem className="md:col-span-2">
+                          <FormItem>
                             <FormLabel className={labelClass}>{t("subtitle")}</FormLabel>
                             <FormControl>
                               <Input placeholder={t("subtitlePlaceholder")} className={inputClass} {...field} />
                             </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={simpleForm.control}
+                        name="language"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className={labelClass}>{t("language")}</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger className={inputClass}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {SUPPORTED_LANGUAGES.map((lang) => (
+                                  <SelectItem key={lang.code} value={lang.code}>{lang.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -440,19 +481,43 @@ export default function CreateBookPage() {
                     onSubmit={guidedForm.handleSubmit(handleGuidedSubmit)}
                     className="space-y-6 md:space-y-8"
                   >
-                    <FormField
-                      control={guidedForm.control}
-                      name="author"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className={labelClass}>{t("authorName")}</FormLabel>
-                          <FormControl>
-                            <Input placeholder={t("authorPlaceholder")} className={inputClass} {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                      <FormField
+                        control={guidedForm.control}
+                        name="author"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className={labelClass}>{t("authorName")}</FormLabel>
+                            <FormControl>
+                              <Input placeholder={t("authorPlaceholder")} className={inputClass} {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={guidedForm.control}
+                        name="language"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className={labelClass}>{t("language")}</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger className={inputClass}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {SUPPORTED_LANGUAGES.map((lang) => (
+                                  <SelectItem key={lang.code} value={lang.code}>{lang.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
                     <BriefingField
                       control={guidedForm.control}

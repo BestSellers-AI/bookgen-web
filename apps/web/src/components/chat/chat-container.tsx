@@ -437,12 +437,23 @@ export function ChatContainer() {
         ? `${state.briefing}\n\n---\n\n${state.aiPlanningText}`
         : state.briefing;
 
+      const bookSettings = {
+        tone: 'professional',
+        targetAudience: 'general',
+        language: locale,
+        pageTarget: 150,
+        chapterCount: 10,
+        includeExamples: true,
+        includeCaseStudies: false,
+      };
+
       const bookInput =
         state.path === 'generate'
           ? {
               mode: BookCreationMode.GUIDED,
               briefing: enrichedBriefing,
               author: state.authorName,
+              settings: bookSettings,
             }
           : {
               mode: BookCreationMode.SIMPLE,
@@ -450,6 +461,7 @@ export function ChatContainer() {
               subtitle: state.subtitle,
               briefing: enrichedBriefing,
               author: state.authorName,
+              settings: bookSettings,
             };
 
       const book = await booksApi.create(bookInput);

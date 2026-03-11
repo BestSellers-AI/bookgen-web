@@ -1100,7 +1100,41 @@ Every callback handler checks current status before processing to prevent duplic
 
 ---
 
-## 11. Source Files Reference
+## 11. Internal Word/Page Count & Book Language
+
+### Word/Page Count — Calculated Internally
+
+The backend **no longer uses** `wordCount` and `pageCount` from n8n callbacks. Instead:
+
+- **Per-chapter `wordCount`**: calculated from `dto.content` using `countWords()` in `processChapterResult()`
+- **Total `wordCount`**: sum of all chapter word counts + introduction, conclusion, glossary, appendix, closure — calculated in `processGenerationComplete()`
+- **`pageCount`**: estimated from total word count via `estimatePageCount()` (~250 words/page + 10% for front/back matter)
+
+Helper: `apps/api/src/common/word-count.ts`
+
+n8n can still send `wordCount`/`pageCount` in its payloads, but they are **ignored** — the API always recalculates.
+
+### Book Language (`settings.language`)
+
+Language is stored inside the book's `settings` JSON field (not a dedicated column):
+
+```json
+{ "language": "pt-BR", "tone": "professional", ... }
+```
+
+**Where it's set:**
+- Dashboard create wizard: user selects language in advanced settings
+- Chat funnel: automatically set from the URL locale (`/pt-BR/chat/` → `settings.language = "pt-BR"`)
+
+**Where it's used:**
+- n8n dispatch: `settings` object is sent in the dispatch payload — n8n uses `settings.language` to generate content in the correct language
+- PDF template: section labels (Contents, Introduction, Conclusion, etc.) are localized based on `settings.language` via `getBookLabels()` in `apps/web/src/lib/book-template/labels.ts`
+
+Supported label languages: `en`, `pt-BR`, `es`. Falls back to English for unsupported languages.
+
+---
+
+## 12. Source Files Reference
 
 | File | Purpose |
 |------|---------|
