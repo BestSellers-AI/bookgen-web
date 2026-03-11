@@ -29,6 +29,16 @@ export class AddonController {
     return this.addonService.request(userId, bookId, dto);
   }
 
+  @Post('bundle/:bundleId')
+  @HttpCode(HttpStatus.ACCEPTED)
+  async requestBundle(
+    @CurrentUser('id') userId: string,
+    @Param('bookId') bookId: string,
+    @Param('bundleId') bundleId: string,
+  ) {
+    return this.addonService.requestBundle(userId, bookId, bundleId);
+  }
+
   @Get()
   async findAll(
     @CurrentUser('id') userId: string,

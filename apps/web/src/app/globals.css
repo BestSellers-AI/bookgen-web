@@ -32,6 +32,20 @@
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
   --animate-border-spin: border-spin 10s linear infinite;
+  --animate-shimmer: shimmer 3s ease-in-out infinite;
+  --animate-shake: shake 0.6s ease-in-out;
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10% { transform: translateX(-4px) rotate(-1deg); }
+    20% { transform: translateX(4px) rotate(1deg); }
+    30% { transform: translateX(-4px) rotate(-0.5deg); }
+    40% { transform: translateX(4px) rotate(0.5deg); }
+    50% { transform: translateX(-2px) rotate(-0.5deg); }
+    60% { transform: translateX(2px) rotate(0.5deg); }
+    70% { transform: translateX(-1px); }
+    80% { transform: translateX(1px); }
+  }
 
   @keyframes border-spin {
     from {
@@ -39,6 +53,18 @@
     }
     to {
       transform: translate(-50%, -50%) rotate(360deg);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-200%);
+    }
+    50% {
+      transform: translateX(200%);
+    }
+    100% {
+      transform: translateX(200%);
     }
   }
 

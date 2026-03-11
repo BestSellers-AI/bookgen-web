@@ -13,7 +13,7 @@ import {
   CreditType,
   WalletTransactionType,
 } from '@prisma/client';
-import { CREDITS_COST } from '@bestsellers/shared';
+import { CREDITS_COST, BUNDLES } from '@bestsellers/shared';
 import type { BookAddonSummary } from '@bestsellers/shared';
 import { RequestAddonDto } from './dto';
 
@@ -117,6 +117,128 @@ export class AddonService {
       createdAt: updated.createdAt.toISOString(),
       updatedAt: updated.updatedAt.toISOString(),
     };
+  }
+
+  async requestBundle(
+    userId: string,
+    bookId: string,
+    bundleId: string,
+  ): Promise<BookAddonSummary[]> {
+    const bundle = BUNDLES[bundleId];
+    if (!bundle) {
+      throw new BadRequestException(`Unknown bundle: ${bundleId}`);
+    }
+    // Verify book ownership + status
+    const book = await this.prisma.book.findFirst({
+      where: { id: bookId, userId, deletedAt: null },
+      select: { id: true, status: true },
+    });
+
+    if (!book) {
+      throw new NotFoundException('Book not found');
+    }
+
+    if (book.status !== BookStatus.GENERATED) {
+      throw new BadRequestException(
+        'Add-ons can only be requested for fully generated books',
+      );
+    }
+
+    // Check that none of the bundle addons already exist (not cancelled/error)
+    const existingAddons = await this.prisma.bookAddon.findMany({
+      where: {
+        bookId,
+        kind: { in: bundle.kinds },
+        status: { notIn: [AddonStatus.CANCELLED, AddonStatus.ERROR] },
+      },
+    });
+
+    if (existingAddons.length > 0) {
+      const existingKinds = existingAddons.map((a) => a.kind).join(', ');
+      throw new BadRequestException(
+        `Bundle cannot be purchased: existing addons found (${existingKinds})`,
+      );
+    }
+
+    const bundleCost = bundle.cost;
+
+    // Create all addon records (PENDING)
+    const addonRecords = await Promise.all(
+      bundle.kinds.map((kind) =>
+        this.prisma.bookAddon.create({
+          data: {
+            bookId,
+            kind,
+            status: AddonStatus.PENDING,
+            creditsCost: CREDITS_COST[kind],
+          },
+        }),
+      ),
+    );
+
+    // Debit bundle cost (throws 402 if insufficient)
+    await this.walletService.debitCredits(
+      userId,
+      bundleCost,
+      WalletTransactionType.ADDON_PURCHASE,
+      `Bundle: ${bundle.id} (${bundle.kinds.join(' + ')})`,
+      { bookId },
+    );
+
+    // Dispatch each addon to n8n
+    const dispatched: typeof addonRecords = [];
+    try {
+      for (const addon of addonRecords) {
+        await this.n8nClient.dispatchAddon(bookId, addon.id, addon.kind as string, {});
+        dispatched.push(addon);
+      }
+    } catch {
+      // Refund full bundle cost and mark all addons as ERROR
+      await this.walletService.addCredits(userId, bundleCost, CreditType.REFUND, {
+        description: `Refund: ${bundle.id} bundle dispatch failed`,
+        transactionType: WalletTransactionType.REFUND,
+      });
+      await Promise.all(
+        addonRecords.map((a) =>
+          this.prisma.bookAddon.update({
+            where: { id: a.id },
+            data: {
+              status: AddonStatus.ERROR,
+              error: 'Failed to dispatch to processing engine',
+            },
+          }),
+        ),
+      );
+      throw new BadRequestException(
+        'Failed to start bundle processing. Credits have been refunded.',
+      );
+    }
+
+    // Update all to QUEUED
+    const updated = await Promise.all(
+      addonRecords.map((a) =>
+        this.prisma.bookAddon.update({
+          where: { id: a.id },
+          data: { status: AddonStatus.QUEUED },
+        }),
+      ),
+    );
+
+    this.logger.log(
+      `Bundle ${bundle.id} requested for book ${bookId} (${addonRecords.length} addons)`,
+    );
+
+    return updated.map((a) => ({
+      id: a.id,
+      kind: a.kind as unknown as BookAddonSummary['kind'],
+      status: a.status as unknown as BookAddonSummary['status'],
+      resultUrl: a.resultUrl,
+      resultData: a.resultData as Record<string, unknown> | null,
+      creditsCost: a.creditsCost,
+      error: a.error,
+      createdAt: a.createdAt.toISOString(),
+      updatedAt: a.updatedAt.toISOString(),
+    }));
   }
 
   async findAllByBook(

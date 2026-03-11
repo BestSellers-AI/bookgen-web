@@ -107,6 +107,51 @@ export const CREDITS_COST: Record<string, number> = {
   [ProductKind.ADDON_AUDIOBOOK]: 60,
 };
 
+/** Bundle type definition */
+export interface BundleConfig {
+  id: string;
+  kinds: ProductKind[];
+  originalCost: number;
+  cost: number;
+  discountPercent: number;
+}
+
+/** Premium Publishing Bundle — Cover + Images + Amazon Premium with 15% off */
+export const BUNDLE_PUBLISH_PREMIUM: BundleConfig = {
+  id: 'BUNDLE_PUBLISH_PREMIUM',
+  kinds: [
+    ProductKind.ADDON_COVER,
+    ProductKind.ADDON_IMAGES,
+    ProductKind.ADDON_AMAZON_PREMIUM,
+  ],
+  /** Sum of individual costs: 30 + 20 + 80 = 130 */
+  originalCost: 130,
+  /** 15% discount applied: Math.round(130 * 0.85) = 110 */
+  cost: 110,
+  discountPercent: 15,
+};
+
+/** Global Launch Bundle — Translation + Cover Translation + Amazon Standard (publishing 50% off) */
+export const BUNDLE_GLOBAL_LAUNCH: BundleConfig = {
+  id: 'BUNDLE_GLOBAL_LAUNCH',
+  kinds: [
+    ProductKind.ADDON_TRANSLATION,
+    ProductKind.ADDON_COVER_TRANSLATION,
+    ProductKind.ADDON_AMAZON_STANDARD,
+  ],
+  /** Sum of individual costs: 50 + 20 + 40 = 110 */
+  originalCost: 110,
+  /** Publishing at 50% off: 50 + 20 + 20 = 90 */
+  cost: 90,
+  discountPercent: 18,
+};
+
+/** All bundles indexed by ID */
+export const BUNDLES: Record<string, BundleConfig> = {
+  [BUNDLE_PUBLISH_PREMIUM.id]: BUNDLE_PUBLISH_PREMIUM,
+  [BUNDLE_GLOBAL_LAUNCH.id]: BUNDLE_GLOBAL_LAUNCH,
+};
+
 export const SUPPORTED_LANGUAGES = [
   { code: 'en', name: 'English' },
   { code: 'pt-BR', name: 'Português (Brasil)' },

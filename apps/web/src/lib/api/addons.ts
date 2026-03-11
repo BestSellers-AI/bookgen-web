@@ -27,4 +27,9 @@ export const addonsApi = {
     apiClient
       .delete<Record<string, unknown>>(`/books/${bookId}/addons/${addonId}`)
       .then((r) => r.data),
+
+  createBundle: (bookId: string, bundleId: string) =>
+    apiClient
+      .post<BookAddonSummary[]>(`/books/${bookId}/addons/bundle/${bundleId}`)
+      .then((r) => r.data),
 };

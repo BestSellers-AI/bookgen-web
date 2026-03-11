@@ -89,6 +89,7 @@ const config: Config = {
             animation: {
                 'fade-up': 'fadeUp 0.6s ease-out forwards',
                 'pulse-gold': 'pulseGold 2.5s ease-in-out infinite',
+                'shimmer': 'shimmer 3s ease-in-out infinite',
             },
             keyframes: {
                 fadeUp: {
@@ -98,6 +99,11 @@ const config: Config = {
                 pulseGold: {
                     '0%, 100%': { boxShadow: '0 0 0 0 rgba(245,158,11,0.35)' },
                     '50%': { boxShadow: '0 0 0 10px rgba(245,158,11,0)' },
+                },
+                shimmer: {
+                    '0%': { transform: 'translateX(-200%)' },
+                    '50%': { transform: 'translateX(200%)' },
+                    '100%': { transform: 'translateX(200%)' },
                 },
             },
             boxShadow: {

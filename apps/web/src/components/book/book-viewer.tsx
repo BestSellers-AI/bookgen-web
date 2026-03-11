@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 // import { BookToc } from "./book-toc";
 // import { ChapterContent } from "./chapter-content";
 import { ShareDialog } from "./share-dialog";
-import { AddonSection } from "./addon-section";
+import { AuthorJourney } from "./author-journey";
 import { useTranslations } from "next-intl";
 import type { BookDetail, BookFileSummary } from "@/lib/api/types";
 
@@ -133,6 +133,9 @@ export function BookViewer({ book, onRefetch }: BookViewerProps) {
           </Button>
         </div>
       </header>
+
+      {/* Author Journey — publishing track + extras */}
+      <AuthorJourney book={book} onRefetch={onRefetch} />
 
       {/* Embedded PDF */}
       {pdfFile && (
@@ -281,9 +284,6 @@ export function BookViewer({ book, onRefetch }: BookViewerProps) {
         </div>
       </div>
       --- end hidden TOC + Content blocks --- */}
-
-      {/* Addons */}
-      <AddonSection book={book} onRefetch={onRefetch} />
 
       <ShareDialog book={book} open={shareOpen} onOpenChange={setShareOpen} onRefetch={onRefetch} />
     </div>
