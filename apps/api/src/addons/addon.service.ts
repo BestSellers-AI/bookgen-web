@@ -12,6 +12,7 @@ import {
   AddonStatus,
   CreditType,
   WalletTransactionType,
+  FileType,
 } from '@prisma/client';
 import { CREDITS_COST, BUNDLES } from '@bestsellers/shared';
 import type { BookAddonSummary } from '@bestsellers/shared';
@@ -35,7 +36,24 @@ export class AddonService {
     // Verify book ownership + status
     const book = await this.prisma.book.findFirst({
       where: { id: bookId, userId, deletedAt: null },
-      select: { id: true, status: true },
+      select: {
+        id: true,
+        status: true,
+        title: true,
+        subtitle: true,
+        author: true,
+        briefing: true,
+        planning: true,
+        settings: true,
+        introduction: true,
+        conclusion: true,
+        finalConsiderations: true,
+        glossary: true,
+        appendix: true,
+        closure: true,
+        wordCount: true,
+        pageCount: true,
+      },
     });
 
     if (!book) {
@@ -73,11 +91,32 @@ export class AddonService {
       { bookId, addonId: addon.id },
     );
 
+    // Build addon-specific params
+    const dispatchParams: Record<string, unknown> = { ...(dto.params ?? {}) };
+
+    // Enrich cover addon dispatch with full book context (excluding chapter content)
+    if (dto.kind === 'ADDON_COVER') {
+      dispatchParams.bookContext = {
+        title: book.title,
+        subtitle: book.subtitle,
+        author: book.author,
+        briefing: book.briefing,
+        planning: book.planning,
+        settings: book.settings,
+        introduction: book.introduction,
+        conclusion: book.conclusion,
+        finalConsiderations: book.finalConsiderations,
+        glossary: book.glossary,
+        appendix: book.appendix,
+        closure: book.closure,
+        wordCount: book.wordCount,
+        pageCount: book.pageCount,
+      };
+    }
+
     // Dispatch to n8n
     try {
-      await this.n8nClient.dispatchAddon(bookId, addon.id, dto.kind, {
-        ...(dto.params ?? {}),
-      });
+      await this.n8nClient.dispatchAddon(bookId, addon.id, dto.kind, dispatchParams);
     } catch {
       // Refund credits and mark addon as ERROR on dispatch failure
       await this.walletService.addCredits(userId, creditsCost, CreditType.REFUND, {
@@ -352,5 +391,38 @@ export class AddonService {
     this.logger.log(`Addon ${addonId} cancelled for book ${bookId}`);
 
     return { message: 'Add-on cancelled and credits refunded' };
+  }
+
+  async selectCover(
+    bookId: string,
+    fileId: string,
+    userId: string,
+  ): Promise<{ coverUrl: string }> {
+    const book = await this.prisma.book.findFirst({
+      where: { id: bookId, userId, deletedAt: null },
+      select: { id: true },
+    });
+
+    if (!book) {
+      throw new NotFoundException('Book not found');
+    }
+
+    // Verify the file belongs to this book and is a cover image
+    const file = await this.prisma.bookFile.findFirst({
+      where: { id: fileId, bookId, fileType: FileType.COVER_IMAGE },
+    });
+
+    if (!file) {
+      throw new NotFoundException('Cover image not found');
+    }
+
+    await this.prisma.book.update({
+      where: { id: bookId },
+      data: { selectedCoverFileId: fileId },
+    });
+
+    this.logger.log(`Cover selected: file ${fileId} for book ${bookId}`);
+
+    return { coverUrl: file.fileUrl };
   }
 }

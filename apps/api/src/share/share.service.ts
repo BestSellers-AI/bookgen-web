@@ -130,6 +130,9 @@ export class ShareService {
               take: 1,
               select: { fileUrl: true },
             },
+            selectedCoverFile: {
+              select: { fileUrl: true },
+            },
           },
         },
       },
@@ -183,7 +186,7 @@ export class ShareService {
         topics: ch.topics as SharedBookPublicView['chapters'][number]['topics'],
         contextSummary: null,
       })),
-      coverUrl: book.files[0]?.fileUrl ?? null,
+      coverUrl: book.selectedCoverFile?.fileUrl ?? book.files[0]?.fileUrl ?? null,
       wordCount: book.wordCount,
       pageCount: book.pageCount,
     };

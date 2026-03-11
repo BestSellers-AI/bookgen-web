@@ -93,6 +93,9 @@ export class BookService {
             take: 1,
             select: { fileUrl: true },
           },
+          selectedCoverFile: {
+            select: { fileUrl: true },
+          },
         },
       }),
       this.prisma.book.count({ where }),
@@ -107,7 +110,7 @@ export class BookService {
       creationMode: book.creationMode as unknown as BookListItem['creationMode'],
       chaptersCount: book._count.chapters,
       completedChaptersCount: book.chapters.length,
-      coverUrl: book.files[0]?.fileUrl ?? null,
+      coverUrl: book.selectedCoverFile?.fileUrl ?? book.files[0]?.fileUrl ?? null,
       wordCount: book.wordCount,
       pageCount: book.pageCount,
       createdAt: book.createdAt.toISOString(),
@@ -130,6 +133,9 @@ export class BookService {
         },
         files: true,
         addons: true,
+        selectedCoverFile: {
+          select: { fileUrl: true },
+        },
         translations: {
           include: {
             _count: {
@@ -171,6 +177,10 @@ export class BookService {
       resourcesReferences: book.resourcesReferences,
       appendix: book.appendix,
       closure: book.closure,
+      coverUrl: book.selectedCoverFile?.fileUrl
+        ?? book.files.find((f) => f.fileType === FileType.COVER_IMAGE)?.fileUrl
+        ?? null,
+      selectedCoverFileId: book.selectedCoverFileId,
       wordCount: book.wordCount,
       pageCount: book.pageCount,
       chaptersCount: book.chapters.length,

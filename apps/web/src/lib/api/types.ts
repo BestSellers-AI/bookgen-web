@@ -229,6 +229,7 @@ export interface BookDetail {
   appendix: string | null;
   closure: string | null;
   coverUrl: string | null;
+  selectedCoverFileId: string | null;
   wordCount: number;
   pageCount: number;
   chaptersCount: number;

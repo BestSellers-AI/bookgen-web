@@ -18,6 +18,7 @@ import {
   Crown,
   Zap,
   ArrowRight,
+  Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -52,7 +53,7 @@ import { walletApi } from "@/lib/api/wallet";
 import { useWalletStore } from "@/stores/wallet-store";
 import { Link } from "@/i18n/navigation";
 import { toast } from "sonner";
-import { ProductKind, AddonStatus } from "@bestsellers/shared";
+import { ProductKind, AddonStatus, FileType } from "@bestsellers/shared";
 import {
   CREDITS_COST,
   SUPPORTED_LANGUAGES,
@@ -230,6 +231,12 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
   const [selectedLanguage, setSelectedLanguage] = useState("");
   const [requesting, setRequesting] = useState(false);
 
+  // Cover gallery state
+  const [coverGalleryOpen, setCoverGalleryOpen] = useState(false);
+  const [expandedCover, setExpandedCover] = useState<{ id: string; url: string; name: string } | null>(null);
+  const [selectingCover, setSelectingCover] = useState<string | null>(null);
+  const [requestingMoreCovers, setRequestingMoreCovers] = useState(false);
+
   // Bundle state
   const [bundleDialogOpen, setBundleDialogOpen] = useState(false);
   const [selectedBundle, setSelectedBundle] = useState<BundleConfig | null>(null);
@@ -251,6 +258,16 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
       .then((w) => setBalance(w.balance))
       .catch(() => {});
   }, [fetchAddons]);
+
+  // Poll addons every 5s while any are processing
+  const hasProcessing = addons.some((a) => isAddonProcessing(a.status));
+  useEffect(() => {
+    if (!hasProcessing) return;
+    const interval = setInterval(() => {
+      fetchAddons();
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [hasProcessing, fetchAddons]);
 
   const getExistingAddon = (kind: ProductKind): BookAddonSummary | undefined =>
     addons.find((a) => a.kind === kind);
@@ -334,6 +351,50 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
       }
     } finally {
       setRequestingBundle(false);
+    }
+  };
+
+  // Cover images from book files
+  const coverImages = (book.files ?? []).filter(
+    (f) => f.fileType === FileType.COVER_IMAGE,
+  );
+
+  const handleSelectCover = async (fileId: string) => {
+    setSelectingCover(fileId);
+    try {
+      await addonsApi.selectCover(book.id, fileId);
+      toast.success(tj("coverSelected"));
+      setCoverGalleryOpen(false);
+      onRefetch();
+    } catch {
+      toast.error(t("requestError"));
+    } finally {
+      setSelectingCover(null);
+    }
+  };
+
+  const hasProcessingCovers = addons.some(
+    (a) => a.kind === ProductKind.ADDON_COVER && isAddonProcessing(a.status),
+  );
+
+  const handleRequestMoreCovers = async () => {
+    setRequestingMoreCovers(true);
+    try {
+      await addonsApi.create(book.id, { kind: ProductKind.ADDON_COVER });
+      toast.success(t("requestSuccess"));
+      fetchAddons();
+      walletApi.get().then((w) => setBalance(w.balance)).catch(() => {});
+      fetchWalletStore();
+      onRefetch();
+    } catch (err: unknown) {
+      const error = err as { response?: { status?: number } };
+      if (error?.response?.status === 402) {
+        toast.error(t("insufficientCredits"));
+      } else {
+        toast.error(t("requestError"));
+      }
+    } finally {
+      setRequestingMoreCovers(false);
     }
   };
 
@@ -582,10 +643,27 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
                             </div>
                           )}
 
-                        {/* Result link */}
+                        {/* Result link / Cover gallery */}
                         {step.status === "completed" &&
                           step.kinds.length > 0 &&
                           (() => {
+                            // Cover step: open gallery instead of external link
+                            if (step.id === "cover" && coverImages.length > 0) {
+                              return (
+                                <div className="mt-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="rounded-xl text-xs gap-1.5 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10"
+                                    onClick={() => setCoverGalleryOpen(true)}
+                                  >
+                                    <ImageIcon className="w-3.5 h-3.5" />
+                                    {tj("viewCovers")}
+                                  </Button>
+                                </div>
+                              );
+                            }
+
                             const completed = addons.find(
                               (a) =>
                                 step.kinds.includes(a.kind as ProductKind) &&
@@ -666,6 +744,137 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
           </div>
         </div>
       </div>
+
+      {/* ─── Cover Gallery Sheet ─── */}
+      <Sheet open={coverGalleryOpen} onOpenChange={(open) => {
+        setCoverGalleryOpen(open);
+        if (!open) setExpandedCover(null);
+      }}>
+        <SheetContent
+          side="bottom"
+          className="rounded-t-[2rem] max-h-[85vh] overflow-y-auto"
+        >
+          <SheetHeader className="text-left pb-4">
+            <SheetTitle className="flex items-center gap-2">
+              <Palette className="w-5 h-5 text-pink-500" />
+              {tj("coverGalleryTitle")}
+            </SheetTitle>
+            <SheetDescription>{tj("coverGallerySubtitle")}</SheetDescription>
+          </SheetHeader>
+
+          {/* Expanded view */}
+          {expandedCover ? (
+            <div className="pb-6 space-y-4">
+              <button
+                type="button"
+                onClick={() => setExpandedCover(null)}
+                className="text-xs font-bold text-primary flex items-center gap-1"
+              >
+                <ArrowRight className="w-3 h-3 rotate-180" />
+                {tj("backToGallery")}
+              </button>
+
+              <div className="flex justify-center">
+                <img
+                  src={expandedCover.url}
+                  alt={expandedCover.name}
+                  className="max-h-[50vh] w-auto rounded-xl border-2 border-border shadow-xl object-contain"
+                />
+              </div>
+
+              {book.selectedCoverFileId === expandedCover.id ? (
+                <div className="flex items-center justify-center gap-2 py-3 text-emerald-400 font-bold text-sm">
+                  <CheckCircle2 className="w-5 h-5" />
+                  {tj("currentCover")}
+                </div>
+              ) : (
+                <Button
+                  className="w-full rounded-xl bg-gradient-to-r from-primary to-amber-500 text-primary-foreground hover:from-primary/90 hover:to-amber-500/90 font-bold"
+                  size="lg"
+                  onClick={() => handleSelectCover(expandedCover.id)}
+                  disabled={selectingCover === expandedCover.id}
+                >
+                  {selectingCover === expandedCover.id ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : (
+                    <Palette className="w-4 h-4 mr-2" />
+                  )}
+                  {tj("selectAsCover")}
+                </Button>
+              )}
+            </div>
+          ) : (
+            /* Grid view */
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 pb-6">
+              {coverImages.map((file) => {
+                const isSelected = book.selectedCoverFileId === file.id;
+
+                return (
+                  <button
+                    key={file.id}
+                    type="button"
+                    onClick={() => setExpandedCover({ id: file.id, url: file.fileUrl, name: file.fileName })}
+                    className={`relative group rounded-xl overflow-hidden border-2 transition-all aspect-[3/4] ${
+                      isSelected
+                        ? "border-emerald-400 shadow-lg shadow-emerald-500/20"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <img
+                      src={file.fileUrl}
+                      alt={file.fileName}
+                      className="w-full h-full object-cover"
+                    />
+
+                    {/* Selected badge */}
+                    {isSelected && (
+                      <div className="absolute top-2 right-2">
+                        <div className="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg">
+                          <CheckCircle2 className="w-4 h-4 text-white" />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Tap hint overlay */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-end justify-center pb-3 opacity-0 group-hover:opacity-100">
+                      <span className="text-white text-[10px] font-bold bg-black/60 px-2.5 py-1 rounded-lg backdrop-blur-sm">
+                        {tj("tapToExpand")}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+
+              {/* Generate more covers button */}
+              <button
+                type="button"
+                onClick={handleRequestMoreCovers}
+                disabled={requestingMoreCovers || hasProcessingCovers}
+                className="rounded-xl border-2 border-dashed border-primary/30 hover:border-primary/60 transition-all aspect-[3/4] flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {requestingMoreCovers || hasProcessingCovers ? (
+                  <>
+                    <Loader2 className="w-8 h-8 animate-spin text-primary/60" />
+                    <span className="text-[10px] font-bold text-primary/60">
+                      {tj("generatingCovers")}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Plus className="w-6 h-6 text-primary" />
+                    </div>
+                    <span className="text-xs font-bold">{tj("generateMoreCovers")}</span>
+                    <span className="text-[10px] text-muted-foreground">
+                      {CREDITS_COST[ProductKind.ADDON_COVER]} {tCommon("credits")}
+                    </span>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
 
       {/* ─── Extras Bottom Sheet ─── */}
       <Sheet open={extrasOpen} onOpenChange={setExtrasOpen}>

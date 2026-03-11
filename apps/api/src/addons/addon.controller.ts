@@ -3,6 +3,7 @@ import {
   Post,
   Get,
   Delete,
+  Patch,
   Param,
   Body,
   UseGuards,
@@ -54,6 +55,15 @@ export class AddonController {
     @Param('id') id: string,
   ) {
     return this.addonService.findById(bookId, id, userId);
+  }
+
+  @Patch('cover/:fileId')
+  async selectCover(
+    @CurrentUser('id') userId: string,
+    @Param('bookId') bookId: string,
+    @Param('fileId') fileId: string,
+  ) {
+    return this.addonService.selectCover(bookId, fileId, userId);
   }
 
   @Delete(':id')

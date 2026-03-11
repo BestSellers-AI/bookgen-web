@@ -119,6 +119,8 @@ export interface BookDetail {
   resourcesReferences: string | null;
   appendix: string | null;
   closure: string | null;
+  coverUrl: string | null;
+  selectedCoverFileId: string | null;
   wordCount: number | null;
   pageCount: number | null;
   chaptersCount: number;
