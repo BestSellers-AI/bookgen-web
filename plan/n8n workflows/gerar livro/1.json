@@ -1,0 +1,464 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-book",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -432,
+        -512
+      ],
+      "id": "d73271ac-b716-4a43-aa74-bea24d8e003f",
+      "name": "Webhook",
+      "webhookId": "95a0c0fd-b49b-4fda-9738-2dc5f90b7aac"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Recebe: payload completo (planning + chapters list + callbackBaseUrl)\n// Faz (modo normal: generation): gera capítulos (1 callback por capítulo) e no final callback de complete\n// Faz (modo regeneração): se vier type: \"chapter-regeneration\", gera só 1 capítulo e chama /chapter-result\n// const modes = \"generation|chapter-regeneration\";\n\nconst bookId = $input.first().json.body.bookId;\nconst mode = $input.first().json.body.creationMode == \"chapter-regeneration\" ? \"chapter-regeneration\" : \"generation\"; \n\nreturn { \"ok\": true, \"received\": true, bookId, mode  };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -144,
+        -512
+      ],
+      "id": "e3fc41b1-5e63-42c2-856a-170807961e81",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        160,
+        -512
+      ],
+      "id": "3fc182f8-cb8f-4325-9520-5d47393aad00",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $('Webhook').first().json.body;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        -512
+      ],
+      "id": "cb29bef9-e321-4aad-a10f-63f4f3013690",
+      "name": "Subworkflow payload"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "KlyzrsA4ZIbNIIjB",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/KlyzrsA4ZIbNIIjB",
+          "cachedResultName": "SAAS CREATE BOOK"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        752,
+        -512
+      ],
+      "id": "fff7afde-98df-4bad-984e-c5f02474d389",
+      "name": "Call 'SAAS CREATE BOOK'"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook2": {
+      "main": [
+        [
+          {
+            "node": "Subworkflow payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Subworkflow payload": {
+      "main": [
+        [
+          {
+            "node": "Call 'SAAS CREATE BOOK'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {
+    "Webhook": [
+      {
+        "headers": {
+          "host": "n8n-api.01.prod.bestsellers.digital",
+          "user-agent": "node",
+          "content-length": "24583",
+          "accept": "*/*",
+          "accept-encoding": "br, gzip, deflate",
+          "accept-language": "*",
+          "content-type": "application/json",
+          "sec-fetch-mode": "cors",
+          "x-forwarded-for": "10.0.1.1",
+          "x-forwarded-host": "n8n-api.01.prod.bestsellers.digital",
+          "x-forwarded-port": "443",
+          "x-forwarded-proto": "https",
+          "x-forwarded-server": "b68b110528ee",
+          "x-n8n-secret": "dev-n8n-callback-secret-local",
+          "x-real-ip": "10.0.1.1"
+        },
+        "params": {},
+        "query": {},
+        "body": {
+          "bookId": "cmmfj2nm10015nw08yjcxo5nz",
+          "briefing": "Um guia completo para a criatividade moderna Um guia completo para a criatividade moderna Um guia completo para a criatividade moderna",
+          "author": "Maria Silva",
+          "title": "El Arte de La Innovación",
+          "subtitle": "Una Guía Completa para La Creatividad Moderna",
+          "creationMode": "SIMPLE",
+          "settings": null,
+          "planning": {
+            "chapters": [
+              {
+                "title": "Capítulo 1 - Introducción al arte de la innovación",
+                "topics": [
+                  {
+                    "title": "Definición de innovación y creatividad",
+                    "content": "La innovación representa la aplicación práctica de ideas creativas en el mundo moderno, diferenciándose de la mera invención al enfocarse en el impacto real y sostenible. No se trata solo de crear algo nuevo, sino de transformarlo en soluciones que generen valor en contextos personales, empresariales y sociales. La creatividad, por su parte, es el motor que impulsa esta transformación, permitiendo ver conexiones invisibles y generar perspectivas frescas. En un entorno donde el cambio es constante, dominar estos conceptos es esencial para el progreso individual y colectivo. Exploraremos cómo estas fuerzas impulsan el avance en diversos ámbitos, preparando el terreno para herramientas prácticas que cualquier persona puede adoptar.\n\nEste enfoque no solo enriquece la vida profesional, sino que también fomenta el crecimiento personal, ayudándonos a enfrentar desafíos cotidianos con ingenio y resiliencia."
+                  },
+                  {
+                    "title": "La creatividad en la era digital y objetivos del libro",
+                    "content": "La era digital ha revolucionado la creatividad: redes sociales facilitan la difusión viral de ideas, mientras la inteligencia artificial acelera la generación de conceptos innovadores. Herramientas como generadores de imágenes o chatbots colaborativos democratizan el acceso a procesos antes exclusivos de expertos. Sin embargo, esto exige adaptación para evitar la sobrecarga informativa y potenciar el pensamiento original.\n\nEste libro busca equiparte con herramientas prácticas para cultivar la innovación cotidiana. A lo largo de sus capítulos, recorreremos desde fundamentos psicológicos hasta técnicas avanzadas, casos reales y planes de acción. La estructura es progresiva: iniciaremos con bases, superaremos bloqueos, aprenderemos métodos clásicos y digitales, exploraremos colaboración y cultura organizacional, analizaremos éxitos y culminaremos en implementación. Prepárate para un viaje motivador hacia tu potencial innovador."
+                  }
+                ]
+              },
+              {
+                "title": "Capítulo 2 - Fundamentos de la creatividad humana",
+                "topics": [
+                  {
+                    "title": "Bases psicológicas y tipos de pensamiento creativo",
+                    "content": "La creatividad humana se ancla en teorías clave como el estado de flujo propuesto por Mihaly Csikszentmihalyi, donde la mente se sumerge totalmente en una actividad, perdiendo la noción del tiempo y maximizando la productividad. Los hemisferios cerebrales colaboran: el izquierdo maneja lógica, el derecho imagina posibilidades. Existen dos tipos principales de pensamiento: el divergente, que genera múltiples soluciones creativas, y el convergente, que selecciona la mejor opción. Por ejemplo, ante un problema de tráfico, el divergente propone autos voladores o ciudades subterráneas; el convergente evalúa viabilidad.\n\nPotenciar ambos tipos requiere práctica diaria, alternando sesiones de lluvia de ideas libres con análisis estructurado, para un equilibrio que impulse la innovación efectiva."
+                  },
+                  {
+                    "title": "Factores que influyen en la creatividad",
+                    "content": "Varios factores modulan nuestra creatividad: el ambiente físico y social debe ser estimulante pero no distractor, con espacios luminosos y colaborativos. La motivación intrínseca, más que recompensas externas, sostiene el esfuerzo creativo prolongado. Hábitos como el sueño adecuado, ejercicio y exposición a nuevas experiencias nutren el cerebro.\n\nPara optimizarlos, crea rutinas personalizadas: dedica tiempo matutino a brainstorming, rodeate de personas inspiradoras y elimina distracciones digitales durante picos creativos. Al alinear estos elementos, desatas tu potencial innato, transformando la creatividad en una habilidad accesible y poderosa para la vida diaria."
+                  }
+                ]
+              },
+              {
+                "title": "Capítulo 3 - Identificando y superando bloqueos creativos",
+                "topics": [
+                  {
+                    "title": "Bloqueos comunes en la creatividad",
+                    "content": "Los bloqueos creativos son obstáculos mentales frecuentes: el miedo al fracaso paraliza ideas por temor al juicio; el perfeccionismo exige ideales inalcanzables desde el inicio; rutinas rígidas limitan perspectivas frescas. Otros incluyen fatiga mental o entornos tóxicos. Identifícalos mediante autoevaluación: ¿postergas por miedo? ¿borras ideas prematuramente?\n\nReconocerlos es el primer paso. En la práctica, anota patrones diarios para mapear triggers, permitiendo intervenciones dirigidas que liberen tu flujo creativo natural."
+                  },
+                  {
+                    "title": "Estrategias y ejercicios para eliminar barreras",
+                    "content": "Supera bloqueos con técnicas probadas: relajación mediante meditación mindfulness reduce ansiedad; cambia perspectiva adoptando roles ajenos, como \"¿qué haría un niño?\"; exposición gradual enfrenta miedos con desafíos pequeños. Ejercicios prácticos incluyen escritura libre por 10 minutos sin editar, o dibujos absurdos para romper rigidez.\n\nImplementa sesiones diarias: inicia con respiraciones profundas, sigue con freewriting sobre un tema aleatorio. Verás resultados inmediatos, cultivando resiliencia creativa que transforma barreras en trampolines para la innovación."
+                  }
+                ]
+              },
+              {
+                "title": "Capítulo 4 - Técnicas clásicas de generación de ideas",
+                "topics": [
+                  {
+                    "title": "Brainstorming efectivo y mapas mentales",
+                    "content": "El brainstorming, refinado por Alex Osborn, prioriza cantidad sobre calidad: genera ideas sin críticas, combina locuras y busca mejoras. Reglas clave: diferir juicios, buscar cantidad, combinar y mejorar ideas. En grupo o solo, fija un temporizador para fluidez máxima.\n\nComplementa con mapas mentales de Tony Buzan: parte de una idea central, ramifica asociaciones visuales con colores e imágenes. Esta técnica radial revela patrones ocultos, estimulando conexiones innovadoras. Prueba con un problema personal: verás ideas fluir naturalmente."
+                  },
+                  {
+                    "title": "SCAMPER y heurísticas creativas",
+                    "content": "SCAMPER es una heurística poderosa: Sustituir elementos, Combinar con otros, Adaptar contextos, Modificar atributos, Poner en otro uso, Eliminar partes, Revertir procesos. Aplícala paso a paso: para mejorar un producto, ¿qué sustituyes? Ejemplo: Netflix sustituyó DVDs por streaming.\n\nOtras heurísticas incluyen analogías naturales o role-playing. Practica diariamente para internalizarlas, convirtiendo generación de ideas en hábito intuitivo que acelera la innovación."
+                  }
+                ]
+              },
+              {
+                "title": "Capítulo 5 - Design Thinking: Un enfoque estructurado",
+                "topics": [
+                  {
+                    "title": "Las cinco etapas del Design Thinking",
+                    "content": "Design Thinking, popularizado por Stanford d.school, es iterativo: Empatizar (entender usuarios), Definir (problema claro), Idear (generar soluciones), Prototipar (modelos rápidos), Testear (validar con feedback). Este humano-centrado fomenta innovación empática.\n\nNo lineal, regresa etapas según insights. Ideal para problemas complejos, transforma empatía en soluciones impactantes mediante ciclos rápidos de aprendizaje."
+                  },
+                  {
+                    "title": "Empatía, ideación, prototipado y pruebas",
+                    "content": "Empieza con empatía: entrevistas profundas y empatía maps revelan necesidades no dichas. Define con \"personas\" ficticias. Ideación usa brainstorming salvaje; prototipa low-fidelity con papel o apps simples. Testea recolectando feedback honesto para iterar.\n\nEjemplo: Airbnb prototipó experiencias reales. Esta secuencia asegura soluciones viables, centradas en usuarios, potenciando innovación real."
+                  }
+                ]
+              },
+              {
+                "title": "Capítulo 6 - Herramientas digitales para la creatividad",
+                "topics": [
+                  {
+                    "title": "Aplicaciones y software esenciales",
+                    "content": "Herramientas digitales amplifican creatividad: Miro para mapas colaborativos infinitos, Canva para diseños visuales rápidos, Notion para organizar ideas en wikis dinámicos. Estas plataformas intuitivas permiten visualizar, iterar y compartir sin barreras técnicas.\n\nIntegra flujos: inicia en Notion planes, migra a Miro brainstorming, finaliza prototipos en Canva. Accesibles en móvil, transforman momentos ociosos en bursts creativos."
+                  },
+                  {
+                    "title": "IA y plataformas de colaboración",
+                    "content": "Inteligencia artificial como ChatGPT genera ideas iniciales o prompts creativos; Midjourney crea visuals inspiradores. Usa éticamente: refina outputs humanos para originalidad.\n\nColabora remoto con Slack (comms), Trello (tareas visuales), Figma (diseño interactivo). Post-pandemia, habilitan equipos globales, fusionando diversidad para innovación explosiva."
+                  }
+                ]
+              },
+              {
+                "title": "Capítulo 7 - Innovación colaborativa en equipos",
+                "topics": [
+                  {
+                    "title": "Dinámicas grupales y roles clave",
+                    "content": "La colaboración multiplica creatividad: dinámicas como \"yes, and\" de improv fomentan confianza; talleres con timers rotan liderazgo. Roles esenciales: facilitador guía proceso, visionario propone audaces ideas, crítico constructivo refina sin destruir.\n\nAsigna según fortalezas para sinergia. Estudios muestran equipos diversos generan 20% más ideas viables, clave en innovación moderna."
+                  },
+                  {
+                    "title": "Gestión de conflictos creativos",
+                    "content": "Conflictos surgen de ideas chocantes; transfórmalos en oportunidades con técnicas: reframing como debate creativo, votación ponderada o pausas reflexivas. Enfatiza curiosidad sobre ego.\n\nHerramientas como retropectives post-sesión mejoran futuras interacciones, cultivando culturas donde desacuerdos catalizan breakthroughs innovadores."
+                  }
+                ]
+              },
+              {
+                "title": "Capítulo 8 - Cultivando una cultura de innovación en organizaciones",
+                "topics": [
+                  {
+                    "title": "Liderazgo innovador y estructuras flexibles",
+                    "content": "Líderes innovadores como en Google promueven autonomía: 20% tiempo libre para proyectos personales fomenta hits como Gmail. Estilos transformacionales inspiran visión compartida.\n\nEstructuras agile con equipos cross-funcionales agilizan iteraciones, rompiendo silos para flujo rápido de ideas innovadoras."
+                  },
+                  {
+                    "title": "Incentivos y reconocimiento",
+                    "content": "Recompensa riesgo calculado con bonos por ideas implementadas, no solo éxito; celebra fracasos aprendidos en \"failure awards\". Reconocimiento público motiva sostenibilidad.\n\nMide cultura vía encuestas innovación, ajustando para entornos donde experimentación es norma, impulsando ventaja competitiva duradera."
+                  }
+                ]
+              },
+              {
+                "title": "Capítulo 9 - Casos de estudio: Éxitos innovadores",
+                "topics": [
+                  {
+                    "title": "Empresas tecnológicas globales",
+                    "content": "Apple revolucionó móviles con iPhone, integrando diseño intuitivo y ecosistema cerrado. Tesla disruptó autos con eléctricos accesibles y software over-the-air, desafiando industrias fósiles.\n\nClaves: obsesión usuario, integración tech-hardware, audacia contra status quo. Lecciones aplicables a cualquier escala."
+                  },
+                  {
+                    "title": "Startups latinoamericanas y lecciones transversales",
+                    "content": "Nubank democratizó banca digital en Brasil sin agencias; Rappi evolucionó delivery a superapp multifuncional en Latam. Adaptaron modelos globales a realidades locales como informalidad económica.\n\nPatrones comunes: perseverancia ante rechazos, usuario-centrismo obsesivo, adaptación pivote rápida. Inspira emprendedores regionales."
+                  }
+                ]
+              },
+              {
+                "title": "Capítulo 10 - Implementando y midiendo la innovación",
+                "topics": [
+                  {
+                    "title": "Planes de acción personalizados y métricas",
+                    "content": "Crea roadmaps: identifica metas, asigna técnicas aprendidas, timeline con milestones. Ejemplo: semanal ideación, mensual prototipo.\n\nMide con KPIs: tasa adopción ideas, ROI proyectos, índice innovación (nuevas ideas/ total). Usa dashboards simples para tracking."
+                  },
+                  {
+                    "title": "Sostenibilidad a largo plazo",
+                    "content": "Sostenibilidad exige hábitos: diarios reflexión creativa, redes mentores, actualizaciones tendencias. Revisa trimestral progreso, ajusta.\n\nIntegra innovación en identidad: celebra pequeños wins, mantén curiosidad. Así, innovación se vuelve estilo vida continuo."
+                  }
+                ]
+              }
+            ]
+          },
+          "chapters": [
+            {
+              "id": "cmmfja53w001snw08uyofvujl",
+              "sequence": 1,
+              "title": "Capítulo 1 - Introducción al arte de la innovación",
+              "topics": [
+                {
+                  "title": "Definición de innovación y creatividad",
+                  "content": "La innovación representa la aplicación práctica de ideas creativas en el mundo moderno, diferenciándose de la mera invención al enfocarse en el impacto real y sostenible. No se trata solo de crear algo nuevo, sino de transformarlo en soluciones que generen valor en contextos personales, empresariales y sociales. La creatividad, por su parte, es el motor que impulsa esta transformación, permitiendo ver conexiones invisibles y generar perspectivas frescas. En un entorno donde el cambio es constante, dominar estos conceptos es esencial para el progreso individual y colectivo. Exploraremos cómo estas fuerzas impulsan el avance en diversos ámbitos, preparando el terreno para herramientas prácticas que cualquier persona puede adoptar.\n\nEste enfoque no solo enriquece la vida profesional, sino que también fomenta el crecimiento personal, ayudándonos a enfrentar desafíos cotidianos con ingenio y resiliencia."
+                },
+                {
+                  "title": "La creatividad en la era digital y objetivos del libro",
+                  "content": "La era digital ha revolucionado la creatividad: redes sociales facilitan la difusión viral de ideas, mientras la inteligencia artificial acelera la generación de conceptos innovadores. Herramientas como generadores de imágenes o chatbots colaborativos democratizan el acceso a procesos antes exclusivos de expertos. Sin embargo, esto exige adaptación para evitar la sobrecarga informativa y potenciar el pensamiento original.\n\nEste libro busca equiparte con herramientas prácticas para cultivar la innovación cotidiana. A lo largo de sus capítulos, recorreremos desde fundamentos psicológicos hasta técnicas avanzadas, casos reales y planes de acción. La estructura es progresiva: iniciaremos con bases, superaremos bloqueos, aprenderemos métodos clásicos y digitales, exploraremos colaboración y cultura organizacional, analizaremos éxitos y culminaremos en implementación. Prepárate para un viaje motivador hacia tu potencial innovador."
+                }
+              ]
+            },
+            {
+              "id": "cmmfja53w001tnw08bwpf6w5m",
+              "sequence": 2,
+              "title": "Capítulo 2 - Fundamentos de la creatividad humana",
+              "topics": [
+                {
+                  "title": "Bases psicológicas y tipos de pensamiento creativo",
+                  "content": "La creatividad humana se ancla en teorías clave como el estado de flujo propuesto por Mihaly Csikszentmihalyi, donde la mente se sumerge totalmente en una actividad, perdiendo la noción del tiempo y maximizando la productividad. Los hemisferios cerebrales colaboran: el izquierdo maneja lógica, el derecho imagina posibilidades. Existen dos tipos principales de pensamiento: el divergente, que genera múltiples soluciones creativas, y el convergente, que selecciona la mejor opción. Por ejemplo, ante un problema de tráfico, el divergente propone autos voladores o ciudades subterráneas; el convergente evalúa viabilidad.\n\nPotenciar ambos tipos requiere práctica diaria, alternando sesiones de lluvia de ideas libres con análisis estructurado, para un equilibrio que impulse la innovación efectiva."
+                },
+                {
+                  "title": "Factores que influyen en la creatividad",
+                  "content": "Varios factores modulan nuestra creatividad: el ambiente físico y social debe ser estimulante pero no distractor, con espacios luminosos y colaborativos. La motivación intrínseca, más que recompensas externas, sostiene el esfuerzo creativo prolongado. Hábitos como el sueño adecuado, ejercicio y exposición a nuevas experiencias nutren el cerebro.\n\nPara optimizarlos, crea rutinas personalizadas: dedica tiempo matutino a brainstorming, rodeate de personas inspiradoras y elimina distracciones digitales durante picos creativos. Al alinear estos elementos, desatas tu potencial innato, transformando la creatividad en una habilidad accesible y poderosa para la vida diaria."
+                }
+              ]
+            },
+            {
+              "id": "cmmfja53w001unw08lsf1o2di",
+              "sequence": 3,
+              "title": "Capítulo 3 - Identificando y superando bloqueos creativos",
+              "topics": [
+                {
+                  "title": "Bloqueos comunes en la creatividad",
+                  "content": "Los bloqueos creativos son obstáculos mentales frecuentes: el miedo al fracaso paraliza ideas por temor al juicio; el perfeccionismo exige ideales inalcanzables desde el inicio; rutinas rígidas limitan perspectivas frescas. Otros incluyen fatiga mental o entornos tóxicos. Identifícalos mediante autoevaluación: ¿postergas por miedo? ¿borras ideas prematuramente?\n\nReconocerlos es el primer paso. En la práctica, anota patrones diarios para mapear triggers, permitiendo intervenciones dirigidas que liberen tu flujo creativo natural."
+                },
+                {
+                  "title": "Estrategias y ejercicios para eliminar barreras",
+                  "content": "Supera bloqueos con técnicas probadas: relajación mediante meditación mindfulness reduce ansiedad; cambia perspectiva adoptando roles ajenos, como \"¿qué haría un niño?\"; exposición gradual enfrenta miedos con desafíos pequeños. Ejercicios prácticos incluyen escritura libre por 10 minutos sin editar, o dibujos absurdos para romper rigidez.\n\nImplementa sesiones diarias: inicia con respiraciones profundas, sigue con freewriting sobre un tema aleatorio. Verás resultados inmediatos, cultivando resiliencia creativa que transforma barreras en trampolines para la innovación."
+                }
+              ]
+            },
+            {
+              "id": "cmmfja53x001vnw08jvenbliz",
+              "sequence": 4,
+              "title": "Capítulo 4 - Técnicas clásicas de generación de ideas",
+              "topics": [
+                {
+                  "title": "Brainstorming efectivo y mapas mentales",
+                  "content": "El brainstorming, refinado por Alex Osborn, prioriza cantidad sobre calidad: genera ideas sin críticas, combina locuras y busca mejoras. Reglas clave: diferir juicios, buscar cantidad, combinar y mejorar ideas. En grupo o solo, fija un temporizador para fluidez máxima.\n\nComplementa con mapas mentales de Tony Buzan: parte de una idea central, ramifica asociaciones visuales con colores e imágenes. Esta técnica radial revela patrones ocultos, estimulando conexiones innovadoras. Prueba con un problema personal: verás ideas fluir naturalmente."
+                },
+                {
+                  "title": "SCAMPER y heurísticas creativas",
+                  "content": "SCAMPER es una heurística poderosa: Sustituir elementos, Combinar con otros, Adaptar contextos, Modificar atributos, Poner en otro uso, Eliminar partes, Revertir procesos. Aplícala paso a paso: para mejorar un producto, ¿qué sustituyes? Ejemplo: Netflix sustituyó DVDs por streaming.\n\nOtras heurísticas incluyen analogías naturales o role-playing. Practica diariamente para internalizarlas, convirtiendo generación de ideas en hábito intuitivo que acelera la innovación."
+                }
+              ]
+            },
+            {
+              "id": "cmmfja53x001wnw08ta0wx0c2",
+              "sequence": 5,
+              "title": "Capítulo 5 - Design Thinking: Un enfoque estructurado",
+              "topics": [
+                {
+                  "title": "Las cinco etapas del Design Thinking",
+                  "content": "Design Thinking, popularizado por Stanford d.school, es iterativo: Empatizar (entender usuarios), Definir (problema claro), Idear (generar soluciones), Prototipar (modelos rápidos), Testear (validar con feedback). Este humano-centrado fomenta innovación empática.\n\nNo lineal, regresa etapas según insights. Ideal para problemas complejos, transforma empatía en soluciones impactantes mediante ciclos rápidos de aprendizaje."
+                },
+                {
+                  "title": "Empatía, ideación, prototipado y pruebas",
+                  "content": "Empieza con empatía: entrevistas profundas y empatía maps revelan necesidades no dichas. Define con \"personas\" ficticias. Ideación usa brainstorming salvaje; prototipa low-fidelity con papel o apps simples. Testea recolectando feedback honesto para iterar.\n\nEjemplo: Airbnb prototipó experiencias reales. Esta secuencia asegura soluciones viables, centradas en usuarios, potenciando innovación real."
+                }
+              ]
+            },
+            {
+              "id": "cmmfja53x001xnw08izk6d5ca",
+              "sequence": 6,
+              "title": "Capítulo 6 - Herramientas digitales para la creatividad",
+              "topics": [
+                {
+                  "title": "Aplicaciones y software esenciales",
+                  "content": "Herramientas digitales amplifican creatividad: Miro para mapas colaborativos infinitos, Canva para diseños visuales rápidos, Notion para organizar ideas en wikis dinámicos. Estas plataformas intuitivas permiten visualizar, iterar y compartir sin barreras técnicas.\n\nIntegra flujos: inicia en Notion planes, migra a Miro brainstorming, finaliza prototipos en Canva. Accesibles en móvil, transforman momentos ociosos en bursts creativos."
+                },
+                {
+                  "title": "IA y plataformas de colaboración",
+                  "content": "Inteligencia artificial como ChatGPT genera ideas iniciales o prompts creativos; Midjourney crea visuals inspiradores. Usa éticamente: refina outputs humanos para originalidad.\n\nColabora remoto con Slack (comms), Trello (tareas visuales), Figma (diseño interactivo). Post-pandemia, habilitan equipos globales, fusionando diversidad para innovación explosiva."
+                }
+              ]
+            },
+            {
+              "id": "cmmfja53x001ynw081h0zqek7",
+              "sequence": 7,
+              "title": "Capítulo 7 - Innovación colaborativa en equipos",
+              "topics": [
+                {
+                  "title": "Dinámicas grupales y roles clave",
+                  "content": "La colaboración multiplica creatividad: dinámicas como \"yes, and\" de improv fomentan confianza; talleres con timers rotan liderazgo. Roles esenciales: facilitador guía proceso, visionario propone audaces ideas, crítico constructivo refina sin destruir.\n\nAsigna según fortalezas para sinergia. Estudios muestran equipos diversos generan 20% más ideas viables, clave en innovación moderna."
+                },
+                {
+                  "title": "Gestión de conflictos creativos",
+                  "content": "Conflictos surgen de ideas chocantes; transfórmalos en oportunidades con técnicas: reframing como debate creativo, votación ponderada o pausas reflexivas. Enfatiza curiosidad sobre ego.\n\nHerramientas como retropectives post-sesión mejoran futuras interacciones, cultivando culturas donde desacuerdos catalizan breakthroughs innovadores."
+                }
+              ]
+            },
+            {
+              "id": "cmmfja53x001znw08sow89mvc",
+              "sequence": 8,
+              "title": "Capítulo 8 - Cultivando una cultura de innovación en organizaciones",
+              "topics": [
+                {
+                  "title": "Liderazgo innovador y estructuras flexibles",
+                  "content": "Líderes innovadores como en Google promueven autonomía: 20% tiempo libre para proyectos personales fomenta hits como Gmail. Estilos transformacionales inspiran visión compartida.\n\nEstructuras agile con equipos cross-funcionales agilizan iteraciones, rompiendo silos para flujo rápido de ideas innovadoras."
+                },
+                {
+                  "title": "Incentivos y reconocimiento",
+                  "content": "Recompensa riesgo calculado con bonos por ideas implementadas, no solo éxito; celebra fracasos aprendidos en \"failure awards\". Reconocimiento público motiva sostenibilidad.\n\nMide cultura vía encuestas innovación, ajustando para entornos donde experimentación es norma, impulsando ventaja competitiva duradera."
+                }
+              ]
+            },
+            {
+              "id": "cmmfja53x0020nw0839wj5fql",
+              "sequence": 9,
+              "title": "Capítulo 9 - Casos de estudio: Éxitos innovadores",
+              "topics": [
+                {
+                  "title": "Empresas tecnológicas globales",
+                  "content": "Apple revolucionó móviles con iPhone, integrando diseño intuitivo y ecosistema cerrado. Tesla disruptó autos con eléctricos accesibles y software over-the-air, desafiando industrias fósiles.\n\nClaves: obsesión usuario, integración tech-hardware, audacia contra status quo. Lecciones aplicables a cualquier escala."
+                },
+                {
+                  "title": "Startups latinoamericanas y lecciones transversales",
+                  "content": "Nubank democratizó banca digital en Brasil sin agencias; Rappi evolucionó delivery a superapp multifuncional en Latam. Adaptaron modelos globales a realidades locales como informalidad económica.\n\nPatrones comunes: perseverancia ante rechazos, usuario-centrismo obsesivo, adaptación pivote rápida. Inspira emprendedores regionales."
+                }
+              ]
+            },
+            {
+              "id": "cmmfja53x0021nw08id69vmti",
+              "sequence": 10,
+              "title": "Capítulo 10 - Implementando y midiendo la innovación",
+              "topics": [
+                {
+                  "title": "Planes de acción personalizados y métricas",
+                  "content": "Crea roadmaps: identifica metas, asigna técnicas aprendidas, timeline con milestones. Ejemplo: semanal ideación, mensual prototipo.\n\nMide con KPIs: tasa adopción ideas, ROI proyectos, índice innovación (nuevas ideas/ total). Usa dashboards simples para tracking."
+                },
+                {
+                  "title": "Sostenibilidad a largo plazo",
+                  "content": "Sostenibilidad exige hábitos: diarios reflexión creativa, redes mentores, actualizaciones tendencias. Revisa trimestral progreso, ajusta.\n\nIntegra innovación en identidad: celebra pequeños wins, mantén curiosidad. Así, innovación se vuelve estilo vida continuo."
+                }
+              ]
+            }
+          ],
+          "queuePriority": 10,
+          "callbackBaseUrl": "https://api.bestsellers-ai.com"
+        },
+        "webhookUrl": "https://n8n-api.01.prod.bestsellers.digital/webhook/generate-book",
+        "executionMode": "production"
+      }
+    ]
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1a48d1229f0288ea9225e8edc3e36e5dcfde4181dcbee5a0b0df1d15d2594a88"
+  }
+}

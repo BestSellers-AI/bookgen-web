@@ -1,0 +1,782 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "model": "openai/gpt-5-nano",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        2800,
+        -2464
+      ],
+      "id": "7130a78a-8add-47f7-965d-a51c1ca0ed8c",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "17DLNoosuHjQWFC6",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const wordCount = (text) => text.trim().split(/\\s+/).filter(Boolean).length;\n\nlet payload = {\n  bookId: $('When Executed by Another Workflow').first().json.bookId,\n  chapterSequence: $('When Executed by Another Workflow').first().json.sequence,\n  status: \"success\",\n  title: $('When Executed by Another Workflow').first().json.title,\n  content: \"\",\n  topics: [\n    { title: $('When Executed by Another Workflow').first().json.topics[0].title, content: $('Set topic_content capX topic 01').first().json.topic_content },\n    { title: $('When Executed by Another Workflow').first().json.topics[1].title, content: $('Set topic_content capX topic 02').first().json.topic_content }\n  ],\n  contextSummary: $('Set context capX topic 01').first().json.context+$input.first().json.context,\n  wordCount: 0\n};\n\nconst totalWords = wordCount(JSON.stringify(payload.topics));\n\npayload.wordCount = totalWords;\n\nreturn payload;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2464,
+        -2032
+      ],
+      "id": "d2c767c9-190b-4937-a610-62d0951fdbb2",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0bdac668-f037-4a77-abed-ea1f97889884",
+              "name": "topic_total_words",
+              "value": "1075",
+              "type": "string"
+            },
+            {
+              "id": "7c736247-46b0-48c8-ba8c-b175855707e4",
+              "name": "context_from_words",
+              "value": "600",
+              "type": "string"
+            },
+            {
+              "id": "d593ee34-c7e8-4c04-b9f9-740d89c82db4",
+              "name": "context_to_words",
+              "value": "800",
+              "type": "string"
+            },
+            {
+              "id": "557400f4-5ef3-44f1-b647-cc65bc91972e",
+              "name": "total_chapters",
+              "value": 10,
+              "type": "number"
+            },
+            {
+              "id": "3b79bb4e-ae3b-48e3-845f-2a77a24103d7",
+              "name": "language",
+              "value": "espanhol latam neutro",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1840,
+        -2720
+      ],
+      "id": "146e9857-cd51-47fd-9b55-9321e197b093",
+      "name": "Set book configs1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Objetivo:\nGerar o tópico completo do capítulo do livro com base no plano original, no contexto global (resumo acumulado) e na síntese do capítulo anterior.\n\nO texto deve ser fluido, coerente, factual e editorialmente maduro, sem alucinações ou inconsistências.\n\n{plan_json} = {{ JSON.stringify($('When Executed by Another Workflow').item.json.planning) }} → JSON completo do plano original do livro\n\n{chapter_number} = {{ $('When Executed by Another Workflow').item.json.sequence }} → número do capítulo atual a ser escrito\n\n{chapter_title} = {{ $('When Executed by Another Workflow').item.json.title }} → título do capítulo atual\n\n{topic_number} = {{ 1 }} → número do tópico do capítulo atual a ser escrito\n\n{topic_title} = {{ $('When Executed by Another Workflow').item.json.topics[0].title }} → título do tópico do capítulo atual\n\n{planned_topic_content} = {{ $('When Executed by Another Workflow').item.json.topics[0].content }} → texto do planejamento do tópico do capítulo atual\n\n{chapter_summary} = {{ JSON.stringify($('When Executed by Another Workflow').item.json.topics) }} → estrutura-resumo desse capítulo (extraída do plano original)\n\n{previous_context} = {{ $('TUNNEL').item.json.context || \"N/A\" }} → resumo dos tópicos/capítulos anteriores (gerado pelo Agente de Contexto)\n\n{language} = {{ $('Set book configs1').item.json.language }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=Você é um autor profissional e editor experiente, especializado em criação de livros.\n\nSua tarefa é escrever o tópico completo do capítulo completo do livro com base nas informações fornecidas abaixo. ESCREVA SOMENTE O TÓPICO EM QUESTÃO.\n\nO texto deve ser factual, coerente, sem invenções, e em {language}.\n\nDeve manter a consistência terminológica e contextual com o conteúdo anterior e o plano geral.\n\nSeu papel: redigir o texto completo de cada tópico de forma contínua e natural, como se fosse parte de um livro impresso, NUNCA utilize Markdown para estilização e formatação.\n\nContexto de referência (para manter coerência):\n\nCada capítulo é composto por 2 tópicos. Esse texto fará parte do tópico {topic_number} de 2.\n\nPlano do livro: {plan_json}\n\nResumo global acumulado: {global_context}\n\nResumo do tópico/capítulo anterior: {previous_chapter_summary}\n\nEstrutura e tópicos deste capítulo: {chapter_summary}\n\nRequisitos obrigatórios:\n\nEscrever em {language}, com clareza e naturalidade.\n\nO texto deve ter NO MÍNIMO {{ $('Set book configs1').item.json.topic_total_words }} palavras, NUNCA MENOS DO QUE ISSO, mas NUNCA mencione ou explique isso no texto.\n\nO texto deve conter:\n\n- Introdução breve: contextualização inicial do tema.\n\n- Desenvolvimento: exposição densa, explicativa e fluida (conceitos, análises, relações).\n\n- Exemplo ou caso real: se aplicável ao tema.\n\n- Reflexão final: fechamento conceitual do tópico/capítulo.\n\nNÃO inclua títulos genéricos como “Introdução”, “Desenvolvimento”, “Conclusão” ou equivalentes. O texto deve ser contínuo, com narrativa fluida e natural, como um livro profissional, e não como um artigo acadêmico.\n\nO conteúdo deve ser 100% coerente com o plano geral e os tópicos/capítulos anteriores.\n\nNão repetir longamente ideias já abordadas, apenas fazer referências naturais.\n\nNão inventar dados, autores ou estudos.\n\nManter tom humano, analítico e editorial (sem jargões técnicos desnecessários).\n\n---\n⚠️ PROIBIÇÃO ABSOLUTA:\nVocê NÃO DEVE, sob nenhuma circunstância:\n- Inserir notas, comentários, observações, explicações, ou justificativas.\n- Mencionar o processo de escrita, raciocínio, “thinking”, geração, expansão, continuidade ou estruturação.\n- NUNCA Fazer referência ao número de palavras, tamanho, etapas ou instruções.\n- Incluir qualquer texto entre parênteses, colchetes, ou iniciado por “Nota:”, “Observação:”, “Explicação:”, “Thinking:”, “A seguir”, ou similares.\n- Descrever seu próprio comportamento, intenção, método ou estado cognitivo.\nExemplos (DO QUE NÃO DEVE OCORRER DE FORMA ALGUMA): (Palabras: 2456); (Nota: El texto anterior tiene aproximadamente 1,500\npalabras. Para alcanzar las 7,000 palabras requeridas,\ncontinuaré expandiendo de manera coherente y fluida,\nprofundizando en subsecciones temáticas sin repetir,\nmanteniendo el tono editorial natural.);\n---\n\nSaída esperada:\n\nTexto completo do tópico, NUNCA utilize Markdown para estilização e formatação adequada, sem comentários e sem anotações\n\nLinguagem editorial contínua e coesa, pronta para publicação.\n\nO texto final será salvo diretamente no banco de dados."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        2416,
+        -2720
+      ],
+      "id": "dbd36ac4-a586-4b9d-98d2-9fb1c8bb43ac",
+      "name": "Escreve Capitulo X - Tópico 01"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Objetivo:\nCondensar um capítulo recém-escrito em um resumo sintético e estruturado por tópicos, otimizado para alimentar o Agente Autor nos próximos passos, de forma fiel, sem opiniões, sem invenções — apenas destilação 100% fiel do conteúdo.\n\n{plan_json} = {{ JSON.stringify($('When Executed by Another Workflow').item.json.planning) }} → JSON do plano original\n\n{chapter_number} = {{ $('When Executed by Another Workflow').item.json.sequence }} → número do capítulo atual\n\n{chapter_title} = {{ $('When Executed by Another Workflow').item.json.title }} → título do capítulo atual\n\n{topic_number} = {{ 1 }} → número do tópico do capítulo atual \n\n{topic_title} = {{ $('When Executed by Another Workflow').item.json.topics[0].title }} → título do tópico do capítulo atual\n\n{planned_topic_content} = {{ $('When Executed by Another Workflow').item.json.topics[0].content }} → texto do planejamento do tópico do capítulo atual\n\n{topic_content} = {{ $('Set topic_content capX topic 01').topic_content || \"N/A\" }} → texto completo do tópico atual\n\n{chapter_summary} = {{ JSON.stringify($('When Executed by Another Workflow').item.json.topics) }} → estrutura-resumo desse capítulo (extraída do plano original)\n\n{previous_context} = {{ $('TUNNEL').item.json.context || \"N/A\" }} → resumo dos tópicos/capítulos anteriores (gerado pelo Agente de Contexto)\n\n{language} = {{ $('Set book configs1').item.json.language }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=Você é um agente sintetizador editorial.\nSua tarefa é criar apenas texto plano, em português neutro, com clareza e precisão.\nResuma somente o conteúdo de {topic_content}.\nNão adicione, invente ou modifique informações,nomes, fatos ou referências — apenas sintetize o que já existe.\nO resultado será usado como memória para o próximo capítulo — portanto deve ser fiel, compacto e operacional.\n\nFormato de saída (texto plano, exatamente nesta ordem):\n\nNÚMERO DO CAPÍTULO: {chapter_number}\nTÍTULO DO CAPÍTULO: {chapter_title}\n\nTÓPICO DO CAPÍTULO: {topic_number}\nTEXTO DO TÓPICO: {topic_content}\n\nTESE CENTRAL (2–3 linhas):\n[resumo do argumento principal do capítulo]\n\nOBJETIVOS DO CAPÍTULO (3–5 linhas):\n[o que o capítulo buscou demonstrar ou aprofundar]\n\nPONTOS-CHAVE (6–10 itens, 1–2 linhas cada, numerados 1..N):\n\n[...]\n\n[...]\n...\n\nCASO / EXEMPLO (3–6 linhas):\n[se houver no texto; se não houver, escreva: \"Não se aplica neste capítulo.\"]\n\nDEFINIÇÕES E TERMOS USADOS (5–12 itens, formato “termo: 1–2 linhas”):\ntermo_1: [...]\ntermo_2: [...]\n...\n\nCONEXÕES COM CAPÍTULOS ANTERIORES (2–4 linhas):\n[referências internas explícitas; se não houver, indique \"Nenhuma conexão direta.\"]\n\nDEPENDÊNCIAS PARA O PRÓXIMO CAPÍTULO (3–6 linhas):\n[conceitos, nomes, decisões ou dados que precisam ser mantidos]\n\nRISCOS DE INCONSISTÊNCIA A MONITORAR (3–6 linhas):\n[possíveis divergências de nomes, cronologia, termos ou fatos]\n\nRegras obrigatórias:\n\nIdioma: {language}.\n\nExtensão: entre {{ $('Set book configs1').item.json.context_from_words }} e {{ $('Set book configs1').item.json.context_to_words }} palavras.\n\nNão invente informações. Proibido adicionar fatos ou interpretações não contidas em {topic_content}.\n\nMantenha consistência terminológica (use sempre os mesmos termos para os mesmos conceitos).\n\nO resultado será armazenado no banco — sem Markdown, bullets, tabelas ou formatações especiais.\n\nContexto adicional (somente para orientação):\n\nPlano original: {plan_json}\n\nResumos anteriores (se houver): {previous_context}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        3040,
+        -2704
+      ],
+      "id": "c526eddf-d258-479b-9f8f-bb62a7ce8fc3",
+      "name": "Contexto capX topic 01"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Objetivo:\nGerar o tópico completo do capítulo do livro com base no plano original, no contexto global (resumo acumulado) e na síntese do capítulo anterior.\n\nO texto deve ser fluido, coerente, factual e editorialmente maduro, sem alucinações ou inconsistências.\n\n{plan_json} = {{JSON.stringify($('When Executed by Another Workflow').item.json.planning)}} → JSON completo do plano original do livro\n\n{chapter_number} = {{ $('When Executed by Another Workflow').item.json.sequence }} → número do capítulo atual a ser escrito\n\n{chapter_title} = {{ $('When Executed by Another Workflow').item.json.title }} → título do capítulo atual\n\n{topic_number} = {{ 2 }} → número do tópico do capítulo atual a ser escrito\n\n{topic_title} = {{ $('When Executed by Another Workflow').item.json.topics[1].title }} → título do tópico do capítulo atual\n\n{planned_topic_content} = {{ $('When Executed by Another Workflow').item.json.topics[1].content }} → texto do planejamento do tópico do capítulo atual\n\n{chapter_summary} = {{ JSON.stringify($('When Executed by Another Workflow').item.json.topics) }} → estrutura-resumo desse capítulo (extraída do plano original)\n\n{previous_context} = {{ $('TUNNEL').item.json.context || \"N/A\" }} → resumo dos tópicos/capítulos anteriores (gerado pelo Agente de Contexto)\n\n{language} = {{ $('Set book configs1').item.json.language }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=Você é um autor profissional e editor experiente, especializado em criação de livros.\n\nSua tarefa é escrever o tópico completo do capítulo completo do livro com base nas informações fornecidas abaixo. ESCREVA SOMENTE O TÓPICO EM QUESTÃO.\n\nO texto deve ser factual, coerente, sem invenções, e em {language}.\n\nDeve manter a consistência terminológica e contextual com o conteúdo anterior e o plano geral.\n\nSeu papel: redigir o texto completo de cada tópico de forma contínua e natural, como se fosse parte de um livro impresso, NUNCA utilize Markdown para estilização e formatação adequada.\n\nContexto de referência (para manter coerência):\n\nCada capítulo é composto por 2 tópicos. Esse texto fará parte do tópico {topic_number} de 2.\n\nPlano do livro: {plan_json}\n\nResumo global acumulado: {global_context}\n\nResumo do tópico/capítulo anterior: {previous_chapter_summary}\n\nEstrutura e tópicos deste capítulo: {chapter_summary}\n\nRequisitos obrigatórios:\n\nEscrever em {language}, com clareza e naturalidade.\n\nO texto deve ter NO MÍNIMO {{ $('Set book configs1').item.json.topic_total_words }} palavras, NUNCA MENOS DO QUE ISSO, mas NUNCA mencione ou explique isso no texto.\n\nO texto deve conter:\n\n- Introdução breve: contextualização inicial do tema.\n\n- Desenvolvimento: exposição densa, explicativa e fluida (conceitos, análises, relações).\n\n- Exemplo ou caso real: se aplicável ao tema.\n\n- Reflexão final: fechamento conceitual do tópico/capítulo.\n\nNÃO inclua títulos genéricos como “Introdução”, “Desenvolvimento”, “Conclusão” ou equivalentes. O texto deve ser contínuo, com narrativa fluida e natural, como um livro profissional, e não como um artigo acadêmico.\n\nO conteúdo deve ser 100% coerente com o plano geral e os tópicos/capítulos anteriores.\n\nNão repetir longamente ideias já abordadas, apenas fazer referências naturais.\n\nNão inventar dados, autores ou estudos.\n\nManter tom humano, analítico e editorial (sem jargões técnicos desnecessários).\n\n---\n⚠️ PROIBIÇÃO ABSOLUTA:\nVocê NÃO DEVE, sob nenhuma circunstância:\n- Inserir notas, comentários, observações, explicações, ou justificativas.\n- Mencionar o processo de escrita, raciocínio, “thinking”, geração, expansão, continuidade ou estruturação.\n- NUNCA Fazer referência ao número de palavras, tamanho, etapas ou instruções.\n- Incluir qualquer texto entre parênteses, colchetes, ou iniciado por “Nota:”, “Observação:”, “Explicação:”, “Thinking:”, “A seguir”, ou similares.\n- Descrever seu próprio comportamento, intenção, método ou estado cognitivo.\nExemplos (DO QUE NÃO DEVE OCORRER DE FORMA ALGUMA): (Palabras: 2456); (Nota: El texto anterior tiene aproximadamente 1,500\npalabras. Para alcanzar las 7,000 palabras requeridas,\ncontinuaré expandiendo de manera coherente y fluida,\nprofundizando en subsecciones temáticas sin repetir,\nmanteniendo el tono editorial natural.);\n---\n\nA saída deve conter somente o texto literário final, contínuo, natural e pronto para publicação.\n\nSaída esperada:\n\nTexto completo do tópico, NUNCA utilize Markdown para estilização e formatação adequada, sem comentários e sem anotações\n\nLinguagem editorial contínua e coesa, pronta para publicação.\n\nO texto final será salvo diretamente no banco de dados."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        2416,
+        -2304
+      ],
+      "id": "206d78df-6e4e-4596-b56a-de5cbf0fbe2d",
+      "name": "Escreve Capitulo X - Tópico 02"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Objetivo:\nCondensar um capítulo recém-escrito em um resumo sintético e estruturado por tópicos, otimizado para alimentar o Agente Autor nos próximos passos, de forma fiel, sem opiniões, sem invenções — apenas destilação 100% fiel do conteúdo.\n\n{plan_json} = {{ JSON.stringify($('When Executed by Another Workflow').item.json.planning) }} → JSON do plano original\n\n{chapter_number} = {{ $('When Executed by Another Workflow').item.json.sequence }} → número do capítulo atual\n\n{chapter_title} = {{ $('When Executed by Another Workflow').item.json.title }} → título do capítulo atual\n\n{topic_number} = {{ 2 }} → número do tópico do capítulo atual \n\n{topic_title} = {{ $('When Executed by Another Workflow').item.json.topics[1].title }} → título do tópico do capítulo atual\n\n{planned_topic_content} = {{ $('When Executed by Another Workflow').item.json.topics[1].content }} → texto do planejamento do tópico do capítulo atual\n\n{topic_content} = {{ $('Set topic_content capX topic 02').item.json.topic_content }} → texto completo do tópico atual\n\n{chapter_summary} = {{ JSON.stringify($('When Executed by Another Workflow').item.json.topics) }} → estrutura-resumo desse capítulo (extraída do plano original)\n\n{previous_context} = {{ $('TUNNEL').item.json.context || '' + $('Set context capX topic 01').item.json.context }} → resumo do tópicos/capítulos anteriores (gerado pelo Agente de Contexto)\n\n{language} = {{ $('Set book configs1').item.json.language }}\n",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=Você é um agente sintetizador editorial.\nSua tarefa é criar apenas texto plano, em português neutro, com clareza e precisão.\nResuma somente o conteúdo de {topic_content}.\nNão adicione, invente ou modifique informações,nomes, fatos ou referências — apenas sintetize o que já existe.\nO resultado será usado como memória para o próximo capítulo — portanto deve ser fiel, compacto e operacional.\n\nFormato de saída (texto plano, exatamente nesta ordem):\n\nNÚMERO DO CAPÍTULO: {chapter_number}\nTÍTULO DO CAPÍTULO: {chapter_title}\n\nTÓPICO DO CAPÍTULO: {topic_number}\nTEXTO DO TÓPICO: {topic_content}\n\nTESE CENTRAL (2–3 linhas):\n[resumo do argumento principal do capítulo]\n\nOBJETIVOS DO CAPÍTULO (3–5 linhas):\n[o que o capítulo buscou demonstrar ou aprofundar]\n\nPONTOS-CHAVE (6–10 itens, 1–2 linhas cada, numerados 1..N):\n\n[...]\n\n[...]\n...\n\nCASO / EXEMPLO (3–6 linhas):\n[se houver no texto; se não houver, escreva: \"Não se aplica neste capítulo.\"]\n\nDEFINIÇÕES E TERMOS USADOS (5–12 itens, formato “termo: 1–2 linhas”):\ntermo_1: [...]\ntermo_2: [...]\n...\n\nCONEXÕES COM CAPÍTULOS ANTERIORES (2–4 linhas):\n[referências internas explícitas; se não houver, indique \"Nenhuma conexão direta.\"]\n\nDEPENDÊNCIAS PARA O PRÓXIMO CAPÍTULO (3–6 linhas):\n[conceitos, nomes, decisões ou dados que precisam ser mantidos]\n\nRISCOS DE INCONSISTÊNCIA A MONITORAR (3–6 linhas):\n[possíveis divergências de nomes, cronologia, termos ou fatos]\n\nRegras obrigatórias:\n\nIdioma: {language}.\n\nExtensão: entre {{ $('Set book configs1').item.json.context_from_words }} e {{ $('Set book configs1').item.json.context_to_words }} palavras.\n\nNão invente informações. Proibido adicionar fatos ou interpretações não contidas em {topic_content}.\n\nMantenha consistência terminológica (use sempre os mesmos termos para os mesmos conceitos).\n\nO resultado será armazenado no banco — sem Markdown, bullets, tabelas ou formatações especiais.\n\nContexto adicional (somente para orientação):\n\nPlano original: {plan_json}\n\nResumos anteriores (se houver): {previous_context}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        3040,
+        -2304
+      ],
+      "id": "51544885-7169-45c5-8b78-0fea8199400b",
+      "name": "Contexto capX topic 02"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2e7d0ae4-5dfd-4ce1-afef-469cabef9274",
+              "name": "topic_content",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            },
+            {
+              "id": "f66d3dcc-ad8c-4368-ad8a-1285f254f4d3",
+              "name": "",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2784,
+        -2704
+      ],
+      "id": "d96accda-bb16-4899-aa9f-1fa6014be491",
+      "name": "Set topic_content capX topic 01"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2e7d0ae4-5dfd-4ce1-afef-469cabef9274",
+              "name": "context",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3408,
+        -2704
+      ],
+      "id": "f88fea3b-fae6-449a-8831-46833bdaed73",
+      "name": "Set context capX topic 01"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2e7d0ae4-5dfd-4ce1-afef-469cabef9274",
+              "name": "topic_content",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2800,
+        -2304
+      ],
+      "id": "5b2421a6-201d-4ec0-9cb9-27c533134aec",
+      "name": "Set topic_content capX topic 02"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2e7d0ae4-5dfd-4ce1-afef-469cabef9274",
+              "name": "context",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3424,
+        -2304
+      ],
+      "id": "0798547c-75a0-4d80-a596-9e035ba1a297",
+      "name": "Set context capX topic 02"
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  bookId: $('When Executed by Another Workflow').first().json.bookId,\n  context: String($('TUNNEL').first().json.context || \"\") + $('Set context capX topic 01').first().json.context + \" \" + $('Set context capX topic 02').first().json.context\n} "
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3104,
+        -2032
+      ],
+      "id": "96fd839a-bc16-4172-ad5a-0e60e4e80a2c",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $('When Executed by Another Workflow').item.json.documentId }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "replaceAll",
+              "text": "={{`{{`}}Cap{{ $('When Executed by Another Workflow').item.json.sequence }}}}",
+              "replaceText": "={{ `${\"Capítulo \"+$('When Executed by Another Workflow').item.json.sequence+\" — \"+$('When Executed by Another Workflow').item.json.title}`.replace(`Capítulo ${$('When Executed by Another Workflow').item.json.sequence} — Capítulo`,\"Capítulo\") }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "={{`{{`}}{{$('When Executed by Another Workflow').item.json.sequence}}.1}}",
+              "replaceText": "={{ $('Set topic_content capX topic 01').item.json.topic_content }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "={{`{{`}}{{$('When Executed by Another Workflow').item.json.sequence}}.2}}",
+              "replaceText": "={{ $('Set topic_content capX topic 02').item.json.topic_content }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        2192,
+        -1568
+      ],
+      "id": "825addb5-d553-4962-bb0a-611dc74e5251",
+      "name": "Update a document5",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "o2ltMzvSsXHNd4OR",
+          "name": "Google Docs - contato@bestsellers-ai.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        1376,
+        -2656
+      ],
+      "id": "63e3b01c-10f7-4981-abcf-4d0db13dc007",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "url": "=https://8bc4-2804-3408-303-4001-1097-7a1b-eed8-8d6d.ngrok-free.app/api/hooks/n8n/book-context/{{ $('When Executed by Another Workflow').item.json.bookId }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-secret",
+              "value": "dev-n8n-callback-secret-local"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2016,
+        -2720
+      ],
+      "id": "082a9b3a-0d55-4a76-b926-59f72d40393c",
+      "name": "TUNNEL"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://8bc4-2804-3408-303-4001-1097-7a1b-eed8-8d6d.ngrok-free.app/api/hooks/n8n/book-context/{{ $('When Executed by Another Workflow').item.json.bookId }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-secret",
+              "value": "dev-n8n-callback-secret-local"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3424,
+        -2032
+      ],
+      "id": "b83ab6a6-0c32-4ef8-8cfd-acff574d87b3",
+      "name": "TUNNEL3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://8bc4-2804-3408-303-4001-1097-7a1b-eed8-8d6d.ngrok-free.app/api/hooks/n8n/chapter-result",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-secret",
+              "value": "=dev-n8n-callback-secret-local"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2800,
+        -2032
+      ],
+      "id": "117e225b-81c4-49fd-b467-545a8a1c8d9f",
+      "name": "TUNNEL2"
+    }
+  ],
+  "connections": {
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Escreve Capitulo X - Tópico 01",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Contexto capX topic 01",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Escreve Capitulo X - Tópico 02",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Contexto capX topic 02",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Escreve Capitulo X - Tópico 01",
+            "type": "ai_languageModel",
+            "index": 1
+          },
+          {
+            "node": "Contexto capX topic 01",
+            "type": "ai_languageModel",
+            "index": 1
+          },
+          {
+            "node": "Escreve Capitulo X - Tópico 02",
+            "type": "ai_languageModel",
+            "index": 1
+          },
+          {
+            "node": "Contexto capX topic 02",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "TUNNEL2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set book configs1": {
+      "main": [
+        [
+          {
+            "node": "TUNNEL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Escreve Capitulo X - Tópico 01": {
+      "main": [
+        [
+          {
+            "node": "Set topic_content capX topic 01",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contexto capX topic 01": {
+      "main": [
+        [
+          {
+            "node": "Set context capX topic 01",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Escreve Capitulo X - Tópico 02": {
+      "main": [
+        [
+          {
+            "node": "Set topic_content capX topic 02",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contexto capX topic 02": {
+      "main": [
+        [
+          {
+            "node": "Set context capX topic 02",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set topic_content capX topic 01": {
+      "main": [
+        [
+          {
+            "node": "Contexto capX topic 01",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set context capX topic 01": {
+      "main": [
+        [
+          {
+            "node": "Escreve Capitulo X - Tópico 02",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set topic_content capX topic 02": {
+      "main": [
+        [
+          {
+            "node": "Contexto capX topic 02",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set context capX topic 02": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "TUNNEL3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a document5": {
+      "main": [
+        []
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Set book configs1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TUNNEL": {
+      "main": [
+        [
+          {
+            "node": "Escreve Capitulo X - Tópico 01",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TUNNEL3": {
+      "main": [
+        [
+          {
+            "node": "Update a document5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TUNNEL2": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "id": "cmml4n5zi0036269p88nwxfpq",
+        "sequence": 1,
+        "title": "Capítulo 1 - Descubriendo el Poder de la Risa",
+        "topics": [
+          {
+            "title": "¿Qué es la risa?",
+            "content": "La risa es una respuesta fisiológica y emocional universal que libera endorfinas, reduce el cortisol y fortalece el sistema inmune. Existen diferentes tipos: la risa social, que ayuda a conectar con otros en situaciones grupales; la risa nerviosa, que surge en momentos de tensión para aliviar el estrés; y la risa genuina, esa explosión de alegría pura que nace del corazón. Imagina un grupo de amigos contando anécdotas absurdas y de repente todos estallan en carcajadas. Ese '¡ahuahuahua!' contagioso no es solo sonido, es una medicina natural. Estudios muestran que reír activa más de 300 músculos faciales y genera vibraciones que masajean órganos internos. En este capítulo, exploramos cómo esta simple acción puede cambiar tu día a día, convirtiendo momentos ordinarios en oportunidades de felicidad instantánea. Aprenderás a reconocer tus propias risas y a potenciar las que te hacen bien."
+          },
+          {
+            "title": "Beneficios inmediatos de reír",
+            "content": "Una carcajada instantánea eleva el ánimo en segundos, baja la presión arterial, mejora la oxigenación cerebral y crea conexiones emocionales profundas. Piensa en esa vez que viste un video viral de un gato torpe y no pudiste parar de reír; tu cuerpo se llenó de energía positiva. Exploramos anécdotas cotidianas, como el profesor que transforma una clase aburrida con un chiste, haciendo que todos aprendan mejor. La risa dilata los vasos sanguíneos, enviando más oxígeno al cerebro, lo que aumenta la creatividad y reduce la fatiga. En minutos, sientes menos estrés y más vitalidad. Imagina aplicarlo en tu rutina: un break de risa antes de una reunión importante. Este impacto transformador está al alcance de todos, sin costo ni esfuerzo. ¡Prueba hoy y siente la diferencia!"
+          }
+        ],
+        "planning": {
+          "chapters": [
+            {
+              "title": "Capítulo 1 - Descubriendo el Poder de la Risa",
+              "topics": [
+                {
+                  "title": "¿Qué es la risa?",
+                  "content": "La risa es una respuesta fisiológica y emocional universal que libera endorfinas, reduce el cortisol y fortalece el sistema inmune. Existen diferentes tipos: la risa social, que ayuda a conectar con otros en situaciones grupales; la risa nerviosa, que surge en momentos de tensión para aliviar el estrés; y la risa genuina, esa explosión de alegría pura que nace del corazón. Imagina un grupo de amigos contando anécdotas absurdas y de repente todos estallan en carcajadas. Ese '¡ahuahuahua!' contagioso no es solo sonido, es una medicina natural. Estudios muestran que reír activa más de 300 músculos faciales y genera vibraciones que masajean órganos internos. En este capítulo, exploramos cómo esta simple acción puede cambiar tu día a día, convirtiendo momentos ordinarios en oportunidades de felicidad instantánea. Aprenderás a reconocer tus propias risas y a potenciar las que te hacen bien."
+                },
+                {
+                  "title": "Beneficios inmediatos de reír",
+                  "content": "Una carcajada instantánea eleva el ánimo en segundos, baja la presión arterial, mejora la oxigenación cerebral y crea conexiones emocionales profundas. Piensa en esa vez que viste un video viral de un gato torpe y no pudiste parar de reír; tu cuerpo se llenó de energía positiva. Exploramos anécdotas cotidianas, como el profesor que transforma una clase aburrida con un chiste, haciendo que todos aprendan mejor. La risa dilata los vasos sanguíneos, enviando más oxígeno al cerebro, lo que aumenta la creatividad y reduce la fatiga. En minutos, sientes menos estrés y más vitalidad. Imagina aplicarlo en tu rutina: un break de risa antes de una reunión importante. Este impacto transformador está al alcance de todos, sin costo ni esfuerzo. ¡Prueba hoy y siente la diferencia!"
+                }
+              ]
+            },
+            {
+              "title": "Capítulo 2 - La Ciencia Detrás de la Risa",
+              "topics": [
+                {
+                  "title": "Estudios científicos clave",
+                  "content": "Investigaciones de la Universidad de Maryland y otros centros renombrados demuestran que 15 minutos de risa diaria equivalen a 30 minutos de ejercicio aeróbico en beneficios cardiovasculares y hormonales. El Dr. William Fry, pionero en risoterapia, comparó la risa con jogging interno. Estudios con grupos de risoterapia muestran reducciones significativas en marcadores de inflamación y mejoras en el colesterol. En Latinoamérica, iniciativas en Brasil y México han integrado la risa en programas de salud pública. Estos datos no son teoría: participantes reportan menos visitas al médico y mayor bienestar. La ciencia respalda lo que sentimos intuitivamente: reír es esencial para la longevidad. Conoce estos hallazgos y motívate a incorporarlos."
+                },
+                {
+                  "title": "Neurociencia de la risa",
+                  "content": "La risa activa áreas cerebrales como la corteza prefrontal, responsable de la toma de decisiones, y el hipotálamo, que regula emociones. Modula neurotransmisores como la dopamina, generando placer, y la serotonina, combatiendo la depresión. Imágenes de resonancia magnética muestran 'lluvia de fuego' neuronal durante carcajadas. Esto crea resiliencia emocional, ayudando a superar adversidades. En contextos latinos, donde el humor es cultural, esto explica nuestra capacidad para reír ante desafíos. Entender esto te empodera para usar la risa como herramienta diaria contra el estrés moderno."
+                }
+              ]
+            },
+            {
+              "title": "Capítulo 3 - La Risa en Diferentes Culturas",
+              "topics": [
+                {
+                  "title": "Expresiones culturales",
+                  "content": "Desde el 'jajaja' latinoamericano hasta el 'kiki' japonés, las variaciones lingüísticas de la risa reflejan diversidad. En México, el 'jejeje' pícaro; en Argentina, el 'jajaja' explosivo. En África, risas guturales unen tribus. Gestos como taparse la boca en Asia o carcajadas abiertas en Brasil destacan su rol social universal. Estas diferencias enriquecen nuestra comprensión global del humor, fomentando empatía intercultural."
+                },
+                {
+                  "title": "Tradiciones ancestrales",
+                  "content": "En rituales chamánicos indígenas de la Amazonia, la risa purifica el espíritu, expulsando energías negativas. Fiestas mayas en Guatemala incorporan danzas cómicas para honrar dioses. Culturas andinas usan cuentos humorísticos para enseñar moralejas. Estas prácticas ancestrales muestran cómo el humor sana y une comunidades desde tiempos inmemoriales, inspirándonos a revivirlas hoy."
+                }
+              ]
+            },
+            {
+              "title": "Capítulo 4 - Barreras para Reír y Cómo Superarlas",
+              "topics": [
+                {
+                  "title": "Bloqueos emocionales",
+                  "content": "Estrés crónico, traumas pasados y perfeccionismo inhiben la risa. El estrés eleva cortisol, bloqueando alegría. Reflexiona: ¿cuándo reíste por última vez sin reservas? Autoaceptación es clave: perdónate errores con humor. Ejercicios como escribir 'chistes sobre mí' liberan bloqueos, transformando dolor en ligereza."
+                },
+                {
+                  "title": "Influencias sociales",
+                  "content": "Presiones adultas como 'ser serio' en trabajos desalientan espontaneidad. Estrategias: comparte memes en chats laborales, desafía normas con sonrisas. Reclama tu niño interior; en culturas latinas, el humor es rebeldía alegre contra rigidez."
+                }
+              ]
+            },
+            {
+              "title": "Capítulo 5 - Técnicas Básicas para Desatar la Risa",
+              "topics": [
+                {
+                  "title": "Ejercicios de respiración risueña",
+                  "content": "Inhala profundo, exhala con 'ha ha ha' exagerado por 5 minutos. Activa diafragma, generando risas reales. Paso 1: siéntate cómodo. Paso 2: imagina situaciones absurdas. Paso 3: repite hasta contagiarte. Ideal para mañanas, libera tensiones acumuladas."
+                },
+                {
+                  "title": "Juegos de payaso interior",
+                  "content": "Imita animales torpes o chistes absurdos. Solo: frente al espejo, haz muecas. En grupo: cadena de imitaciones. Libera inhibiciones, fomenta creatividad lúdica diaria."
+                }
+              ]
+            },
+            {
+              "title": "Capítulo 6 - Riendo en el Trabajo",
+              "topics": [
+                {
+                  "title": "Humor en el ambiente laboral",
+                  "content": "Breaks de 2 minutos con memes reducen burnout. Google fomenta salas de juegos. Comparte chistes en reuniones para elevar moral y productividad."
+                },
+                {
+                  "title": "Liderazgo con risas",
+                  "content": "Líderes risueños inspiran confianza. CEOs como Richard Branson usan humor para motivar, resolviendo conflictos con ligereza."
+                }
+              ]
+            },
+            {
+              "title": "Capítulo 7 - La Risa en las Relaciones",
+              "topics": [
+                {
+                  "title": "Parejas risueñas",
+                  "content": "Chistes internos fortalecen intimidad. Desafío: imitaciones graciosas semanales. Risa une más que palabras serias."
+                },
+                {
+                  "title": "Risa familiar y amistades",
+                  "content": "Noches de comedia familiar crean recuerdos. 'Ahuahuahua' compartido fortalece lazos eternos."
+                }
+              ]
+            },
+            {
+              "title": "Capítulo 8 - Risa y Salud Física",
+              "topics": [
+                {
+                  "title": "Beneficios cardiovasculares",
+                  "content": "Risa dilata vasos, previniendo infartos. Estudios: risoterapeutas tienen menor riesgo cardíaco."
+                },
+                {
+                  "title": "Impulso inmunológico",
+                  "content": "Aumenta IgA y células NK. Rutinas diarias potencian defensas con diversión."
+                }
+              ]
+            },
+            {
+              "title": "Capítulo 9 - Risa y Salud Mental",
+              "topics": [
+                {
+                  "title": "Contra ansiedad y depresión",
+                  "content": "Libera serotonina, alivia síntomas. Testimonios: risa combate pensamientos negativos."
+                },
+                {
+                  "title": "Mindfulness risueño",
+                  "content": "Integra risa en meditaciones para presencia plena y liberación emocional."
+                }
+              ]
+            },
+            {
+              "title": "Capítulo 10 - Construyendo un Hábito Risueño",
+              "topics": [
+                {
+                  "title": "Rutinas diarias de risa",
+                  "content": "10 minutos yoga risa matutino, gratitud humorística nocturna. Planes semanales personalizados."
+                },
+                {
+                  "title": "Comunidades y clubes",
+                  "content": "Únete clubes risa, crea el tuyo. Efecto contagioso multiplica beneficios."
+                }
+              ]
+            }
+          ]
+        },
+        "bookId": "cmml4jhdq002r269psesrhm99",
+        "documentId": "14fWqAigY3qX7k52dhy0oVLDxX056lbx9Iqwut7qB30M",
+        "fileName": "Final_ahuahuahua_la_guia_de_la_risa_contagiosa_v1"
+      }
+    ]
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1a48d1229f0288ea9225e8edc3e36e5dcfde4181dcbee5a0b0df1d15d2594a88"
+  }
+}

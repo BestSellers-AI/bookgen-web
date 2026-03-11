@@ -1,0 +1,348 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "process-addon",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -464,
+        -784
+      ],
+      "id": "d88ce42b-bc04-4dbf-864a-eac56d256e0c",
+      "name": "Webhook",
+      "webhookId": "62a10ddc-f239-412c-b629-85154a72a33d"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Recebe: payload de preview (bookId, briefing, settings, callbackBaseUrl, etc.)\n// Faz: gera planning/TOC (capítulos + tópicos), opcionalmente refina title/subtitle\n\nconst bookId = $input.first().json.body.bookId;\nreturn { \"ok\": true, \"received\": true, bookId }"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        -784
+      ],
+      "id": "637d2995-d77f-4c03-a102-fbc009d0963a",
+      "name": "Webhook response payload"
+    },
+    {
+      "parameters": {
+        "jsCode": "// return $('Webhook').first().json.body;\n\nreturn {\n  bookId: $('Webhook').first().json.body.bookId,\n  addonId:$('Webhook').first().json.body.addonId,\n  addonKind: $('Webhook').first().json.body.addonKind,\n  status: \"success\",\n  resultUrl: \"https://m.media-amazon.com/images/G/01/Prelogin/img_about_hero_quotes.png\",\n  resultData: {\n    variations: [\n      { url: \"https://m.media-amazon.com/images/G/01/Prelogin/img_about_hero_quotes.png\", label: \"Dark theme\" },\n      { url: \"https://m.media-amazon.com/images/G/01/Prelogin/img_about_hero_quotes.png\", label: \"Dark theme\" },\n      { url: \"https://m.media-amazon.com/images/G/01/Prelogin/img_about_hero_quotes.png\", label: \"Dark theme\" },\n      { url: \"https://m.media-amazon.com/images/G/01/Prelogin/img_about_hero_quotes.png\", label: \"Dark theme\" },\n      { url: \"https://m.media-amazon.com/images/G/01/Prelogin/img_about_hero_quotes.png\", label: \"Dark theme\" },\n      { url: \"https://m.media-amazon.com/images/G/01/Prelogin/img_about_hero_quotes.png\", label: \"Light theme\" }\n    ]\n  }\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        -784
+      ],
+      "id": "2f597cf2-61b8-4b2f-bff4-37472f7373d3",
+      "name": "Subworkflow payload"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        32,
+        -784
+      ],
+      "id": "3353ad86-8ff3-4af4-b833-e6652b948dcd",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        -784
+      ],
+      "id": "321acbe9-ef9d-4936-b9a2-8e32330d3e25",
+      "name": "Wait",
+      "webhookId": "936cf4c9-b40f-4bbe-9718-ad5286d03a6b"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://8bc4-2804-3408-303-4001-1097-7a1b-eed8-8d6d.ngrok-free.app/api/hooks/n8n/addon-result",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-secret",
+              "value": "=dev-n8n-callback-secret-local"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        688,
+        -784
+      ],
+      "id": "1241d7fc-a915-411b-a8a9-96d5a20f9b05",
+      "name": "TUNNEL"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Webhook response payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook response payload": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Subworkflow payload": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        [
+          {
+            "node": "Subworkflow payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "TUNNEL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {
+    "Webhook": [
+      {
+        "headers": {
+          "host": "n8n-api.01.prod.bestsellers.digital",
+          "user-agent": "node",
+          "content-length": "26957",
+          "accept": "*/*",
+          "accept-encoding": "br, gzip, deflate",
+          "accept-language": "*",
+          "content-type": "application/json",
+          "sec-fetch-mode": "cors",
+          "x-forwarded-for": "168.195.209.8",
+          "x-forwarded-host": "n8n-api.01.prod.bestsellers.digital",
+          "x-forwarded-port": "443",
+          "x-forwarded-proto": "https",
+          "x-forwarded-server": "b68b110528ee",
+          "x-n8n-secret": "dev-n8n-callback-secret-local",
+          "x-real-ip": "168.195.209.8"
+        },
+        "params": {},
+        "query": {},
+        "body": {
+          "bookId": "cmml4jhdq002r269psesrhm99",
+          "addonId": "cmmldkaf8000b266luc69s0w4",
+          "addonKind": "ADDON_COVER",
+          "bookContext": {
+            "title": "¡ahuahuahua! La Guía de La Risa Contagiosa",
+            "subtitle": "Cómo Liberar Tu Risa Interior Y Transformar Tu Vida Con Humor Y Alegría, por El Autor Teste",
+            "author": "teste",
+            "briefing": "ahuahuahuahahuahuahuahahuahuahuahahuahuahuahahuahuahuahahuahuahuahahuahuahuahahuahuahuahahuahuahuahua",
+            "planning": {
+              "chapters": [
+                {
+                  "title": "Capítulo 1 - Descubriendo el Poder de la Risa",
+                  "topics": [
+                    {
+                      "title": "¿Qué es la risa?",
+                      "content": "La risa es una respuesta fisiológica y emocional universal que libera endorfinas, reduce el cortisol y fortalece el sistema inmune. Existen diferentes tipos: la risa social, que ayuda a conectar con otros en situaciones grupales; la risa nerviosa, que surge en momentos de tensión para aliviar el estrés; y la risa genuina, esa explosión de alegría pura que nace del corazón. Imagina un grupo de amigos contando anécdotas absurdas y de repente todos estallan en carcajadas. Ese '¡ahuahuahua!' contagioso no es solo sonido, es una medicina natural. Estudios muestran que reír activa más de 300 músculos faciales y genera vibraciones que masajean órganos internos. En este capítulo, exploramos cómo esta simple acción puede cambiar tu día a día, convirtiendo momentos ordinarios en oportunidades de felicidad instantánea. Aprenderás a reconocer tus propias risas y a potenciar las que te hacen bien."
+                    },
+                    {
+                      "title": "Beneficios inmediatos de reír",
+                      "content": "Una carcajada instantánea eleva el ánimo en segundos, baja la presión arterial, mejora la oxigenación cerebral y crea conexiones emocionales profundas. Piensa en esa vez que viste un video viral de un gato torpe y no pudiste parar de reír; tu cuerpo se llenó de energía positiva. Exploramos anécdotas cotidianas, como el profesor que transforma una clase aburrida con un chiste, haciendo que todos aprendan mejor. La risa dilata los vasos sanguíneos, enviando más oxígeno al cerebro, lo que aumenta la creatividad y reduce la fatiga. En minutos, sientes menos estrés y más vitalidad. Imagina aplicarlo en tu rutina: un break de risa antes de una reunión importante. Este impacto transformador está al alcance de todos, sin costo ni esfuerzo. ¡Prueba hoy y siente la diferencia!"
+                    }
+                  ]
+                },
+                {
+                  "title": "Capítulo 2 - La Ciencia Detrás de la Risa",
+                  "topics": [
+                    {
+                      "title": "Estudios científicos clave",
+                      "content": "Investigaciones de la Universidad de Maryland y otros centros renombrados demuestran que 15 minutos de risa diaria equivalen a 30 minutos de ejercicio aeróbico en beneficios cardiovasculares y hormonales. El Dr. William Fry, pionero en risoterapia, comparó la risa con jogging interno. Estudios con grupos de risoterapia muestran reducciones significativas en marcadores de inflamación y mejoras en el colesterol. En Latinoamérica, iniciativas en Brasil y México han integrado la risa en programas de salud pública. Estos datos no son teoría: participantes reportan menos visitas al médico y mayor bienestar. La ciencia respalda lo que sentimos intuitivamente: reír es esencial para la longevidad. Conoce estos hallazgos y motívate a incorporarlos."
+                    },
+                    {
+                      "title": "Neurociencia de la risa",
+                      "content": "La risa activa áreas cerebrales como la corteza prefrontal, responsable de la toma de decisiones, y el hipotálamo, que regula emociones. Modula neurotransmisores como la dopamina, generando placer, y la serotonina, combatiendo la depresión. Imágenes de resonancia magnética muestran 'lluvia de fuego' neuronal durante carcajadas. Esto crea resiliencia emocional, ayudando a superar adversidades. En contextos latinos, donde el humor es cultural, esto explica nuestra capacidad para reír ante desafíos. Entender esto te empodera para usar la risa como herramienta diaria contra el estrés moderno."
+                    }
+                  ]
+                },
+                {
+                  "title": "Capítulo 3 - La Risa en Diferentes Culturas",
+                  "topics": [
+                    {
+                      "title": "Expresiones culturales",
+                      "content": "Desde el 'jajaja' latinoamericano hasta el 'kiki' japonés, las variaciones lingüísticas de la risa reflejan diversidad. En México, el 'jejeje' pícaro; en Argentina, el 'jajaja' explosivo. En África, risas guturales unen tribus. Gestos como taparse la boca en Asia o carcajadas abiertas en Brasil destacan su rol social universal. Estas diferencias enriquecen nuestra comprensión global del humor, fomentando empatía intercultural."
+                    },
+                    {
+                      "title": "Tradiciones ancestrales",
+                      "content": "En rituales chamánicos indígenas de la Amazonia, la risa purifica el espíritu, expulsando energías negativas. Fiestas mayas en Guatemala incorporan danzas cómicas para honrar dioses. Culturas andinas usan cuentos humorísticos para enseñar moralejas. Estas prácticas ancestrales muestran cómo el humor sana y une comunidades desde tiempos inmemoriales, inspirándonos a revivirlas hoy."
+                    }
+                  ]
+                },
+                {
+                  "title": "Capítulo 4 - Barreras para Reír y Cómo Superarlas",
+                  "topics": [
+                    {
+                      "title": "Bloqueos emocionales",
+                      "content": "Estrés crónico, traumas pasados y perfeccionismo inhiben la risa. El estrés eleva cortisol, bloqueando alegría. Reflexiona: ¿cuándo reíste por última vez sin reservas? Autoaceptación es clave: perdónate errores con humor. Ejercicios como escribir 'chistes sobre mí' liberan bloqueos, transformando dolor en ligereza."
+                    },
+                    {
+                      "title": "Influencias sociales",
+                      "content": "Presiones adultas como 'ser serio' en trabajos desalientan espontaneidad. Estrategias: comparte memes en chats laborales, desafía normas con sonrisas. Reclama tu niño interior; en culturas latinas, el humor es rebeldía alegre contra rigidez."
+                    }
+                  ]
+                },
+                {
+                  "title": "Capítulo 5 - Técnicas Básicas para Desatar la Risa",
+                  "topics": [
+                    {
+                      "title": "Ejercicios de respiración risueña",
+                      "content": "Inhala profundo, exhala con 'ha ha ha' exagerado por 5 minutos. Activa diafragma, generando risas reales. Paso 1: siéntate cómodo. Paso 2: imagina situaciones absurdas. Paso 3: repite hasta contagiarte. Ideal para mañanas, libera tensiones acumuladas."
+                    },
+                    {
+                      "title": "Juegos de payaso interior",
+                      "content": "Imita animales torpes o chistes absurdos. Solo: frente al espejo, haz muecas. En grupo: cadena de imitaciones. Libera inhibiciones, fomenta creatividad lúdica diaria."
+                    }
+                  ]
+                },
+                {
+                  "title": "Capítulo 6 - Riendo en el Trabajo",
+                  "topics": [
+                    {
+                      "title": "Humor en el ambiente laboral",
+                      "content": "Breaks de 2 minutos con memes reducen burnout. Google fomenta salas de juegos. Comparte chistes en reuniones para elevar moral y productividad."
+                    },
+                    {
+                      "title": "Liderazgo con risas",
+                      "content": "Líderes risueños inspiran confianza. CEOs como Richard Branson usan humor para motivar, resolviendo conflictos con ligereza."
+                    }
+                  ]
+                },
+                {
+                  "title": "Capítulo 7 - La Risa en las Relaciones",
+                  "topics": [
+                    {
+                      "title": "Parejas risueñas",
+                      "content": "Chistes internos fortalecen intimidad. Desafío: imitaciones graciosas semanales. Risa une más que palabras serias."
+                    },
+                    {
+                      "title": "Risa familiar y amistades",
+                      "content": "Noches de comedia familiar crean recuerdos. 'Ahuahuahua' compartido fortalece lazos eternos."
+                    }
+                  ]
+                },
+                {
+                  "title": "Capítulo 8 - Risa y Salud Física",
+                  "topics": [
+                    {
+                      "title": "Beneficios cardiovasculares",
+                      "content": "Risa dilata vasos, previniendo infartos. Estudios: risoterapeutas tienen menor riesgo cardíaco."
+                    },
+                    {
+                      "title": "Impulso inmunológico",
+                      "content": "Aumenta IgA y células NK. Rutinas diarias potencian defensas con diversión."
+                    }
+                  ]
+                },
+                {
+                  "title": "Capítulo 9 - Risa y Salud Mental",
+                  "topics": [
+                    {
+                      "title": "Contra ansiedad y depresión",
+                      "content": "Libera serotonina, alivia síntomas. Testimonios: risa combate pensamientos negativos."
+                    },
+                    {
+                      "title": "Mindfulness risueño",
+                      "content": "Integra risa en meditaciones para presencia plena y liberación emocional."
+                    }
+                  ]
+                },
+                {
+                  "title": "Capítulo 10 - Construyendo un Hábito Risueño",
+                  "topics": [
+                    {
+                      "title": "Rutinas diarias de risa",
+                      "content": "10 minutos yoga risa matutino, gratitud humorística nocturna. Planes semanales personalizados."
+                    },
+                    {
+                      "title": "Comunidades y clubes",
+                      "content": "Únete clubes risa, crea el tuyo. Efecto contagioso multiplica beneficios."
+                    }
+                  ]
+                }
+              ]
+            },
+            "settings": null,
+            "introduction": "La risa parece un gesto simple, casi trivial, y sin embargo contiene una potencia extraordinaria para la salud, la mente y la convivencia. Este libro propone comprender ese fenómeno desde múltiples dimensiones: lo biológico que se desata en el cuerpo, lo emocional que atraviesa la experiencia individual, y lo social que emerge cuando nos damos permiso para reír juntos. A través de un recorrido que va desde lo cotidiano hasta lo cultural y lo ceremonial, la obra invita a mirar la risa como una práctica concreta, accesible y transformadora.\n\nEn su núcleo, la risa se entiende como puente entre el cuerpo y la vida diaria. Es una experiencia que puede manifestarse en varias modalidades—social, nerviosa o genuina—y que, más allá del sonido, cambia la respiración, activa músculos y moviliza redes neuronales y neuroquímicas. Endorfinas y dopamina acompañan la alegría, mientras el cortisol, a menudo elevado por el estrés, se modula. La risa también activa regiones del cerebro asociadas a la recompensa, la atención y la regulación emocional, y se acompaña de un lenguaje social que facilita la conexión, la cooperación y la aprendizaje compartido.\n\nEl libro aborda, con rigor y cercanía, los beneficios inmediatos de la risa: mayor claridad mental, energía renovada y una apertura emocional que facilita la comunicación y la resolución de problemas. Pero va más allá al plantear una visión de largo plazo: la risa sostenida, integrada a hábitos diarios, puede fortalecer la salud cardiovascular, modular la respuesta inmunitaria y enriquecer las relaciones en todos los frentes de la vida, desde la familia y la amistad hasta el trabajo y la comunidad.\n\nLa exploración atraviesa también la diversidad cultural: desde expresiones sonoras y gestuales distintas hasta tradiciones ancestrales que conectan humor, sanación, enseñanza y celebración. En Amazonía, Guatemala y los Andes, la risa se entrelaza con rituales, saberes y normas de convivencia, revelando su función terapéutica y educativa dentro de marcos comunitarios. Este enfoque cultural desdibuja fronteras y subraya la universalidad de la risa como recurso humano, al tiempo que reconoce su rica variedad.\n\nA la vez, el libro no elude las barreras: bloqueos emocionales como el estrés crónico, traumas pasados y perfeccionismo pueden obstaculizar la espontaneidad risueña; las influencias sociales del ambiente profesional y cotidiano pueden suprimirla. Se presentan rutas prácticas para desarmarlas: ejercicios de respiración risueña, payaso interior, microdiálogos, rituales simples y comunidades de risa que sostienen el aprendizaje y la práctica a lo largo del tiempo.\n\nCon rigor y calidez, esta obra propone un camino práctico para cultivar risas conscientes: una disciplina de cuidado personal y colectivo que, al hacerse habitual, abre una vida más presente, creativa y fraterna. Bienvenidos a un viaje que transforma lo cotidiano en una experiencia de bienestar compartido.",
+            "conclusion": "A lo largo de estas páginas hemos seguido una constelación simple y poderosa: la risa no es un capricho, sino una forma de presencia que atraviesa cuerpos, emociones y comunidades. Desde las sonrisas que nacen en la intimidad de una conversación hasta las carcajadas que se diseminan en un aula, en una sala de reuniones o en una plaza, la risa ha emergido como un recurso humano compartido, accesible para todos y capaz de reconfigurar la experiencia del día a día. Hemos visto cómo una respuesta fisiológica, capaz de liberar endorfinas y reducir cortisol, se une a procesos neuroquímicos que sostienen la motivación, la atención y la regulación emocional. Hemos descubierto, también, que esa chispa de alegría no se queda en el individuo: se contagia, se multiplica, crea vínculos y sostiene redes de apoyo que fortalecen desde la familia hasta la organización social.\n\nLa ciencia, en su mapa detallado, ha mostrado que quince minutos de risa diaria pueden tocar áreas del corazón, del sistema inmunológico y de la mente, en una sinfonía de efectos que, si se repiten con constancia, se vuelven parte de una vida más resiliente. Pero no es sólo la biología la que sostiene estas ideas. Las tradiciones y expresiones culturales nos recuerdan que la risa ha sido, durante siglos, un lenguaje de comunidad: una forma de purificar tensiones, de enseñar normas, de celebrar la conexión con otros y de abrir senderos de aprendizaje. En las múltiples geografías y tradiciones descritas, la risa se teje con la ética del cuidado y la responsabilidad: puede ser un puente entre culturas, un mecanismo de cohesión social y una forma de sostener la dignidad cuando la seriedad de la vida exige atención y precisión.\n\nEste libro ha transitado por escenarios variados para mostrar que la risa puede habitar en todos los ámbitos de la vida: en el aula que despierta curiosidad, en la oficina que busca cooperación sin perder rigor, en la familia que refuerza la memoria afectiva, en las parejas que fortalecen su intimidad con juego y ternura, y en las comunidades que se fortalecen cuando el humor se comparte con consentimiento y empatía. Ha afirmado, a la vez, que la risa no es una evasión de la realidad ni un truco simplista: es una práctica consciente que, ejercida con intención, amplía nuestra capacidad de escuchar, de pensar con claridad y de actuar con humanidad. En ese sentido, el humor deja de ser un accesorio y se convierte en una competencia blanda pero decisiva para afrontar desafíos, sostener vínculos y hacer frente a la complejidad del mundo moderno.\n\nLa ruta de las últimas páginas propone pasos concretos para convertir estas ideas en hábitos duraderos. Dijo ya la experiencia que la risa puede aprenderse y enseñarse: mediante prácticas simples de respiración y juego, por medio del payaso interior que emerge para acompañar la presión, o a través de microacciones sociales que lubrican la comunicación y reducen la fricción. Se ofrecieron herramientas para líderes que desean cultivar confianza sin perder rigor, para docentes que buscan abrir puertas sin perder autoridad, para familias que desean tejer historias compartidas sin desbordar la intimidad. Y se invitó a cada lector a diseñar su propio camino: planes semanales, rituales diarios y comunidades que sostengan la risa como parte del ser cotidiano.\n\nSi algo debemos recordar al cerrar este viaje, es que la risa no resuelve todos los dilemas, pero sí transforma la relación que tenemos con ellos. No promete una vida sin tensiones, sino una vida con más recursos para atravesarlas: mayor flexibilidad cognitiva, mejor regulación emocional y una red de apoyo que facilita la cooperación y el cuidado mutuo. La risa, en su simplicidad, se revela como una aliada para vivir con presencia, para aprender de los errores sin dramatizarlos y para sostener el bien común cuando las exigencias inflan el peso del día.\n\nQue este libro sirva, entonces, como invitación a cultivar una cultura de risa consciente y compasiva. Que cada persona, en su propio entorno, encuentre el modo de incorporar momentos de humor que nutran el cuerpo, la mente y el tejido social. Que las comunidades, al permitir que la risa circule con respeto y generosidad, fortalezcan la capacidad de sanar, aprender y avanzar juntos. Y, sobre todo, que la risa siga siendo, para todos, una casa abierta: un espacio donde la presencia, la curiosidad y la humanidad encuentren siempre una razón para sonreír, incluso ante la adversidad. En ese espíritu, terminamos este recorrido con la certeza de que la risa es un don práctico y poderoso, capaz de cambiar la vida cotidiana de quienes se atrevan a invocarla con cuidado y constancia.",
+            "finalConsiderations": "Este libro ha mostrado que la risa no es un lujo, sino una experiencia humana fundamental que se despliega en el cuerpo, la mente y las relaciones. Partimos de la idea de que la risa es universal y, a la vez, profundamente contextual: se manifiesta de maneras diversas en distintas culturas, pero comparte una función común de conectar, aliviar tensiones y abrir puertas a la atención, la creatividad y la cooperación. A lo largo de los capítulos, vimos cómo la risa activa procesos fisiológicos beneficiosos, modula neurotransmisores y fortalece la cohesión social, al tiempo que se transforma en una práctica cotidiana accesible para cualquier persona. Aprendimos, también, que la ciencia y la experiencia se confirman mutuamente: quince minutos de risa diaria pueden marcar diferencias en la circulación, en la respuesta al estrés y en la calidad de las interacciones. Pero, sobre todo, constatamos que la risa puede ser una brújula para vivir con mayor presencia y humanidad, aun en contextos de trabajo, estudio y convivencia.\n\nMirando hacia el futuro, las implicaciones sociales y de salud pública son alentadoras. La risa puede integrarse en programas preventivos y educativos como una estrategia de bajo costo para reforzar la resiliencia, fomentar la alfabetización emocional y facilitar el aprendizaje. En las escuelas, las organizaciones y las comunidades, las prácticas descritas aquí—respiración risueña, payaso interior, microdías de humor, clubes de risa, rutinas matutinas y gratitud humorística—tienen el potencial de enriquecer la experiencia cotidiana sin desplazar la seriedad necesaria para afrontar desafíos. En el ámbito laboral, la risa bien modulada puede actuar como lubricante social, disminuir tensiones y activar la creatividad, siempre con límites claros para mantener la dignidad y la eficiencia. En las relaciones íntimas y familiares, el humor compartido puede fortalecer la confianza, la empatía y la memoria afectiva, sosteniendo vínculos a lo largo del tiempo.\n\nEn términos de investigación, caben mejoras y ampliaciones: mapear con mayor claridad las redes neuronales involucradas, entender variaciones culturales y de personalidad en la respuesta risueña, y evaluar efectos a largo plazo en población diversa. La interdisciplinariedad entre neurociencia, psicología, sociología y salud pública será crucial para afinar intervenciones, adaptar prácticas a contextos distintos y garantizar su sostenibilidad. También serán importantes estrategias éticas y culturales para asegurar que el humor sea inclusivo, respetuoso y consciente de las diferencias.\n\nPara el lector, el resultado es claro: cultivar un hábito risueño no es escapismo, sino una forma de cuidado activo que amplía la posibilidad de vivir con apertura, inteligencia emocional y cooperación. Invito a construir rutinas simples y sostenibles, a crear comunidades de risa y a liderar con humor responsable cuando corresponda. Que la risa se integre en la vida diaria no como un destello aislado, sino como una presencia constante que favorece la salud, fortalece los vínculos y enriquece la experiencia humana en su totalidad. La risa, en definitiva, es una manera de estar presentes, atentos y conectados con los otros y con uno mismo.",
+            "glossary": "risada: Es una respuesta fisiológica y emocional de placer que involucra el cuerpo y la mente. Implica la activación de la respiración y de músculos faciales, generando sensaciones de bienestar que pueden acompañarse de cambios en el estado de ánimo. Funciona como mecanismo de alivio y cohesión en contextos sociales.\n\nrisada social: Es la risa que surge en interacción con otras personas, reforzando vínculos y normas sociales. Actúa como lubricante social, desarma tensiones y facilita la comunicación y la cooperación en grupos.\n\nrisada nervosa: Risa que aparece como válvula de escape ante incomodidad, tensión o miedo, y que puede funcionar como autoprotección temporal ante situaciones estresantes. Suele servir para liberar carga emocional cuando el entorno es adverso o incómodo.\n\nrisada genuina: Explosión de alegría auténtica que nace del interior, desinhibida y menos influida por expectativas sociales. Se vincula con una experiencia presente y suele involucrar sonrisas alrededor de los ojos.\n\nendorfinas: Neurotransmisores que proporcionan sensación de placer y alivio de la dolor, funcionando como analgésicos naturales. Se liberan en la risa y contribuyen a la experiencia de bienestar.\n\ncortisol: Hormona del estrés que puede disminuir con la risa, liberando tensiones y reduciendo la activación del eje de estrés. Su disminución facilita una mayor sensación de calma.\n\ndopamina: Neurotransmisor ligado al placer, a la motivación y a la recompensa. Su liberación durante la risa refuerza comportamientos repetitivos de búsqueda de humor.\n\nserotonina: Neurotransmisor asociado al bienestar y a la regulación del humor. La risa puede incrementar su actividad, favoreciendo estabilidad emocional.\n\nsistema inmunológico: Conjunto de defensas del organismo; la risa puede influir en su funcionamiento a través de efectos neuroendocrinos y sociales. Participa en la respuesta frente a irritantes y patógenos.\n\nIgA: Inmunoglobulina A secretora, primera línea de defensa en mucosas; su producción puede verse favorecida por estados emocionales positivos y hábitos de vida saludables.\n\ncélulas NK: Células asesinas naturales, parte del sistema inmunológico innato; actúan contra células infectadas y tumorales. Su actividad puede verse modulada por el bienestar emocional y el estrés.\n\ndiafragma: Músculo principal de la respiración; la risa implica movilización diafragmática que facilita oxigenación y relajación muscular.\n\ncorteza prefrontal: Área cerebral implicada en la toma de decisiones y la regulación de emociones; se activa durante experiencias risueñas que requieren atención y control.\n\nhipotálamo: Centro regulador emocional y fisiológico; la risa interplay con este núcleo influye en respuestas hormonales y en la calma emocional.\n\noxigenación: Proceso de suministro de oxígeno a sangre y tejidos; la risa eleva temporalmente la oxigenación cerebral y muscular, promoviendo claridad y energía.\n\npayaso interior: Propuesta interna de juego y ligereza que facilita la autoexpresión humorística y la desactivación de rigidez. Funciona como regulador emocional que habilita la espontaneidad.\n\nrespiración risueña: Técnica que combina respiración consciente con exhalaciones acompañadas de risa para activar el diafragma y liberar tensión. Favorece la presencia y la apertura emocional.\n\nmindfulness risueño: Práctica que une atención plena y humor, facilitando regulación emocional, mayor presencia y menor reactividad ante el estrés. Integra ligereza sin renunciar a la atención consciente.\n\nhumor: Recurso expresivo que facilita la gestión de emociones, la comunicación y la cooperación. Se utiliza de forma intencional para equilibrar seriedad y ligereza en distintos contextos.",
+            "appendix": "Las bases de este libro se sostienen en una constelación de hallazgos y prácticas que cruzan la experiencia cotidiana con la evidencia científica, y que ganan cuerpo en las historias de aula, trabajo, familia y comunidades. A continuación, referencias editoriales que sintetizan esas fuentes y su relevancia para la vida diaria.\n\n- Investigaciones de la Universidad de Maryland y de otros centros de referencia, que sostienen que quince minutos de risa diaria pueden equivaler a quince minutos de ejercicio aeróbico en beneficios cardiovasculares y hormonales. El marco se enriquece con la caracterización de la risa como “jogging interno” descrita por el pionero de la risoterapia, el Dr. William Fry.  \n- Programas de risoterapia y experiencias regionales en América Latina, especialmente en Brasil y México, donde se ha incorporado la risa como componente de políticas y prácticas de salud pública y educativa, fortaleciendo cohesión social y adherencia a hábitos saludables.  \n- Ejes fisiológicos y neuroquímicos: liberación de endorfinas, reducción de cortisol y modulación de dopamina y serotonina, junto con la activación de redes cerebrales clave como la corteza prefrontal y el hipotálamo, presentes en la evidencia neurocientífica sobre la risa.  \n- Evidencias de imagenología cerebral que describen la actividad durante la risa como patrones de “lluvia de fuego” en circuitos de recompensa, atención, conexión social y regulación emocional.  \n- Dimensión inmunológica asociada a la risa, con foco en IgA secretora y células NK, y su relación con estados de estrés, bienestar y defensa mucosal.  \n- Conceptos de mindfulness risueño y de liderazgo con risas, que integran la presencia plena, la regulación emocional y prácticas de grupo en contextos educativos, laborales y familiares.  \n- Prácticas de implementación: yoga de la risa matutino, gratitud humorística nocturna, microdiálogos y clubes de risa, descritos como estrategias para sostener hábitos y cultivar comunidades de apoyo.  \n- Tradición y diversidad cultural: expresiones de la risa en distintas culturas y tradiciones ancestrales, que revelan un lenguaje universal fundamentado en el cuidado mutuo y la cohesión social.\n\nEstas fuentes y enfoques se entrelazan para mostrar que la risa es una práctica accesible, sostenible y práctica, capaz de sostener la salud, la atención, la creatividad y las relaciones humanas en toda su diversidad. Los lectores pueden encontrar desarrollos detallados en cada capítulo, donde la teoría se despliega en ejemplos, ejercicios y guías de implementación.",
+            "closure": "Este viaje por la risa, desde sus raíces fisiológicas hasta sus expresiones culturales y sus aplicaciones cotidianas, revela una verdad poderosa: reír no es un lujo, sino una habilidad humana que cuida el cuerpo, sostiene la mente y fortalece la vida en comunidad. A lo largo de Capítulos que exploraron su ciencia, sus tradiciones y sus usos en la escuela, la oficina, la familia y la amistad, aprendimos que la risa abre puertas: mejora la atención, reduce el estrés, y teje vínculos cuando menos lo esperas. No se trata de forzar la alegría, sino de cultivar condiciones en las que la ligereza pueda nacer con presencia, responsabilidad y empatía. La risa se muestra como un puente entre emociones y cuerpos, entre individuos y culturas, entre lo sagrado y lo cotidiano.\n\nAgradezco a quienes acompañaron este recorrido: lectores, docentes, profesionales de la salud, comunidades, familias y amigos que enseñan con su ejemplo que la ciencia late en una carcajada compartida. Este libro no cierra una ruta, sino abre un mapa: prácticas simples—respiración risueña, payaso interior, micro-risas en equipo, clubes de risa—que pueden convertirse en hábitos duraderos. Ojalá sigamos eligiendo la risa consciente como guía para imaginar, construir y cuidar un mundo más humano y saludable.",
+            "wordCount": 48061,
+            "pageCount": 195
+          },
+          "callbackBaseUrl": "http://localhost:3001"
+        },
+        "webhookUrl": "https://n8n-api.01.prod.bestsellers.digital/webhook/process-addon",
+        "executionMode": "production"
+      }
+    ]
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1a48d1229f0288ea9225e8edc3e36e5dcfde4181dcbee5a0b0df1d15d2594a88"
+  }
+}

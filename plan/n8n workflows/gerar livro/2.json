@@ -1,0 +1,1201 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -7040,
+        928
+      ],
+      "id": "0b47af30-3b35-435f-bcfd-89615cd30d1d",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "jsCode": "// const totalChapters = $input.first().json.chapters?.length;\nconst chapters = $('When Executed by Another Workflow').first().json.chapters;\n\nconst chaptersPayload = chapters.map(item => {\n  const newItem = {...item, planning: $('When Executed by Another Workflow').first().json.planning, bookId: $('When Executed by Another Workflow').first().json.bookId, documentId: $('Copy file1').first().json.id, fileName: $('Sanitize Title Filename1').first().json.filename };\n  return newItem;\n})\n\n// 📌 slice(2) significa:\n// pegar o array a partir do índice 2\n\nreturn chaptersPayload\n  // .slice(8);"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -6208,
+        928
+      ],
+      "id": "05c6075c-f935-491f-9abe-77fc34a5cfd6",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-5-nano",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -4208,
+        1872
+      ],
+      "id": "cda6ba39-9a48-4c83-9834-fbc4b4688681",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "17DLNoosuHjQWFC6",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -5888,
+        928
+      ],
+      "id": "451104e3-8188-41de-abc2-6eabb8a9c7ec",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Objetivo:\nGerar os textos finais de um livro já completo, com base em todo o conteúdo anterior (capítulos e tópicos).\nEsses textos formam a conclusão editorial e os elementos finais do livro.\n\nlanguage = {{ $('Set Final Configs1').item.json.language  }}\n\n{{ JSON.stringify($('HTTP Request3').item.json) }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=Você é um editor e escritor profissional, especializado em redação editorial.\n\nSua tarefa é gerar a seção de conclusão de um livro completo e coerente, com base em todo o conteúdo fornecido.\n\nO texto deve ser factual, contínuo, elegante e conclusivo, em {language}, pronto para publicação.\n\nFunção desta seção:\n- Síntese geral do livro. Retome as ideias centrais, resultados ou aprendizados, oferecendo fechamento conceitual.\n\nRegras obrigatórias:\n- O texto deve ser 100% original e baseado apenas no conteúdo recebido.\n- Idioma: {language}.\n- Não inclua títulos, cabeçalhos, comentários ou explicações.\n- Não utilize Markdown para estilização e formatação elegante.\n- Não iniciar com título. Deve começar diretamente com o conteúdo narrativo.\n- Tamanho sugerido: 500–800 palavras.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -4704,
+        320
+      ],
+      "id": "3c8cb091-4df5-457a-8568-bc53c5dec66f",
+      "name": "Generate Conclusion1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Objetivo:\nGerar os textos finais de um livro já completo, com base em todo o conteúdo anterior (capítulos e tópicos).\nEsses textos formam a conclusão editorial e os elementos finais do livro.\n\nlanguage = {{$('Set Final Configs1').item.json.language}}\n\n{{ JSON.stringify($('HTTP Request3').item.json) }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=Você é um editor e escritor profissional, especializado em redação editorial.\n\nSua tarefa é gerar a seção de considerações finais de um livro completo e coerente, com base em todo o conteúdo fornecido.\n\nO texto deve ser factual, reflexivo e prospectivo, em {language}, pronto para publicação.\n\nFunção desta seção:\n- Reflexão interpretativa e prospectiva. Aborde implicações futuras, aplicações práticas e a importância do tema.\n\nRegras obrigatórias:\n- O texto deve ser 100% original e baseado apenas no conteúdo recebido.\n- Idioma: {language}.\n- Não inclua títulos, cabeçalhos, comentários ou explicações.\n- Não utilize Markdown para estilização e formatação elegante.\n- Não iniciar com título. Deve começar diretamente com o conteúdo narrativo.\n- Tamanho sugerido: 400–600 palavras.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -4400,
+        320
+      ],
+      "id": "bbbcca16-5991-4252-9d78-985cdd3cd276",
+      "name": "Generate Final_Considerations1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Objetivo:\nGerar os textos finais de um livro já completo, com base em todo o conteúdo anterior (capítulos e tópicos).\nEsses textos formam a conclusão editorial e os elementos finais do livro.\n\nlanguage = {{$('Set Final Configs1').item.json.language}}\n\n{{ JSON.stringify($('HTTP Request3').item.json) }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=Você é um editor e escritor profissional, especializado em redação editorial.\n\nSua tarefa é gerar o apêndice de um livro completo e coerente, com base em todo o conteúdo fornecido.\n\nO texto deve ser editorial, factual e plausível, em {language}, pronto para publicação.\n\nFunção desta seção:\n- Listar referências e fontes de forma editorial (sem formatação acadêmica formal).\n\nRegras obrigatórias:\n- O texto deve ser 100% original e baseado apenas no conteúdo recebido.\n- Citar apenas fontes reais ou plausíveis ao tema, sem inventar dados falsos.\n- Idioma: {language}.\n- Não inclua títulos, cabeçalhos, comentários ou explicações.\n- Não utilize Markdown para estilização e formatação elegante.\n- Não iniciar com título. Deve começar diretamente com o conteúdo narrativo.\n- Tamanho sugerido: 200–400 palavras."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -4992,
+        640
+      ],
+      "id": "01725a35-2bcd-46d6-9b50-80c193a01be3",
+      "name": "Generate Appendix1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Objetivo:\nGerar os textos finais de um livro já completo, com base em todo o conteúdo anterior (capítulos e tópicos).\nEsses textos formam a conclusão editorial e os elementos finais do livro.\n\nlanguage = {{$('Set Final Configs1').item.json.language}}\n\n{{ JSON.stringify($('HTTP Request3').item.json) }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=Você é um editor e escritor profissional, especializado em redação editorial.\n\nSua tarefa é gerar o glossário de um livro completo e coerente, com base em todo o conteúdo fornecido.\n\nO texto deve conter um glossário editorial em {language}, pronto para publicação.\n\nFunção desta seção:\n- Incluir entre 10 e 20 termos que realmente aparecem no livro, cada um com definição curta.\n\nRegras obrigatórias:\n- O glossário deve conter entre 10 e 20 termos.\n- Os termos devem ter sido usados no livro (não criar conceitos inexistentes).\n- Cada definição deve ter 2–3 linhas.\n- Idioma: {language}.\n- Não inclua títulos, cabeçalhos, comentários ou explicações.\n- Não utilize Markdown para estilização e formatação elegante.\n- Não iniciar com título. Deve começar diretamente com os termos e definições.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -4688,
+        640
+      ],
+      "id": "66e8395b-7976-4e59-a2d0-6abef9d33064",
+      "name": "Generate Glossary1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Objetivo:\nGerar os textos finais de um livro já completo, com base em todo o conteúdo anterior (capítulos e tópicos).\nEsses textos formam a conclusão editorial e os elementos finais do livro.\n\nlanguage = {{$('Set Final Configs1').item.json.language}}\n\n{{ JSON.stringify($('HTTP Request3').item.json) }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=Você é um editor e escritor profissional, especializado em redação editorial.\n\nSua tarefa é gerar o texto de encerramento editorial de um livro completo e coerente, com base em todo o conteúdo fornecido.\n\nO texto deve ser humano, autoral, elegante e conclusivo, em {language}, pronto para publicação.\n\nFunção desta seção:\n- Encerramento autoral, agradecimento ou convite ao leitor, mantendo tom humano e editorial.\n\nRegras obrigatórias:\n- O texto deve ser 100% original e baseado apenas no conteúdo recebido.\n- Idioma: {language}.\n- Não inclua títulos, cabeçalhos, comentários ou explicações.\n- Não utilize Markdown para estilização e formatação elegante.\n- Não iniciar com título. Deve começar diretamente com o conteúdo narrativo.\n- Tamanho sugerido: 150–250 palavras.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -4384,
+        640
+      ],
+      "id": "e5569068-8599-4987-b3fe-54e6b7f46b5d",
+      "name": "Generate Closure1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8b8e849e-a996-465b-914e-cfd4c38a0de0",
+              "name": "language",
+              "value": "espanhol latam neutro",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -5504,
+        320
+      ],
+      "id": "9ac3c39d-dfee-4e02-9eb2-1dad99cce275",
+      "name": "Set Final Configs1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Objetivo:\nGerar o texto introdutório de um livro já completo, com base em todo o conteúdo anterior (capítulos e tópicos).\nEsse texto forma a introdução editorial e os elementos iniciais do livro.\n\nlanguage = {{ $('Set Final Configs1').item.json.language  }}\n\n{{ JSON.stringify($('HTTP Request3').item.json) }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=Você é um editor e escritor profissional, especializado em redação editorial.\n\nSua tarefa é gerar a seção de início de um livro completo e coerente, com base no conteúdo fornecido.\n\nO texto deve ser factual, contínuo, elegante e introdutório, em {language}, pronto para publicação.\n\nFunção desta seção:\n- Síntese inicial do livro. Apresente as ideias centrais, elementos presentes ao longo do livro, oferecendo introdução conceitual.\n\nRegras obrigatórias:\n- O texto deve ser 100% original e baseado apenas no conteúdo recebido.\n- Idioma: {language}.\n- Não inclua títulos, cabeçalhos, comentários ou explicações.\n- Não utilize Markdown para estilização e formatação elegante.\n- Não iniciar com título. Deve começar diretamente com o conteúdo narrativo.\n- Tamanho sugerido: 300-500 palavras.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -5008,
+        320
+      ],
+      "id": "4b59af6a-6634-4629-95de-5ce20c414e7c",
+      "name": "Generate Introduction1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Objetivo:\nGerar os textos finais de um livro já completo, com base em todo o conteúdo anterior (capítulos e tópicos).\nEsses textos formam a conclusão editorial e os elementos finais do livro.\n\nlanguage = {{$('Set Final Configs1').item.json.language}}\n\n{{ JSON.stringify($('HTTP Request3').item.json) }}",
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=Você é um editor e escritor profissional, especializado em redação editorial.\n\nSua tarefa é gerar a seção de recursos e referências de um livro completo e coerente, com base em todo o conteúdo fornecido.\n\nO texto deve ser factual, reflexivo e prospectivo, em {language}, pronto para publicação.\n\nFunção desta seção:\n- Apresentar referências, fontes, materiais complementares, leituras recomendadas, ferramentas, estudos ou autores relevantes relacionados ao tema do livro. Organizar os recursos de forma fluida e editorial, evitando formato acadêmico rígido (como ABNT ou APA), privilegiando uma linguagem acessível, elegante e curatorial. Destacar a relevância de cada recurso ou autor, explicando brevemente o valor que oferecem ao leitor que deseja aprofundar-se no assunto.\n\nRegras obrigatórias:\n- O texto deve ser 100% original e baseado apenas no conteúdo recebido.\n- Idioma: {language}.\n- Não inclua títulos, cabeçalhos, comentários ou explicações.\n- Não utilize Markdown para estilização e formatação elegante.\n- Não iniciar com título. Deve começar diretamente com o conteúdo narrativo.\n- Tamanho sugerido: 400–500 palavras.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -4096,
+        320
+      ],
+      "id": "705d705f-770e-4c18-ab75-65a2e6299ab1",
+      "name": "Generate Resources_References1"
+    },
+    {
+      "parameters": {
+        "url": "=https://8bc4-2804-3408-303-4001-1097-7a1b-eed8-8d6d.ngrok-free.app/api/hooks/n8n/book-chapters/{{ $('When Executed by Another Workflow').item.json.bookId }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-secret",
+              "value": "dev-n8n-callback-secret-local"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -5312,
+        320
+      ],
+      "id": "b1825f80-8ddb-49c5-8500-ef092614a6ee",
+      "name": "HTTP Request3"
+    },
+    {
+      "parameters": {
+        "jsCode": "let payload = {\n  bookId: $('When Executed by Another Workflow').first().json.bookId,\n  wordCount: 0,\n  pageCount: 0,\n  pdfUrl: `https://bestsellers-ai.s3.us-east-1.amazonaws.com/${$('Sanitize Title Filename1').first().json.filename}.pdf`,\n  docxUrl: `https://bestsellers-ai.s3.us-east-1.amazonaws.com/${$('Sanitize Title Filename1').first().json.filename}.docx`,\n  introduction: $('Generate Introduction1').first().json.output,\n  conclusion: $('Generate Conclusion1').first().json.output,\n  finalConsiderations: $('Generate Final_Considerations1').first().json.output,\n  resourcesReferences: $('Generate Resources_References1').first().json.output,\n  appendix: $('Generate Appendix1').first().json.output,\n  glossary: $('Generate Glossary1').first().json.output,\n  closure: $('Generate Closure1').first().json.output\n};\n\nconst wordCount = (text) => text.trim().split(/\\s+/).filter(Boolean).length;\n\nfunction pageCount(texto, palavrasPorPagina = 247) {\n  const palavras = texto.trim().split(/\\s+/).length;\n  return Math.ceil(palavras / palavrasPorPagina);\n}\n\nlet book = { \n  chapters: $('HTTP Request3').first().json.chapters, \n  introduction: payload.introduction,\n  conclusion: payload.conclusion,\n  finalConsiderations: payload.finalConsiderations,\n  resourcesReferences: payload.resourcesReferences,\n  appendix: payload.appendix,\n  glossary: payload.glossary,\n  closure: payload.closure,\n  wordCount: 0,\n  pageCount: 0\n}\nconst totalWords = wordCount(JSON.stringify(book));\nconst totalPages = pageCount(JSON.stringify(book));\n\npayload.wordCount = totalWords;\npayload.pageCount = totalPages;\n\nreturn payload;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2624,
+        1024
+      ],
+      "id": "097a285c-0394-40a3-aa14-226f2b4ac0f3",
+      "name": "Code in JavaScript3"
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "bucketName": "bestsellers-ai",
+        "fileName": "={{ $('download pdf1').item.binary.data.fileName }}",
+        "binaryPropertyName": "={{ $('download pdf1').item.binary.data }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.awsS3",
+      "typeVersion": 2,
+      "position": [
+        -2864,
+        864
+      ],
+      "id": "3fc9544c-8912-40e0-a6d9-e74b949d327b",
+      "name": "Upload pdf1",
+      "credentials": {
+        "aws": {
+          "id": "b1ioyaFvZGOlRwaJ",
+          "name": "AWS account n8n-01-prod"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://docs.google.com/feeds/download/documents/export/Export?id={{ $json.documentId }}&exportFormat=pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3072,
+        864
+      ],
+      "id": "b1079bce-86a5-4a80-8374-46e3dc27bf10",
+      "name": "download pdf1"
+    },
+    {
+      "parameters": {
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "value": "1_jy5bSMV9zLKlge7avOOuw5QyUY1hcuP_QIUuaQpHxk",
+          "mode": "list",
+          "cachedResultName": "new 🇪🇸 (Produção) Template Execução Livros - Fábrica de Histórias ok",
+          "cachedResultUrl": "https://docs.google.com/document/d/1_jy5bSMV9zLKlge7avOOuw5QyUY1hcuP_QIUuaQpHxk/edit?usp=drivesdk"
+        },
+        "name": "={{ $('Sanitize Title Filename1').first().json.filename }}",
+        "sameFolder": false,
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1A2tq6ItWhFUur5mVDmJqqofFXn20oAHW",
+          "mode": "list",
+          "cachedResultName": "Books",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1A2tq6ItWhFUur5mVDmJqqofFXn20oAHW"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -6672,
+        928
+      ],
+      "id": "47077177-490d-450a-b71b-c2cfca4c3cc9",
+      "name": "Copy file1",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "Ld7mqhfLzuNYZSWy",
+          "name": "Google Drive - contato@bestsellers-ai.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $json.id }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "replaceAll",
+              "text": "{{Título}}",
+              "replaceText": "={{ $('When Executed by Another Workflow').item.json.title }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{Subtítulo}}",
+              "replaceText": "={{ $('When Executed by Another Workflow').item.json.subtitle }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{Autor}}",
+              "replaceText": "={{ $('When Executed by Another Workflow').item.json.author }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        -6496,
+        928
+      ],
+      "id": "e99541dd-4f2f-49e7-a390-46c734725358",
+      "name": "Update a document4",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "o2ltMzvSsXHNd4OR",
+          "name": "Google Docs - contato@bestsellers-ai.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $('Copy file1').all()[0].json.id }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "replaceAll",
+              "text": "{{Conclusão}}",
+              "replaceText": "={{ $('Generate Conclusion1').item.json.output }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{RecursosReferências}}",
+              "replaceText": "={{ $('Generate Resources_References1').item.json.output }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{Apêndice}}",
+              "replaceText": "={{ $('Generate Appendix1').item.json.output }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{GlossárioTermos}}",
+              "replaceText": "={{ $('Generate Glossary1').item.json.output }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{Encerramento}}",
+              "replaceText": "={{ $('Generate Closure1').item.json.output }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{BoasVindas}}",
+              "replaceText": "={{ $('Generate Introduction1').item.json.output }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        -3120,
+        640
+      ],
+      "id": "32506092-926e-449d-adfb-ccd24b45a147",
+      "name": "Update a document6",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "o2ltMzvSsXHNd4OR",
+          "name": "Google Docs - contato@bestsellers-ai.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://docs.google.com/feeds/download/documents/export/Export?id={{ $('Update a document6').item.json.documentId }}&exportFormat=docx",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3072,
+        1088
+      ],
+      "id": "6d149b2b-876a-447d-a61a-2cb0ab7651b8",
+      "name": "download docx1"
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "bucketName": "bestsellers-ai",
+        "fileName": "={{ $('download docx1').item.binary.data.fileName }}",
+        "binaryPropertyName": "={{ $('download docx1').item.binary.data }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.awsS3",
+      "typeVersion": 2,
+      "position": [
+        -2864,
+        1088
+      ],
+      "id": "5dcd1f2e-699b-479c-86e9-98777d1bce5e",
+      "name": "Upload docx1",
+      "credentials": {
+        "aws": {
+          "id": "b1ioyaFvZGOlRwaJ",
+          "name": "AWS account n8n-01-prod"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const sanitize = (str) => {\n  return str\n    .normalize(\"NFD\").replace(/[\\u0300-\\u036f]/g, \"\") // remove acentos\n    .replace(/[^a-zA-Z0-9._-]+/g, \"_\")               // troca QUALQUER coisa não segura por _\n    .replace(/_+/g, \"_\")                             // evita múltiplos __\n    .replace(/^_+|_+$/g, \"\")                         // remove _ do início e fim\n    .toLowerCase();\n};\n\nlet title = sanitize($input.first().json.title);\nlet filename = `Final_${title}_v1`;\nreturn {filename};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -6864,
+        928
+      ],
+      "id": "5bb40791-5bc6-4b8a-b333-c866961aebde",
+      "name": "Sanitize Title Filename1"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "OxPucV2tlZDAzJ7V",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/OxPucV2tlZDAzJ7V",
+          "cachedResultName": "CREATE BOOK LOOP"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {}
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -5488,
+        1072
+      ],
+      "id": "0533881f-7870-40ad-840c-b27b1b484bc8",
+      "name": "Call 'CREATE BOOK LOOP'"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://8bc4-2804-3408-303-4001-1097-7a1b-eed8-8d6d.ngrok-free.app/api/hooks/n8n/generation-complete",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-secret",
+              "value": "=dev-n8n-callback-secret-local"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -2368,
+        1152
+      ],
+      "id": "a7fc465c-684a-4b0e-abed-bcaf9e64d02b",
+      "name": "TUNNEL"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.bestsellers-ai.com/api/hooks/n8n/book-chapters/{{ $('When Executed by Another Workflow').item.json.bookId }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-secret",
+              "value": "dev-n8n-callback-secret-local"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -5440,
+        448
+      ],
+      "id": "783b658e-e745-424b-91e0-5a78a4b65c49",
+      "name": "API2"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        -5680,
+        624
+      ],
+      "id": "36041664-9efb-43a5-8ff6-ddfcb8288cd4",
+      "name": "Limit"
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Sanitize Title Filename1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate Introduction1",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Generate Introduction1",
+            "type": "ai_languageModel",
+            "index": 1
+          },
+          {
+            "node": "Generate Conclusion1",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Generate Conclusion1",
+            "type": "ai_languageModel",
+            "index": 1
+          },
+          {
+            "node": "Generate Final_Considerations1",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Generate Final_Considerations1",
+            "type": "ai_languageModel",
+            "index": 1
+          },
+          {
+            "node": "Generate Resources_References1",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Generate Resources_References1",
+            "type": "ai_languageModel",
+            "index": 1
+          },
+          {
+            "node": "Generate Appendix1",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Generate Appendix1",
+            "type": "ai_languageModel",
+            "index": 1
+          },
+          {
+            "node": "Generate Glossary1",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Generate Glossary1",
+            "type": "ai_languageModel",
+            "index": 1
+          },
+          {
+            "node": "Generate Closure1",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Generate Closure1",
+            "type": "ai_languageModel",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Call 'CREATE BOOK LOOP'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Conclusion1": {
+      "main": [
+        [
+          {
+            "node": "Generate Final_Considerations1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Final_Considerations1": {
+      "main": [
+        [
+          {
+            "node": "Generate Resources_References1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Appendix1": {
+      "main": [
+        [
+          {
+            "node": "Generate Glossary1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Glossary1": {
+      "main": [
+        [
+          {
+            "node": "Generate Closure1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Closure1": {
+      "main": [
+        [
+          {
+            "node": "Update a document6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Final Configs1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Introduction1": {
+      "main": [
+        [
+          {
+            "node": "Generate Conclusion1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Resources_References1": {
+      "main": [
+        [
+          {
+            "node": "Generate Appendix1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request3": {
+      "main": [
+        [
+          {
+            "node": "Generate Introduction1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript3": {
+      "main": [
+        [
+          {
+            "node": "TUNNEL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload pdf1": {
+      "main": [
+        [
+          {
+            "node": "download docx1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "download pdf1": {
+      "main": [
+        [
+          {
+            "node": "Upload pdf1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Copy file1": {
+      "main": [
+        [
+          {
+            "node": "Update a document4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a document4": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a document6": {
+      "main": [
+        [
+          {
+            "node": "download pdf1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "download docx1": {
+      "main": [
+        [
+          {
+            "node": "Upload docx1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload docx1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sanitize Title Filename1": {
+      "main": [
+        [
+          {
+            "node": "Copy file1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'CREATE BOOK LOOP'": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Set Final Configs1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "bookId": "cmml4jhdq002r269psesrhm99",
+        "briefing": "ahuahuahuahahuahuahuahahuahuahuahahuahuahuahahuahuahuahahuahuahuahahuahuahuahahuahuahuahahuahuahuahua",
+        "author": "teste",
+        "title": "¡ahuahuahua! La Guía de La Risa Contagiosa",
+        "subtitle": "Cómo Liberar Tu Risa Interior Y Transformar Tu Vida Con Humor Y Alegría, por El Autor Teste",
+        "creationMode": "GUIDED",
+        "settings": null,
+        "planning": {
+          "chapters": [
+            {
+              "title": "Capítulo 1 - Descubriendo el Poder de la Risa",
+              "topics": [
+                {
+                  "title": "¿Qué es la risa?",
+                  "content": "La risa es una respuesta fisiológica y emocional universal que libera endorfinas, reduce el cortisol y fortalece el sistema inmune. Existen diferentes tipos: la risa social, que ayuda a conectar con otros en situaciones grupales; la risa nerviosa, que surge en momentos de tensión para aliviar el estrés; y la risa genuina, esa explosión de alegría pura que nace del corazón. Imagina un grupo de amigos contando anécdotas absurdas y de repente todos estallan en carcajadas. Ese '¡ahuahuahua!' contagioso no es solo sonido, es una medicina natural. Estudios muestran que reír activa más de 300 músculos faciales y genera vibraciones que masajean órganos internos. En este capítulo, exploramos cómo esta simple acción puede cambiar tu día a día, convirtiendo momentos ordinarios en oportunidades de felicidad instantánea. Aprenderás a reconocer tus propias risas y a potenciar las que te hacen bien."
+                },
+                {
+                  "title": "Beneficios inmediatos de reír",
+                  "content": "Una carcajada instantánea eleva el ánimo en segundos, baja la presión arterial, mejora la oxigenación cerebral y crea conexiones emocionales profundas. Piensa en esa vez que viste un video viral de un gato torpe y no pudiste parar de reír; tu cuerpo se llenó de energía positiva. Exploramos anécdotas cotidianas, como el profesor que transforma una clase aburrida con un chiste, haciendo que todos aprendan mejor. La risa dilata los vasos sanguíneos, enviando más oxígeno al cerebro, lo que aumenta la creatividad y reduce la fatiga. En minutos, sientes menos estrés y más vitalidad. Imagina aplicarlo en tu rutina: un break de risa antes de una reunión importante. Este impacto transformador está al alcance de todos, sin costo ni esfuerzo. ¡Prueba hoy y siente la diferencia!"
+                }
+              ]
+            },
+            {
+              "title": "Capítulo 2 - La Ciencia Detrás de la Risa",
+              "topics": [
+                {
+                  "title": "Estudios científicos clave",
+                  "content": "Investigaciones de la Universidad de Maryland y otros centros renombrados demuestran que 15 minutos de risa diaria equivalen a 30 minutos de ejercicio aeróbico en beneficios cardiovasculares y hormonales. El Dr. William Fry, pionero en risoterapia, comparó la risa con jogging interno. Estudios con grupos de risoterapia muestran reducciones significativas en marcadores de inflamación y mejoras en el colesterol. En Latinoamérica, iniciativas en Brasil y México han integrado la risa en programas de salud pública. Estos datos no son teoría: participantes reportan menos visitas al médico y mayor bienestar. La ciencia respalda lo que sentimos intuitivamente: reír es esencial para la longevidad. Conoce estos hallazgos y motívate a incorporarlos."
+                },
+                {
+                  "title": "Neurociencia de la risa",
+                  "content": "La risa activa áreas cerebrales como la corteza prefrontal, responsable de la toma de decisiones, y el hipotálamo, que regula emociones. Modula neurotransmisores como la dopamina, generando placer, y la serotonina, combatiendo la depresión. Imágenes de resonancia magnética muestran 'lluvia de fuego' neuronal durante carcajadas. Esto crea resiliencia emocional, ayudando a superar adversidades. En contextos latinos, donde el humor es cultural, esto explica nuestra capacidad para reír ante desafíos. Entender esto te empodera para usar la risa como herramienta diaria contra el estrés moderno."
+                }
+              ]
+            },
+            {
+              "title": "Capítulo 3 - La Risa en Diferentes Culturas",
+              "topics": [
+                {
+                  "title": "Expresiones culturales",
+                  "content": "Desde el 'jajaja' latinoamericano hasta el 'kiki' japonés, las variaciones lingüísticas de la risa reflejan diversidad. En México, el 'jejeje' pícaro; en Argentina, el 'jajaja' explosivo. En África, risas guturales unen tribus. Gestos como taparse la boca en Asia o carcajadas abiertas en Brasil destacan su rol social universal. Estas diferencias enriquecen nuestra comprensión global del humor, fomentando empatía intercultural."
+                },
+                {
+                  "title": "Tradiciones ancestrales",
+                  "content": "En rituales chamánicos indígenas de la Amazonia, la risa purifica el espíritu, expulsando energías negativas. Fiestas mayas en Guatemala incorporan danzas cómicas para honrar dioses. Culturas andinas usan cuentos humorísticos para enseñar moralejas. Estas prácticas ancestrales muestran cómo el humor sana y une comunidades desde tiempos inmemoriales, inspirándonos a revivirlas hoy."
+                }
+              ]
+            },
+            {
+              "title": "Capítulo 4 - Barreras para Reír y Cómo Superarlas",
+              "topics": [
+                {
+                  "title": "Bloqueos emocionales",
+                  "content": "Estrés crónico, traumas pasados y perfeccionismo inhiben la risa. El estrés eleva cortisol, bloqueando alegría. Reflexiona: ¿cuándo reíste por última vez sin reservas? Autoaceptación es clave: perdónate errores con humor. Ejercicios como escribir 'chistes sobre mí' liberan bloqueos, transformando dolor en ligereza."
+                },
+                {
+                  "title": "Influencias sociales",
+                  "content": "Presiones adultas como 'ser serio' en trabajos desalientan espontaneidad. Estrategias: comparte memes en chats laborales, desafía normas con sonrisas. Reclama tu niño interior; en culturas latinas, el humor es rebeldía alegre contra rigidez."
+                }
+              ]
+            },
+            {
+              "title": "Capítulo 5 - Técnicas Básicas para Desatar la Risa",
+              "topics": [
+                {
+                  "title": "Ejercicios de respiración risueña",
+                  "content": "Inhala profundo, exhala con 'ha ha ha' exagerado por 5 minutos. Activa diafragma, generando risas reales. Paso 1: siéntate cómodo. Paso 2: imagina situaciones absurdas. Paso 3: repite hasta contagiarte. Ideal para mañanas, libera tensiones acumuladas."
+                },
+                {
+                  "title": "Juegos de payaso interior",
+                  "content": "Imita animales torpes o chistes absurdos. Solo: frente al espejo, haz muecas. En grupo: cadena de imitaciones. Libera inhibiciones, fomenta creatividad lúdica diaria."
+                }
+              ]
+            },
+            {
+              "title": "Capítulo 6 - Riendo en el Trabajo",
+              "topics": [
+                {
+                  "title": "Humor en el ambiente laboral",
+                  "content": "Breaks de 2 minutos con memes reducen burnout. Google fomenta salas de juegos. Comparte chistes en reuniones para elevar moral y productividad."
+                },
+                {
+                  "title": "Liderazgo con risas",
+                  "content": "Líderes risueños inspiran confianza. CEOs como Richard Branson usan humor para motivar, resolviendo conflictos con ligereza."
+                }
+              ]
+            },
+            {
+              "title": "Capítulo 7 - La Risa en las Relaciones",
+              "topics": [
+                {
+                  "title": "Parejas risueñas",
+                  "content": "Chistes internos fortalecen intimidad. Desafío: imitaciones graciosas semanales. Risa une más que palabras serias."
+                },
+                {
+                  "title": "Risa familiar y amistades",
+                  "content": "Noches de comedia familiar crean recuerdos. 'Ahuahuahua' compartido fortalece lazos eternos."
+                }
+              ]
+            },
+            {
+              "title": "Capítulo 8 - Risa y Salud Física",
+              "topics": [
+                {
+                  "title": "Beneficios cardiovasculares",
+                  "content": "Risa dilata vasos, previniendo infartos. Estudios: risoterapeutas tienen menor riesgo cardíaco."
+                },
+                {
+                  "title": "Impulso inmunológico",
+                  "content": "Aumenta IgA y células NK. Rutinas diarias potencian defensas con diversión."
+                }
+              ]
+            },
+            {
+              "title": "Capítulo 9 - Risa y Salud Mental",
+              "topics": [
+                {
+                  "title": "Contra ansiedad y depresión",
+                  "content": "Libera serotonina, alivia síntomas. Testimonios: risa combate pensamientos negativos."
+                },
+                {
+                  "title": "Mindfulness risueño",
+                  "content": "Integra risa en meditaciones para presencia plena y liberación emocional."
+                }
+              ]
+            },
+            {
+              "title": "Capítulo 10 - Construyendo un Hábito Risueño",
+              "topics": [
+                {
+                  "title": "Rutinas diarias de risa",
+                  "content": "10 minutos yoga risa matutino, gratitud humorística nocturna. Planes semanales personalizados."
+                },
+                {
+                  "title": "Comunidades y clubes",
+                  "content": "Únete clubes risa, crea el tuyo. Efecto contagioso multiplica beneficios."
+                }
+              ]
+            }
+          ]
+        },
+        "chapters": [
+          {
+            "id": "cmml4n5zi0036269p88nwxfpq",
+            "sequence": 1,
+            "title": "Capítulo 1 - Descubriendo el Poder de la Risa",
+            "topics": [
+              {
+                "title": "¿Qué es la risa?",
+                "content": "La risa es una respuesta fisiológica y emocional universal que libera endorfinas, reduce el cortisol y fortalece el sistema inmune. Existen diferentes tipos: la risa social, que ayuda a conectar con otros en situaciones grupales; la risa nerviosa, que surge en momentos de tensión para aliviar el estrés; y la risa genuina, esa explosión de alegría pura que nace del corazón. Imagina un grupo de amigos contando anécdotas absurdas y de repente todos estallan en carcajadas. Ese '¡ahuahuahua!' contagioso no es solo sonido, es una medicina natural. Estudios muestran que reír activa más de 300 músculos faciales y genera vibraciones que masajean órganos internos. En este capítulo, exploramos cómo esta simple acción puede cambiar tu día a día, convirtiendo momentos ordinarios en oportunidades de felicidad instantánea. Aprenderás a reconocer tus propias risas y a potenciar las que te hacen bien."
+              },
+              {
+                "title": "Beneficios inmediatos de reír",
+                "content": "Una carcajada instantánea eleva el ánimo en segundos, baja la presión arterial, mejora la oxigenación cerebral y crea conexiones emocionales profundas. Piensa en esa vez que viste un video viral de un gato torpe y no pudiste parar de reír; tu cuerpo se llenó de energía positiva. Exploramos anécdotas cotidianas, como el profesor que transforma una clase aburrida con un chiste, haciendo que todos aprendan mejor. La risa dilata los vasos sanguíneos, enviando más oxígeno al cerebro, lo que aumenta la creatividad y reduce la fatiga. En minutos, sientes menos estrés y más vitalidad. Imagina aplicarlo en tu rutina: un break de risa antes de una reunión importante. Este impacto transformador está al alcance de todos, sin costo ni esfuerzo. ¡Prueba hoy y siente la diferencia!"
+              }
+            ]
+          },
+          {
+            "id": "cmml4n5zm0037269plhwt80sd",
+            "sequence": 2,
+            "title": "Capítulo 2 - La Ciencia Detrás de la Risa",
+            "topics": [
+              {
+                "title": "Estudios científicos clave",
+                "content": "Investigaciones de la Universidad de Maryland y otros centros renombrados demuestran que 15 minutos de risa diaria equivalen a 30 minutos de ejercicio aeróbico en beneficios cardiovasculares y hormonales. El Dr. William Fry, pionero en risoterapia, comparó la risa con jogging interno. Estudios con grupos de risoterapia muestran reducciones significativas en marcadores de inflamación y mejoras en el colesterol. En Latinoamérica, iniciativas en Brasil y México han integrado la risa en programas de salud pública. Estos datos no son teoría: participantes reportan menos visitas al médico y mayor bienestar. La ciencia respalda lo que sentimos intuitivamente: reír es esencial para la longevidad. Conoce estos hallazgos y motívate a incorporarlos."
+              },
+              {
+                "title": "Neurociencia de la risa",
+                "content": "La risa activa áreas cerebrales como la corteza prefrontal, responsable de la toma de decisiones, y el hipotálamo, que regula emociones. Modula neurotransmisores como la dopamina, generando placer, y la serotonina, combatiendo la depresión. Imágenes de resonancia magnética muestran 'lluvia de fuego' neuronal durante carcajadas. Esto crea resiliencia emocional, ayudando a superar adversidades. En contextos latinos, donde el humor es cultural, esto explica nuestra capacidad para reír ante desafíos. Entender esto te empodera para usar la risa como herramienta diaria contra el estrés moderno."
+              }
+            ]
+          },
+          {
+            "id": "cmml4n5zm0038269pcxirwk7u",
+            "sequence": 3,
+            "title": "Capítulo 3 - La Risa en Diferentes Culturas",
+            "topics": [
+              {
+                "title": "Expresiones culturales",
+                "content": "Desde el 'jajaja' latinoamericano hasta el 'kiki' japonés, las variaciones lingüísticas de la risa reflejan diversidad. En México, el 'jejeje' pícaro; en Argentina, el 'jajaja' explosivo. En África, risas guturales unen tribus. Gestos como taparse la boca en Asia o carcajadas abiertas en Brasil destacan su rol social universal. Estas diferencias enriquecen nuestra comprensión global del humor, fomentando empatía intercultural."
+              },
+              {
+                "title": "Tradiciones ancestrales",
+                "content": "En rituales chamánicos indígenas de la Amazonia, la risa purifica el espíritu, expulsando energías negativas. Fiestas mayas en Guatemala incorporan danzas cómicas para honrar dioses. Culturas andinas usan cuentos humorísticos para enseñar moralejas. Estas prácticas ancestrales muestran cómo el humor sana y une comunidades desde tiempos inmemoriales, inspirándonos a revivirlas hoy."
+              }
+            ]
+          },
+          {
+            "id": "cmml4n5zm0039269pn66miw71",
+            "sequence": 4,
+            "title": "Capítulo 4 - Barreras para Reír y Cómo Superarlas",
+            "topics": [
+              {
+                "title": "Bloqueos emocionales",
+                "content": "Estrés crónico, traumas pasados y perfeccionismo inhiben la risa. El estrés eleva cortisol, bloqueando alegría. Reflexiona: ¿cuándo reíste por última vez sin reservas? Autoaceptación es clave: perdónate errores con humor. Ejercicios como escribir 'chistes sobre mí' liberan bloqueos, transformando dolor en ligereza."
+              },
+              {
+                "title": "Influencias sociales",
+                "content": "Presiones adultas como 'ser serio' en trabajos desalientan espontaneidad. Estrategias: comparte memes en chats laborales, desafía normas con sonrisas. Reclama tu niño interior; en culturas latinas, el humor es rebeldía alegre contra rigidez."
+              }
+            ]
+          },
+          {
+            "id": "cmml4n5zn003a269pazwyw96a",
+            "sequence": 5,
+            "title": "Capítulo 5 - Técnicas Básicas para Desatar la Risa",
+            "topics": [
+              {
+                "title": "Ejercicios de respiración risueña",
+                "content": "Inhala profundo, exhala con 'ha ha ha' exagerado por 5 minutos. Activa diafragma, generando risas reales. Paso 1: siéntate cómodo. Paso 2: imagina situaciones absurdas. Paso 3: repite hasta contagiarte. Ideal para mañanas, libera tensiones acumuladas."
+              },
+              {
+                "title": "Juegos de payaso interior",
+                "content": "Imita animales torpes o chistes absurdos. Solo: frente al espejo, haz muecas. En grupo: cadena de imitaciones. Libera inhibiciones, fomenta creatividad lúdica diaria."
+              }
+            ]
+          },
+          {
+            "id": "cmml4n5zn003b269pfs8hvb1y",
+            "sequence": 6,
+            "title": "Capítulo 6 - Riendo en el Trabajo",
+            "topics": [
+              {
+                "title": "Humor en el ambiente laboral",
+                "content": "Breaks de 2 minutos con memes reducen burnout. Google fomenta salas de juegos. Comparte chistes en reuniones para elevar moral y productividad."
+              },
+              {
+                "title": "Liderazgo con risas",
+                "content": "Líderes risueños inspiran confianza. CEOs como Richard Branson usan humor para motivar, resolviendo conflictos con ligereza."
+              }
+            ]
+          },
+          {
+            "id": "cmml4n5zn003c269pjeuwofs3",
+            "sequence": 7,
+            "title": "Capítulo 7 - La Risa en las Relaciones",
+            "topics": [
+              {
+                "title": "Parejas risueñas",
+                "content": "Chistes internos fortalecen intimidad. Desafío: imitaciones graciosas semanales. Risa une más que palabras serias."
+              },
+              {
+                "title": "Risa familiar y amistades",
+                "content": "Noches de comedia familiar crean recuerdos. 'Ahuahuahua' compartido fortalece lazos eternos."
+              }
+            ]
+          },
+          {
+            "id": "cmml4n5zn003d269po28i4wpd",
+            "sequence": 8,
+            "title": "Capítulo 8 - Risa y Salud Física",
+            "topics": [
+              {
+                "title": "Beneficios cardiovasculares",
+                "content": "Risa dilata vasos, previniendo infartos. Estudios: risoterapeutas tienen menor riesgo cardíaco."
+              },
+              {
+                "title": "Impulso inmunológico",
+                "content": "Aumenta IgA y células NK. Rutinas diarias potencian defensas con diversión."
+              }
+            ]
+          },
+          {
+            "id": "cmml4n5zn003e269ppq7wraz6",
+            "sequence": 9,
+            "title": "Capítulo 9 - Risa y Salud Mental",
+            "topics": [
+              {
+                "title": "Contra ansiedad y depresión",
+                "content": "Libera serotonina, alivia síntomas. Testimonios: risa combate pensamientos negativos."
+              },
+              {
+                "title": "Mindfulness risueño",
+                "content": "Integra risa en meditaciones para presencia plena y liberación emocional."
+              }
+            ]
+          },
+          {
+            "id": "cmml4n5zn003f269p5dszyfhi",
+            "sequence": 10,
+            "title": "Capítulo 10 - Construyendo un Hábito Risueño",
+            "topics": [
+              {
+                "title": "Rutinas diarias de risa",
+                "content": "10 minutos yoga risa matutino, gratitud humorística nocturna. Planes semanales personalizados."
+              },
+              {
+                "title": "Comunidades y clubes",
+                "content": "Únete clubes risa, crea el tuyo. Efecto contagioso multiplica beneficios."
+              }
+            ]
+          }
+        ],
+        "queuePriority": 10,
+        "callbackBaseUrl": "http://localhost:3001"
+      }
+    ]
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1a48d1229f0288ea9225e8edc3e36e5dcfde4181dcbee5a0b0df1d15d2594a88"
+  }
+}

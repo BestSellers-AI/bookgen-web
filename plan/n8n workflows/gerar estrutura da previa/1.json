@@ -1,0 +1,173 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "preview",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -640,
+        -672
+      ],
+      "id": "86f99e89-bf6a-4ca2-b020-825cfd7b0d5c",
+      "name": "Webhook",
+      "webhookId": "52a0057a-5945-4f9a-a087-50419a6315b2"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -48,
+        -672
+      ],
+      "id": "9fe86807-663d-4c52-a22c-5ee863e29c82",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "mGiZa8NWuDCyR1NR",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/mGiZa8NWuDCyR1NR",
+          "cachedResultName": "CALLBACK: POST /hooks/n8n/preview-result"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {}
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        432,
+        -672
+      ],
+      "id": "a847fddc-1403-4b77-9639-5d89b3457f7a",
+      "name": "Call 'CALLBACK: POST /hooks/n8n/preview-result'"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Recebe: payload de preview (bookId, briefing, settings, callbackBaseUrl, etc.)\n// Faz: gera planning/TOC (capítulos + tópicos), opcionalmente refina title/subtitle\n\nconst bookId = $input.first().json.body.bookId;\n\nreturn {\n  bookId,\n  \"ok\": true, \n  \"received\": true, \n  \"accepted\": true,\n  \"jobId\": `n8n-preview-001-${bookId}`,\n  \"type\": \"preview\",\n  \"receivedAt\": $now,\n  // \"callbackBaseUrl\": \"http://localhost:3001/api\"\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -304,
+        -672
+      ],
+      "id": "c498c9fe-feeb-40e9-a648-52dc4a30379f",
+      "name": "Webhook response payload"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $('Webhook').first().json.body;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        160,
+        -672
+      ],
+      "id": "f54ef536-0361-4cb4-b04f-bf8837962af3",
+      "name": "Subworkflow payload"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Webhook response payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook2": {
+      "main": [
+        [
+          {
+            "node": "Subworkflow payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook response payload": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Subworkflow payload": {
+      "main": [
+        [
+          {
+            "node": "Call 'CALLBACK: POST /hooks/n8n/preview-result'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {
+    "Webhook": [
+      {
+        "headers": {
+          "host": "n8n-api.01.prod.bestsellers.digital",
+          "user-agent": "node",
+          "content-length": "466",
+          "accept": "*/*",
+          "accept-encoding": "br, gzip, deflate",
+          "accept-language": "*",
+          "content-type": "application/json",
+          "sec-fetch-mode": "cors",
+          "x-forwarded-for": "168.195.209.8",
+          "x-forwarded-host": "n8n-api.01.prod.bestsellers.digital",
+          "x-forwarded-port": "443",
+          "x-forwarded-proto": "https",
+          "x-forwarded-server": "b68b110528ee",
+          "x-n8n-secret": "dev-n8n-callback-secret-local",
+          "x-real-ip": "168.195.209.8"
+        },
+        "params": {},
+        "query": {},
+        "body": {
+          "bookId": "cmmcw0k23000x265fnuq4d3rj",
+          "briefing": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "author": "aaaaa",
+          "title": "Untitled",
+          "subtitle": null,
+          "creationMode": "GUIDED",
+          "settings": null,
+          "callbackBaseUrl": "http://localhost:3001"
+        },
+        "webhookUrl": "https://n8n-api.01.prod.bestsellers.digital/webhook/preview",
+        "executionMode": "production"
+      }
+    ]
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1a48d1229f0288ea9225e8edc3e36e5dcfde4181dcbee5a0b0df1d15d2594a88"
+  }
+}

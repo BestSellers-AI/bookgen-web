@@ -1,0 +1,935 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        48,
+        -672
+      ],
+      "id": "bae974e1-2244-4bba-8dec-5a37757fa281",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "value": "1fRiqEzVq8qHBx8tA1W-xNHnLdr8tDyiaLuSAJvxKA_c",
+          "mode": "list",
+          "cachedResultName": "Template_Book_Preview_01",
+          "cachedResultUrl": "https://docs.google.com/document/d/1fRiqEzVq8qHBx8tA1W-xNHnLdr8tDyiaLuSAJvxKA_c/edit?usp=drivesdk"
+        },
+        "name": "={{ $('Sanitize Title Filename').first().json.filename }}",
+        "sameFolder": false,
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1p9eiqoBiXwNw23tQ-49MRw_6UMAU1kCy",
+          "mode": "list",
+          "cachedResultName": "Previews",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1p9eiqoBiXwNw23tQ-49MRw_6UMAU1kCy"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        368,
+        976
+      ],
+      "id": "a2c8907d-67c0-40f4-a1c3-9abe78020902",
+      "name": "Copy book_preview",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "Ld7mqhfLzuNYZSWy",
+          "name": "Google Drive - contato@bestsellers-ai.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $('Copy book_preview').item.json.id }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "replaceAll",
+              "text": "={page_{{ $json.page }}_chapter}",
+              "replaceText": "={{ $json.title.replace(`Capítulo ${$json.page} — Capítulo`,\"Capítulo\") }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "={page_{{ $json.page }}_topic_1}",
+              "replaceText": "={{ $json.topics[0].title }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "={page_{{ $json.page }}_topic_1_body}",
+              "replaceText": "={{ $json.topics[0].content }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "={page_{{ $json.page }}_topic_2}",
+              "replaceText": "={{ $json.topics[1].title }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "={page_{{ $json.page }}_topic_2_body}",
+              "replaceText": "={{ $json.topics[1].content }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        1728,
+        1056
+      ],
+      "id": "c3e1e9b1-92c3-438e-adc0-c8010d08e0a1",
+      "name": "Insert chapter into template",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "o2ltMzvSsXHNd4OR",
+          "name": "Google Docs - contato@bestsellers-ai.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $('Copy book_preview').item.json.id }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "replaceAll",
+              "text": "{conclusion}",
+              "replaceText": "={{ $('Edit Fields1').item.json.output.conclusion }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{final_considerations}",
+              "replaceText": "={{ $('Edit Fields1').item.json.output.finalConsiderations }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{appendix}",
+              "replaceText": "={{ $('Edit Fields1').item.json.output.appendix }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{glossary}",
+              "replaceText": "={{ $('Edit Fields1').item.json.output.glossary }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{closure}",
+              "replaceText": "={{ $('Edit Fields1').item.json.output.closure }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        880,
+        960
+      ],
+      "id": "0f556412-5db6-4d70-bbc6-666350fb3593",
+      "name": "Insert conclusions into book_preview document",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "o2ltMzvSsXHNd4OR",
+          "name": "Google Docs - contato@bestsellers-ai.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $('Copy book_preview').item.json.id }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "replaceAll",
+              "text": "{book_title}",
+              "replaceText": "={{ $('Capitalized auhtor, book title and subtitle').item.json.bookTitle }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{book_subtitle}",
+              "replaceText": "={{ $('Capitalized auhtor, book title and subtitle').item.json.bookSubtitle }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{book_author}",
+              "replaceText": "={{ $('Capitalized auhtor, book title and subtitle').item.json.authorName }}"
+            },
+            {
+              "action": "replaceAll",
+              "text": "{lead_name}",
+              "replaceText": "={{ $('Capitalized auhtor, book title and subtitle').item.json.authorName }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        592,
+        960
+      ],
+      "id": "79a4720a-ebfa-4022-8406-2314d7bcfebb",
+      "name": "Insert book_preview basic info into document",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "o2ltMzvSsXHNd4OR",
+          "name": "Google Docs - contato@bestsellers-ai.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "bucketName": "bestsellers-ai",
+        "fileName": "={{ $binary.data.fileName }}.{{ $binary.data.fileExtension }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.awsS3",
+      "typeVersion": 2,
+      "position": [
+        2176,
+        928
+      ],
+      "id": "ad204048-ddcb-4016-b063-cbab8900ea7a",
+      "name": "Upload file to s3",
+      "credentials": {
+        "aws": {
+          "id": "I04X3REJ2HCbiyik",
+          "name": "[Tuco] SES AWS account MAUTIC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.documentId }}",
+          "mode": "id"
+        },
+        "options": {
+          "googleFileConversion": {
+            "conversion": {
+              "docsToFormat": "application/pdf"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1920,
+        928
+      ],
+      "id": "3fda1e63-88b6-487c-8814-a21000ce0368",
+      "name": "Download book_preview document",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "Ld7mqhfLzuNYZSWy",
+          "name": "Google Drive - contato@bestsellers-ai.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const sanitize = (str) => {\n  return str\n    .normalize(\"NFD\").replace(/[\\u0300-\\u036f]/g, \"\") // remove acentos\n    .replace(/[^a-zA-Z0-9._-]+/g, \"_\")               // troca QUALQUER coisa não segura por _\n    .replace(/_+/g, \"_\")                             // evita múltiplos __\n    .replace(/^_+|_+$/g, \"\")                         // remove _ do início e fim\n    .toLowerCase();\n};\n\n// let title = sanitize($('Payload').first().json.payload.book_preview.title.replace('Título: ',''));\nlet title = sanitize($('Capitalized auhtor, book title and subtitle').first().json.bookTitle.replace('Título: ',''));\nlet filename = `Plan_${title}`\nreturn {filename};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        976
+      ],
+      "id": "7ae29c0d-8836-4147-bbe8-920a3712c800",
+      "name": "Sanitize Title Filename"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $('Edit Fields1').first().json.output.planning.chapters.map((item, i) => {\n  let newItem = {...item, page: i+1};\n  return newItem;\n})"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1088,
+        960
+      ],
+      "id": "3b53d991-2d54-4607-8464-3929901c1867",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1296,
+        960
+      ],
+      "id": "a4cafd84-5bad-4f5b-a038-072de7ac5145",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $('Edit Fields1').first().json.output;\n\nconst status = \"success\";\n\nconst bookId = $('When Executed by Another Workflow').first().json.bookId;\n\nconst pdfUrl = `https://bestsellers-ai.s3.us-east-1.amazonaws.com/${$('Download book_preview document').first().binary.data.fileName}.${$('Download book_preview document').first().binary.data.fileExtension}`;\n\nconst newBody = {...body, bookId, status, pdfUrl};\n\nreturn newBody;\n\n// {\n//   // \"book_id\": $input.first().json.id,\n//   \"title\": $('Edit Fields').first().json.output.title,\n//   \"subtitle\": $('Edit Fields').first().json.output.subtitle,\n//   \"author\": $('Edit Fields').first().json.output.author,\n//   \"planning\": {\n//     \"chapters\": $('Edit Fields').first().json.output.planning.chapters,\n//     \"conclusion\": $('Edit Fields').first().json.output.planning.conclusion,\n//     \"glossary\": $('Edit Fields').first().json.output.planning.glossary\n//   }\n// }"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2048,
+        336
+      ],
+      "id": "54ae172f-31f7-4bd1-9848-04b27c826ecf",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        1504,
+        864
+      ],
+      "id": "28ebff08-9e63-470d-b3fd-79526273eaec",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "model": "x-ai/grok-4.1-fast",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        368,
+        -432
+      ],
+      "id": "c82e0590-d655-4ffa-8a27-b47a5776cde5",
+      "name": "OpenRouter Chat Model2",
+      "credentials": {
+        "openRouterApi": {
+          "id": "17DLNoosuHjQWFC6",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"planning\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"chapters\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"title\": {\n                \"type\": \"string\"\n              },\n              \"topics\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"title\": {\n                      \"type\": \"string\"\n                    },\n                    \"content\": {\n                      \"type\": \"string\"\n                    }\n                  },\n                  \"required\": [\"title\", \"content\"]\n                }\n              }\n            },\n            \"required\": [\"title\", \"topics\"]\n          }\n        }\n      },\n      \"required\": [\"chapters\"]\n    },\n    \"introduction\": {\n      \"type\": \"string\"\n    },\n    \"conclusion\": {\n      \"type\": \"string\"\n    },\n    \"finalConsiderations\": {\n      \"type\": \"string\"\n    },\n    \"glossary\": {\n      \"type\": \"string\"\n    },\n    \"appendix\": {\n      \"type\": \"string\"\n    },\n    \"closure\": {\n      \"type\": \"string\"\n    }\n  },\n  \"required\": [\n    \"planning\",\n    \"introduction\",\n    \"conclusion\",\n    \"finalConsiderations\",\n    \"glossary\",\n    \"appendix\",\n    \"closure\"\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        800,
+        -384
+      ],
+      "id": "be5cad9f-2f7f-44fb-be1f-b4adf97b0fc4",
+      "name": "Structured Output Parser3"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=briefing = {{ $('When Executed by Another Workflow').item.json.briefing }}\n\nauthor_name = {{ $('When Executed by Another Workflow').item.json.author }}\n\nbook_title = {{ $('When Executed by Another Workflow').item.json.title }}\n\nbook_subtitle = {{ $('When Executed by Another Workflow').item.json.subtitle }}\n\nbook_content = {{ JSON.stringify($('When Executed by Another Workflow').item.json.planning) }}\n\nlanguage = espanhol latam",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=Você é um ghostwriter e editor profissional especializado em criar livros demonstrativos para autopublicação.\n\nGere SOMENTE um JSON CORRETO E VÁLIDO com o conteúdo do livro.\nNada de comentários, explicações, Markdown ou texto fora do JSON.\n\nResponda SOMENTE com um JSON CORRETO E VÁLIDO. Não use markdown, NÃO USE ```json, nem nenhum texto explicativo. A resposta deve começar diretamente com `{` e terminar com `}`. Retorne JSON estrito, sem vírgulas finais (dangling commas), sem comentários, sem campos indefinidos.\n\nUse as variáveis:\n\n* book_title = {book_title}\n* book_subtitle = {book_subtitle}\n* book_content = {book_content}\n* author_name = {author_name}\n* language = {language}\n\nSe o subtítulo, título ou algum dos 10 capítulos ou partes do livro vier faltando, pode criar para preencher a resposta, desde que esteja dentro do contexto e conteúdo do livro.\n\nRequisitos gerais:\n\n* A resposta deve estar 100% no idioma definido em `language`, inclusive os textos internos do JSON.\n* Capitalize o nome do autor se necessário.\n* O texto deve ser narrativo, sem listas, salvo se fizer muito sentido no `appendix` ou na explicação do `glossary`.\n* Distribua o conteúdo de modo que a leitura pareça um e-book de 13 páginas (aprox. 1500–2000 palavras no total).\n* Use quebras de linha `\\n` nos campos de texto quando necessário; não use HTML.\n* Não inclua campos além dos especificados.\n* Não deixe nenhum campo com texto genérico como “[Texto narrativo…]”; preencha tudo com conteúdo real e coerente com {book_content}.\n\nSobre o CTA:\n\n* A última página deve conter uma mensagem final personalizada + um CTA de pagamento.\n* O CTA de pagamento deve aparecer NO FINAL do campo `\"final_considerations\"`, como último parágrafo.\n* No campo `\"closure\"`, NÃO fale de vendas, dinheiro, pagamento, apoio ou CTA. É apenas uma mensagem de encerramento humanizada.\n\nEstrutura obrigatória de saída (siga exatamente esta estrutura e ORDEM DE CHAVES, mas preencha todos os textos):\n\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"planning\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"chapters\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"title\": {\n                \"type\": \"string\"\n              },\n              \"topics\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"object\",\n                  \"properties\": {\n                    \"title\": {\n                      \"type\": \"string\"\n                    },\n                    \"content\": {\n                      \"type\": \"string\"\n                    }\n                  },\n                  \"required\": [\"title\", \"content\"]\n                }\n              }\n            },\n            \"required\": [\"title\", \"topics\"]\n          }\n        }\n      },\n      \"required\": [\"chapters\"]\n    },\n    \"introduction\": {\n      \"type\": \"string\"\n    },\n    \"conclusion\": {\n      \"type\": \"string\"\n    },\n    \"finalConsiderations\": {\n      \"type\": \"string\"\n    },\n    \"glossary\": {\n      \"type\": \"string\"\n    },\n    \"appendix\": {\n      \"type\": \"string\"\n    },\n    \"closure\": {\n      \"type\": \"string\"\n    }\n  },\n  \"required\": [\n    \"planning\",\n    \"introduction\",\n    \"conclusion\",\n    \"finalConsiderations\",\n    \"glossary\",\n    \"appendix\",\n    \"closure\"\n  ]\n}\n\nRegras específicas para preenchimento:\n\n### Em `\"planning.chapters\"`\n\n* Gere **entre 10 capítulos**.\n* Cada item de `\"chapters\"` deve conter:\n\n  * `\"title\"`: título claro e coerente com o tema global do livro e com `{book_content}`.\n  * `\"topics\"`: array contendo **2 tópicos principais**.\n\n---\n\n### Em cada `\"topics\"` dentro de `\"chapters\"`\n\nCada tópico deve conter:\n\n* `\"title\"`: subtítulo claro e específico relacionado ao capítulo.\n* `\"content\"`: texto narrativo fluido com aproximadamente **150–200 palavras**, explicando o tópico de forma clara, progressiva e coerente com `{book_content}`.\n\nRegras adicionais:\n\n* O conteúdo deve **evoluir progressivamente ao longo do livro**, como uma jornada de aprendizado.\n* Use um tom **informativo, claro e inspirador**, apropriado para `{language}`.\n* Evite repetições entre capítulos.\n\n---\n\n### Em `\"introduction\"`\n\n* Escreva uma introdução envolvente explicando:\n\n  * o contexto do tema do livro\n  * por que o assunto é relevante\n  * o que o leitor irá aprender ao longo da obra\n\n* O texto deve ter aproximadamente **180–250 palavras**.\n\n* Deve ser baseado em `{book_content}`.\n\n* O tom deve convidar o leitor a continuar a leitura.\n\n---\n\n### Em `\"conclusion\"`\n\n* Escreva uma conclusão concisa conectando:\n\n  * os principais aprendizados do livro\n  * a importância do tema no mundo real\n  * o impacto potencial para o leitor\n\n* Aproximadamente **150–200 palavras**.\n\n---\n\n### Em `\"finalConsiderations\"`\n\n* Produza um resumo inspirador sobre o impacto do tema do livro.\n\n* O texto deve:\n\n  * reforçar o propósito do conteúdo\n  * incentivar reflexão\n  * encerrar a narrativa de forma forte\n\n* Aproximadamente **150–200 palavras**.\n\n---\n\n### Em `\"appendix\"`\n\n* Descreva **recursos e materiais adicionais** que poderiam complementar o aprendizado do leitor.\n\n* Pode incluir:\n\n  * tipos de livros\n  * estudos\n  * ferramentas\n  * cursos\n  * pesquisas\n\n* Não é necessário citar fontes reais.\n\n* Aproximadamente **100–150 palavras**.\n\n---\n\n### Em `\"glossary\"`\n\n* Escreva um **glossário textual simples**, contendo **5–10 termos relevantes** ao tema do livro.\n* Cada termo deve seguir o formato:\n\n```\nTerm — definição breve\n```\n\n* Cada termo deve ficar em **uma nova linha** (`\\n`).\n\n---\n\n### Em `\"closure\"`\n\n* Escreva uma **mensagem final humanizada e inspiradora**.\n* O objetivo é encerrar a experiência de leitura de forma calorosa e reflexiva.\n* **Não mencionar venda, pagamento, dinheiro ou qualquer tipo de CTA.**\n\n---\n\n## IMPORTANTE\n\n* Responda **APENAS com o JSON final**, totalmente preenchido.\n* O JSON deve começar com `{` e terminar com `}`.\n* Não use comentários.\n* Não use `...`.\n* Não deixe vírgulas sobrando.\n* Não inclua campos extras além dos definidos na estrutura.\n\nA estrutura obrigatória do JSON é:\n\n```\nplanning\nplanning.chapters[]\nplanning.chapters[].title\nplanning.chapters[].topics[]\nplanning.chapters[].topics[].title\nplanning.chapters[].topics[].content\n\nintroduction\nconclusion\nfinalConsiderations\nglossary\nappendix\nclosure\n```\n\nTodos os campos devem ser preenchidos."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        448,
+        -672
+      ],
+      "id": "3bc98c94-183a-432c-9556-2fd94bbf6bce",
+      "name": "Full preview"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "24638915-c2ec-4ebe-a0fe-fad224ebc366",
+              "name": "output",
+              "value": "={{ $json.output }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        864,
+        -672
+      ],
+      "id": "7db0d09c-6946-4f6b-a763-8afbeccfef63",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "jsCode": "function capitalizeTitle(title) {\n  const smallWords = new Set([\n    \"a\",\"o\",\"as\",\"os\",\n    \"de\",\"da\",\"do\",\"das\",\"dos\",\n    \"e\",\"em\",\"para\",\"por\",\"com\",\n    \"no\",\"na\",\"nos\",\"nas\",\n    \"the\",\"of\",\"and\",\"in\",\"on\",\"at\",\"to\",\"for\"\n  ]);\n\n  return title\n    .toLowerCase()\n    .split(/\\s+/)\n    .map((word, index, arr) => {\n      if (\n        index !== 0 &&\n        index !== arr.length - 1 &&\n        smallWords.has(word)\n      ) return word;\n\n      return word\n        .split(\"-\")\n        .map(w => w.charAt(0).toUpperCase() + w.slice(1))\n        .join(\"-\");\n    })\n    .join(\" \");\n}\n\nconst authorName =  capitalizeTitle($('When Executed by Another Workflow').first().json.author); \n\nconst bookTitle =  capitalizeTitle($('When Executed by Another Workflow').first().json.title); \n\nconst bookSubtitle =  capitalizeTitle($('When Executed by Another Workflow').first().json.subtitle); \n\nreturn {authorName, bookTitle, bookSubtitle };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1072,
+        -672
+      ],
+      "id": "2d5442d3-fd16-446c-a12b-1fbf0198d9ff",
+      "name": "Capitalized auhtor, book title and subtitle"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://8bc4-2804-3408-303-4001-1097-7a1b-eed8-8d6d.ngrok-free.app/api/hooks/n8n/preview-complete-result",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-secret",
+              "value": "=dev-n8n-callback-secret-local"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1792,
+        0
+      ],
+      "id": "ec10eb05-b686-4cf2-9404-1c2f67275809",
+      "name": "TUNNEL"
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Full preview",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Copy book_preview": {
+      "main": [
+        [
+          {
+            "node": "Insert book_preview basic info into document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert chapter into template": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert conclusions into book_preview document": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert book_preview basic info into document": {
+      "main": [
+        [
+          {
+            "node": "Insert conclusions into book_preview document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file to s3": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download book_preview document": {
+      "main": [
+        [
+          {
+            "node": "Upload file to s3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sanitize Title Filename": {
+      "main": [
+        [
+          {
+            "node": "Copy book_preview",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Insert chapter into template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "TUNNEL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Download book_preview document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Full preview",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser3": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Full preview",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Full preview": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Capitalized auhtor, book title and subtitle",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Capitalized auhtor, book title and subtitle": {
+      "main": [
+        [
+          {
+            "node": "Sanitize Title Filename",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "bookId": "cmmf7iap2000126kxsty6426z",
+        "briefing": "dahudahuhushudahua dahudahuhushudahua dahudahuhushudahua dahudahuhushudahua dahudahuhushudahua dahudahuhushudahua dahudahuhushudahua ",
+        "author": "dahudahuhushudahua ",
+        "title": "Dahudahuhushudahua",
+        "subtitle": "La Guía Definitiva para Descifrar Y Dominar El Misterioso Idioma Dahudahuhushudahua",
+        "creationMode": "GUIDED",
+        "settings": null,
+        "planning": {
+          "chapters": [
+            {
+              "title": "Capítulo 1 - Introducción al Dahudahuhushudahua",
+              "topics": [
+                {
+                  "title": "¿Qué es el Dahudahuhushudahua?",
+                  "content": "Exploramos el origen enigmático de este idioma repetitivo y juguetón, surgido en comunidades en línea como forma de expresión creativa y humorística en la era digital."
+                },
+                {
+                  "title": "Beneficios de aprenderlo",
+                  "content": "Descubre cómo este lenguaje fomenta la creatividad, reduce estrés mediante repeticiones rítmicas y fortalece conexiones sociales en chats y memes."
+                }
+              ]
+            },
+            {
+              "title": "Capítulo 2 - Los sonidos fundamentales",
+              "topics": [
+                {
+                  "title": "Fonética básica: desglose de sílabas",
+                  "content": "Análisis detallado de 'da', 'hu', 'shu' y 'hua'. Aprende la pronunciación precisa con guías fonéticas y ejemplos auditivos sugeridos."
+                },
+                {
+                  "title": "Ritmo y entonación",
+                  "content": "Domina el flujo rítmico único que hace al Dahudahuhushudahua hipnótico, con ejercicios para imitar patrones repetitivos."
+                }
+              ]
+            },
+            {
+              "title": "Capítulo 3 - Vocabulario esencial",
+              "topics": [
+                {
+                  "title": "Palabras y raíces comunes",
+                  "content": "Lista de 50 términos básicos derivados de repeticiones, con significados lúdicos como 'dahuda' para alegría o 'hushua' para silencio."
+                },
+                {
+                  "title": "Construyendo palabras nuevas",
+                  "content": "Técnicas para crear vocabulario personalizado combinando sílabas, fomentando la originalidad lingüística."
+                }
+              ]
+            },
+            {
+              "title": "Capítulo 4 - Gramática sencilla",
+              "topics": [
+                {
+                  "title": "Estructura de oraciones",
+                  "content": "Reglas simples: sujeto-repetición-objeto. Ejemplos prácticos para formar frases cotidianas sin complicaciones."
+                },
+                {
+                  "title": "Tiempos y modos",
+                  "content": "Variaciones rítmicas para pasado, presente y futuro, usando aceleración o pausas en las repeticiones."
+                }
+              ]
+            },
+            {
+              "title": "Capítulo 5 - Conversaciones básicas",
+              "topics": [
+                {
+                  "title": "Saludos y presentaciones",
+                  "content": "Frases clave como 'Dahudahu hu shudahua' para hola, con diálogos ilustrados para practicar."
+                },
+                {
+                  "title": "Interacciones diarias",
+                  "content": "Cómo pedir ayuda o comentar el clima usando patrones dahudahuhushudahua, con transcripciones y tips."
+                }
+              ]
+            },
+            {
+              "title": "Capítulo 6 - Nivel intermedio: Expresiones avanzadas",
+              "topics": [
+                {
+                  "title": "Idioms y modismos",
+                  "content": "Expresiones culturales ficticias como 'shudahua total' para sorpresa máxima, con anécdotas divertidas."
+                },
+                {
+                  "title": "Humor y juegos de palabras",
+                  "content": "Técnicas para bromas basadas en repeticiones, ejemplos de memes famosos en este idioma."
+                }
+              ]
+            },
+            {
+              "title": "Capítulo 7 - Aplicaciones prácticas",
+              "topics": [
+                {
+                  "title": "En redes sociales y chats",
+                  "content": "Estrategias para usar Dahudahuhushudahua en WhatsApp, TikTok y Twitter, aumentando engagement."
+                },
+                {
+                  "title": "En entornos profesionales",
+                  "content": "Ideas creativas para presentaciones o team buildings con este idioma lúdico."
+                }
+              ]
+            },
+            {
+              "title": "Capítulo 8 - Errores comunes y correcciones",
+              "topics": [
+                {
+                  "title": "Pronunciaciones frecuentes erradas",
+                  "content": "Identifica pitfalls como confundir 'hu' con 'who', con audio sugerido y correcciones."
+                },
+                {
+                  "title": "Malentendidos contextuales",
+                  "content": "Cómo evitar confusiones culturales en conversaciones internacionales."
+                }
+              ]
+            },
+            {
+              "title": "Capítulo 9 - Ejercicios y práctica intensiva",
+              "topics": [
+                {
+                  "title": "Ejercicios de pronunciación y vocabulario",
+                  "content": "Actividades interactivas, quizzes y flashcards descargables para reforzar lo aprendido."
+                },
+                {
+                  "title": "Diálogos simulados",
+                  "content": "Escenarios reales para role-playing, con respuestas modelo y autoevaluación."
+                }
+              ]
+            },
+            {
+              "title": "Capítulo 10 - Maestría y más allá",
+              "topics": [
+                {
+                  "title": "Únete a la comunidad global",
+                  "content": "Directorio de grupos en línea, eventos y foros para practicar con hablantes nativos ficticios."
+                },
+                {
+                  "title": "Creando tu propio dialecto",
+                  "content": "Guía para innovar y expandir el idioma, dejando legado personal."
+                }
+              ]
+            }
+          ]
+        },
+        "chapters": [
+          {
+            "id": "cmmf7owz7000226kxnljglg6x",
+            "sequence": 1,
+            "title": "Capítulo 1 - Introducción al Dahudahuhushudahua",
+            "topics": [
+              {
+                "title": "¿Qué es el Dahudahuhushudahua?",
+                "content": "Exploramos el origen enigmático de este idioma repetitivo y juguetón, surgido en comunidades en línea como forma de expresión creativa y humorística en la era digital."
+              },
+              {
+                "title": "Beneficios de aprenderlo",
+                "content": "Descubre cómo este lenguaje fomenta la creatividad, reduce estrés mediante repeticiones rítmicas y fortalece conexiones sociales en chats y memes."
+              }
+            ]
+          },
+          {
+            "id": "cmmf7owz8000326kxuh049mfq",
+            "sequence": 2,
+            "title": "Capítulo 2 - Los sonidos fundamentales",
+            "topics": [
+              {
+                "title": "Fonética básica: desglose de sílabas",
+                "content": "Análisis detallado de 'da', 'hu', 'shu' y 'hua'. Aprende la pronunciación precisa con guías fonéticas y ejemplos auditivos sugeridos."
+              },
+              {
+                "title": "Ritmo y entonación",
+                "content": "Domina el flujo rítmico único que hace al Dahudahuhushudahua hipnótico, con ejercicios para imitar patrones repetitivos."
+              }
+            ]
+          },
+          {
+            "id": "cmmf7owz8000426kx2ltqprq0",
+            "sequence": 3,
+            "title": "Capítulo 3 - Vocabulario esencial",
+            "topics": [
+              {
+                "title": "Palabras y raíces comunes",
+                "content": "Lista de 50 términos básicos derivados de repeticiones, con significados lúdicos como 'dahuda' para alegría o 'hushua' para silencio."
+              },
+              {
+                "title": "Construyendo palabras nuevas",
+                "content": "Técnicas para crear vocabulario personalizado combinando sílabas, fomentando la originalidad lingüística."
+              }
+            ]
+          },
+          {
+            "id": "cmmf7owz8000526kx45p38udd",
+            "sequence": 4,
+            "title": "Capítulo 4 - Gramática sencilla",
+            "topics": [
+              {
+                "title": "Estructura de oraciones",
+                "content": "Reglas simples: sujeto-repetición-objeto. Ejemplos prácticos para formar frases cotidianas sin complicaciones."
+              },
+              {
+                "title": "Tiempos y modos",
+                "content": "Variaciones rítmicas para pasado, presente y futuro, usando aceleración o pausas en las repeticiones."
+              }
+            ]
+          },
+          {
+            "id": "cmmf7owz8000626kx9j6eh35d",
+            "sequence": 5,
+            "title": "Capítulo 5 - Conversaciones básicas",
+            "topics": [
+              {
+                "title": "Saludos y presentaciones",
+                "content": "Frases clave como 'Dahudahu hu shudahua' para hola, con diálogos ilustrados para practicar."
+              },
+              {
+                "title": "Interacciones diarias",
+                "content": "Cómo pedir ayuda o comentar el clima usando patrones dahudahuhushudahua, con transcripciones y tips."
+              }
+            ]
+          },
+          {
+            "id": "cmmf7owz8000726kxpxj9ob6x",
+            "sequence": 6,
+            "title": "Capítulo 6 - Nivel intermedio: Expresiones avanzadas",
+            "topics": [
+              {
+                "title": "Idioms y modismos",
+                "content": "Expresiones culturales ficticias como 'shudahua total' para sorpresa máxima, con anécdotas divertidas."
+              },
+              {
+                "title": "Humor y juegos de palabras",
+                "content": "Técnicas para bromas basadas en repeticiones, ejemplos de memes famosos en este idioma."
+              }
+            ]
+          },
+          {
+            "id": "cmmf7owz8000826kx119djm1h",
+            "sequence": 7,
+            "title": "Capítulo 7 - Aplicaciones prácticas",
+            "topics": [
+              {
+                "title": "En redes sociales y chats",
+                "content": "Estrategias para usar Dahudahuhushudahua en WhatsApp, TikTok y Twitter, aumentando engagement."
+              },
+              {
+                "title": "En entornos profesionales",
+                "content": "Ideas creativas para presentaciones o team buildings con este idioma lúdico."
+              }
+            ]
+          },
+          {
+            "id": "cmmf7owz8000926kxrgpjf1ux",
+            "sequence": 8,
+            "title": "Capítulo 8 - Errores comunes y correcciones",
+            "topics": [
+              {
+                "title": "Pronunciaciones frecuentes erradas",
+                "content": "Identifica pitfalls como confundir 'hu' con 'who', con audio sugerido y correcciones."
+              },
+              {
+                "title": "Malentendidos contextuales",
+                "content": "Cómo evitar confusiones culturales en conversaciones internacionales."
+              }
+            ]
+          },
+          {
+            "id": "cmmf7owz8000a26kx1dbdfleb",
+            "sequence": 9,
+            "title": "Capítulo 9 - Ejercicios y práctica intensiva",
+            "topics": [
+              {
+                "title": "Ejercicios de pronunciación y vocabulario",
+                "content": "Actividades interactivas, quizzes y flashcards descargables para reforzar lo aprendido."
+              },
+              {
+                "title": "Diálogos simulados",
+                "content": "Escenarios reales para role-playing, con respuestas modelo y autoevaluación."
+              }
+            ]
+          },
+          {
+            "id": "cmmf7owz8000b26kxy95y2blm",
+            "sequence": 10,
+            "title": "Capítulo 10 - Maestría y más allá",
+            "topics": [
+              {
+                "title": "Únete a la comunidad global",
+                "content": "Directorio de grupos en línea, eventos y foros para practicar con hablantes nativos ficticios."
+              },
+              {
+                "title": "Creando tu propio dialecto",
+                "content": "Guía para innovar y expandir el idioma, dejando legado personal."
+              }
+            ]
+          }
+        ],
+        "callbackBaseUrl": "http://localhost:3001"
+      }
+    ]
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1a48d1229f0288ea9225e8edc3e36e5dcfde4181dcbee5a0b0df1d15d2594a88"
+  }
+}
