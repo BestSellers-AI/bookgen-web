@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
   BookCheck,
   Palette,
@@ -242,14 +242,27 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
   const [selectedBundle, setSelectedBundle] = useState<BundleConfig | null>(null);
   const [requestingBundle, setRequestingBundle] = useState(false);
 
+  const prevAddonsRef = useRef<BookAddonSummary[]>(addons);
+
   const fetchAddons = useCallback(async () => {
     try {
       const data = await addonsApi.list(book.id);
+      // Detect addons that just completed → refetch book to get new files/images
+      const prev = prevAddonsRef.current;
+      const justCompleted = data.some(
+        (a) =>
+          a.status === AddonStatus.COMPLETED &&
+          prev.some((p) => p.id === a.id && isAddonProcessing(p.status)),
+      );
+      prevAddonsRef.current = data;
       setAddons(data);
+      if (justCompleted) {
+        onRefetch();
+      }
     } catch {
       // silently fail
     }
-  }, [book.id]);
+  }, [book.id, onRefetch]);
 
   useEffect(() => {
     fetchAddons();
