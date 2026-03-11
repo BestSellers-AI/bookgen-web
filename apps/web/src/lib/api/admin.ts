@@ -99,6 +99,45 @@ export interface AdminListParams {
 }
 
 // ---------------------------------------------------------------------------
+// Product / Price types (match Prisma models returned by the API)
+// ---------------------------------------------------------------------------
+export interface AdminProductPrice {
+  id: string;
+  productId: string;
+  currency: string;
+  amount: number; // cents
+  creditsCost: number | null;
+  stripePriceId: string | null;
+  billingInterval: 'MONTHLY' | 'ANNUAL' | null;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface AdminProduct {
+  id: string;
+  name: string;
+  slug: string;
+  kind: string;
+  description: string | null;
+  creditsAmount: number | null;
+  metadata: Record<string, any> | null;
+  stripeProductId: string | null;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+  prices: AdminProductPrice[];
+}
+
+export interface AdminAppConfig {
+  id: string;
+  key: string;
+  value: Record<string, any>;
+  updatedAt: string;
+  updatedBy: string | null;
+}
+
+// ---------------------------------------------------------------------------
 // API
 // ---------------------------------------------------------------------------
 export const adminApi = {
@@ -143,5 +182,52 @@ export const adminApi = {
       .get<PaginatedResponse<AdminPurchaseSummary>>('/admin/purchases', {
         params,
       })
+      .then((r) => r.data),
+
+  // Product Management
+  listProducts: () =>
+    apiClient.get<AdminProduct[]>('/admin/products').then((r) => r.data),
+
+  getProduct: (id: string) =>
+    apiClient.get<AdminProduct>(`/admin/products/${id}`).then((r) => r.data),
+
+  updateProduct: (
+    id: string,
+    data: {
+      name?: string;
+      description?: string;
+      metadata?: Record<string, any>;
+      isActive?: boolean;
+      sortOrder?: number;
+    },
+  ) => apiClient.put<AdminProduct>(`/admin/products/${id}`, data).then((r) => r.data),
+
+  addProductPrice: (
+    productId: string,
+    data: {
+      amount: number;
+      currency?: string;
+      billingInterval?: 'MONTHLY' | 'ANNUAL';
+      creditsCost?: number;
+    },
+  ) =>
+    apiClient
+      .post<AdminProductPrice>(`/admin/products/${productId}/prices`, data)
+      .then((r) => r.data),
+
+  deactivatePrice: (productId: string, priceId: string) =>
+    apiClient
+      .patch<AdminProductPrice>(
+        `/admin/products/${productId}/prices/${priceId}/deactivate`,
+      )
+      .then((r) => r.data),
+
+  // App Config
+  getAppConfigs: () =>
+    apiClient.get<AdminAppConfig[]>('/admin/config').then((r) => r.data),
+
+  updateAppConfig: (key: string, value: Record<string, any>) =>
+    apiClient
+      .put<AdminAppConfig>(`/admin/config/${key}`, { value })
       .then((r) => r.data),
 };

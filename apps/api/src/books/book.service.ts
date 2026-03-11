@@ -24,10 +24,9 @@ import { N8nClientService } from '../n8n/n8n-client.service';
 import { WalletService } from '../wallet/wallet.service';
 import { MonthlyUsageService } from '../wallet/monthly-usage.service';
 import {
-  CREDITS_COST,
-  SUBSCRIPTION_PLANS,
   QUEUE_PRIORITIES,
 } from '@bestsellers/shared';
+import { ConfigDataService } from '../config-data/config-data.service';
 import type {
   PaginatedResponse,
   BookListItem,
@@ -43,6 +42,7 @@ export class BookService {
     private readonly n8nClient: N8nClientService,
     private readonly walletService: WalletService,
     private readonly monthlyUsageService: MonthlyUsageService,
+    private readonly configDataService: ConfigDataService,
   ) {}
 
   async findAllByUser(
@@ -636,7 +636,7 @@ export class BookService {
     }
 
     // Debit credits (throws InsufficientCreditsException with 402 if not enough)
-    const cost = CREDITS_COST.BOOK_GENERATION;
+    const cost = await this.configDataService.getCreditsCost('BOOK_GENERATION');
     try {
       await this.walletService.debitCredits(
         userId,
@@ -669,8 +669,9 @@ export class BookService {
     });
 
     const plan = activeSubscription?.plan as SubscriptionPlan | null;
-    const queuePriority = plan
-      ? QUEUE_PRIORITIES[SUBSCRIPTION_PLANS[plan].queuePriority]
+    const planConfig = plan ? await this.configDataService.getPlanConfig(plan) : null;
+    const queuePriority = planConfig
+      ? QUEUE_PRIORITIES[planConfig.queuePriority as keyof typeof QUEUE_PRIORITIES]
       : QUEUE_PRIORITIES.standard;
 
     const generationData = {
@@ -778,7 +779,7 @@ export class BookService {
 
     if (!usedFreeRegen) {
       // Free regens exhausted, debit credits (throws 402 if not enough)
-      const cost = CREDITS_COST.CHAPTER_REGENERATION;
+      const cost = await this.configDataService.getCreditsCost('CHAPTER_REGENERATION');
       await this.walletService.debitCredits(
         userId,
         cost,
@@ -821,7 +822,7 @@ export class BookService {
 
       // Refund if credits were debited (not free regen)
       if (!usedFreeRegen) {
-        const cost = CREDITS_COST.CHAPTER_REGENERATION;
+        const cost = await this.configDataService.getCreditsCost('CHAPTER_REGENERATION');
         await this.walletService.addCredits(
           userId,
           cost,

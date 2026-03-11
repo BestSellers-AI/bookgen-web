@@ -225,4 +225,58 @@ export class StripeService {
       this.appConfig.stripeWebhookSecret,
     );
   }
+
+  /**
+   * Create a new Stripe price for a product.
+   */
+  async createStripePrice(params: {
+    stripeProductId: string;
+    amount: number;
+    currency: string;
+    recurring?: { interval: 'month' | 'year' };
+  }): Promise<string> {
+    const priceData: any = {
+      product: params.stripeProductId,
+      unit_amount: params.amount,
+      currency: params.currency,
+    };
+    if (params.recurring) {
+      priceData.recurring = params.recurring;
+    }
+    const price = await this.stripe.prices.create(priceData);
+    return price.id;
+  }
+
+  /**
+   * Archive (deactivate) a Stripe price.
+   */
+  async archiveStripePrice(stripePriceId: string): Promise<void> {
+    await this.stripe.prices.update(stripePriceId, { active: false });
+  }
+
+  /**
+   * Update a Stripe product's name/description.
+   */
+  async updateStripeProduct(
+    stripeProductId: string,
+    data: { name?: string; description?: string },
+  ): Promise<void> {
+    await this.stripe.products.update(stripeProductId, data);
+  }
+
+  /**
+   * Create a Stripe product.
+   */
+  async createStripeProduct(params: {
+    name: string;
+    description?: string;
+    metadata?: Record<string, string>;
+  }): Promise<string> {
+    const product = await this.stripe.products.create({
+      name: params.name,
+      description: params.description,
+      metadata: params.metadata,
+    });
+    return product.id;
+  }
 }

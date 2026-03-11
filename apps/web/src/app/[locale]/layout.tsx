@@ -4,6 +4,7 @@ import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { routing } from '@/i18n/routing';
 import { ThemeProvider } from '@/components/theme-provider';
 import { AuthBootstrap } from '@/components/auth-bootstrap';
+import { ConfigInitializer } from '@/components/config-initializer';
 import { LocaleSync } from '@/components/locale-sync';
 import { Toaster } from 'sonner';
 
@@ -31,6 +32,7 @@ export default async function LocaleLayout({
         disableTransitionOnChange
       >
         <AuthBootstrap />
+        <ConfigInitializer />
         <LocaleSync />
         {children}
         <Toaster position="top-right" richColors />

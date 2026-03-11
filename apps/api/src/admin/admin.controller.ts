@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Put,
   Patch,
   Post,
   Param,
@@ -17,6 +18,9 @@ import {
   AdminPaginationDto,
   AdminAddCreditsDto,
   AdminChangeRoleDto,
+  UpdateProductDto,
+  CreatePriceDto,
+  UpdateAppConfigDto,
 } from './dto';
 
 @Controller('admin')
@@ -85,5 +89,57 @@ export class AdminController {
   @Get('stats')
   async getStats() {
     return this.adminService.getStats();
+  }
+
+  /* ── Products ─────────────────────────────────────────────────────── */
+
+  @Get('products')
+  async listProducts() {
+    return this.adminService.listProducts();
+  }
+
+  @Get('products/:id')
+  async getProduct(@Param('id') id: string) {
+    return this.adminService.getProduct(id);
+  }
+
+  @Put('products/:id')
+  async updateProduct(
+    @Param('id') id: string,
+    @Body() dto: UpdateProductDto,
+  ) {
+    return this.adminService.updateProduct(id, dto);
+  }
+
+  @Post('products/:id/prices')
+  async addProductPrice(
+    @Param('id') id: string,
+    @Body() dto: CreatePriceDto,
+  ) {
+    return this.adminService.addProductPrice(id, dto);
+  }
+
+  @Patch('products/:id/prices/:priceId/deactivate')
+  async deactivatePrice(
+    @Param('id') id: string,
+    @Param('priceId') priceId: string,
+  ) {
+    return this.adminService.deactivatePrice(id, priceId);
+  }
+
+  /* ── App Config ───────────────────────────────────────────────────── */
+
+  @Get('config')
+  async getAppConfigs() {
+    return this.adminService.getAppConfigs();
+  }
+
+  @Put('config/:key')
+  async updateAppConfig(
+    @Param('key') key: string,
+    @Body() dto: UpdateAppConfigDto,
+    @CurrentUser('id') userId: string,
+  ) {
+    return this.adminService.updateAppConfig(key, dto.value, userId);
   }
 }

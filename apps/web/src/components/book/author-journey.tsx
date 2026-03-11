@@ -53,14 +53,9 @@ import { walletApi } from "@/lib/api/wallet";
 import { useWalletStore } from "@/stores/wallet-store";
 import { Link } from "@/i18n/navigation";
 import { toast } from "sonner";
-import { ProductKind, AddonStatus, FileType } from "@bestsellers/shared";
-import {
-  CREDITS_COST,
-  SUPPORTED_LANGUAGES,
-  BUNDLE_PUBLISH_PREMIUM,
-  BUNDLE_GLOBAL_LAUNCH,
-} from "@bestsellers/shared";
-import type { BundleConfig } from "@bestsellers/shared";
+import { ProductKind, AddonStatus, FileType, SUPPORTED_LANGUAGES } from "@bestsellers/shared";
+import type { BundleConfigPayload } from "@bestsellers/shared";
+import { useConfigStore } from "@/stores/config-store";
 import type { BookAddonSummary, BookDetail, BookImageSummary } from "@/lib/api/types";
 
 // ─── Types ───────────────────────────────────────────────────
@@ -118,69 +113,73 @@ const PUBLISHING_STEPS: {
 
 // ─── Extras ──────────────────────────────────────────────────
 
-const EXTRA_CONFIGS: AddonConfig[] = [
-  {
-    kind: ProductKind.ADDON_TRANSLATION,
-    icon: Globe,
-    cost: CREDITS_COST[ProductKind.ADDON_TRANSLATION],
-    hasLanguageParam: true,
-    color: "text-blue-500",
-    iconBg: "bg-blue-500/10 border-blue-500/20",
-  },
-  {
-    kind: ProductKind.ADDON_COVER_TRANSLATION,
-    icon: Globe,
-    cost: CREDITS_COST[ProductKind.ADDON_COVER_TRANSLATION],
-    hasLanguageParam: true,
-    color: "text-cyan-500",
-    iconBg: "bg-cyan-500/10 border-cyan-500/20",
-  },
-  {
-    kind: ProductKind.ADDON_AUDIOBOOK,
-    icon: Headphones,
-    cost: CREDITS_COST[ProductKind.ADDON_AUDIOBOOK],
-    hasLanguageParam: false,
-    color: "text-emerald-500",
-    iconBg: "bg-emerald-500/10 border-emerald-500/20",
-  },
-];
+function buildExtraConfigs(getCost: (kind: string) => number): AddonConfig[] {
+  return [
+    {
+      kind: ProductKind.ADDON_TRANSLATION,
+      icon: Globe,
+      cost: getCost(ProductKind.ADDON_TRANSLATION),
+      hasLanguageParam: true,
+      color: "text-blue-500",
+      iconBg: "bg-blue-500/10 border-blue-500/20",
+    },
+    {
+      kind: ProductKind.ADDON_COVER_TRANSLATION,
+      icon: Globe,
+      cost: getCost(ProductKind.ADDON_COVER_TRANSLATION),
+      hasLanguageParam: true,
+      color: "text-cyan-500",
+      iconBg: "bg-cyan-500/10 border-cyan-500/20",
+    },
+    {
+      kind: ProductKind.ADDON_AUDIOBOOK,
+      icon: Headphones,
+      cost: getCost(ProductKind.ADDON_AUDIOBOOK),
+      hasLanguageParam: false,
+      color: "text-emerald-500",
+      iconBg: "bg-emerald-500/10 border-emerald-500/20",
+    },
+  ];
+}
 
 // All addon configs (for dialog lookup)
-const ALL_ADDON_CONFIGS: AddonConfig[] = [
-  {
-    kind: ProductKind.ADDON_COVER,
-    icon: Palette,
-    cost: CREDITS_COST[ProductKind.ADDON_COVER],
-    hasLanguageParam: false,
-    color: "text-pink-500",
-    iconBg: "bg-pink-500/10 border-pink-500/20",
-  },
-  {
-    kind: ProductKind.ADDON_IMAGES,
-    icon: ImageIcon,
-    cost: CREDITS_COST[ProductKind.ADDON_IMAGES],
-    hasLanguageParam: false,
-    color: "text-indigo-500",
-    iconBg: "bg-indigo-500/10 border-indigo-500/20",
-  },
-  {
-    kind: ProductKind.ADDON_AMAZON_STANDARD,
-    icon: Package,
-    cost: CREDITS_COST[ProductKind.ADDON_AMAZON_STANDARD],
-    hasLanguageParam: false,
-    color: "text-orange-500",
-    iconBg: "bg-orange-500/10 border-orange-500/20",
-  },
-  {
-    kind: ProductKind.ADDON_AMAZON_PREMIUM,
-    icon: Package,
-    cost: CREDITS_COST[ProductKind.ADDON_AMAZON_PREMIUM],
-    hasLanguageParam: false,
-    color: "text-amber-500",
-    iconBg: "bg-amber-500/10 border-amber-500/20",
-  },
-  ...EXTRA_CONFIGS,
-];
+function buildAllAddonConfigs(getCost: (kind: string) => number): AddonConfig[] {
+  return [
+    {
+      kind: ProductKind.ADDON_COVER,
+      icon: Palette,
+      cost: getCost(ProductKind.ADDON_COVER),
+      hasLanguageParam: false,
+      color: "text-pink-500",
+      iconBg: "bg-pink-500/10 border-pink-500/20",
+    },
+    {
+      kind: ProductKind.ADDON_IMAGES,
+      icon: ImageIcon,
+      cost: getCost(ProductKind.ADDON_IMAGES),
+      hasLanguageParam: false,
+      color: "text-indigo-500",
+      iconBg: "bg-indigo-500/10 border-indigo-500/20",
+    },
+    {
+      kind: ProductKind.ADDON_AMAZON_STANDARD,
+      icon: Package,
+      cost: getCost(ProductKind.ADDON_AMAZON_STANDARD),
+      hasLanguageParam: false,
+      color: "text-orange-500",
+      iconBg: "bg-orange-500/10 border-orange-500/20",
+    },
+    {
+      kind: ProductKind.ADDON_AMAZON_PREMIUM,
+      icon: Package,
+      cost: getCost(ProductKind.ADDON_AMAZON_PREMIUM),
+      hasLanguageParam: false,
+      color: "text-amber-500",
+      iconBg: "bg-amber-500/10 border-amber-500/20",
+    },
+    ...buildExtraConfigs(getCost),
+  ];
+}
 
 // ─── Helpers ─────────────────────────────────────────────────
 
@@ -220,6 +219,15 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
   const tj = useTranslations("authorJourney");
   const tCommon = useTranslations("common");
   const fetchWalletStore = useWalletStore((s) => s.fetchWallet);
+  const getCreditsCost = useConfigStore((s) => s.getCreditsCost);
+  const getBundles = useConfigStore((s) => s.getBundles);
+
+  const EXTRA_CONFIGS = buildExtraConfigs(getCreditsCost);
+  const ALL_ADDON_CONFIGS = buildAllAddonConfigs(getCreditsCost);
+
+  const bundles = getBundles();
+  const BUNDLE_PUBLISH_PREMIUM = bundles["BUNDLE_PUBLISH_PREMIUM"];
+  const BUNDLE_GLOBAL_LAUNCH = bundles["BUNDLE_GLOBAL_LAUNCH"];
 
   const [addons, setAddons] = useState<BookAddonSummary[]>(book.addons ?? []);
   const [balance, setBalance] = useState<number | null>(null);
@@ -246,7 +254,7 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
 
   // Bundle state
   const [bundleDialogOpen, setBundleDialogOpen] = useState(false);
-  const [selectedBundle, setSelectedBundle] = useState<BundleConfig | null>(null);
+  const [selectedBundle, setSelectedBundle] = useState<BundleConfigPayload | null>(null);
   const [requestingBundle, setRequestingBundle] = useState(false);
 
   const prevAddonsRef = useRef<BookAddonSummary[]>(addons);
@@ -289,7 +297,7 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
     return () => clearInterval(interval);
   }, [hasProcessing, fetchAddons]);
 
-  const getExistingAddon = (kind: ProductKind): BookAddonSummary | undefined =>
+  const getExistingAddon = (kind: ProductKind | string): BookAddonSummary | undefined =>
     addons.find((a) => a.kind === kind);
 
   const openRequestDialog = (config: AddonConfig) => {
@@ -332,7 +340,7 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
   };
 
   // Bundle availability helpers
-  const isBundleAvailable = (bundle: BundleConfig) =>
+  const isBundleAvailable = (bundle: BundleConfigPayload) =>
     bundle.kinds.every((kind) => {
       const existing = getExistingAddon(kind);
       return !existing || existing.status === AddonStatus.ERROR || existing.status === AddonStatus.CANCELLED;
@@ -341,7 +349,7 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
   const publishBundleAvailable = isBundleAvailable(BUNDLE_PUBLISH_PREMIUM);
   const globalLaunchBundleAvailable = isBundleAvailable(BUNDLE_GLOBAL_LAUNCH);
 
-  const openBundleDialog = (bundle: BundleConfig) => {
+  const openBundleDialog = (bundle: BundleConfigPayload) => {
     setSelectedBundle(bundle);
     setBundleDialogOpen(true);
   };
@@ -684,7 +692,7 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
                                 tAddons={t}
                                 tCommon={tCommon}
                                 label={tj("amazonStandard")}
-                                sublabel={`${CREDITS_COST[ProductKind.ADDON_AMAZON_STANDARD]} ${tCommon("credits")}`}
+                                sublabel={`${getCreditsCost(ProductKind.ADDON_AMAZON_STANDARD)} ${tCommon("credits")}`}
                               />
                               <StepCTA
                                 config={ALL_ADDON_CONFIGS.find(
@@ -700,7 +708,7 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
                                 tAddons={t}
                                 tCommon={tCommon}
                                 label={tj("amazonPremium")}
-                                sublabel={`${CREDITS_COST[ProductKind.ADDON_AMAZON_PREMIUM]} ${tCommon("credits")}`}
+                                sublabel={`${getCreditsCost(ProductKind.ADDON_AMAZON_PREMIUM)} ${tCommon("credits")}`}
                                 premium
                               />
                             </div>
@@ -946,7 +954,7 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
                     </div>
                     <span className="text-xs font-bold">{tj("generateMoreCovers")}</span>
                     <span className="text-[10px] text-muted-foreground">
-                      {CREDITS_COST[ProductKind.ADDON_COVER]} {tCommon("credits")}
+                      {getCreditsCost(ProductKind.ADDON_COVER)} {tCommon("credits")}
                     </span>
                   </>
                 )}
@@ -1092,7 +1100,7 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
                     </div>
                     <span className="text-xs font-bold">{tj("generateMoreImages")}</span>
                     <span className="text-[10px] text-muted-foreground">
-                      {CREDITS_COST[ProductKind.ADDON_IMAGES]} {tCommon("credits")}
+                      {getCreditsCost(ProductKind.ADDON_IMAGES)} {tCommon("credits")}
                     </span>
                   </>
                 )}
@@ -1521,7 +1529,7 @@ function BundleCard({
   tj,
   tCommon,
 }: {
-  bundle: BundleConfig;
+  bundle: BundleConfigPayload;
   onRequest: () => void;
   tj: ReturnType<typeof useTranslations>;
   tCommon: ReturnType<typeof useTranslations>;

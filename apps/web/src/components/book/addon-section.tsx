@@ -39,8 +39,8 @@ import { walletApi } from "@/lib/api/wallet";
 import { useWalletStore } from "@/stores/wallet-store";
 import { Link } from "@/i18n/navigation";
 import { toast } from "sonner";
-import { ProductKind, AddonStatus } from "@bestsellers/shared";
-import { CREDITS_COST, SUPPORTED_LANGUAGES } from "@bestsellers/shared";
+import { ProductKind, AddonStatus, SUPPORTED_LANGUAGES } from "@bestsellers/shared";
+import { useConfigStore } from "@/stores/config-store";
 import type { BookAddonSummary, BookDetail } from "@/lib/api/types";
 
 interface AddonConfig {
@@ -52,64 +52,66 @@ interface AddonConfig {
   iconBg: string;
 }
 
-const ADDON_CONFIGS: AddonConfig[] = [
-  {
-    kind: ProductKind.ADDON_COVER,
-    icon: Palette,
-    cost: CREDITS_COST[ProductKind.ADDON_COVER],
-    hasLanguageParam: false,
-    color: "text-pink-500",
-    iconBg: "bg-pink-500/10 border-pink-500/20",
-  },
-  {
-    kind: ProductKind.ADDON_TRANSLATION,
-    icon: Globe,
-    cost: CREDITS_COST[ProductKind.ADDON_TRANSLATION],
-    hasLanguageParam: true,
-    color: "text-blue-500",
-    iconBg: "bg-blue-500/10 border-blue-500/20",
-  },
-  {
-    kind: ProductKind.ADDON_COVER_TRANSLATION,
-    icon: Globe,
-    cost: CREDITS_COST[ProductKind.ADDON_COVER_TRANSLATION],
-    hasLanguageParam: true,
-    color: "text-cyan-500",
-    iconBg: "bg-cyan-500/10 border-cyan-500/20",
-  },
-  {
-    kind: ProductKind.ADDON_AMAZON_STANDARD,
-    icon: Package,
-    cost: CREDITS_COST[ProductKind.ADDON_AMAZON_STANDARD],
-    hasLanguageParam: false,
-    color: "text-orange-500",
-    iconBg: "bg-orange-500/10 border-orange-500/20",
-  },
-  {
-    kind: ProductKind.ADDON_AMAZON_PREMIUM,
-    icon: Package,
-    cost: CREDITS_COST[ProductKind.ADDON_AMAZON_PREMIUM],
-    hasLanguageParam: false,
-    color: "text-amber-500",
-    iconBg: "bg-amber-500/10 border-amber-500/20",
-  },
-  {
-    kind: ProductKind.ADDON_IMAGES,
-    icon: ImageIcon,
-    cost: CREDITS_COST[ProductKind.ADDON_IMAGES],
-    hasLanguageParam: false,
-    color: "text-indigo-500",
-    iconBg: "bg-indigo-500/10 border-indigo-500/20",
-  },
-  {
-    kind: ProductKind.ADDON_AUDIOBOOK,
-    icon: Headphones,
-    cost: CREDITS_COST[ProductKind.ADDON_AUDIOBOOK],
-    hasLanguageParam: false,
-    color: "text-emerald-500",
-    iconBg: "bg-emerald-500/10 border-emerald-500/20",
-  },
-];
+function buildAddonConfigs(getCost: (kind: string) => number): AddonConfig[] {
+  return [
+    {
+      kind: ProductKind.ADDON_COVER,
+      icon: Palette,
+      cost: getCost(ProductKind.ADDON_COVER),
+      hasLanguageParam: false,
+      color: "text-pink-500",
+      iconBg: "bg-pink-500/10 border-pink-500/20",
+    },
+    {
+      kind: ProductKind.ADDON_TRANSLATION,
+      icon: Globe,
+      cost: getCost(ProductKind.ADDON_TRANSLATION),
+      hasLanguageParam: true,
+      color: "text-blue-500",
+      iconBg: "bg-blue-500/10 border-blue-500/20",
+    },
+    {
+      kind: ProductKind.ADDON_COVER_TRANSLATION,
+      icon: Globe,
+      cost: getCost(ProductKind.ADDON_COVER_TRANSLATION),
+      hasLanguageParam: true,
+      color: "text-cyan-500",
+      iconBg: "bg-cyan-500/10 border-cyan-500/20",
+    },
+    {
+      kind: ProductKind.ADDON_AMAZON_STANDARD,
+      icon: Package,
+      cost: getCost(ProductKind.ADDON_AMAZON_STANDARD),
+      hasLanguageParam: false,
+      color: "text-orange-500",
+      iconBg: "bg-orange-500/10 border-orange-500/20",
+    },
+    {
+      kind: ProductKind.ADDON_AMAZON_PREMIUM,
+      icon: Package,
+      cost: getCost(ProductKind.ADDON_AMAZON_PREMIUM),
+      hasLanguageParam: false,
+      color: "text-amber-500",
+      iconBg: "bg-amber-500/10 border-amber-500/20",
+    },
+    {
+      kind: ProductKind.ADDON_IMAGES,
+      icon: ImageIcon,
+      cost: getCost(ProductKind.ADDON_IMAGES),
+      hasLanguageParam: false,
+      color: "text-indigo-500",
+      iconBg: "bg-indigo-500/10 border-indigo-500/20",
+    },
+    {
+      kind: ProductKind.ADDON_AUDIOBOOK,
+      icon: Headphones,
+      cost: getCost(ProductKind.ADDON_AUDIOBOOK),
+      hasLanguageParam: false,
+      color: "text-emerald-500",
+      iconBg: "bg-emerald-500/10 border-emerald-500/20",
+    },
+  ];
+}
 
 const STATUS_ICON: Record<string, typeof Clock> = {
   [AddonStatus.PENDING]: Clock,
@@ -129,6 +131,8 @@ export function AddonSection({ book, onRefetch }: AddonSectionProps) {
   const t = useTranslations("addons");
   const tCommon = useTranslations("common");
   const fetchWalletStore = useWalletStore((s) => s.fetchWallet);
+  const getCreditsCost = useConfigStore((s) => s.getCreditsCost);
+  const ADDON_CONFIGS = buildAddonConfigs(getCreditsCost);
 
   const [addons, setAddons] = useState<BookAddonSummary[]>(book.addons ?? []);
   const [balance, setBalance] = useState<number | null>(null);

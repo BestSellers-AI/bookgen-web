@@ -13,8 +13,9 @@ import {
   CreditType,
   WalletTransactionType,
   FileType,
+  ProductKind,
 } from '@prisma/client';
-import { CREDITS_COST, BUNDLES } from '@bestsellers/shared';
+import { ConfigDataService } from '../config-data/config-data.service';
 import type { BookAddonSummary } from '@bestsellers/shared';
 import { RequestAddonDto } from './dto';
 
@@ -26,6 +27,7 @@ export class AddonService {
     private readonly prisma: PrismaService,
     private readonly walletService: WalletService,
     private readonly n8nClient: N8nClientService,
+    private readonly configDataService: ConfigDataService,
   ) {}
 
   async request(
@@ -71,7 +73,7 @@ export class AddonService {
     }
 
     // Determine credit cost
-    const creditsCost = CREDITS_COST[dto.kind];
+    const creditsCost = await this.configDataService.getCreditsCost(dto.kind);
     if (!creditsCost) {
       throw new BadRequestException(`Unknown addon kind: ${dto.kind}`);
     }
@@ -172,7 +174,8 @@ export class AddonService {
     bookId: string,
     bundleId: string,
   ): Promise<BookAddonSummary[]> {
-    const bundle = BUNDLES[bundleId];
+    const allBundles = await this.configDataService.getBundles();
+    const bundle = allBundles[bundleId];
     if (!bundle) {
       throw new BadRequestException(`Unknown bundle: ${bundleId}`);
     }
@@ -196,7 +199,7 @@ export class AddonService {
     const existingAddons = await this.prisma.bookAddon.findMany({
       where: {
         bookId,
-        kind: { in: bundle.kinds },
+        kind: { in: bundle.kinds as ProductKind[] },
         status: { notIn: [AddonStatus.CANCELLED, AddonStatus.ERROR] },
       },
     });
@@ -212,13 +215,13 @@ export class AddonService {
 
     // Create all addon records (PENDING)
     const addonRecords = await Promise.all(
-      bundle.kinds.map((kind) =>
+      bundle.kinds.map(async (kind) =>
         this.prisma.bookAddon.create({
           data: {
             bookId,
-            kind,
+            kind: kind as ProductKind,
             status: AddonStatus.PENDING,
-            creditsCost: CREDITS_COST[kind],
+            creditsCost: await this.configDataService.getCreditsCost(kind),
           },
         }),
       ),

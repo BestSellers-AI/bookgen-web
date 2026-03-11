@@ -28,7 +28,11 @@ import {
   AdminPaginationDto,
   AdminAddCreditsDto,
   AdminChangeRoleDto,
+  UpdateProductDto,
+  CreatePriceDto,
 } from './dto';
+import { StripeService } from '../stripe/stripe.service';
+import { ConfigDataService } from '../config-data/config-data.service';
 
 @Injectable()
 export class AdminService {
@@ -37,6 +41,8 @@ export class AdminService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly walletService: WalletService,
+    private readonly stripeService: StripeService,
+    private readonly configDataService: ConfigDataService,
   ) {}
 
   /* ------------------------------------------------------------------ */
@@ -429,5 +435,149 @@ export class AdminService {
         count: a._count,
       })),
     };
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Products                                                           */
+  /* ------------------------------------------------------------------ */
+
+  async listProducts() {
+    return this.prisma.product.findMany({
+      include: { prices: true },
+      orderBy: { sortOrder: 'asc' },
+    });
+  }
+
+  async getProduct(id: string) {
+    const product = await this.prisma.product.findUnique({
+      where: { id },
+      include: { prices: true },
+    });
+    if (!product) throw new NotFoundException('Product not found');
+    return product;
+  }
+
+  async updateProduct(id: string, dto: UpdateProductDto) {
+    const product = await this.prisma.product.findUnique({ where: { id } });
+    if (!product) throw new NotFoundException('Product not found');
+
+    const updated = await this.prisma.product.update({
+      where: { id },
+      data: {
+        name: dto.name,
+        description: dto.description,
+        metadata: dto.metadata,
+        isActive: dto.isActive,
+        sortOrder: dto.sortOrder,
+      },
+      include: { prices: true },
+    });
+
+    // Sync name/description to Stripe if product has a stripeProductId
+    if (product.stripeProductId && (dto.name || dto.description)) {
+      try {
+        await this.stripeService.updateStripeProduct(product.stripeProductId, {
+          name: dto.name,
+          description: dto.description,
+        });
+      } catch (error) {
+        this.logger.warn(`Failed to sync product ${id} to Stripe: ${error}`);
+      }
+    }
+
+    await this.configDataService.invalidateCache();
+    return updated;
+  }
+
+  async addProductPrice(productId: string, dto: CreatePriceDto) {
+    const product = await this.prisma.product.findUnique({
+      where: { id: productId },
+    });
+    if (!product) throw new NotFoundException('Product not found');
+
+    let stripePriceId: string | null = null;
+
+    // Create price in Stripe if product has a stripeProductId and amount > 0
+    if (product.stripeProductId && dto.amount > 0) {
+      const recurring = dto.billingInterval
+        ? {
+            interval: (dto.billingInterval === 'ANNUAL'
+              ? 'year'
+              : 'month') as 'month' | 'year',
+          }
+        : undefined;
+
+      stripePriceId = await this.stripeService.createStripePrice({
+        stripeProductId: product.stripeProductId,
+        amount: dto.amount,
+        currency: dto.currency ?? 'usd',
+        recurring,
+      });
+    }
+
+    const price = await this.prisma.productPrice.create({
+      data: {
+        productId,
+        amount: dto.amount,
+        currency: dto.currency ?? 'usd',
+        billingInterval: dto.billingInterval as any,
+        creditsCost: dto.creditsCost,
+        stripePriceId,
+      },
+    });
+
+    await this.configDataService.invalidateCache();
+    return price;
+  }
+
+  async deactivatePrice(productId: string, priceId: string) {
+    const price = await this.prisma.productPrice.findFirst({
+      where: { id: priceId, productId },
+    });
+    if (!price) throw new NotFoundException('Price not found');
+
+    // Archive in Stripe
+    if (price.stripePriceId) {
+      try {
+        await this.stripeService.archiveStripePrice(price.stripePriceId);
+      } catch (error) {
+        this.logger.warn(
+          `Failed to archive Stripe price ${price.stripePriceId}: ${error}`,
+        );
+      }
+    }
+
+    const updated = await this.prisma.productPrice.update({
+      where: { id: priceId },
+      data: { isActive: false },
+    });
+
+    await this.configDataService.invalidateCache();
+    return updated;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  App Config                                                         */
+  /* ------------------------------------------------------------------ */
+
+  async getAppConfigs() {
+    return this.prisma.appConfig.findMany({
+      orderBy: { key: 'asc' },
+    });
+  }
+
+  async updateAppConfig(
+    key: string,
+    value: Record<string, any>,
+    updatedBy?: string,
+  ) {
+    const config = await this.prisma.appConfig.upsert({
+      where: { key },
+      update: { value, updatedBy },
+      create: { key, value, updatedBy },
+    });
+
+    await this.configDataService.invalidateCache();
+    return config;
   }
 }

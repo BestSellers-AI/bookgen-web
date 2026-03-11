@@ -14,8 +14,8 @@ import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/use-auth";
 import { checkoutApi } from "@/lib/api/checkout";
 import { subscriptionsApi } from "@/lib/api/subscriptions";
-import { SUBSCRIPTION_PLANS, FREE_TIER } from "@bestsellers/shared";
 import { SubscriptionPlan } from "@bestsellers/shared";
+import { useConfigStore } from "@/stores/config-store";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/ui/page-header";
 import { Link } from "@/i18n/navigation";
@@ -53,12 +53,14 @@ export default function UpgradePage() {
   const { user } = useAuth();
   const [annual, setAnnual] = useState(false);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const getPlanConfig = useConfigStore((s) => s.getPlanConfig);
 
   const currentPlan = user?.planInfo?.plan ?? null;
   const hasSubscription = user?.planInfo?.hasSubscription ?? false;
 
   const getFeatures = (plan: SubscriptionPlan) => {
-    const config = SUBSCRIPTION_PLANS[plan];
+    const config = getPlanConfig(plan);
+    if (!config) return [];
     return [
       t("featureCredits", { count: config.monthlyCredits }),
       t("featureBooks", { count: config.booksPerMonth }),
@@ -157,7 +159,8 @@ export default function UpgradePage() {
       {/* Plan Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {PLAN_ORDER.map((planKey) => {
-          const config = SUBSCRIPTION_PLANS[planKey];
+          const config = getPlanConfig(planKey);
+          if (!config) return null;
           const Icon = PLAN_ICONS[planKey];
           const isCurrent = currentPlan === planKey;
           const price = annual

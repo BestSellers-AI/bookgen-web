@@ -43,16 +43,30 @@ async function main() {
   // ============================================
   // Subscription Plans
   // ============================================
+  const aspiranteMetadata = {
+    plan: 'ASPIRANTE',
+    monthlyCredits: 300,
+    booksPerMonth: 3,
+    freeRegensPerMonth: 1,
+    commercialLicense: false,
+    queuePriority: 'standard',
+    creditAccumulationMonths: 0,
+    amazonDiscount: 0,
+    historyRetentionDays: 30,
+    fullEditor: false,
+    prioritySupport: false,
+  };
+
   const aspirante = await prisma.product.upsert({
     where: { slug: 'plan-aspirante' },
-    update: {},
+    update: { metadata: aspiranteMetadata },
     create: {
       name: 'Aspiring Author',
       slug: 'plan-aspirante',
       kind: 'SUBSCRIPTION_PLAN',
       description: 'Perfect for getting started with AI book generation',
       creditsAmount: 300,
-      metadata: { plan: 'ASPIRANTE' },
+      metadata: aspiranteMetadata,
       sortOrder: 1,
     },
   });
@@ -61,16 +75,30 @@ async function main() {
     { currency: 'usd', amount: 22800, billingInterval: 'ANNUAL', stripePriceId: 'price_1T9cTt9UYPL3yWYTMQAKeG1W' },
   ]);
 
+  const bestsellerMetadata = {
+    plan: 'BESTSELLER',
+    monthlyCredits: 750,
+    booksPerMonth: 7,
+    freeRegensPerMonth: 2,
+    commercialLicense: true,
+    queuePriority: 'priority',
+    creditAccumulationMonths: 1,
+    amazonDiscount: 10,
+    historyRetentionDays: 180,
+    fullEditor: true,
+    prioritySupport: false,
+  };
+
   const bestseller = await prisma.product.upsert({
     where: { slug: 'plan-bestseller' },
-    update: {},
+    update: { metadata: bestsellerMetadata },
     create: {
       name: 'BestSeller Author',
       slug: 'plan-bestseller',
       kind: 'SUBSCRIPTION_PLAN',
       description: 'For serious authors who want commercial rights',
       creditsAmount: 750,
-      metadata: { plan: 'BESTSELLER' },
+      metadata: bestsellerMetadata,
       sortOrder: 2,
     },
   });
@@ -79,16 +107,30 @@ async function main() {
     { currency: 'usd', amount: 46800, billingInterval: 'ANNUAL', stripePriceId: 'price_1T9cTu9UYPL3yWYT3alUpW00' },
   ]);
 
+  const eliteMetadata = {
+    plan: 'ELITE',
+    monthlyCredits: 2000,
+    booksPerMonth: 20,
+    freeRegensPerMonth: 5,
+    commercialLicense: true,
+    queuePriority: 'express',
+    creditAccumulationMonths: 3,
+    amazonDiscount: 15,
+    historyRetentionDays: null,
+    fullEditor: true,
+    prioritySupport: true,
+  };
+
   const elite = await prisma.product.upsert({
     where: { slug: 'plan-elite' },
-    update: {},
+    update: { metadata: eliteMetadata },
     create: {
       name: 'Elite Author',
       slug: 'plan-elite',
       kind: 'SUBSCRIPTION_PLAN',
       description: 'Maximum power for professional authors',
       creditsAmount: 2000,
-      metadata: { plan: 'ELITE' },
+      metadata: eliteMetadata,
       sortOrder: 3,
     },
   });
@@ -282,6 +324,85 @@ async function main() {
         remaining: 500,
         source: 'SEED',
       },
+    });
+  }
+
+  // ============================================
+  // Update Stripe Product IDs
+  // ============================================
+  const stripeProductIds: Record<string, string> = {
+    'plan-aspirante': 'prod_U7sEmBMvWyr6zA',
+    'plan-bestseller': 'prod_U7sE88EYTNawIY',
+    'plan-elite': 'prod_U7sEzndvdaV0MD',
+    'pack-100': 'prod_U7sEa7eJX2nFvv',
+    'pack-300': 'prod_U7sEBNzwjxltBA',
+    'pack-500': 'prod_U7sEWXU62GP2ib',
+    'one-time-book': 'prod_U7sE9Ygsf9HBNx',
+  };
+
+  for (const [slug, stripeId] of Object.entries(stripeProductIds)) {
+    await prisma.product.updateMany({
+      where: { slug },
+      data: { stripeProductId: stripeId },
+    });
+  }
+
+  // ============================================
+  // App Configuration (operational settings)
+  // ============================================
+  const appConfigs = [
+    {
+      key: 'CREDITS_COST',
+      value: {
+        BOOK_GENERATION: 100,
+        CHAPTER_REGENERATION: 10,
+        ADDON_COVER: 30,
+        ADDON_TRANSLATION: 50,
+        ADDON_COVER_TRANSLATION: 20,
+        ADDON_AMAZON_STANDARD: 40,
+        ADDON_AMAZON_PREMIUM: 80,
+        ADDON_IMAGES: 20,
+        ADDON_AUDIOBOOK: 60,
+      },
+    },
+    {
+      key: 'FREE_TIER',
+      value: {
+        previewsPerMonth: 3,
+        credits: 0,
+        booksPerMonth: 0,
+        freeRegensPerMonth: 0,
+        commercialLicense: false,
+        queuePriority: 'standard',
+        fullEditor: false,
+      },
+    },
+    {
+      key: 'BUNDLES',
+      value: {
+        BUNDLE_PUBLISH_PREMIUM: {
+          id: 'BUNDLE_PUBLISH_PREMIUM',
+          kinds: ['ADDON_COVER', 'ADDON_IMAGES', 'ADDON_AMAZON_PREMIUM'],
+          originalCost: 130,
+          cost: 110,
+          discountPercent: 15,
+        },
+        BUNDLE_GLOBAL_LAUNCH: {
+          id: 'BUNDLE_GLOBAL_LAUNCH',
+          kinds: ['ADDON_TRANSLATION', 'ADDON_COVER_TRANSLATION', 'ADDON_AMAZON_STANDARD'],
+          originalCost: 110,
+          cost: 90,
+          discountPercent: 18,
+        },
+      },
+    },
+  ];
+
+  for (const config of appConfigs) {
+    await prisma.appConfig.upsert({
+      where: { key: config.key },
+      update: { value: config.value },
+      create: { key: config.key, value: config.value },
     });
   }
 

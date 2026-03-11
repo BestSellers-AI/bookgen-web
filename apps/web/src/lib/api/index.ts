@@ -9,5 +9,6 @@ export { addonsApi } from './addons';
 export { shareApi } from './share';
 export { filesApi } from './files';
 export { adminApi } from './admin';
+export { configApi } from './config';
 
 export type * from './types';

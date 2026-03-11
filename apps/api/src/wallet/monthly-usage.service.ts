@@ -1,13 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { SubscriptionPlan } from '@prisma/client';
-import { FreeRegens, SUBSCRIPTION_PLANS } from '@bestsellers/shared';
+import { FreeRegens } from '@bestsellers/shared';
+import { ConfigDataService } from '../config-data/config-data.service';
 
 @Injectable()
 export class MonthlyUsageService {
   private readonly logger = new Logger(MonthlyUsageService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly configDataService: ConfigDataService,
+  ) {}
 
   /**
    * Get or create a MonthlyUsage record for the current month.
@@ -17,7 +21,8 @@ export class MonthlyUsageService {
     plan: SubscriptionPlan | null,
   ) {
     const month = this.getCurrentMonth();
-    const freeRegensLimit = plan ? SUBSCRIPTION_PLANS[plan].freeRegensPerMonth : 0;
+    const planConfig = plan ? await this.configDataService.getPlanConfig(plan) : null;
+    const freeRegensLimit = planConfig?.freeRegensPerMonth ?? 0;
 
     const usage = await this.prisma.monthlyUsage.upsert({
       where: {

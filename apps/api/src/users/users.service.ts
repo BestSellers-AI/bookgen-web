@@ -4,16 +4,18 @@ import { User, Prisma } from '@prisma/client';
 import {
   UserProfile,
   UserPlanInfo,
-  SUBSCRIPTION_PLANS,
-  FREE_TIER,
   SubscriptionStatus,
 } from '@bestsellers/shared';
+import { ConfigDataService } from '../config-data/config-data.service';
 
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly configDataService: ConfigDataService,
+  ) {}
 
   /**
    * Find a user by ID, excluding passwordHash and soft-deleted users.
@@ -146,17 +148,17 @@ export class UsersService {
     let planInfo: UserPlanInfo;
 
     if (activeSubscription) {
-      const planConfig = SUBSCRIPTION_PLANS[activeSubscription.plan];
+      const planConfig = await this.configDataService.getPlanConfig(activeSubscription.plan);
       planInfo = {
         hasSubscription: true,
         plan: activeSubscription.plan,
         limits: {
-          monthlyCredits: planConfig.monthlyCredits,
-          booksPerMonth: planConfig.booksPerMonth,
-          freeRegensPerMonth: planConfig.freeRegensPerMonth,
-          commercialLicense: planConfig.commercialLicense,
-          fullEditor: planConfig.fullEditor,
-          prioritySupport: planConfig.prioritySupport,
+          monthlyCredits: planConfig?.monthlyCredits ?? 0,
+          booksPerMonth: planConfig?.booksPerMonth ?? 0,
+          freeRegensPerMonth: planConfig?.freeRegensPerMonth ?? 0,
+          commercialLicense: planConfig?.commercialLicense ?? false,
+          fullEditor: planConfig?.fullEditor ?? false,
+          prioritySupport: planConfig?.prioritySupport ?? false,
         },
         subscription: {
           status: activeSubscription.status,
@@ -166,15 +168,16 @@ export class UsersService {
         },
       };
     } else {
+      const freeTier = await this.configDataService.getFreeTier();
       planInfo = {
         hasSubscription: false,
         plan: null,
         limits: {
-          monthlyCredits: FREE_TIER.credits,
-          booksPerMonth: FREE_TIER.booksPerMonth,
-          freeRegensPerMonth: FREE_TIER.freeRegensPerMonth,
-          commercialLicense: FREE_TIER.commercialLicense,
-          fullEditor: FREE_TIER.fullEditor,
+          monthlyCredits: freeTier.credits,
+          booksPerMonth: freeTier.booksPerMonth,
+          freeRegensPerMonth: freeTier.freeRegensPerMonth,
+          commercialLicense: freeTier.commercialLicense,
+          fullEditor: freeTier.fullEditor,
           prioritySupport: false,
         },
         subscription: null,

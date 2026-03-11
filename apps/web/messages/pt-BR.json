@@ -42,7 +42,8 @@
     "adminUsers": "Usuários",
     "adminBooks": "Livros",
     "adminSubs": "Assinaturas",
-    "adminPurchases": "Compras"
+    "adminPurchases": "Compras",
+    "adminProducts": "Produtos"
   },
   "notifications": {
     "title": "Notificações",

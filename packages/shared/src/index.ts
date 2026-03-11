@@ -18,6 +18,7 @@ export * from './types/audiobook';
 export * from './types/share';
 export * from './types/images';
 export * from './types/admin';
+export * from './types/config';
 
 // Utils
 export * from './utils';

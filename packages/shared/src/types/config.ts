@@ -1,0 +1,60 @@
+export interface AppConfigPayload {
+  subscriptionPlans: SubscriptionPlanConfig[];
+  creditPacks: CreditPackConfig[];
+  oneTimePurchase: OneTimePurchaseConfig | null;
+  creditsCost: Record<string, number>;
+  freeTier: FreeTierConfig;
+  bundles: Record<string, BundleConfigPayload>;
+}
+
+export interface SubscriptionPlanConfig {
+  plan: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  monthlyPriceCents: number;
+  annualPriceCents: number;
+  annualMonthlyEquivalentCents: number;
+  monthlyCredits: number;
+  booksPerMonth: number;
+  freeRegensPerMonth: number;
+  commercialLicense: boolean;
+  queuePriority: string;
+  creditAccumulationMonths: number;
+  amazonDiscount: number;
+  historyRetentionDays: number | null;
+  fullEditor: boolean;
+  prioritySupport: boolean;
+}
+
+export interface CreditPackConfig {
+  name: string;
+  slug: string;
+  credits: number;
+  priceCents: number;
+}
+
+export interface OneTimePurchaseConfig {
+  name: string;
+  slug: string;
+  priceCents: number;
+  description: string | null;
+}
+
+export interface FreeTierConfig {
+  previewsPerMonth: number;
+  credits: number;
+  booksPerMonth: number;
+  freeRegensPerMonth: number;
+  commercialLicense: boolean;
+  queuePriority: string;
+  fullEditor: boolean;
+}
+
+export interface BundleConfigPayload {
+  id: string;
+  kinds: string[];
+  originalCost: number;
+  cost: number;
+  discountPercent: number;
+}

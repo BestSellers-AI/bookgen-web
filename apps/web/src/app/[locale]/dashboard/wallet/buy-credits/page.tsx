@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { checkoutApi } from "@/lib/api/checkout";
-import { CREDIT_PACKS } from "@bestsellers/shared";
+import { useConfigStore } from "@/stores/config-store";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/ui/page-header";
 
@@ -26,6 +26,7 @@ export default function BuyCreditsPage() {
   const t = useTranslations("buyCredits");
   const tCommon = useTranslations("common");
   const [loadingSlug, setLoadingSlug] = useState<string | null>(null);
+  const creditPacks = useConfigStore((s) => s.getCreditPacks)();
 
   const handleBuy = async (slug: string) => {
     setLoadingSlug(slug);
@@ -50,12 +51,12 @@ export default function BuyCreditsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {CREDIT_PACKS.map((pack, i) => {
+        {creditPacks.map((pack, i) => {
           const Icon = PACK_ICONS[i];
           const pricePerCredit = (pack.priceCents / pack.credits / 100).toFixed(
             2
           );
-          const isBest = i === CREDIT_PACKS.length - 1;
+          const isBest = i === creditPacks.length - 1;
 
           return (
             <div

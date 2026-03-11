@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import Stripe from 'stripe';
 import { CreditType, WalletTransactionType, NotificationType } from '@prisma/client';
-import { SUBSCRIPTION_PLANS, CREDITS_COST } from '@bestsellers/shared';
+import { ConfigDataService } from '../config-data/config-data.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { WalletService } from '../wallet/wallet.service';
 import { CreditLedgerService } from '../wallet/credit-ledger.service';
@@ -16,6 +16,7 @@ export class StripeWebhookService {
     private readonly walletService: WalletService,
     private readonly creditLedgerService: CreditLedgerService,
     private readonly notificationService: NotificationService,
+    private readonly configDataService: ConfigDataService,
   ) {}
 
   /**
@@ -202,7 +203,7 @@ export class StripeWebhookService {
       }
 
       case 'ONE_TIME_BOOK': {
-        const credits = CREDITS_COST.BOOK_GENERATION;
+        const credits = await this.configDataService.getCreditsCost('BOOK_GENERATION');
         await this.walletService.addCredits(userId, credits, CreditType.PURCHASE, {
           source: 'purchase',
           sourceId: purchase.id,
@@ -349,7 +350,7 @@ export class StripeWebhookService {
     }
 
     // Find plan config
-    const planConfig = SUBSCRIPTION_PLANS[subscription.plan];
+    const planConfig = await this.configDataService.getPlanConfig(subscription.plan);
     if (!planConfig) {
       this.logger.error(`No plan config found for plan: ${subscription.plan}`);
       return;
@@ -357,10 +358,10 @@ export class StripeWebhookService {
 
     // Calculate credit expiration based on creditAccumulationMonths
     let expiresAt: Date | undefined;
-    if (planConfig.creditAccumulationMonths > 0) {
+    if ((planConfig.creditAccumulationMonths ?? 0) > 0) {
       expiresAt = new Date();
       expiresAt.setMonth(
-        expiresAt.getMonth() + planConfig.creditAccumulationMonths,
+        expiresAt.getMonth() + (planConfig.creditAccumulationMonths ?? 0),
       );
     } else {
       // Credits expire at end of current period
