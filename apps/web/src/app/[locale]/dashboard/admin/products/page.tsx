@@ -92,6 +92,22 @@ const CREDIT_COST_KEYS = [
 ] as const;
 
 // ---------------------------------------------------------------------------
+// Subscription metadata fields definition
+// ---------------------------------------------------------------------------
+const PLAN_METADATA_FIELDS = [
+  { key: "monthlyCredits", type: "number" as const },
+  { key: "booksPerMonth", type: "number" as const },
+  { key: "freeRegensPerMonth", type: "number" as const },
+  { key: "creditAccumulationMonths", type: "number" as const },
+  { key: "amazonDiscount", type: "number" as const },
+  { key: "historyRetentionDays", type: "number_nullable" as const },
+  { key: "commercialLicense", type: "boolean" as const },
+  { key: "fullEditor", type: "boolean" as const },
+  { key: "prioritySupport", type: "boolean" as const },
+  { key: "queuePriority", type: "select" as const, options: ["standard", "priority", "express"] },
+] as const;
+
+// ---------------------------------------------------------------------------
 // Translations type alias
 // ---------------------------------------------------------------------------
 type T = ReturnType<typeof useTranslations>;
@@ -519,19 +535,21 @@ function EditProductDialog({
   const [description, setDescription] = useState(product.description ?? "");
   const [isActive, setIsActive] = useState(product.isActive);
   const [sortOrder, setSortOrder] = useState(product.sortOrder);
-  const [metadataStr, setMetadataStr] = useState(
-    product.metadata ? JSON.stringify(product.metadata, null, 2) : "{}",
-  );
+  const [creditsAmount, setCreditsAmount] = useState(product.creditsAmount ?? 0);
+  const isSub = product.kind === "SUBSCRIPTION_PLAN";
+
+  // Structured metadata for subscriptions
+  const initialMeta = (product.metadata ?? {}) as Record<string, any>;
+  const [meta, setMeta] = useState<Record<string, any>>({ ...initialMeta });
+
+  const updateMeta = (key: string, value: any) => {
+    setMeta((prev) => ({ ...prev, [key]: value }));
+  };
+
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
-    let metadata: Record<string, any> | undefined;
-    try {
-      metadata = JSON.parse(metadataStr);
-    } catch {
-      toast.error(t("invalidJson"));
-      return;
-    }
+    const metadata = isSub ? { ...meta, plan: initialMeta.plan } : initialMeta;
 
     setSaving(true);
     try {
@@ -540,6 +558,7 @@ function EditProductDialog({
         description: description || undefined,
         isActive,
         sortOrder,
+        creditsAmount: creditsAmount || undefined,
         metadata,
       });
       toast.success(t("productUpdated"));
@@ -572,6 +591,7 @@ function EditProductDialog({
           <DialogTitle>{t("editProduct")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
+          {/* Basic fields */}
           <div className="space-y-2">
             <Label>{t("thName")}</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} />
@@ -600,31 +620,106 @@ function EditProductDialog({
             </div>
           </div>
 
-          {product.kind === "SUBSCRIPTION_PLAN" && (
-            <div className="space-y-2">
-              <Label>{t("metadataJson")}</Label>
-              <p className="text-xs text-muted-foreground">{t("metadataHintSub")}</p>
-              <textarea
-                value={metadataStr}
-                onChange={(e) => setMetadataStr(e.target.value)}
-                rows={8}
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ring"
-              />
+          {/* Credits granted */}
+          <div className="space-y-2">
+            <Label>{t("thCreditsGranted")}</Label>
+            <p className="text-xs text-muted-foreground">{t("creditsGrantedHint")}</p>
+            <Input
+              type="number"
+              min="0"
+              value={creditsAmount}
+              onChange={(e) => setCreditsAmount(Number(e.target.value))}
+              className="w-32"
+            />
+          </div>
+
+          {/* Subscription plan features (structured form) */}
+          {isSub && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Label className="text-sm font-bold">{t("planFeaturesTitle")}</Label>
+                <Badge variant="outline" className="text-[9px] font-mono">
+                  {initialMeta.plan ?? "—"}
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground">{t("planFeaturesDesc")}</p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {PLAN_METADATA_FIELDS.map((field) => {
+                  const val = meta[field.key];
+
+                  if (field.type === "boolean") {
+                    return (
+                      <div key={field.key} className="flex items-center justify-between p-3 rounded-xl border border-border bg-accent/10">
+                        <Label className="text-xs">
+                          {t(`meta_${field.key}` as any)}
+                        </Label>
+                        <Switch
+                          checked={!!val}
+                          onCheckedChange={(v) => updateMeta(field.key, v)}
+                        />
+                      </div>
+                    );
+                  }
+
+                  if (field.type === "select") {
+                    return (
+                      <div key={field.key} className="p-3 rounded-xl border border-border bg-accent/10 space-y-1">
+                        <Label className="text-xs">
+                          {t(`meta_${field.key}` as any)}
+                        </Label>
+                        <select
+                          value={val ?? "standard"}
+                          onChange={(e) => updateMeta(field.key, e.target.value)}
+                          className="w-full rounded-lg border border-border bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                        >
+                          {field.options.map((opt) => (
+                            <option key={opt} value={opt}>
+                              {t(`queuePriority_${opt}` as any)}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    );
+                  }
+
+                  // number or number_nullable
+                  return (
+                    <div key={field.key} className="p-3 rounded-xl border border-border bg-accent/10 space-y-1">
+                      <Label className="text-xs">
+                        {t(`meta_${field.key}` as any)}
+                      </Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          min={field.type === "number_nullable" ? -1 : 0}
+                          value={val ?? (field.type === "number_nullable" ? "" : 0)}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            if (field.type === "number_nullable" && raw === "") {
+                              updateMeta(field.key, null);
+                            } else {
+                              updateMeta(field.key, Number(raw));
+                            }
+                          }}
+                          placeholder={field.type === "number_nullable" ? t("nullMeansUnlimited") : undefined}
+                          className="h-8 w-full font-mono text-sm"
+                        />
+                        {field.key === "amazonDiscount" && (
+                          <span className="text-xs text-muted-foreground">%</span>
+                        )}
+                      </div>
+                      {field.type === "number_nullable" && (
+                        <p className="text-[10px] text-muted-foreground">{t("nullMeansUnlimited")}</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
 
-          {product.kind !== "SUBSCRIPTION_PLAN" && product.metadata && (
-            <div className="space-y-2">
-              <Label>{t("metadataJson")}</Label>
-              <textarea
-                value={metadataStr}
-                onChange={(e) => setMetadataStr(e.target.value)}
-                rows={4}
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ring"
-              />
-            </div>
-          )}
-
+          {/* Prices */}
           {product.prices.length > 0 && (
             <div className="space-y-2">
               <Label>{t("prices")}</Label>

@@ -28,6 +28,11 @@ export class UpdateProductDto {
   @IsOptional()
   @IsInt()
   sortOrder?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  creditsAmount?: number;
 }
 
 export class CreatePriceDto {

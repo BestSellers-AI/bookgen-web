@@ -199,6 +199,7 @@ export const adminApi = {
       metadata?: Record<string, any>;
       isActive?: boolean;
       sortOrder?: number;
+      creditsAmount?: number;
     },
   ) => apiClient.put<AdminProduct>(`/admin/products/${id}`, data).then((r) => r.data),
 

@@ -469,6 +469,7 @@ export class AdminService {
         metadata: dto.metadata,
         isActive: dto.isActive,
         sortOrder: dto.sortOrder,
+        creditsAmount: dto.creditsAmount,
       },
       include: { prices: true },
     });

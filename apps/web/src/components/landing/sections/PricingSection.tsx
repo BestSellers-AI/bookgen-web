@@ -6,7 +6,8 @@ import { useTranslations } from 'next-intl'
 import PlanCard from '@/components/landing/pricing/PlanCard'
 import CreditCard from '@/components/landing/pricing/CreditCard'
 import PlanCalculator from '@/components/landing/pricing/PlanCalculator'
-import { PLANS, CREDIT_PACKS, SERVICES } from '@/lib/landing-pricing-data'
+import { buildPlans, buildCreditPacks, buildServices } from '@/lib/landing-pricing-data'
+import { useConfigStore } from '@/stores/config-store'
 import clsx from 'clsx'
 
 type PricingTab = 'plans' | 'credits'
@@ -17,6 +18,16 @@ export default function PricingSection() {
   const [activeTab, setActiveTab] = useState<PricingTab>('plans')
   const [billing, setBilling] = useState<BillingPeriod>('annual')
   const [highlightedPlan, setHighlightedPlan] = useState<string | null>(null)
+
+  // Pull dynamic data from config store (admin-managed)
+  const configPlans = useConfigStore((s) => s.config?.subscriptionPlans)
+  const configPacks = useConfigStore((s) => s.config?.creditPacks)
+  const configCreditsCost = useConfigStore((s) => s.config?.creditsCost)
+
+  // Merge config store data with static UI data
+  const plans = buildPlans(configPlans)
+  const creditPacks = buildCreditPacks(configPacks)
+  const services = buildServices(configCreditsCost)
 
   const comparisonRows = [
     { label: t('whySubRow1Label'), price: t('whySubRow1Price'), savings: t('whySubRow1Savings'), highlight: false },
@@ -117,7 +128,7 @@ export default function PricingSection() {
               <PlanCalculator onRecommend={setHighlightedPlan} />
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-                {PLANS.map((plan, i) => (
+                {plans.map((plan, i) => (
                   <motion.div
                     key={plan.id}
                     id={`plan-${plan.id}`}
@@ -230,7 +241,7 @@ export default function PricingSection() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {CREDIT_PACKS.map((pack, i) => (
+                {creditPacks.map((pack, i) => (
                   <motion.div
                     key={pack.id}
                     initial={{ opacity: 0, y: 24 }}
@@ -261,7 +272,7 @@ export default function PricingSection() {
                       </tr>
                     </thead>
                     <tbody>
-                      {SERVICES.map((service) => (
+                      {services.map((service) => (
                         <tr
                           key={service.nameKey}
                           className="border-b dark:border-white/[0.04] border-navy-900/[0.04] last:border-0 dark:hover:bg-white/[0.02] hover:bg-navy-900/[0.02] transition-colors"

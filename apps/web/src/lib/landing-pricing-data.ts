@@ -1,3 +1,5 @@
+import type { SubscriptionPlanConfig, CreditPackConfig } from '@bestsellers/shared'
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface PlanFeature {
@@ -8,6 +10,7 @@ export interface PlanFeature {
 
 export interface Plan {
   id: string
+  planEnum: string // maps to SubscriptionPlanConfig.plan (ASPIRANTE, BESTSELLER, ELITE)
   nameKey: string
   credits: number
   booksPerMonth: number
@@ -23,6 +26,7 @@ export interface Plan {
 
 export interface CreditPack {
   id: string
+  slug: string // maps to CreditPackConfig.slug
   nameKey: string
   credits: number
   price: number
@@ -35,7 +39,8 @@ export interface CreditPack {
 
 export interface Service {
   nameKey: string
-  credits: number
+  costKey: string // maps to creditsCost key
+  credits: number // fallback
 }
 
 export interface CalculatorOption {
@@ -45,17 +50,25 @@ export interface CalculatorOption {
   recommendationLabelKey: string
 }
 
-// ─── Plans ────────────────────────────────────────────────────────────────────
+// ─── Plan UI data (features, badges, CTAs) ───────────────────────────────────
+// Prices and credits are overridden from config store at runtime
 
-export const PLANS: Plan[] = [
+interface PlanUiData {
+  id: string
+  planEnum: string
+  nameKey: string
+  popular: boolean
+  badgeKey?: string
+  ctaKey: string
+  highlightKey?: string
+  features: PlanFeature[]
+}
+
+const PLAN_UI: PlanUiData[] = [
   {
     id: 'autor',
+    planEnum: 'ASPIRANTE',
     nameKey: 'planAutorName',
-    credits: 300,
-    booksPerMonth: 3,
-    monthlyPrice: 29,
-    annualMonthlyPrice: 19,
-    annualTotal: 228,
     popular: false,
     ctaKey: 'planAutorCta',
     highlightKey: 'planAutorHighlight',
@@ -77,12 +90,8 @@ export const PLANS: Plan[] = [
   },
   {
     id: 'bestseller',
+    planEnum: 'BESTSELLER',
     nameKey: 'planBestsellerName',
-    credits: 750,
-    booksPerMonth: 7,
-    monthlyPrice: 59,
-    annualMonthlyPrice: 39,
-    annualTotal: 468,
     popular: true,
     badgeKey: 'planBadgeMostPopular',
     ctaKey: 'planBestsellerCta',
@@ -106,12 +115,8 @@ export const PLANS: Plan[] = [
   },
   {
     id: 'editora',
+    planEnum: 'ELITE',
     nameKey: 'planEliteName',
-    credits: 2000,
-    booksPerMonth: 20,
-    monthlyPrice: 139,
-    annualMonthlyPrice: 89,
-    annualTotal: 1068,
     popular: false,
     ctaKey: 'planEliteCta',
     highlightKey: 'planEliteHighlight',
@@ -134,14 +139,49 @@ export const PLANS: Plan[] = [
   },
 ]
 
-// ─── Credit Packs ─────────────────────────────────────────────────────────────
+// Fallback prices (used when config store hasn't loaded yet)
+const PLAN_PRICE_FALLBACKS: Record<string, { monthlyPrice: number; annualMonthlyPrice: number; annualTotal: number; credits: number; booksPerMonth: number }> = {
+  ASPIRANTE: { monthlyPrice: 29, annualMonthlyPrice: 19, annualTotal: 228, credits: 300, booksPerMonth: 3 },
+  BESTSELLER: { monthlyPrice: 59, annualMonthlyPrice: 39, annualTotal: 468, credits: 750, booksPerMonth: 7 },
+  ELITE: { monthlyPrice: 139, annualMonthlyPrice: 89, annualTotal: 1068, credits: 2000, booksPerMonth: 20 },
+}
 
-export const CREDIT_PACKS: CreditPack[] = [
+/**
+ * Build Plan[] by merging static UI data with config store plan data.
+ * If configPlans is empty/null, uses hardcoded fallbacks.
+ */
+export function buildPlans(configPlans?: SubscriptionPlanConfig[]): Plan[] {
+  return PLAN_UI.map((ui) => {
+    const config = configPlans?.find((p) => p.plan === ui.planEnum)
+    const fallback = PLAN_PRICE_FALLBACKS[ui.planEnum]
+
+    return {
+      ...ui,
+      credits: config?.monthlyCredits ?? fallback.credits,
+      booksPerMonth: config?.booksPerMonth ?? fallback.booksPerMonth,
+      monthlyPrice: config ? config.monthlyPriceCents / 100 : fallback.monthlyPrice,
+      annualMonthlyPrice: config ? config.annualMonthlyEquivalentCents / 100 : fallback.annualMonthlyPrice,
+      annualTotal: config ? config.annualPriceCents / 100 : fallback.annualTotal,
+    }
+  })
+}
+
+// ─── Credit Pack UI data ─────────────────────────────────────────────────────
+
+interface CreditPackUiData {
+  slug: string
+  nameKey: string
+  popular: boolean
+  labelKey: string
+  ctaKey: string
+  useCases: { emoji: string; textKey: string }[]
+  features: PlanFeature[]
+}
+
+const CREDIT_PACK_UI: CreditPackUiData[] = [
   {
-    id: 'solo',
+    slug: 'pack-100',
     nameKey: 'creditSoloName',
-    credits: 100,
-    price: 19,
     popular: false,
     labelKey: 'creditSoloLabel',
     ctaKey: 'creditSoloCta',
@@ -160,10 +200,8 @@ export const CREDIT_PACKS: CreditPack[] = [
     ],
   },
   {
-    id: 'pack',
+    slug: 'pack-300',
     nameKey: 'creditPackName',
-    credits: 400,
-    price: 69,
     popular: true,
     labelKey: 'creditPackLabel',
     ctaKey: 'creditPackCta',
@@ -183,10 +221,8 @@ export const CREDIT_PACKS: CreditPack[] = [
     ],
   },
   {
-    id: 'bundle',
+    slug: 'pack-500',
     nameKey: 'creditBundleName',
-    credits: 1500,
-    price: 249,
     popular: false,
     labelKey: 'creditBundleLabel',
     ctaKey: 'creditBundleCta',
@@ -208,17 +244,57 @@ export const CREDIT_PACKS: CreditPack[] = [
   },
 ]
 
+// Fallback values for credit packs
+const CREDIT_PACK_FALLBACKS: Record<string, { credits: number; price: number }> = {
+  'pack-100': { credits: 100, price: 9.90 },
+  'pack-300': { credits: 300, price: 24.90 },
+  'pack-500': { credits: 500, price: 34.90 },
+}
+
+/**
+ * Build CreditPack[] by merging static UI data with config store credit pack data.
+ */
+export function buildCreditPacks(configPacks?: CreditPackConfig[]): CreditPack[] {
+  return CREDIT_PACK_UI.map((ui) => {
+    const config = configPacks?.find((p) => p.slug === ui.slug)
+    const fallback = CREDIT_PACK_FALLBACKS[ui.slug]
+
+    return {
+      id: ui.slug,
+      slug: ui.slug,
+      nameKey: ui.nameKey,
+      credits: config?.credits ?? fallback?.credits ?? 100,
+      price: config ? config.priceCents / 100 : (fallback?.price ?? 0),
+      popular: ui.popular,
+      labelKey: ui.labelKey,
+      ctaKey: ui.ctaKey,
+      useCases: ui.useCases,
+      features: ui.features,
+    }
+  })
+}
+
 // ─── Services ─────────────────────────────────────────────────────────────────
 
 export const SERVICES: Service[] = [
-  { nameKey: 'serviceBook', credits: 100 },
-  { nameKey: 'serviceCover', credits: 150 },
-  { nameKey: 'serviceTranslation', credits: 100 },
-  { nameKey: 'serviceCoverTranslation', credits: 150 },
-  { nameKey: 'serviceImagePack', credits: 150 },
-  { nameKey: 'servicePublishStandard', credits: 700 },
-  { nameKey: 'servicePublishPremium', credits: 1000 },
+  { nameKey: 'serviceBook', costKey: 'BOOK_GENERATION', credits: 100 },
+  { nameKey: 'serviceCover', costKey: 'ADDON_COVER', credits: 30 },
+  { nameKey: 'serviceTranslation', costKey: 'ADDON_TRANSLATION', credits: 50 },
+  { nameKey: 'serviceCoverTranslation', costKey: 'ADDON_COVER_TRANSLATION', credits: 20 },
+  { nameKey: 'serviceImagePack', costKey: 'ADDON_IMAGES', credits: 20 },
+  { nameKey: 'servicePublishStandard', costKey: 'ADDON_AMAZON_STANDARD', credits: 40 },
+  { nameKey: 'servicePublishPremium', costKey: 'ADDON_AMAZON_PREMIUM', credits: 80 },
 ]
+
+/**
+ * Build service list with credit costs from config store.
+ */
+export function buildServices(creditsCost?: Record<string, number>): Service[] {
+  return SERVICES.map((s) => ({
+    ...s,
+    credits: creditsCost?.[s.costKey] ?? s.credits,
+  }))
+}
 
 // ─── Calculator ───────────────────────────────────────────────────────────────
 
