@@ -184,6 +184,45 @@ All dispatches use `N8nClientService.dispatch()`:
 }
 ```
 
+#### Enriched Dispatch — ADDON_COVER & ADDON_IMAGES
+
+When `addonKind` is `ADDON_COVER` or `ADDON_IMAGES`, the dispatch payload is enriched with full book context so n8n can generate contextually relevant images:
+
+```json
+{
+  "bookId": "clxyz...",
+  "addonId": "addon1...",
+  "addonKind": "ADDON_COVER",
+  "bookContext": {
+    "title": "AI Health Revolution",
+    "subtitle": "How AI transforms medicine",
+    "author": "John Doe",
+    "briefing": "A book about AI in healthcare...",
+    "planning": { "chapters": [...] },
+    "settings": { "tone": "professional", "language": "en", ... },
+    "introduction": "This book explores...",
+    "conclusion": "As we have seen...",
+    "finalConsiderations": "The future depends on...",
+    "glossary": "AI — Artificial Intelligence\n...",
+    "appendix": "Supplementary material...",
+    "closure": "Final words...",
+    "wordCount": 45000,
+    "pageCount": 180,
+    "chapters": [
+      { "id": "ch1...", "sequence": 1, "title": "Introduction to AI" },
+      { "id": "ch2...", "sequence": 2, "title": "AI in Diagnostics" }
+    ]
+  },
+  "callbackBaseUrl": "http://localhost:3001/api"
+}
+```
+
+> **Note:** `bookContext.chapters` includes id, sequence, and title only (no content). This allows n8n to generate one illustration per chapter and tag each with the chapter's id.
+
+#### Re-Dispatch for More Variations
+
+Both `ADDON_COVER` and `ADDON_IMAGES` can be dispatched multiple times for the same book. Each dispatch creates a new `BookAddon` record, debits credits, and generates additional variations. The callback creates new `BookFile` (covers) or `BookImage` (illustrations) records — they are additive, never replacing existing ones. The user selects which cover/image to use from the full gallery.
+
 **Credit costs by addon type:**
 
 | Addon Kind | Credits |
@@ -530,6 +569,32 @@ POST /api/hooks/n8n/addon-result
 }
 ```
 
+**ADDON_IMAGES result — supports two formats:**
+
+Format A (structured):
+```json
+{
+  "resultData": {
+    "images": [
+      { "chapterId": "ch1...", "prompt": "...", "imageUrl": "https://...", "caption": "...", "position": 0 }
+    ]
+  }
+}
+```
+
+Format B (variations — same as ADDON_COVER):
+```json
+{
+  "resultData": {
+    "variations": [
+      { "url": "https://...", "label": "Dark theme" }
+    ]
+  }
+}
+```
+
+> **Note:** Format B is the current n8n output. Images arrive without `chapterId` — the user assigns each image to a chapter via the frontend gallery. The backend normalizes both formats into `BookImage` records.
+
 **Processing (success):**
 1. Idempotency: skip if addon already `COMPLETED` or `CANCELLED`
 2. Run `processAddonSpecific()` — creates product-specific DB records (see §3)
@@ -574,15 +639,30 @@ POST /api/hooks/n8n/translation-chapter
 
 When an addon completes successfully, `processAddonSpecific()` creates product-specific database records:
 
-| Addon Kind | Records Created |
-|------------|----------------|
-| `ADDON_COVER` | `BookFile` per variation (type: `COVER_IMAGE`) |
-| `ADDON_TRANSLATION` | `BookTranslation` (status: `TRANSLATING`) + `TranslationChapter` per chapter |
-| `ADDON_COVER_TRANSLATION` | `BookFile` (type: `COVER_TRANSLATED`) |
-| `ADDON_AMAZON_STANDARD` | `PublishingRequest` (status: `READY`) |
-| `ADDON_AMAZON_PREMIUM` | `PublishingRequest` (status: `READY`) |
-| `ADDON_IMAGES` | `BookImage` per image |
-| `ADDON_AUDIOBOOK` | `Audiobook` + `AudiobookChapter` per chapter |
+| Addon Kind | Records Created | Selection Model |
+|------------|----------------|-----------------|
+| `ADDON_COVER` | `BookFile` per variation (type: `COVER_IMAGE`) | User selects one → `Book.selectedCoverFileId` |
+| `ADDON_TRANSLATION` | `BookTranslation` (status: `TRANSLATING`) + `TranslationChapter` per chapter | — |
+| `ADDON_COVER_TRANSLATION` | `BookFile` (type: `COVER_TRANSLATED`) | — |
+| `ADDON_AMAZON_STANDARD` | `PublishingRequest` (status: `READY`) | — |
+| `ADDON_AMAZON_PREMIUM` | `PublishingRequest` (status: `READY`) | — |
+| `ADDON_IMAGES` | `BookImage` per image (from `variations` or `images`) | User assigns to chapter → `Chapter.selectedImageId` + `BookImage.chapterId` |
+| `ADDON_AUDIOBOOK` | `Audiobook` + `AudiobookChapter` per chapter | — |
+
+### Cover Selection
+
+After `ADDON_COVER` completes, the user picks a cover from the gallery:
+- **Endpoint:** `PATCH /api/books/:bookId/addons/cover/:fileId`
+- **Effect:** Sets `Book.selectedCoverFileId` → this cover is used everywhere (book list, detail, share page)
+- **Fallback:** If no cover selected, `coverUrl` falls back to the first `COVER_IMAGE` BookFile
+
+### Chapter Image Selection
+
+After `ADDON_IMAGES` completes, the user assigns images to chapters:
+- **Endpoint:** `PATCH /api/books/:bookId/addons/chapters/:chapterId/image/:imageId`
+- **Effect:** Sets `Chapter.selectedImageId` AND updates `BookImage.chapterId` (in a transaction)
+- Images arrive from n8n without `chapterId` — the user assigns them via the frontend gallery
+- One image per chapter (selecting a new one replaces the previous selection)
 
 ---
 
@@ -986,14 +1066,15 @@ Every callback handler checks current status before processing to prevent duplic
 
 #### Addon Workflow (`/webhook/process-addon`)
 1. Receive bookId, addonId, addonKind, params
-2. Process based on addonKind:
-   - Cover: generate cover image variations
-   - Translation: translate all chapters (callback per chapter via `/translation-chapter`)
-   - Amazon: package for publishing
-   - Images: generate chapter illustrations
-   - Audiobook: generate audio narration
-3. Call back: `POST ${callbackBaseUrl}/hooks/n8n/addon-result`
-4. For translation: also call `POST ${callbackBaseUrl}/hooks/n8n/translation-chapter` per chapter
+2. For `ADDON_COVER` and `ADDON_IMAGES`: payload includes `bookContext` with full book metadata + chapter list (see §1.5)
+3. Process based on addonKind:
+   - **Cover:** Generate cover image variations using book context. Return `resultData.variations = [{ url, label }]`. Each variation becomes a `BookFile` (type: `COVER_IMAGE`). Can be re-dispatched for "+6 more variations" (additive).
+   - **Images:** Generate chapter illustrations using book context + chapter list. Return `resultData.variations = [{ url, label }]` (or `resultData.images = [{ imageUrl, prompt, caption, position, chapterId? }]`). Each becomes a `BookImage`. Images can arrive without `chapterId` — the user assigns them to chapters in the frontend. Can be re-dispatched for "+6 more illustrations" (additive).
+   - **Translation:** Translate all chapters (callback per chapter via `/translation-chapter`)
+   - **Amazon:** Package for publishing
+   - **Audiobook:** Generate audio narration
+4. Call back: `POST ${callbackBaseUrl}/hooks/n8n/addon-result`
+5. For translation: also call `POST ${callbackBaseUrl}/hooks/n8n/translation-chapter` per chapter
 
 ### Security Requirements for n8n
 

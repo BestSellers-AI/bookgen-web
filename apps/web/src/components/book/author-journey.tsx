@@ -426,8 +426,8 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
     try {
       await addonsApi.selectChapterImage(book.id, chapterId, imageId);
       toast.success(tj("imageSelected"));
-      setImageGalleryOpen(false);
       setExpandedImage(null);
+      setSelectedChapterForImage("");
       onRefetch();
     } catch {
       toast.error(t("requestError"));
@@ -1053,13 +1053,14 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
             <div className="pb-6 space-y-6">
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {bookImages.map((img) => {
-                  const isSelected = book.chapters.some((ch) => ch.selectedImageId === img.id);
+                  const assignedChapter = book.chapters.find((ch) => ch.selectedImageId === img.id);
 
                   return (
                     <ImageGridItem
                       key={img.id}
                       img={img}
-                      isSelected={isSelected}
+                      isSelected={!!assignedChapter}
+                      chapterLabel={assignedChapter ? `${assignedChapter.sequence}. ${assignedChapter.title}` : undefined}
                       onExpand={(data) => {
                         setSelectedChapterForImage("");
                         setExpandedImage(data);
@@ -1609,11 +1610,13 @@ function BundleCard({
 function ImageGridItem({
   img,
   isSelected,
+  chapterLabel,
   onExpand,
   tj,
 }: {
   img: BookImageSummary;
   isSelected: boolean;
+  chapterLabel?: string;
   onExpand: (data: { id: string; url: string; caption: string | null; chapterId: string | null }) => void;
   tj: ReturnType<typeof useTranslations>;
 }) {
@@ -1638,6 +1641,15 @@ function ImageGridItem({
           <div className="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg">
             <CheckCircle2 className="w-4 h-4 text-white" />
           </div>
+        </div>
+      )}
+
+      {/* Chapter label badge */}
+      {chapterLabel && (
+        <div className="absolute bottom-0 inset-x-0 bg-black/60 backdrop-blur-sm px-2 py-1.5">
+          <span className="text-white text-[10px] font-bold line-clamp-1">
+            {chapterLabel}
+          </span>
         </div>
       )}
 
