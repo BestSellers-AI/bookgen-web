@@ -7,6 +7,7 @@ import {
   XCircle,
   Save,
   Loader2,
+  Info,
 } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/ui/page-header";
@@ -46,11 +47,22 @@ function kindLabel(kind: string): string {
 }
 
 // ---------------------------------------------------------------------------
+// Hint box component
+// ---------------------------------------------------------------------------
+function HintBox({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex gap-3 p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10 text-sm text-muted-foreground">
+      <Info className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
+      <div className="space-y-1">{children}</div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Product-kind grouping
 // ---------------------------------------------------------------------------
-const SUBSCRIPTION_KINDS = new Set(["BOOK_GENERATION"]);
+const SUBSCRIPTION_KINDS = new Set(["SUBSCRIPTION_PLAN"]);
 const CREDIT_PACK_KINDS = new Set(["CREDIT_PACK"]);
-// Everything else is "addon / one-time"
 
 function isSubscription(p: AdminProduct) {
   return SUBSCRIPTION_KINDS.has(p.kind);
@@ -142,7 +154,18 @@ export default function AdminProductsPage() {
         </TabsList>
 
         {/* ── Subscription Plans ────────────────────────────────────────── */}
-        <TabsContent value="subscriptions">
+        <TabsContent value="subscriptions" className="space-y-4">
+          <HintBox>
+            <p className="font-semibold text-foreground">How subscription pricing works</p>
+            <p>Each plan has <strong>two prices</strong>: Monthly and Annual. Users pay via Stripe Checkout and receive <strong>monthly credits</strong> on each billing cycle.</p>
+            <p>Plan features (credits/month, books/month, regens, commercial license, etc.) are stored in the product <strong>Metadata</strong> field. Click the pencil icon to edit.</p>
+            <ul className="list-disc list-inside space-y-0.5 text-xs">
+              <li><strong>Aspirante</strong> — Entry tier: 300 cr/mo, 3 books, no commercial license</li>
+              <li><strong>BestSeller</strong> — Mid tier: 750 cr/mo, 7 books, commercial license, credit rollover 1 month</li>
+              <li><strong>Elite</strong> — Top tier: 2000 cr/mo, 20 books, express queue, credit rollover 3 months</li>
+            </ul>
+            <p className="text-xs text-amber-400">Stripe prices are immutable. To change a price, add a new one and deactivate the old one.</p>
+          </HintBox>
           <ProductTable
             products={subscriptionProducts}
             showBilling
@@ -151,7 +174,13 @@ export default function AdminProductsPage() {
         </TabsContent>
 
         {/* ── Credit Packs ─────────────────────────────────────────────── */}
-        <TabsContent value="credit-packs">
+        <TabsContent value="credit-packs" className="space-y-4">
+          <HintBox>
+            <p className="font-semibold text-foreground">How credit packs work</p>
+            <p>One-time purchases via Stripe. User pays, gets credits added to wallet. <strong>Credits never expire.</strong></p>
+            <p>The <strong>Credits</strong> column shows how many credits the user receives. The price is what they pay in dollars.</p>
+            <p className="text-xs">Example: "300 Credits" pack costs $24.90 and grants 300 credits ($0.083/credit).</p>
+          </HintBox>
           <ProductTable
             products={creditPacks}
             onRefresh={fetchAll}
@@ -159,7 +188,18 @@ export default function AdminProductsPage() {
         </TabsContent>
 
         {/* ── Addons & One-Time ────────────────────────────────────────── */}
-        <TabsContent value="addons">
+        <TabsContent value="addons" className="space-y-4">
+          <HintBox>
+            <p className="font-semibold text-foreground">How addons and one-time purchases work</p>
+            <p><strong>Addons</strong> are paid with credits (not money). The credit cost for each addon is configured in the <strong>App Config</strong> tab under <code className="bg-accent/50 px-1 rounded">CREDITS_COST</code>.</p>
+            <p><strong>One-Time Book</strong> ("Obra Aspirante") is a Stripe payment that grants credits equal to 1 book generation (100 credits for $19).</p>
+            <p><strong>Book Generation</strong> is an internal product — no Stripe price. It just defines the credit cost for generating a book.</p>
+            <ul className="list-disc list-inside space-y-0.5 text-xs">
+              <li>Book generation = 100 credits</li>
+              <li>Chapter regen = 10 credits (free regens depend on plan)</li>
+              <li>Cover = 30 cr · Translation = 50 cr · Amazon Premium = 80 cr · Images = 20 cr · Audiobook = 60 cr</li>
+            </ul>
+          </HintBox>
           <ProductTable
             products={otherProducts}
             onRefresh={fetchAll}
@@ -167,7 +207,17 @@ export default function AdminProductsPage() {
         </TabsContent>
 
         {/* ── App Config ───────────────────────────────────────────────── */}
-        <TabsContent value="config">
+        <TabsContent value="config" className="space-y-4">
+          <HintBox>
+            <p className="font-semibold text-foreground">App Configuration — JSON key-value store</p>
+            <p>These settings control the app behavior globally. Changes apply immediately after saving (cache refreshes in up to 5 minutes).</p>
+            <ul className="list-disc list-inside space-y-1 text-xs">
+              <li><code className="bg-accent/50 px-1 rounded">CREDITS_COST</code> — How many credits each action costs (book generation, chapter regen, each addon). This is the <strong>source of truth</strong> for all credit deductions in the system.</li>
+              <li><code className="bg-accent/50 px-1 rounded">FREE_TIER</code> — Limits for users without a subscription (previews/month, etc.).</li>
+              <li><code className="bg-accent/50 px-1 rounded">BUNDLES</code> — Addon bundles with discounts. Each bundle has a list of addon <code>kinds</code>, original cost, discounted cost, and discount percentage. Bundles are shown in the Author Journey UI.</li>
+            </ul>
+            <p className="text-xs text-amber-400">Be careful editing JSON — invalid JSON will be rejected. Changes affect all users immediately.</p>
+          </HintBox>
           <AppConfigSection configs={configs} onRefresh={fetchAll} />
         </TabsContent>
       </Tabs>
@@ -637,6 +687,15 @@ function AppConfigSection({
   );
 }
 
+const CONFIG_DESCRIPTIONS: Record<string, string> = {
+  CREDITS_COST:
+    "Credit cost for each operation. Keys: BOOK_GENERATION (full book), CHAPTER_REGENERATION (single chapter redo), ADDON_COVER, ADDON_TRANSLATION, ADDON_COVER_TRANSLATION, ADDON_AMAZON_STANDARD, ADDON_AMAZON_PREMIUM, ADDON_IMAGES, ADDON_AUDIOBOOK. Values are integers (number of credits deducted).",
+  FREE_TIER:
+    "Limits for users without a paid subscription. previewsPerMonth = how many book previews they can create. credits/booksPerMonth/freeRegensPerMonth = always 0 for free tier. commercialLicense and fullEditor = false.",
+  BUNDLES:
+    'Addon bundles with discounts shown in the Author Journey UI. Each bundle has: "id" (unique key), "kinds" (array of addon ProductKind values), "originalCost" (sum of individual addon costs), "cost" (discounted total), "discountPercent". The frontend calculates savings from originalCost - cost.',
+};
+
 function ConfigCard({
   config,
   onRefresh,
@@ -677,13 +736,20 @@ function ConfigCard({
     }
   };
 
+  const description = CONFIG_DESCRIPTIONS[config.key];
+
   return (
     <div className="glass rounded-[2rem] p-6 space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-base font-bold font-heading">{config.key}</h3>
+          {description && (
+            <p className="text-xs text-muted-foreground mt-1 max-w-2xl">
+              {description}
+            </p>
+          )}
           {config.updatedBy && (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[10px] text-muted-foreground/60 mt-1">
               Last updated by {config.updatedBy} on{" "}
               {new Date(config.updatedAt).toLocaleString()}
             </p>
