@@ -1,6 +1,7 @@
 import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { LlmService } from '../../llm/llm.service';
 import { HooksService } from '../../hooks/hooks.service';
 import { AppConfigService } from '../../config/app-config.service';
@@ -78,8 +79,9 @@ interface PreviewCompleteResult {
 const MIN_TOPIC_WORDS = 50;
 
 @Processor('generation', {
-  stalledInterval: 60_000,
+  stalledInterval: 300_000, // 5 min — LLM calls can take 1-3 min each
   maxStalledCount: 2,
+  concurrency: 2,
 })
 export class GenerationProcessor extends WorkerHost {
   private readonly logger = new Logger(GenerationProcessor.name);
@@ -89,6 +91,7 @@ export class GenerationProcessor extends WorkerHost {
     private readonly hooksService: HooksService,
     private readonly config: AppConfigService,
     private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
   ) {
     super();
   }
@@ -99,8 +102,39 @@ export class GenerationProcessor extends WorkerHost {
   }
 
   @OnWorkerEvent('failed')
-  onFailed(job: Job, error: Error) {
-    this.logger.error(`[${job.name}] Failed for book ${job.data.bookId}: ${error.message}`);
+  async onFailed(job: Job, error: Error) {
+    const bookId = job.data?.bookId;
+    this.logger.error(`[${job.name}] Failed for book ${bookId}: ${error.message}`);
+
+    if (!bookId) return;
+
+    const maxAttempts = (job.opts?.attempts ?? 3);
+    const isFinalFailure = job.attemptsMade >= maxAttempts || error.message.includes('stalled');
+
+    if (!isFinalFailure) return;
+
+    try {
+      if (job.name === 'addon') {
+        const addonId = job.data?.addonId;
+        const addonKind = job.data?.addonKind;
+        if (addonId) {
+          await this.hooksService.processAddonResult({
+            bookId,
+            addonId,
+            addonKind,
+            status: 'error',
+            error: `Add-on failed: ${error.message}`,
+          });
+        }
+      } else {
+        await this.hooksService.processGenerationError({
+          bookId,
+          error: `Generation failed: ${error.message}`,
+        });
+      }
+    } catch (hookError) {
+      this.logger.error(`Failed to handle final failure for book ${bookId}: ${hookError}`);
+    }
   }
 
   @OnWorkerEvent('stalled')
@@ -271,6 +305,18 @@ export class GenerationProcessor extends WorkerHost {
 
         await job.updateProgress(Math.round((chapter.sequence / chapters.length) * 80));
 
+        // Mark chapter as generating in DB + notify frontend via SSE
+        await this.prisma.chapter.updateMany({
+          where: { bookId, sequence: chapter.sequence, status: ChapterStatus.PENDING },
+          data: { status: ChapterStatus.GENERATING },
+        });
+        this.eventEmitter.emit('book.generation.progress', {
+          bookId,
+          status: 'generating',
+          currentChapter: chapter.sequence,
+          totalChapters: chapters.length,
+        });
+
         const topics = chapter.topics || [];
         const topicMinWords = calculateTopicMinWords(pageTarget, chapterCount, topics.length || 2);
         const chapterSummary = topics.map((t) => `${t.title}: ${t.content}`).join('\n');
@@ -281,6 +327,12 @@ export class GenerationProcessor extends WorkerHost {
         for (let i = 0; i < topics.length; i++) {
           const topic = topics[i];
           const topicNumber = i + 1;
+
+          // Keep-alive: update progress before each LLM call to prevent stalled detection
+          const topicProgress = Math.round(
+            ((chapter.sequence - 1 + (i / topics.length)) / chapters.length) * 80,
+          );
+          await job.updateProgress(topicProgress);
 
           const topicContent = await this.generateTopicWithRetry({
             planJson,
@@ -295,6 +347,8 @@ export class GenerationProcessor extends WorkerHost {
             topicTotalWords: topicMinWords,
             settings,
           });
+
+          await job.updateProgress(topicProgress + 1); // heartbeat after topic generation
 
           const contextSummary = await this.generateContextSummary({
             chapterNumber: chapter.sequence,
@@ -433,6 +487,8 @@ export class GenerationProcessor extends WorkerHost {
         const topic = topics[i];
         const topicNumber = i + 1;
 
+        await job.updateProgress(Math.round((i / topics.length) * 80));
+
         const topicContent = await this.generateTopicWithRetry({
           planJson,
           chapterNumber: chapterSequence,
@@ -446,6 +502,8 @@ export class GenerationProcessor extends WorkerHost {
           topicTotalWords: topicMinWords,
           settings,
         });
+
+        await job.updateProgress(Math.round(((i + 0.5) / topics.length) * 80));
 
         const contextSummary = await this.generateContextSummary({
           chapterNumber: chapterSequence,

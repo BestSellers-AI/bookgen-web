@@ -277,7 +277,7 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
       ) : isCompletePreview ? (
         /* PDF viewer for complete preview — KDP or original */
         <div className="space-y-4">
-          {previewPdf && (
+          {/* {previewPdf && (
             <div className="flex items-center gap-2">
               <Button
                 variant={viewMode === "kdp" ? "default" : "outline"}
@@ -298,7 +298,7 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
                 {t("viewOriginal")}
               </Button>
             </div>
-          )}
+          )} */}
 
           {viewMode === "kdp" ? (
             <div className="glass rounded-[2.5rem] border-none overflow-hidden p-2">

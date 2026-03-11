@@ -1,5 +1,7 @@
 import { Module, OnApplicationShutdown, Logger } from '@nestjs/common';
 import { BullModule, InjectQueue } from '@nestjs/bullmq';
+import { BullBoardModule } from '@bull-board/nestjs';
+import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 import { Queue } from 'bullmq';
 import { AppConfigService } from '../config/app-config.service';
 import { PrismaModule } from '../prisma/prisma.module';
@@ -25,6 +27,10 @@ import { GenerationProcessor } from './processors/generation.processor';
         removeOnComplete: 100,
         removeOnFail: 50,
       },
+    }),
+    BullBoardModule.forFeature({
+      name: 'generation',
+      adapter: BullMQAdapter,
     }),
     PrismaModule,
     HooksModule,

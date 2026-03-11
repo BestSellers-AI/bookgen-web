@@ -30,6 +30,8 @@ import { EmailModule } from './email/email.module';
 import { ConfigDataModule } from './config-data/config-data.module';
 import { LlmModule } from './llm/llm.module';
 import { GenerationModule } from './generation/generation.module';
+import { BullBoardModule } from '@bull-board/nestjs';
+import { ExpressAdapter } from '@bull-board/express';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 
 @Module({
@@ -79,6 +81,10 @@ import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
     ConfigDataModule,
     LlmModule,
     GenerationModule,
+    BullBoardModule.forRoot({
+      route: '/admin/queues',
+      adapter: ExpressAdapter,
+    }),
   ],
   providers: [
     {

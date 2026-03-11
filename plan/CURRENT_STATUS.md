@@ -30,11 +30,14 @@ Feature flag in `AddonService.request()` and `requestBundle()`.
 ### 3. Generation Resilience System
 
 **Anti-lock mechanisms:**
-- BullMQ stalled detection (60s interval, max 2 stalls) — detects dead workers
+- BullMQ stalled detection (300s / 5 min interval, max 2 stalls) — detects dead workers without false positives
+- Heartbeat: `job.updateProgress()` between each LLM call prevents false stall detection
 - Auto-retry: 3 attempts with 30s exponential backoff
 - Content validation: `generateTopicWithRetry()` retries on empty/short LLM output (< 50 words)
 - Preview validation: checks for non-empty title and chapters
 - Chapter completeness: validates total word count >= 50 before marking as GENERATED
+- `onFailed` safety net: when all retries exhausted, marks book/addon as ERROR + notifies user (prevents stuck GENERATING)
+- Concurrency: 2 workers — previews don't wait behind active generation jobs
 
 **Recovery:**
 - Cron job every 10 min: marks books stuck > 45min and addons stuck > 30min as ERROR + notifies user
@@ -46,9 +49,24 @@ Feature flag in `AddonService.request()` and `requestBundle()`.
 - No re-charge on generation resume (credits already debited)
 - Frontend "Tentar Novamente" button now calls `booksApi.retry()` instead of just refetching
 
+**Monitoring:**
+- Bull Board at `/admin/queues` — real-time queue monitoring UI (`@bull-board/nestjs` + `ExpressAdapter`)
+
+**Real-time chapter progress:**
+- Before each chapter: updates status to GENERATING in DB + emits SSE event with `currentChapter`
+- Frontend `generation-progress.tsx` shows spinning loader on the active chapter
+- Chapter list is fully dynamic (uses `book.chapters` array, supports any chapter count)
+
+**Prompt fixes:**
+- Preview prompts: replaced "with up to 200 characters" with "1-2 sentences" descriptions
+- Added explicit instruction: "Do NOT include character counts, word counts, or annotations like (XX chars)"
+- Fix applied to both GUIDED and SIMPLE modes
+
 **Files modified for resilience:**
-- `apps/api/src/generation/processors/generation.processor.ts` — stalled config, content validation, retry wrapper
-- `apps/api/src/generation/generation.module.ts` — graceful shutdown, attempts: 3
+- `apps/api/src/generation/processors/generation.processor.ts` — stalled config (300s), heartbeat, content validation, retry wrapper, onFailed handler, chapter progress SSE
+- `apps/api/src/generation/generation.module.ts` — graceful shutdown, attempts: 3, Bull Board adapter
+- `apps/api/src/generation/prompts/preview.prompts.ts` — remove "(XX chars)" annotations
+- `apps/api/src/app.module.ts` — Bull Board root config at `/admin/queues`
 - `apps/api/src/books/book.service.ts` — `retryGeneration()` method
 - `apps/api/src/books/books.controller.ts` — `POST /books/:id/retry` endpoint
 - `apps/api/src/cron/cron.service.ts` — stuck book/addon recovery cron
@@ -109,6 +127,7 @@ Created detailed plan for in-app guided tour using `onborda`. See `plan/GUIDED_T
 All internal generation, mock addons, resilience, Stripe integration, admin panel, config store, and landing page migration.
 
 ### Pending items
+- [ ] **Test generation end-to-end**: generate a new book, verify Bull Board at `http://localhost:3001/api/admin/queues`, chapter loader, onFailed→ERROR flow
 - [ ] Configure Stripe webhook endpoint in Dashboard (URL: `https://<domain>/api/webhooks/stripe`)
 - [ ] Set `STRIPE_WEBHOOK_SECRET` in production after webhook creation
 - [ ] Implement guided tour (`plan/GUIDED_TOUR.md`)

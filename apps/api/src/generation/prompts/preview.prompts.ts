@@ -40,20 +40,22 @@ Como redactor de nivel especialista, su tarea es crear la PLANIFICACIÓN de un l
 Subtitle:
 
 - Chapter 1 - Chapter 1 Name
-	- Presentation of the first chapter idea with up to 200 characters.
-	- Presentation of the second chapter idea with up to 200 characters.
+	- A brief, clear description of this section's content (1-2 sentences).
+	- A brief, clear description of this section's content (1-2 sentences).
 
 - Chapter X - Chapter X Name (repeat successively for the number of chapters)
-	- Presentation of the first chapter idea with up to 200 characters.
-	- Presentation of the second chapter idea with up to 200 characters.
+	- A brief, clear description of this section's content (1-2 sentences).
+	- A brief, clear description of this section's content (1-2 sentences).
 
 - Conclusion
-	- Presentation of the first conclusion chapter idea with up to 200 characters.
-	- Presentation of the second conclusion chapter idea with up to 200 characters.
+	- A brief, clear description of the conclusion content (1-2 sentences).
+	- A brief, clear description of the conclusion content (1-2 sentences).
 
 - Appendix
 	- List key works, other authors, suggestions and/or other ideas on the subject
 "
+
+IMPORTANT: Do NOT include character counts, word counts, or annotations like "(XX chars)" in the output. Write clean, natural descriptions only.
 ${settingsBlock}
 
 {RULES}
@@ -99,20 +101,22 @@ Como redactor de nivel especialista, su tarea es crear la PLANIFICACIÓN de un l
 {formato_5}: The book planning should use the following structure:
 
 "- Chapter 1 - Chapter 1 Name
-	- Presentation of the first chapter idea with up to 200 characters.
-	- Presentation of the second chapter idea with up to 200 characters.
+	- A brief, clear description of this section's content (1-2 sentences).
+	- A brief, clear description of this section's content (1-2 sentences).
 
 - Chapter X - Chapter X Name (repeat successively for the number of chapters)
-	- Presentation of the first chapter idea with up to 200 characters.
-	- Presentation of the second chapter idea with up to 200 characters.
+	- A brief, clear description of this section's content (1-2 sentences).
+	- A brief, clear description of this section's content (1-2 sentences).
 
 - Conclusion
-	- Presentation of the first conclusion chapter idea with up to 200 characters.
-	- Presentation of the second conclusion chapter idea with up to 200 characters.
+	- A brief, clear description of the conclusion content (1-2 sentences).
+	- A brief, clear description of the conclusion content (1-2 sentences).
 
 - Appendix
 	- List key works, other authors, suggestions and/or other ideas on the subject
 "
+
+IMPORTANT: Do NOT include character counts, word counts, or annotations like "(XX chars)" in the output. Write clean, natural descriptions only.
 ${settingsBlock}
 
 {RULES}
