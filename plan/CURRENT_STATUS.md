@@ -63,12 +63,29 @@ Client-side PDF via `@react-pdf/renderer`, Amazon KDP 6"×9", localized labels. 
 ### Chatbot Funnel (2026-03-07)
 Chatbot funnel at `/chat` for paid traffic. See `plan/CHATBOT/CHATBOT_FUNNEL.md`.
 
+### 4. Guided Tour Planning
+
+Created detailed implementation plan for in-app guided tour using `onborda` (Next.js + Framer Motion + shadcn/ui).
+
+**Plan document:** `plan/GUIDED_TOUR.md`
+
+**Key decisions:**
+- Library: `onborda` v1.2.5 (all peer deps already installed — Framer Motion, React 19, Next.js 16)
+- 10-step onboarding tour across 4 pages (dashboard → books → wallet → settings)
+- Custom shadcn/ui card component, progress dots, i18n via next-intl
+- Zustand store + localStorage for tracking seen tours
+- Auto-start on first login, replay via "?" button in header
+- Mobile-aware: skip sidebar step on mobile (< xl breakpoint)
+
+**Not yet implemented** — plan only, ready for coding.
+
 ## Where we stopped
 
 ### Committed on `develop` branch
-All internal generation, mock addons, and resilience changes.
+All internal generation, mock addons, resilience changes, and guided tour plan.
 
 ### Pending items
+- [ ] Implement guided tour (`plan/GUIDED_TOUR.md`)
 - [ ] Test full Docker build locally (new LLM/Generation modules)
 - [ ] Deploy to Coolify (API + DB + Redis)
 - [ ] Run `prisma migrate deploy` on first deploy

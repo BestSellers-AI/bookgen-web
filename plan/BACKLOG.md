@@ -85,6 +85,7 @@
   - [ ] DOCX generation using `docx` package
   - [ ] PDF download button (client-generated, not n8n URL)
   - [ ] Embed PDF in share page (public book view)
+- [ ] Guided tour / onboarding (`onborda`) — planejado em `plan/GUIDED_TOUR.md`
 - [ ] Implement real addon processing (currently mock — returns placeholder image)
 - [ ] Notificacoes por email (alem das in-app) — ex: livro pronto, creditos expirando
 - [ ] Dashboard analytics — graficos de uso, livros gerados por mes, gastos
