@@ -8,6 +8,8 @@ import {
   Save,
   Loader2,
   Info,
+  DollarSign,
+  Coins,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -62,29 +64,37 @@ function HintBox({ children }: { children: React.ReactNode }) {
 // ---------------------------------------------------------------------------
 // Product-kind grouping
 // ---------------------------------------------------------------------------
-const SUBSCRIPTION_KINDS = new Set(["SUBSCRIPTION_PLAN"]);
-const CREDIT_PACK_KINDS = new Set(["CREDIT_PACK"]);
-
-function isSubscription(p: AdminProduct) {
-  return SUBSCRIPTION_KINDS.has(p.kind);
-}
-
-function isCreditPack(p: AdminProduct) {
-  return CREDIT_PACK_KINDS.has(p.kind);
-}
+const PAID_USD_KINDS = new Set(["SUBSCRIPTION_PLAN", "CREDIT_PACK", "ONE_TIME_BOOK"]);
+const CREDIT_BASED_KINDS = new Set([
+  "BOOK_GENERATION",
+  "ADDON_COVER",
+  "ADDON_TRANSLATION",
+  "ADDON_COVER_TRANSLATION",
+  "ADDON_AMAZON_STANDARD",
+  "ADDON_AMAZON_PREMIUM",
+  "ADDON_IMAGES",
+  "ADDON_AUDIOBOOK",
+]);
 
 // ---------------------------------------------------------------------------
-// Config descriptions helper
+// Credit cost labels for the dedicated form
 // ---------------------------------------------------------------------------
-function getConfigDescriptions(
-  t: ReturnType<typeof useTranslations>,
-): Record<string, string> {
-  return {
-    CREDITS_COST: t("creditsCostDesc"),
-    FREE_TIER: t("freeTierDesc"),
-    BUNDLES: t("bundlesDesc"),
-  };
-}
+const CREDIT_COST_KEYS = [
+  { key: "BOOK_GENERATION", icon: "📖" },
+  { key: "CHAPTER_REGENERATION", icon: "🔄" },
+  { key: "ADDON_COVER", icon: "🎨" },
+  { key: "ADDON_TRANSLATION", icon: "🌍" },
+  { key: "ADDON_COVER_TRANSLATION", icon: "🖼️" },
+  { key: "ADDON_AMAZON_STANDARD", icon: "📦" },
+  { key: "ADDON_AMAZON_PREMIUM", icon: "⭐" },
+  { key: "ADDON_IMAGES", icon: "🖼️" },
+  { key: "ADDON_AUDIOBOOK", icon: "🎧" },
+] as const;
+
+// ---------------------------------------------------------------------------
+// Translations type alias
+// ---------------------------------------------------------------------------
+type T = ReturnType<typeof useTranslations>;
 
 // ---------------------------------------------------------------------------
 // Main page
@@ -139,11 +149,16 @@ export default function AdminProductsPage() {
     );
   }
 
-  const subscriptionProducts = products.filter(isSubscription);
-  const creditPacks = products.filter(isCreditPack);
-  const otherProducts = products.filter(
-    (p) => !isSubscription(p) && !isCreditPack(p),
+  // Group products
+  const subscriptions = products.filter((p) => p.kind === "SUBSCRIPTION_PLAN");
+  const creditPacks = products.filter(
+    (p) => p.kind === "CREDIT_PACK" || p.kind === "ONE_TIME_BOOK",
   );
+  const creditBasedProducts = products.filter((p) => CREDIT_BASED_KINDS.has(p.kind));
+
+  // Find CREDITS_COST config
+  const creditsCostConfig = configs.find((c) => c.key === "CREDITS_COST");
+  const otherConfigs = configs.filter((c) => c.key !== "CREDITS_COST");
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -152,89 +167,95 @@ export default function AdminProductsPage() {
         subtitle={t("subtitle")}
       />
 
+      {/* Pricing model summary */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="flex items-start gap-3 p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
+          <DollarSign className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold text-sm text-foreground">{t("paidUsdTitle")}</p>
+            <p className="text-xs text-muted-foreground">{t("paidUsdDesc")}</p>
+          </div>
+        </div>
+        <div className="flex items-start gap-3 p-4 rounded-2xl bg-purple-500/5 border border-purple-500/10">
+          <Coins className="w-5 h-5 text-purple-400 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold text-sm text-foreground">{t("paidCreditsTitle")}</p>
+            <p className="text-xs text-muted-foreground">{t("paidCreditsDesc")}</p>
+          </div>
+        </div>
+      </div>
+
       <Tabs defaultValue="subscriptions" className="space-y-6">
         <TabsList className="rounded-xl">
           <TabsTrigger value="subscriptions" className="rounded-lg">
-            {t("tabSubscriptionPlans")}
+            {t("tabSubscriptions")}
           </TabsTrigger>
           <TabsTrigger value="credit-packs" className="rounded-lg">
             {t("tabCreditPacks")}
           </TabsTrigger>
-          <TabsTrigger value="addons" className="rounded-lg">
-            {t("tabAddons")}
+          <TabsTrigger value="credit-costs" className="rounded-lg">
+            {t("tabCreditCosts")}
           </TabsTrigger>
-          <TabsTrigger value="config" className="rounded-lg">
-            {t("tabAppConfig")}
+          <TabsTrigger value="settings" className="rounded-lg">
+            {t("tabSettings")}
           </TabsTrigger>
         </TabsList>
 
-        {/* ── Subscription Plans ────────────────────────────────────────── */}
+        {/* ── Subscriptions (USD) ───────────────────────────────────────── */}
         <TabsContent value="subscriptions" className="space-y-4">
           <HintBox>
-            <p className="font-semibold text-foreground">{t("hintTitle")}</p>
-            <p>{t("hintDesc")}</p>
-            <p>{t("hintMetadata")}</p>
-            <ul className="list-disc list-inside space-y-0.5 text-xs">
-              <li>{t("hintAspiranteDesc")}</li>
-              <li>{t("hintBestsellerDesc")}</li>
-              <li>{t("hintEliteDesc")}</li>
-            </ul>
-            <p className="text-xs text-amber-400">{t("hintPriceWarning")}</p>
+            <p className="font-semibold text-foreground">{t("subsHintTitle")}</p>
+            <p>{t("subsHintDesc")}</p>
+            <p>{t("subsHintMetadata")}</p>
+            <p className="text-xs text-amber-400">{t("subsHintPriceWarning")}</p>
           </HintBox>
           <ProductTable
-            products={subscriptionProducts}
+            products={subscriptions}
             showBilling
+            showUsdPrice
             onRefresh={fetchAll}
             t={t}
           />
         </TabsContent>
 
-        {/* ── Credit Packs ─────────────────────────────────────────────── */}
+        {/* ── Credit Packs (USD) ────────────────────────────────────────── */}
         <TabsContent value="credit-packs" className="space-y-4">
           <HintBox>
-            <p className="font-semibold text-foreground">{t("creditPacksHintTitle")}</p>
-            <p>{t("creditPacksHintDesc")}</p>
-            <p>{t("creditPacksHintCreditsCol")}</p>
-            <p className="text-xs">{t("creditPacksHintExample")}</p>
+            <p className="font-semibold text-foreground">{t("packsHintTitle")}</p>
+            <p>{t("packsHintDesc")}</p>
+            <p className="text-xs">{t("packsHintOneTime")}</p>
           </HintBox>
           <ProductTable
             products={creditPacks}
+            showUsdPrice
             onRefresh={fetchAll}
             t={t}
           />
         </TabsContent>
 
-        {/* ── Addons & One-Time ────────────────────────────────────────── */}
-        <TabsContent value="addons" className="space-y-4">
+        {/* ── Credit Costs (dedicated form) ─────────────────────────────── */}
+        <TabsContent value="credit-costs" className="space-y-4">
           <HintBox>
-            <p className="font-semibold text-foreground">{t("addonsHintTitle")}</p>
-            <p>{t("addonsHintDesc")}</p>
-            <p>{t("addonsHintOneTime")}</p>
-            <p>{t("addonsHintBookGen")}</p>
-            <ul className="list-disc list-inside space-y-0.5 text-xs">
-              <li>{t("addonsHintCosts")}</li>
-            </ul>
+            <p className="font-semibold text-foreground">{t("costsHintTitle")}</p>
+            <p>{t("costsHintDesc")}</p>
           </HintBox>
-          <ProductTable
-            products={otherProducts}
-            onRefresh={fetchAll}
-            t={t}
-          />
+          {creditsCostConfig ? (
+            <CreditCostsForm config={creditsCostConfig} onRefresh={fetchAll} t={t} />
+          ) : (
+            <div className="glass rounded-[2rem] p-10 text-center text-muted-foreground">
+              {t("noCreditsCostConfig")}
+            </div>
+          )}
         </TabsContent>
 
-        {/* ── App Config ───────────────────────────────────────────────── */}
-        <TabsContent value="config" className="space-y-4">
+        {/* ── Settings (Free Tier + Bundles) ────────────────────────────── */}
+        <TabsContent value="settings" className="space-y-4">
           <HintBox>
-            <p className="font-semibold text-foreground">{t("configHintTitle")}</p>
-            <p>{t("configHintDesc")}</p>
-            <ul className="list-disc list-inside space-y-1 text-xs">
-              <li>{t("configHintCreditsCost")}</li>
-              <li>{t("configHintFreeTier")}</li>
-              <li>{t("configHintBundles")}</li>
-            </ul>
-            <p className="text-xs text-amber-400">{t("configHintWarning")}</p>
+            <p className="font-semibold text-foreground">{t("settingsHintTitle")}</p>
+            <p>{t("settingsHintDesc")}</p>
+            <p className="text-xs text-amber-400">{t("settingsHintWarning")}</p>
           </HintBox>
-          <AppConfigSection configs={configs} onRefresh={fetchAll} t={t} />
+          <AppConfigSection configs={otherConfigs} onRefresh={fetchAll} t={t} />
         </TabsContent>
       </Tabs>
     </div>
@@ -242,21 +263,100 @@ export default function AdminProductsPage() {
 }
 
 // ===========================================================================
-// Translations type alias
+// CreditCostsForm — dedicated form for CREDITS_COST (not raw JSON)
 // ===========================================================================
-type T = ReturnType<typeof useTranslations>;
+function CreditCostsForm({
+  config,
+  onRefresh,
+  t,
+}: {
+  config: AdminAppConfig;
+  onRefresh: () => Promise<void>;
+  t: T;
+}) {
+  const initialValues = config.value as Record<string, number>;
+  const [values, setValues] = useState<Record<string, number>>({ ...initialValues });
+  const [saving, setSaving] = useState(false);
+  const [dirty, setDirty] = useState(false);
+
+  const handleChange = (key: string, val: string) => {
+    const num = parseInt(val, 10);
+    setValues((prev) => ({ ...prev, [key]: isNaN(num) ? 0 : num }));
+    setDirty(true);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await adminApi.updateAppConfig("CREDITS_COST", values);
+      toast.success(t("creditsCostSaved"));
+      setDirty(false);
+      await onRefresh();
+    } catch {
+      toast.error(t("creditsCostSaveFailed"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="glass rounded-[2rem] p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-base font-bold font-heading">{t("creditsCostFormTitle")}</h3>
+          <p className="text-xs text-muted-foreground mt-1">{t("creditsCostFormDesc")}</p>
+        </div>
+        <Button
+          size="sm"
+          onClick={handleSave}
+          disabled={saving || !dirty}
+          className="rounded-xl"
+        >
+          {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+          <Save className="w-4 h-4 mr-1" />
+          {t("save")}
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {CREDIT_COST_KEYS.map(({ key, icon }) => (
+          <div key={key} className="flex items-center gap-3 p-3 rounded-xl border border-border bg-accent/10">
+            <span className="text-lg">{icon}</span>
+            <div className="flex-1 min-w-0">
+              <Label className="text-xs font-mono text-muted-foreground block truncate">
+                {t(`cost_${key}` as any, { defaultValue: kindLabel(key) })}
+              </Label>
+              <div className="flex items-center gap-1 mt-1">
+                <Input
+                  type="number"
+                  min="0"
+                  value={values[key] ?? 0}
+                  onChange={(e) => handleChange(key, e.target.value)}
+                  className="h-8 w-24 font-mono text-sm"
+                />
+                <span className="text-xs text-muted-foreground">{t("creditsUnit")}</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 // ===========================================================================
-// ProductTable — reusable table for any product kind
+// ProductTable — reusable table for USD-priced products
 // ===========================================================================
 function ProductTable({
   products,
   showBilling,
+  showUsdPrice,
   onRefresh,
   t,
 }: {
   products: AdminProduct[];
   showBilling?: boolean;
+  showUsdPrice?: boolean;
   onRefresh: () => Promise<void>;
   t: T;
 }) {
@@ -279,11 +379,11 @@ function ProductTable({
             <thead>
               <tr className="border-b border-border text-left">
                 <th className="px-6 py-4 font-bold text-muted-foreground">{t("thName")}</th>
-                <th className="px-6 py-4 font-bold text-muted-foreground">{t("thKind")}</th>
-                <th className="px-6 py-4 font-bold text-muted-foreground">{t("thCredits")}</th>
-                <th className="px-6 py-4 font-bold text-muted-foreground">{t("thPrices")}</th>
+                <th className="px-6 py-4 font-bold text-muted-foreground">{t("thCreditsGranted")}</th>
+                {showUsdPrice && (
+                  <th className="px-6 py-4 font-bold text-muted-foreground">{t("thPrice")}</th>
+                )}
                 <th className="px-6 py-4 font-bold text-muted-foreground">{t("thStatus")}</th>
-                <th className="px-6 py-4 font-bold text-muted-foreground">{t("thOrder")}</th>
                 <th className="px-6 py-4" />
               </tr>
             </thead>
@@ -298,43 +398,42 @@ function ProductTable({
                     <td className="px-6 py-4">
                       <div className="font-medium">{product.name}</div>
                       {product.description && (
-                        <div className="text-xs text-muted-foreground truncate max-w-[200px]">
+                        <div className="text-xs text-muted-foreground truncate max-w-[250px]">
                           {product.description}
                         </div>
                       )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <Badge variant="secondary" className="text-[9px] font-black uppercase">
+                      <Badge variant="secondary" className="text-[8px] font-black uppercase mt-1">
                         {kindLabel(product.kind)}
                       </Badge>
                     </td>
                     <td className="px-6 py-4 font-mono">
-                      {product.creditsAmount ?? "\u2014"}
+                      {product.creditsAmount != null ? (
+                        <span className="text-purple-400 font-bold">{product.creditsAmount} cr</span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="space-y-1">
-                        {activePrices.length === 0 && (
-                          <span className="text-muted-foreground text-xs">{t("noPrices")}</span>
-                        )}
-                        {activePrices.map((price) => (
-                          <div key={price.id} className="flex items-center gap-2 text-xs">
-                            <span className="font-mono font-bold">
-                              {formatCents(price.amount)}
-                            </span>
-                            {showBilling && price.billingInterval && (
-                              <Badge variant="outline" className="text-[8px]">
-                                {price.billingInterval}
-                              </Badge>
-                            )}
-                            {price.creditsCost != null && (
-                              <span className="text-muted-foreground">
-                                ({price.creditsCost} cr)
+                    {showUsdPrice && (
+                      <td className="px-6 py-4">
+                        <div className="space-y-1">
+                          {activePrices.length === 0 && (
+                            <span className="text-muted-foreground text-xs">{t("noPrices")}</span>
+                          )}
+                          {activePrices.map((price) => (
+                            <div key={price.id} className="flex items-center gap-2 text-xs">
+                              <span className="font-mono font-bold text-emerald-400">
+                                {formatCents(price.amount)}
                               </span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </td>
+                              {showBilling && price.billingInterval && (
+                                <Badge variant="outline" className="text-[8px]">
+                                  {price.billingInterval === "MONTHLY" ? t("monthly") : t("annual")}
+                                </Badge>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </td>
+                    )}
                     <td className="px-6 py-4">
                       <Badge
                         variant="secondary"
@@ -346,9 +445,6 @@ function ProductTable({
                       >
                         {product.isActive ? t("active") : t("inactive")}
                       </Badge>
-                    </td>
-                    <td className="px-6 py-4 font-mono text-muted-foreground">
-                      {product.sortOrder}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-1">
@@ -378,7 +474,6 @@ function ProductTable({
         </div>
       </div>
 
-      {/* Edit Product Dialog */}
       {editProduct && (
         <EditProductDialog
           product={editProduct}
@@ -391,7 +486,6 @@ function ProductTable({
         />
       )}
 
-      {/* Add Price Dialog */}
       {priceProduct && (
         <AddPriceDialog
           product={priceProduct}
@@ -457,7 +551,6 @@ function EditProductDialog({
     }
   };
 
-  // Manage prices within the edit dialog
   const [deactivating, setDeactivating] = useState<string | null>(null);
   const handleDeactivatePrice = async (priceId: string) => {
     setDeactivating(priceId);
@@ -506,17 +599,32 @@ function EditProductDialog({
               />
             </div>
           </div>
-          <div className="space-y-2">
-            <Label>{t("metadataJson")}</Label>
-            <textarea
-              value={metadataStr}
-              onChange={(e) => setMetadataStr(e.target.value)}
-              rows={6}
-              className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-          </div>
 
-          {/* Existing prices */}
+          {product.kind === "SUBSCRIPTION_PLAN" && (
+            <div className="space-y-2">
+              <Label>{t("metadataJson")}</Label>
+              <p className="text-xs text-muted-foreground">{t("metadataHintSub")}</p>
+              <textarea
+                value={metadataStr}
+                onChange={(e) => setMetadataStr(e.target.value)}
+                rows={8}
+                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+          )}
+
+          {product.kind !== "SUBSCRIPTION_PLAN" && product.metadata && (
+            <div className="space-y-2">
+              <Label>{t("metadataJson")}</Label>
+              <textarea
+                value={metadataStr}
+                onChange={(e) => setMetadataStr(e.target.value)}
+                rows={4}
+                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+          )}
+
           {product.prices.length > 0 && (
             <div className="space-y-2">
               <Label>{t("prices")}</Label>
@@ -534,13 +642,8 @@ function EditProductDialog({
                       </span>
                       {price.billingInterval && (
                         <Badge variant="outline" className="text-[8px]">
-                          {price.billingInterval}
+                          {price.billingInterval === "MONTHLY" ? t("monthly") : t("annual")}
                         </Badge>
-                      )}
-                      {price.creditsCost != null && (
-                        <span className="text-muted-foreground">
-                          {price.creditsCost} {t("credits")}
-                        </span>
                       )}
                       {!price.isActive && (
                         <Badge variant="secondary" className="text-[8px] bg-red-500/10 text-red-400">
@@ -601,7 +704,6 @@ function AddPriceDialog({
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState("usd");
   const [billingInterval, setBillingInterval] = useState<"MONTHLY" | "ANNUAL" | "">("");
-  const [creditsCost, setCreditsCost] = useState("");
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
@@ -617,7 +719,6 @@ function AddPriceDialog({
         amount: amountCents,
         currency: currency || undefined,
         billingInterval: billingInterval || undefined,
-        creditsCost: creditsCost ? Number(creditsCost) : undefined,
       });
       toast.success(t("priceCreated"));
       await onSaved();
@@ -627,6 +728,8 @@ function AddPriceDialog({
       setSaving(false);
     }
   };
+
+  const isSubscription = product.kind === "SUBSCRIPTION_PLAN";
 
   return (
     <Dialog open onOpenChange={onClose}>
@@ -645,6 +748,7 @@ function AddPriceDialog({
               onChange={(e) => setAmount(e.target.value)}
               placeholder="29.00"
             />
+            <p className="text-xs text-muted-foreground">{t("amountHint")}</p>
           </div>
           <div className="space-y-2">
             <Label>{t("currency")}</Label>
@@ -654,29 +758,23 @@ function AddPriceDialog({
               placeholder="usd"
             />
           </div>
-          <div className="space-y-2">
-            <Label>{t("billingInterval")}</Label>
-            <select
-              value={billingInterval}
-              onChange={(e) =>
-                setBillingInterval(e.target.value as "MONTHLY" | "ANNUAL" | "")
-              }
-              className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              <option value="">{t("noneOneTime")}</option>
-              <option value="MONTHLY">{t("monthly")}</option>
-              <option value="ANNUAL">{t("annual")}</option>
-            </select>
-          </div>
-          <div className="space-y-2">
-            <Label>{t("creditsCostLabel")}</Label>
-            <Input
-              type="number"
-              value={creditsCost}
-              onChange={(e) => setCreditsCost(e.target.value)}
-              placeholder="e.g. 100"
-            />
-          </div>
+          {isSubscription && (
+            <div className="space-y-2">
+              <Label>{t("billingInterval")}</Label>
+              <select
+                value={billingInterval}
+                onChange={(e) =>
+                  setBillingInterval(e.target.value as "MONTHLY" | "ANNUAL" | "")
+                }
+                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="">{t("noneOneTime")}</option>
+                <option value="MONTHLY">{t("monthly")}</option>
+                <option value="ANNUAL">{t("annual")}</option>
+              </select>
+            </div>
+          )}
+          <p className="text-xs text-amber-400">{t("subsHintPriceWarning")}</p>
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={onClose}>
@@ -693,7 +791,7 @@ function AddPriceDialog({
 }
 
 // ===========================================================================
-// AppConfigSection
+// AppConfigSection — for FREE_TIER, BUNDLES (not CREDITS_COST)
 // ===========================================================================
 function AppConfigSection({
   configs,
@@ -704,6 +802,11 @@ function AppConfigSection({
   onRefresh: () => Promise<void>;
   t: T;
 }) {
+  const configDescriptions: Record<string, string> = {
+    FREE_TIER: t("freeTierDesc"),
+    BUNDLES: t("bundlesDesc"),
+  };
+
   return (
     <div className="space-y-6">
       {configs.length === 0 && (
@@ -712,7 +815,13 @@ function AppConfigSection({
         </div>
       )}
       {configs.map((config) => (
-        <ConfigCard key={config.id} config={config} onRefresh={onRefresh} t={t} />
+        <ConfigCard
+          key={config.id}
+          config={config}
+          description={configDescriptions[config.key]}
+          onRefresh={onRefresh}
+          t={t}
+        />
       ))}
     </div>
   );
@@ -720,14 +829,15 @@ function AppConfigSection({
 
 function ConfigCard({
   config,
+  description,
   onRefresh,
   t,
 }: {
   config: AdminAppConfig;
+  description?: string;
   onRefresh: () => Promise<void>;
   t: T;
 }) {
-  const configDescriptions = getConfigDescriptions(t);
   const [valueStr, setValueStr] = useState(
     JSON.stringify(config.value, null, 2),
   );
@@ -760,8 +870,6 @@ function ConfigCard({
       setSaving(false);
     }
   };
-
-  const description = configDescriptions[config.key];
 
   return (
     <div className="glass rounded-[2rem] p-6 space-y-4">
