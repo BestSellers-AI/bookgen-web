@@ -242,6 +242,7 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
   const [expandedImage, setExpandedImage] = useState<{ id: string; url: string; caption: string | null; chapterId: string | null } | null>(null);
   const [selectingImage, setSelectingImage] = useState<string | null>(null);
   const [requestingMoreImages, setRequestingMoreImages] = useState(false);
+  const [selectedChapterForImage, setSelectedChapterForImage] = useState("");
 
   // Bundle state
   const [bundleDialogOpen, setBundleDialogOpen] = useState(false);
@@ -417,12 +418,8 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
     }
   };
 
-  // Chapter images from book
-  const chapterImages = (book.images ?? []) as BookImageSummary[];
-  const imagesByChapter = book.chapters.reduce<Record<string, BookImageSummary[]>>((acc, ch) => {
-    acc[ch.id] = chapterImages.filter((img) => img.chapterId === ch.id);
-    return acc;
-  }, {});
+  // All book images (arrive without chapterId — user assigns them)
+  const bookImages = (book.images ?? []) as BookImageSummary[];
 
   const handleSelectChapterImage = async (chapterId: string, imageId: string) => {
     setSelectingImage(imageId);
@@ -1002,86 +999,76 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
                 </p>
               )}
 
-              {expandedImage.chapterId && (() => {
-                const chapter = book.chapters.find((ch) => ch.id === expandedImage.chapterId);
-                if (!chapter) return null;
-                const isSelected = chapter.selectedImageId === expandedImage.id;
+              {/* Already assigned to a chapter? Show badge or reassign */}
+              {(() => {
+                const assignedChapter = expandedImage.chapterId
+                  ? book.chapters.find((ch) => ch.selectedImageId === expandedImage.id)
+                  : null;
 
-                return isSelected ? (
-                  <div className="flex items-center justify-center gap-2 py-3 text-emerald-400 font-bold text-sm">
-                    <CheckCircle2 className="w-5 h-5" />
-                    {tj("currentImage")}
-                  </div>
-                ) : (
-                  <Button
-                    className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:from-indigo-500/90 hover:to-purple-500/90 font-bold"
-                    size="lg"
-                    onClick={() => handleSelectChapterImage(expandedImage.chapterId!, expandedImage.id)}
-                    disabled={selectingImage === expandedImage.id}
-                  >
-                    {selectingImage === expandedImage.id ? (
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    ) : (
-                      <ImageIcon className="w-4 h-4 mr-2" />
-                    )}
-                    {tj("selectAsImage")}
-                  </Button>
-                );
+                if (assignedChapter) {
+                  return (
+                    <div className="flex items-center justify-center gap-2 py-3 text-emerald-400 font-bold text-sm">
+                      <CheckCircle2 className="w-5 h-5" />
+                      {tj("currentImage")} — {assignedChapter.sequence}. {assignedChapter.title}
+                    </div>
+                  );
+                }
+
+                return null;
               })()}
+
+              {/* Chapter selector + assign button */}
+              <div className="space-y-3">
+                <Select value={selectedChapterForImage} onValueChange={setSelectedChapterForImage}>
+                  <SelectTrigger className="rounded-xl">
+                    <SelectValue placeholder={tj("chooseChapter")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {book.chapters.map((ch) => (
+                      <SelectItem key={ch.id} value={ch.id}>
+                        {ch.sequence}. {ch.title}
+                        {ch.selectedImageId ? ` ✓` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Button
+                  className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:from-indigo-500/90 hover:to-purple-500/90 font-bold"
+                  size="lg"
+                  onClick={() => handleSelectChapterImage(selectedChapterForImage, expandedImage.id)}
+                  disabled={!selectedChapterForImage || selectingImage === expandedImage.id}
+                >
+                  {selectingImage === expandedImage.id ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : (
+                    <ImageIcon className="w-4 h-4 mr-2" />
+                  )}
+                  {tj("selectAsImage")}
+                </Button>
+              </div>
             </div>
           ) : (
-            /* Chapter-grouped grid view */
+            /* Flat grid — all images */
             <div className="pb-6 space-y-6">
-              {book.chapters.map((chapter) => {
-                const imgs = imagesByChapter[chapter.id] ?? [];
-                if (imgs.length === 0) return null;
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {bookImages.map((img) => {
+                  const isSelected = book.chapters.some((ch) => ch.selectedImageId === img.id);
 
-                return (
-                  <div key={chapter.id}>
-                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
-                      {chapter.sequence}. {chapter.title}
-                    </h4>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                      {imgs.map((img) => {
-                        const isSelected = chapter.selectedImageId === img.id;
-
-                        return (
-                          <button
-                            key={img.id}
-                            type="button"
-                            onClick={() => setExpandedImage({ id: img.id, url: img.imageUrl, caption: img.caption, chapterId: img.chapterId })}
-                            className={`relative group rounded-xl overflow-hidden border-2 transition-all aspect-square ${
-                              isSelected
-                                ? "border-emerald-400 shadow-lg shadow-emerald-500/20"
-                                : "border-border hover:border-indigo-500/50"
-                            }`}
-                          >
-                            <img
-                              src={img.imageUrl}
-                              alt={img.caption ?? ""}
-                              className="w-full h-full object-cover"
-                            />
-
-                            {isSelected && (
-                              <div className="absolute top-2 right-2">
-                                <div className="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg">
-                                  <CheckCircle2 className="w-4 h-4 text-white" />
-                                </div>
-                              </div>
-                            )}
-
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-end justify-center pb-3 opacity-0 group-hover:opacity-100">
-                              <span className="text-white text-[10px] font-bold bg-black/60 px-2.5 py-1 rounded-lg backdrop-blur-sm">
-                                {tj("tapToExpand")}
-                              </span>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
+                  return (
+                    <ImageGridItem
+                      key={img.id}
+                      img={img}
+                      isSelected={isSelected}
+                      onExpand={(data) => {
+                        setSelectedChapterForImage("");
+                        setExpandedImage(data);
+                      }}
+                      tj={tj}
+                    />
+                  );
+                })}
+              </div>
 
               {/* Generate more images button */}
               <button
@@ -1613,6 +1600,51 @@ function BundleCard({
           </span>
           <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
         </div>
+      </div>
+    </button>
+  );
+}
+
+/** Reusable image thumbnail for the gallery grid */
+function ImageGridItem({
+  img,
+  isSelected,
+  onExpand,
+  tj,
+}: {
+  img: BookImageSummary;
+  isSelected: boolean;
+  onExpand: (data: { id: string; url: string; caption: string | null; chapterId: string | null }) => void;
+  tj: ReturnType<typeof useTranslations>;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onExpand({ id: img.id, url: img.imageUrl, caption: img.caption, chapterId: img.chapterId })}
+      className={`relative group rounded-xl overflow-hidden border-2 transition-all aspect-square ${
+        isSelected
+          ? "border-emerald-400 shadow-lg shadow-emerald-500/20"
+          : "border-border hover:border-indigo-500/50"
+      }`}
+    >
+      <img
+        src={img.imageUrl}
+        alt={img.caption ?? ""}
+        className="w-full h-full object-cover"
+      />
+
+      {isSelected && (
+        <div className="absolute top-2 right-2">
+          <div className="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg">
+            <CheckCircle2 className="w-4 h-4 text-white" />
+          </div>
+        </div>
+      )}
+
+      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-end justify-center pb-3 opacity-0 group-hover:opacity-100">
+        <span className="text-white text-[10px] font-bold bg-black/60 px-2.5 py-1 rounded-lg backdrop-blur-sm">
+          {tj("tapToExpand")}
+        </span>
       </div>
     </button>
   );

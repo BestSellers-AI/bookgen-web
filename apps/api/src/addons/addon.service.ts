@@ -459,17 +459,24 @@ export class AddonService {
     }
 
     const image = await this.prisma.bookImage.findFirst({
-      where: { id: imageId, bookId, chapterId },
+      where: { id: imageId, bookId },
     });
 
     if (!image) {
-      throw new NotFoundException('Image not found for this chapter');
+      throw new NotFoundException('Image not found');
     }
 
-    await this.prisma.chapter.update({
-      where: { id: chapterId },
-      data: { selectedImageId: imageId },
-    });
+    // Associate image with chapter and set as selected
+    await this.prisma.$transaction([
+      this.prisma.bookImage.update({
+        where: { id: imageId },
+        data: { chapterId },
+      }),
+      this.prisma.chapter.update({
+        where: { id: chapterId },
+        data: { selectedImageId: imageId },
+      }),
+    ]);
 
     this.logger.log(
       `Chapter image selected: image ${imageId} for chapter ${chapterId} (book ${bookId})`,
