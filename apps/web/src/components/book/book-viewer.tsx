@@ -57,28 +57,17 @@ export function BookViewer({ book, onRefetch }: BookViewerProps) {
               {new Date(book.createdAt).toLocaleDateString()}
             </span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-heading font-black tracking-tight leading-tight text-foreground">
+          <h1 className="text-4xl md:text-5xl font-heading font-black tracking-tight leading-tight text-foreground truncate md:whitespace-normal md:overflow-visible">
             {book.title}
           </h1>
           {book.subtitle && (
-            <p className="text-xl text-muted-foreground font-medium italic">
+            <p className="text-xl text-muted-foreground font-medium italic line-clamp-3 md:line-clamp-none">
               {book.subtitle}
             </p>
           )}
         </div>
 
         <div className="flex flex-wrap gap-8 py-6 border-y border-border">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-              <User size={20} />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xs font-black text-muted-foreground uppercase tracking-widest">
-                {t("author")}
-              </span>
-              <span className="font-bold text-foreground">{book.author}</span>
-            </div>
-          </div>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
               <BookOpen size={20} />
@@ -93,8 +82,37 @@ export function BookViewer({ book, onRefetch }: BookViewerProps) {
             </div>
           </div>
         </div>
+      </header>
 
-        {/* Action bar */}
+      {/* Author Journey — publishing track + extras */}
+      <AuthorJourney book={book} onRefetch={onRefetch} />
+
+      {/* Embedded PDF */}
+      {pdfFile && (
+        <div className="glass rounded-[2.5rem] border-none overflow-hidden p-2">
+          <iframe
+            src={pdfFile.fileUrl}
+            title={book.title}
+            className="w-full rounded-[2rem]"
+            style={{ height: "80vh", minHeight: "600px" }}
+          />
+        </div>
+      )}
+
+      {/* Author + Downloads + Share */}
+      <div className="space-y-5">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+            <User size={20} />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-xs font-black text-muted-foreground uppercase tracking-widest">
+              {t("author")}
+            </span>
+            <span className="font-bold text-foreground">{book.author}</span>
+          </div>
+        </div>
+
         <div className="flex flex-wrap gap-3">
           {pdfFile && (
             <Button variant="outline" className="rounded-xl border-primary/20 bg-primary/5 text-primary hover:bg-primary/10" asChild>
@@ -109,7 +127,7 @@ export function BookViewer({ book, onRefetch }: BookViewerProps) {
             <Button variant="outline" className="rounded-xl border-primary/20 bg-primary/5 text-primary hover:bg-primary/10" asChild>
               <a href={docxFile.fileUrl} target="_blank" rel="noopener noreferrer">
                 <Download className="mr-2 h-4 w-4" />
-                {t("downloadDocx")}
+                {t("downloadEditable")}
               </a>
             </Button>
           )}
@@ -132,22 +150,7 @@ export function BookViewer({ book, onRefetch }: BookViewerProps) {
             {t("share")}
           </Button>
         </div>
-      </header>
-
-      {/* Author Journey — publishing track + extras */}
-      <AuthorJourney book={book} onRefetch={onRefetch} />
-
-      {/* Embedded PDF */}
-      {pdfFile && (
-        <div className="glass rounded-[2.5rem] border-none overflow-hidden p-2">
-          <iframe
-            src={pdfFile.fileUrl}
-            title={book.title}
-            className="w-full rounded-[2rem]"
-            style={{ height: "80vh", minHeight: "600px" }}
-          />
-        </div>
-      )}
+      </div>
 
       {/* --- TOC + Content blocks (hidden — kept for future use) ---
       <div className="flex gap-8">
