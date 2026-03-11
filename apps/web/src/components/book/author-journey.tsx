@@ -730,8 +730,8 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
                               );
                             }
 
-                            // Images step: open image gallery
-                            if (step.id === "images" && chapterImages.length > 0) {
+                            // Images step: always open gallery (not external link)
+                            if (step.id === "images") {
                               return (
                                 <div className="mt-2">
                                   <Button
