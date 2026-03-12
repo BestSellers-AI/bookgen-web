@@ -1,94 +1,61 @@
-// ─── Announcement Bar Configuration ──────────────────────────────────────────
+// ─── Announcement Bar — Local Fallback Configuration ─────────────────────────
 //
-// Usage:
-//   1. Set `enabled: true` to show the bar, `false` to hide it everywhere.
-//   2. Set `areas` to control where it appears:
-//      - "public"    → Home / Landing page (routes without /dashboard or /chat)
-//      - "dashboard" → All dashboard pages (authenticated area)
-//      - "chat"      → Chat funnel page
-//      Example: ["public", "dashboard"] → shows on home + dashboard, not chat
-//   3. Set `style` to control the animation:
-//      - "static"  → Centered text, no movement
-//      - "marquee" → Scrolling text from right to left (infinite loop)
-//   4. Set `theme` to control the background:
-//      - "gradient" → Amber-to-orange gradient (eye-catching)
-//      - "solid"    → Subtle solid background using accent color
-//      - "primary"  → Primary color background
-//   5. `messageKey` is an i18n key under the "announcement" namespace.
-//      The actual text lives in messages/{en,pt-BR,es}.json → "announcement".
-//      Example: messageKey: "newFeature" → reads announcement.newFeature
-//   6. Optionally add a `link` with `textKey` (i18n key) + `href`.
-//   7. `dismissible` → if true, user can close it (remembered for the session).
+// This file is used as a FALLBACK when no remote config exists in the database
+// (AppConfig key "ANNOUNCEMENT"). When the admin sets a config via the panel,
+// the remote config takes priority over this file.
 //
-// i18n setup:
-//   Add your messages in each locale file under the "announcement" namespace:
+// To manage the announcement from the admin panel:
+//   1. Go to Admin → Settings
+//   2. Edit the "ANNOUNCEMENT" config key with the JSON structure below
+//   3. The bar updates automatically (config is cached for 5 min)
 //
-//   // messages/en.json
-//   "announcement": {
-//     "newFeature": "🚀 New: automatic chapter illustrations!",
-//     "newFeatureLink": "Learn more →"
-//   }
-//
-//   // messages/pt-BR.json
-//   "announcement": {
-//     "newFeature": "🚀 Novo: ilustrações automáticas para capítulos!",
-//     "newFeatureLink": "Saiba mais →"
-//   }
-//
-// Examples:
-//
-//   // Simple static announcement on all areas
+// Remote config JSON structure (stored in AppConfig.value):
 //   {
-//     enabled: true,
-//     messageKey: "newFeature",
-//     style: "static",
-//     areas: ["public", "dashboard", "chat"],
-//     theme: "gradient",
+//     "enabled": true,
+//     "style": "static",              // "static" | "marquee"
+//     "areas": ["public","dashboard"], // "public" | "dashboard" | "chat"
+//     "theme": "gradient",            // "gradient" | "solid" | "primary"
+//     "dismissible": true,
+//     "link": { "href": "/dashboard/create" },
+//     "messages": {
+//       "en":    { "message": "🚀 New feature!", "linkText": "Learn more →" },
+//       "pt-BR": { "message": "🚀 Novidade!",   "linkText": "Saiba mais →" },
+//       "es":    { "message": "🚀 ¡Novedad!",   "linkText": "Saber más →" }
+//     }
 //   }
 //
-//   // Marquee on public pages only, with a link
-//   {
-//     enabled: true,
-//     messageKey: "limitedOffer",
-//     style: "marquee",
-//     areas: ["public"],
-//     theme: "primary",
-//     link: { textKey: "limitedOfferLink", href: "/dashboard/wallet/buy-credits" },
-//   }
+// This local fallback is used when:
+//   - The DB has no "ANNOUNCEMENT" key yet
+//   - The API is unreachable and config-store falls back
 //
-//   // Dashboard-only maintenance notice
-//   {
-//     enabled: true,
-//     messageKey: "maintenance",
-//     style: "static",
-//     areas: ["dashboard"],
-//     theme: "solid",
-//     dismissible: true,
-//   }
-//
+// To disable the bar entirely when no remote config exists, set enabled: false.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type AnnouncementArea = "public" | "dashboard" | "chat";
 export type AnnouncementStyle = "static" | "marquee";
 export type AnnouncementTheme = "gradient" | "solid" | "primary";
 
-export interface AnnouncementConfig {
+export interface AnnouncementFallbackConfig {
   enabled: boolean;
-  messageKey: string;
   style: AnnouncementStyle;
   areas: AnnouncementArea[];
   theme: AnnouncementTheme;
-  link?: { textKey: string; href: string };
   dismissible?: boolean;
+  link?: { href: string };
+  /** Fallback message (not localized — use remote config for i18n) */
+  fallbackMessage: string;
+  /** Fallback link text */
+  fallbackLinkText?: string;
 }
 
-// ── EDIT THIS to change the announcement ─────────────────────────────────────
-export const announcementConfig: AnnouncementConfig = {
-  enabled: true,
-  messageKey: "kdpEarnings",
+// ── LOCAL FALLBACK — used when no remote config exists ───────────────────────
+export const announcementConfig: AnnouncementFallbackConfig = {
+  enabled: false,
   style: "static",
-  areas: ["public", "dashboard", "chat"],
+  areas: ["public", "dashboard"],
   theme: "gradient",
-  link: { textKey: "kdpEarningsLink", href: "/dashboard/create" },
   dismissible: true,
+  fallbackMessage: "",
+  // link: { href: "/dashboard/create" },
+  // fallbackLinkText: "Learn more →",
 };

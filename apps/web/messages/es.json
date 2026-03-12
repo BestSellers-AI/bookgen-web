@@ -43,7 +43,8 @@
     "adminBooks": "Libros",
     "adminSubs": "Suscripciones",
     "adminPurchases": "Compras",
-    "adminProducts": "Productos"
+    "adminProducts": "Productos",
+    "adminAnnouncement": "Anuncio"
   },
   "notifications": {
     "title": "Notificaciones",
@@ -785,7 +786,8 @@
     "addCreditsBtn": "Agregar Créditos",
     "creditsAdded": "¡Créditos agregados! Nuevo saldo: {balance}",
     "creditsAddError": "Error al agregar créditos.",
-    "subscriptionInfo": "Detalles de Suscripción"
+    "subscriptionInfo": "Detalles de Suscripción",
+    "announcement": "Barra de Anuncio"
   },
   "landingV2": {
     "nav": {

@@ -2,6 +2,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   AppConfigPayload,
+  AnnouncementConfigPayload,
   SubscriptionPlanConfig,
   CreditPackConfig,
   OneTimePurchaseConfig,
@@ -215,6 +216,10 @@ export class ConfigDataService implements OnModuleInit {
         }
       }
 
+      // Announcement bar from AppConfig (nullable — disabled if not set)
+      const announcement =
+        (configMap.get('ANNOUNCEMENT') as AnnouncementConfigPayload | undefined) ?? null;
+
       const payload: AppConfigPayload = {
         subscriptionPlans,
         creditPacks,
@@ -222,6 +227,7 @@ export class ConfigDataService implements OnModuleInit {
         creditsCost,
         freeTier,
         bundles,
+        announcement,
       };
 
       this.cache = payload;

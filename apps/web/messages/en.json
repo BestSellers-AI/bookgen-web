@@ -43,7 +43,8 @@
     "adminBooks": "Books",
     "adminSubs": "Subscriptions",
     "adminPurchases": "Purchases",
-    "adminProducts": "Products"
+    "adminProducts": "Products",
+    "adminAnnouncement": "Announcement"
   },
   "notifications": {
     "title": "Notifications",
@@ -785,7 +786,8 @@
     "addCreditsBtn": "Add Credits",
     "creditsAdded": "Credits added! New balance: {balance}",
     "creditsAddError": "Failed to add credits.",
-    "subscriptionInfo": "Subscription Details"
+    "subscriptionInfo": "Subscription Details",
+    "announcement": "Announcement Bar"
   },
   "landingV2": {
     "nav": {

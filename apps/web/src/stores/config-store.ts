@@ -3,6 +3,7 @@
 import { create } from 'zustand';
 import type {
   AppConfigPayload,
+  AnnouncementConfigPayload,
   SubscriptionPlanConfig,
   CreditPackConfig,
   FreeTierConfig,
@@ -30,6 +31,7 @@ interface ConfigState {
   getFreeTier: () => FreeTierConfig;
   getBundles: () => Record<string, BundleConfigPayload>;
   getPlanConfig: (plan: string) => SubscriptionPlanConfig | undefined;
+  getAnnouncement: () => AnnouncementConfigPayload | null;
 }
 
 // Build fallback config from shared constants
@@ -79,6 +81,7 @@ const buildFallbackConfig = (): AppConfigPayload => ({
       },
     ]),
   ),
+  announcement: null,
 });
 
 export const useConfigStore = create<ConfigState>((set, get) => ({
@@ -128,5 +131,9 @@ export const useConfigStore = create<ConfigState>((set, get) => ({
     const plans =
       get().config?.subscriptionPlans ?? buildFallbackConfig().subscriptionPlans;
     return plans.find((p) => p.plan === plan);
+  },
+
+  getAnnouncement: () => {
+    return get().config?.announcement ?? null;
   },
 }));

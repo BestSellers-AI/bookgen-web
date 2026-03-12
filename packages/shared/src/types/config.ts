@@ -5,6 +5,26 @@ export interface AppConfigPayload {
   creditsCost: Record<string, number>;
   freeTier: FreeTierConfig;
   bundles: Record<string, BundleConfigPayload>;
+  announcement: AnnouncementConfigPayload | null;
+}
+
+export interface AnnouncementMessagePayload {
+  message: string;
+  linkText?: string;
+}
+
+export interface AnnouncementConfigPayload {
+  enabled: boolean;
+  style: 'static' | 'marquee';
+  areas: Array<'public' | 'dashboard' | 'chat'>;
+  theme: 'gradient' | 'solid' | 'primary';
+  dismissible?: boolean;
+  link?: { href: string };
+  messages: {
+    en: AnnouncementMessagePayload;
+    'pt-BR': AnnouncementMessagePayload;
+    es: AnnouncementMessagePayload;
+  };
 }
 
 export interface SubscriptionPlanConfig {
