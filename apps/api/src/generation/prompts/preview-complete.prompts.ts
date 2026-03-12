@@ -39,12 +39,13 @@ About the CTA:
 Specific rules for each section:
 
 ### In "planning.chapters"
-* Generate between 10 chapters.
-* Each item must contain "title" and "topics" (array with 2 main topics).
+* You MUST preserve the EXACT same chapter structure provided in the input (book_content): same number of chapters, same titles, same number of topics per chapter, and same topic titles.
+* Do NOT add, remove, rename, or reorder chapters or topics. The user has already approved this structure.
+* Each item must contain "title" and "topics" (array of topics matching the input structure).
 
 ### In each "topics" within "chapters"
-* "title": clear and specific subtitle related to the chapter.
-* "content": fluid narrative text with approx. 150-200 words.
+* "title": keep the EXACT same title from the input structure.
+* "content": fluid narrative text with approx. 150-200 words, expanding on the topic title and any existing content description.
 
 ### In "introduction"
 * Engaging introduction: topic context, relevance, what the reader will learn.
@@ -77,10 +78,12 @@ export function buildPreviewCompleteUserPrompt(input: PreviewCompleteInput): str
 
   return `book_title = ${input.title}
 book_subtitle = ${input.subtitle ?? ''}
-book_content = ${JSON.stringify(input.planning)}
+book_structure = ${JSON.stringify(input.planning)}
 author_name = ${input.author}
 language = ${language}
-briefing = ${input.briefing}`;
+briefing = ${input.briefing}
+
+IMPORTANT: The "book_structure" above is the user-approved structure. You MUST keep the exact same chapters and topics (titles, order, count). Only generate the narrative content for each topic.`;
 }
 
 export const PREVIEW_COMPLETE_OUTPUT_SCHEMA = {

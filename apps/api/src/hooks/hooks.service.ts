@@ -844,6 +844,50 @@ export class HooksService {
 
         if (normalized.length > 0) {
           await this.prisma.bookImage.createMany({ data: normalized });
+
+          // Auto-assign only to chapters that don't already have an image
+          const withChapter = normalized.filter((img) => img.chapterId);
+          if (withChapter.length > 0) {
+            // Get chapters that have no selectedImageId yet
+            const unassignedChapters = await this.prisma.chapter.findMany({
+              where: {
+                bookId: dto.bookId,
+                id: { in: withChapter.map((img) => img.chapterId!) },
+                selectedImageId: null,
+              },
+              select: { id: true },
+            });
+            const unassignedSet = new Set(unassignedChapters.map((ch) => ch.id));
+
+            if (unassignedSet.size > 0) {
+              // Find the newly created images (most recent per chapterId)
+              const created = await this.prisma.bookImage.findMany({
+                where: {
+                  bookId: dto.bookId,
+                  chapterId: { in: [...unassignedSet] },
+                },
+                orderBy: { createdAt: 'desc' },
+                select: { id: true, chapterId: true },
+              });
+
+              // Take only the first (newest) image per chapter
+              const imageByChapter = new Map<string, string>();
+              for (const img of created) {
+                if (img.chapterId && !imageByChapter.has(img.chapterId)) {
+                  imageByChapter.set(img.chapterId, img.id);
+                }
+              }
+
+              await Promise.all(
+                [...imageByChapter.entries()].map(([chapterId, imageId]) =>
+                  this.prisma.chapter.update({
+                    where: { id: chapterId },
+                    data: { selectedImageId: imageId },
+                  }),
+                ),
+              );
+            }
+          }
         }
         break;
       }

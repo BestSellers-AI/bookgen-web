@@ -658,6 +658,11 @@
     "generateMoreImages": "+6 More Illustrations",
     "generatingImages": "Generating...",
     "chooseChapter": "Choose a chapter for this illustration",
+    "confirmMoreCoversTitle": "Generate More Covers",
+    "confirmMoreCoversDescription": "This will generate 6 new cover variations and will cost {cost} credits. Continue?",
+    "confirmMoreImagesTitle": "Generate More Illustrations",
+    "confirmMoreImagesDescription": "This will generate new illustrations for each chapter and will cost {cost} credits. Continue?",
+    "confirmGenerate": "Generate",
     "extrasTitle": "Boost your book",
     "extrasSubtitle": "Optional upgrades to maximize your book's reach and impact.",
     "viewExtras": "View options"

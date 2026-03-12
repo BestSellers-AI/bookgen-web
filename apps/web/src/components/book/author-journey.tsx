@@ -252,6 +252,9 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
   const [requestingMoreImages, setRequestingMoreImages] = useState(false);
   const [selectedChapterForImage, setSelectedChapterForImage] = useState("");
 
+  // Confirmation dialog for "generate more" actions
+  const [confirmMoreType, setConfirmMoreType] = useState<"covers" | "images" | null>(null);
+
   // Bundle state
   const [bundleDialogOpen, setBundleDialogOpen] = useState(false);
   const [selectedBundle, setSelectedBundle] = useState<BundleConfigPayload | null>(null);
@@ -382,10 +385,20 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
     }
   };
 
-  // Cover images from book files
-  const coverImages = (book.files ?? []).filter(
-    (f) => f.fileType === FileType.COVER_IMAGE,
-  );
+  // Cover images from book files — deduplicated by URL, sorted by creation date
+  const coverImages = (() => {
+    const covers = (book.files ?? []).filter(
+      (f) => f.fileType === FileType.COVER_IMAGE,
+    );
+    const seen = new Set<string>();
+    return covers
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+      .filter((f) => {
+        if (seen.has(f.fileUrl)) return false;
+        seen.add(f.fileUrl);
+        return true;
+      });
+  })();
 
   const handleSelectCover = async (fileId: string) => {
     setSelectingCover(fileId);
@@ -426,8 +439,16 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
     }
   };
 
-  // All book images (arrive without chapterId — user assigns them)
-  const bookImages = (book.images ?? []) as BookImageSummary[];
+  // Chapter images — deduplicated by URL (old batches shared the same S3 key)
+  const bookImages = (() => {
+    const imgs = (book.images ?? []) as BookImageSummary[];
+    const seen = new Set<string>();
+    return imgs.filter((img) => {
+      if (seen.has(img.imageUrl)) return false;
+      seen.add(img.imageUrl);
+      return true;
+    });
+  })();
 
   const handleSelectChapterImage = async (chapterId: string, imageId: string) => {
     setSelectingImage(imageId);
@@ -936,7 +957,7 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
               {/* Generate more covers button */}
               <button
                 type="button"
-                onClick={handleRequestMoreCovers}
+                onClick={() => setConfirmMoreType("covers")}
                 disabled={requestingMoreCovers || hasProcessingCovers}
                 className="rounded-xl border-2 border-dashed border-primary/30 hover:border-primary/60 transition-all aspect-[3/4] flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -1082,7 +1103,7 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
               {/* Generate more images button */}
               <button
                 type="button"
-                onClick={handleRequestMoreImages}
+                onClick={() => setConfirmMoreType("images")}
                 disabled={requestingMoreImages || hasProcessingImages}
                 className="w-full rounded-xl border-2 border-dashed border-indigo-500/30 hover:border-indigo-500/60 transition-all py-6 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -1316,6 +1337,41 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
                 {selectedBundle ? tj(`bundleCta_${selectedBundle.id}`) : ""}
               </AlertDialogAction>
             )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ─── Generate More Confirmation Dialog ─── */}
+      <AlertDialog open={confirmMoreType !== null} onOpenChange={(open) => { if (!open) setConfirmMoreType(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              {confirmMoreType === "covers" ? (
+                <><Palette className="w-5 h-5 text-pink-500" />{tj("confirmMoreCoversTitle")}</>
+              ) : (
+                <><ImageIcon className="w-5 h-5 text-indigo-500" />{tj("confirmMoreImagesTitle")}</>
+              )}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmMoreType === "covers"
+                ? tj("confirmMoreCoversDescription", { cost: getCreditsCost(ProductKind.ADDON_COVER) })
+                : tj("confirmMoreImagesDescription", { cost: getCreditsCost(ProductKind.ADDON_IMAGES) })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (confirmMoreType === "covers") {
+                  handleRequestMoreCovers();
+                } else {
+                  handleRequestMoreImages();
+                }
+                setConfirmMoreType(null);
+              }}
+            >
+              {tj("confirmGenerate")}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -135,7 +135,9 @@ export class BookService {
         chapters: {
           orderBy: { sequence: 'asc' },
         },
-        files: true,
+        files: {
+          orderBy: { createdAt: 'asc' },
+        },
         addons: true,
         selectedCoverFile: {
           select: { fileUrl: true },
@@ -149,7 +151,7 @@ export class BookService {
         },
         audiobooks: true,
         images: {
-          orderBy: { position: 'asc' },
+          orderBy: [{ position: 'asc' }, { createdAt: 'desc' }],
         },
         sharedBooks: {
           where: { isActive: true },

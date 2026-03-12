@@ -94,6 +94,7 @@ const MIN_TOPIC_WORDS = 50;
 
 @Processor('generation', {
   stalledInterval: 300_000, // 5 min — LLM calls can take 1-3 min each
+  lockDuration: 600_000, // 10 min — image gen can take 3min × 3 retries per batch
   maxStalledCount: 2,
   concurrency: 2,
 })
@@ -817,6 +818,11 @@ export class GenerationProcessor extends WorkerHost {
       const batchStart = batch * batchSize;
       const batchConcepts = orderedConcepts.slice(batchStart, batchStart + batchSize);
 
+      // Heartbeat before each batch to prevent stall/lock expiry
+      await job.updateProgress(
+        15 + Math.round((batch / Math.ceil(totalChapters / batchSize)) * 80),
+      );
+
       const imageResults = await Promise.allSettled(
         batchConcepts.map(async (concept) => {
           const imagePrompt = buildChapterImageGenerationPrompt(
@@ -838,9 +844,9 @@ export class GenerationProcessor extends WorkerHost {
         if (settled.status === 'fulfilled') {
           const { concept, result } = settled.value;
 
-          // Upload to S3
+          // Upload to S3 — unique key per generation to avoid overwriting previous batches
           const ext = result.mimeType.includes('png') ? 'png' : 'jpg';
-          const key = `chapter-images/${bookId}/chapter-${concept.sequence}.${ext}`;
+          const key = `chapter-images/${bookId}/chapter-${concept.sequence}-${Date.now()}.${ext}`;
           const buffer = Buffer.from(result.imageBase64, 'base64');
           const url = await this.storageService.upload(key, buffer, result.mimeType);
 
