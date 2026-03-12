@@ -8,18 +8,15 @@ import {
   User,
   BookOpen,
   FileText,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-// Dialog, Accordion, BookToc, ChapterContent — kept for future use (content blocks hidden, PDF embedded instead)
-// import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-// import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-// import { BookToc } from "./book-toc";
-// import { ChapterContent } from "./chapter-content";
 import { ShareDialog } from "./share-dialog";
 import { AuthorJourney } from "./author-journey";
 import { BookPdfViewerDynamic } from "./book-pdf-viewer-dynamic";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
+import { toast } from "sonner";
 import type { BookDetail, BookFileSummary } from "@/lib/api/types";
 
 function getFileByType(
@@ -36,12 +33,40 @@ interface BookViewerProps {
 
 export function BookViewer({ book, onRefetch }: BookViewerProps) {
   const [shareOpen, setShareOpen] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [downloadingDocx, setDownloadingDocx] = useState(false);
   const t = useTranslations("book");
+  const tErr = useTranslations("errors");
+  const locale = useLocale();
 
   const [viewMode, setViewMode] = useState<"kdp" | "original">("kdp");
   const pdfFile = getFileByType(book.files, "FULL_PDF");
   const docxFile = getFileByType(book.files, "DOCX");
   const epubFile = getFileByType(book.files, "EPUB");
+
+  const handleDownloadPdf = async () => {
+    setDownloadingPdf(true);
+    try {
+      const { downloadBookPdf } = await import("@/lib/book-template/download");
+      await downloadBookPdf(book, locale);
+    } catch {
+      toast.error(tErr("downloadFailed"));
+    } finally {
+      setDownloadingPdf(false);
+    }
+  };
+
+  const handleDownloadDocx = async () => {
+    setDownloadingDocx(true);
+    try {
+      const { downloadBookDocx } = await import("@/lib/book-template/download");
+      await downloadBookDocx(book, locale);
+    } catch {
+      toast.error(tErr("downloadFailed"));
+    } finally {
+      setDownloadingDocx(false);
+    }
+  };
 
   return (
     <div className="max-w-6xl mx-auto space-y-10">
@@ -150,24 +175,37 @@ export function BookViewer({ book, onRefetch }: BookViewerProps) {
         </div>
 
         <div className="flex flex-wrap gap-3">
-          {pdfFile && (
-            <Button variant="outline" className="rounded-xl border-primary/20 bg-primary/5 text-primary hover:bg-primary/10" asChild>
-              <a href={pdfFile.fileUrl} target="_blank" rel="noopener noreferrer">
-                <Download className="mr-2 h-4 w-4" />
-                {t("downloadPdf")}
-              </a>
-            </Button>
-          )}
+          {/* Client-side PDF download (always available) */}
+          <Button
+            variant="outline"
+            className="rounded-xl border-primary/20 bg-primary/5 text-primary hover:bg-primary/10"
+            onClick={handleDownloadPdf}
+            disabled={downloadingPdf}
+          >
+            {downloadingPdf ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <FileText className="mr-2 h-4 w-4" />
+            )}
+            {downloadingPdf ? t("generatingFile") : t("downloadPdf")}
+          </Button>
 
-          {docxFile && (
-            <Button variant="outline" className="rounded-xl border-primary/20 bg-primary/5 text-primary hover:bg-primary/10" asChild>
-              <a href={docxFile.fileUrl} target="_blank" rel="noopener noreferrer">
-                <Download className="mr-2 h-4 w-4" />
-                {t("downloadEditable")}
-              </a>
-            </Button>
-          )}
+          {/* Client-side DOCX download (always available) */}
+          <Button
+            variant="outline"
+            className="rounded-xl border-primary/20 bg-primary/5 text-primary hover:bg-primary/10"
+            onClick={handleDownloadDocx}
+            disabled={downloadingDocx}
+          >
+            {downloadingDocx ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="mr-2 h-4 w-4" />
+            )}
+            {downloadingDocx ? t("generatingFile") : t("downloadEditable")}
+          </Button>
 
+          {/* Server-hosted files (from n8n legacy, if available) */}
           {epubFile && (
             <Button variant="outline" className="rounded-xl border-primary/20 bg-primary/5 text-primary hover:bg-primary/10" asChild>
               <a href={epubFile.fileUrl} target="_blank" rel="noopener noreferrer">

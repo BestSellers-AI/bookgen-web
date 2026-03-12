@@ -258,6 +258,7 @@
     "pages": "páginas",
     "chaptersCount": "capítulos",
     "downloadPdf": "Descargar PDF",
+    "generatingFile": "Generando...",
     "viewKdp": "Formato KDP",
     "viewOriginal": "Original",
     "viewPdfFull": "Ver PDF",
@@ -460,6 +461,7 @@
     "passwordMismatch": "Las contraseñas no coinciden",
     "passwordUpdateFailed": "Error al actualizar contraseña",
     "generic": "Algo salió mal. Inténtalo de nuevo.",
+    "downloadFailed": "Error en la descarga. Inténtalo de nuevo.",
     "invalidCredentials": "Correo o contraseña inválidos.",
     "emailAlreadyExists": "Ya existe una cuenta con este correo."
   },
