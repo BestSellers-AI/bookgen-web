@@ -34,22 +34,9 @@ type Area = "public" | "dashboard" | "chat";
 type Style = "static" | "marquee";
 type Theme = "gradient" | "solid" | "primary";
 
-const AREAS: { value: Area; label: string }[] = [
-  { value: "public", label: "Public (Home / LP)" },
-  { value: "dashboard", label: "Dashboard" },
-  { value: "chat", label: "Chat" },
-];
-
-const STYLES: { value: Style; label: string }[] = [
-  { value: "static", label: "Static (centered)" },
-  { value: "marquee", label: "Marquee (scrolling)" },
-];
-
-const THEMES: { value: Theme; label: string }[] = [
-  { value: "gradient", label: "Gradient (amber → orange)" },
-  { value: "solid", label: "Solid (accent)" },
-  { value: "primary", label: "Primary" },
-];
+const AREA_VALUES: Area[] = ["public", "dashboard", "chat"];
+const STYLE_VALUES: Style[] = ["static", "marquee"];
+const THEME_VALUES: Theme[] = ["gradient", "solid", "primary"];
 
 const LOCALES = ["en", "pt-BR", "es"] as const;
 const LOCALE_LABELS: Record<string, string> = {
@@ -81,6 +68,23 @@ export default function AdminAnnouncementPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  const AREA_LABELS: Record<Area, string> = {
+    public: t("annAreaPublic"),
+    dashboard: t("annAreaDashboard"),
+    chat: t("annAreaChat"),
+  };
+
+  const STYLE_LABELS: Record<Style, string> = {
+    static: t("annStyleStatic"),
+    marquee: t("annStyleMarquee"),
+  };
+
+  const THEME_LABELS: Record<Theme, string> = {
+    gradient: t("annThemeGradient"),
+    solid: t("annThemeSolid"),
+    primary: t("annThemePrimary"),
+  };
+
   const fetchConfig = useCallback(async () => {
     setLoading(true);
     try {
@@ -100,11 +104,11 @@ export default function AdminAnnouncementPage() {
         setLinkHref(val.link?.href ?? "");
       }
     } catch {
-      toast.error("Failed to load announcement config");
+      toast.error(t("annLoadError"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchConfig();
@@ -118,9 +122,9 @@ export default function AdminAnnouncementPage() {
         link: linkHref.trim() ? { href: linkHref.trim() } : undefined,
       };
       await adminApi.updateAppConfig("ANNOUNCEMENT", payload as unknown as Record<string, any>);
-      toast.success("Announcement updated!");
+      toast.success(t("annSaved"));
     } catch {
-      toast.error("Failed to save announcement config");
+      toast.error(t("annSaveError"));
     } finally {
       setSaving(false);
     }
@@ -151,7 +155,7 @@ export default function AdminAnnouncementPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <PageHeader title={t("announcement") || "Announcement Bar"} />
+        <PageHeader title={t("announcement")} />
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-16 rounded-2xl" />
@@ -163,7 +167,7 @@ export default function AdminAnnouncementPage() {
 
   return (
     <div className="space-y-6 max-w-3xl">
-      <PageHeader title={t("announcement") || "Announcement Bar"} />
+      <PageHeader title={t("announcement")} />
 
       {/* Preview */}
       {config.enabled && config.messages.en.message && (
@@ -195,10 +199,10 @@ export default function AdminAnnouncementPage() {
           )}
           <div>
             <p className="font-semibold text-sm">
-              {config.enabled ? "Announcement is active" : "Announcement is disabled"}
+              {config.enabled ? t("annActive") : t("annDisabled")}
             </p>
             <p className="text-xs text-muted-foreground">
-              Toggle to show/hide the bar across the app
+              {t("annToggleHint")}
             </p>
           </div>
         </div>
@@ -211,7 +215,7 @@ export default function AdminAnnouncementPage() {
       {/* Style & Theme */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label>Style</Label>
+          <Label>{t("annStyle")}</Label>
           <Select
             value={config.style}
             onValueChange={(v) => setConfig((prev) => ({ ...prev, style: v as Style }))}
@@ -220,15 +224,15 @@ export default function AdminAnnouncementPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {STYLES.map((s) => (
-                <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+              {STYLE_VALUES.map((s) => (
+                <SelectItem key={s} value={s}>{STYLE_LABELS[s]}</SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
 
         <div className="space-y-2">
-          <Label>Theme</Label>
+          <Label>{t("annTheme")}</Label>
           <Select
             value={config.theme}
             onValueChange={(v) => setConfig((prev) => ({ ...prev, theme: v as Theme }))}
@@ -237,8 +241,8 @@ export default function AdminAnnouncementPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {THEMES.map((th) => (
-                <SelectItem key={th.value} value={th.value}>{th.label}</SelectItem>
+              {THEME_VALUES.map((th) => (
+                <SelectItem key={th} value={th}>{THEME_LABELS[th]}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -247,22 +251,22 @@ export default function AdminAnnouncementPage() {
 
       {/* Areas */}
       <div className="space-y-2">
-        <Label>Visible areas</Label>
+        <Label>{t("annAreas")}</Label>
         <div className="flex flex-wrap gap-2">
-          {AREAS.map((a) => {
-            const active = config.areas.includes(a.value);
+          {AREA_VALUES.map((a) => {
+            const active = config.areas.includes(a);
             return (
               <button
-                key={a.value}
+                key={a}
                 type="button"
-                onClick={() => toggleArea(a.value)}
+                onClick={() => toggleArea(a)}
                 className={`px-4 py-2 rounded-xl text-sm font-medium border transition-colors ${
                   active
                     ? "bg-primary text-primary-foreground border-primary"
                     : "bg-accent/50 text-muted-foreground border-border hover:border-primary/50"
                 }`}
               >
-                {a.label}
+                {AREA_LABELS[a]}
               </button>
             );
           })}
@@ -272,8 +276,8 @@ export default function AdminAnnouncementPage() {
       {/* Dismissible */}
       <div className="flex items-center justify-between p-4 rounded-xl bg-accent/30 border border-border">
         <div>
-          <p className="text-sm font-medium">Dismissible</p>
-          <p className="text-xs text-muted-foreground">Users can close the bar (per session)</p>
+          <p className="text-sm font-medium">{t("annDismissible")}</p>
+          <p className="text-xs text-muted-foreground">{t("annDismissibleHint")}</p>
         </div>
         <Switch
           checked={config.dismissible ?? false}
@@ -283,7 +287,7 @@ export default function AdminAnnouncementPage() {
 
       {/* Link */}
       <div className="space-y-2">
-        <Label>Link URL (optional)</Label>
+        <Label>{t("annLinkUrl")}</Label>
         <Input
           value={linkHref}
           onChange={(e) => setLinkHref(e.target.value)}
@@ -291,7 +295,7 @@ export default function AdminAnnouncementPage() {
           className="rounded-xl"
         />
         <p className="text-xs text-muted-foreground">
-          If set, the link text for each locale will be shown as a clickable link
+          {t("annLinkUrlHint")}
         </p>
       </div>
 
@@ -299,29 +303,29 @@ export default function AdminAnnouncementPage() {
       <div className="space-y-4">
         <Label className="flex items-center gap-2">
           <Megaphone className="w-4 h-4" />
-          Messages per locale
+          {t("annMessages")}
         </Label>
 
         {LOCALES.map((locale) => (
           <div key={locale} className="p-4 rounded-xl bg-accent/30 border border-border space-y-3">
             <p className="text-sm font-bold">{LOCALE_LABELS[locale]}</p>
             <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">Message</Label>
+              <Label className="text-xs text-muted-foreground">{t("annMessage")}</Label>
               <Textarea
                 value={config.messages[locale].message}
                 onChange={(e) => updateMessage(locale, "message", e.target.value)}
-                placeholder={`Announcement message in ${LOCALE_LABELS[locale]}`}
+                placeholder={t("annMessagePlaceholder", { locale: LOCALE_LABELS[locale] })}
                 className="rounded-xl min-h-[60px] resize-none"
                 rows={2}
               />
             </div>
             {linkHref.trim() && (
               <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Link text</Label>
+                <Label className="text-xs text-muted-foreground">{t("annLinkText")}</Label>
                 <Input
                   value={config.messages[locale].linkText ?? ""}
                   onChange={(e) => updateMessage(locale, "linkText", e.target.value)}
-                  placeholder={`e.g. Learn more →`}
+                  placeholder={t("annLinkTextPlaceholder")}
                   className="rounded-xl"
                 />
               </div>
@@ -342,7 +346,7 @@ export default function AdminAnnouncementPage() {
         ) : (
           <Save className="w-4 h-4 mr-2" />
         )}
-        Save Announcement
+        {t("annSave")}
       </Button>
     </div>
   );
