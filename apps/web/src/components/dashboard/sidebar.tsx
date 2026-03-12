@@ -34,7 +34,7 @@ export function Sidebar() {
     : `0 ${tCommon("credits")}`;
 
   return (
-    <aside className="fixed left-6 top-6 bottom-6 w-64 hidden xl:flex flex-col glass rounded-[2rem] p-6 shadow-2xl z-50">
+    <aside className="fixed left-6 top-[calc(var(--announcement-h,0px)+1.5rem)] bottom-6 w-64 hidden xl:flex flex-col glass rounded-[2rem] p-6 shadow-2xl z-50">
       <Link href="/dashboard" className="mb-6 hover:opacity-80 transition-opacity">
         <Logo size="md" />
       </Link>

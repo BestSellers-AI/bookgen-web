@@ -465,6 +465,12 @@
     "invalidCredentials": "Correo o contraseña inválidos.",
     "emailAlreadyExists": "Ya existe una cuenta con este correo."
   },
+  "announcement": {
+    "newFeature": "🚀 Nuevo: ilustraciones automáticas para capítulos!",
+    "newFeatureLink": "Saber más →",
+    "kdpEarnings": "📚 Las ganancias totales de los autores de Kindle Unlimited del KDP en enero son de R$ 342,1 millones",
+    "kdpEarningsLink": "Comienza tu libro →"
+  },
   "theme": {
     "toggle": "Cambiar tema",
     "light": "Claro",

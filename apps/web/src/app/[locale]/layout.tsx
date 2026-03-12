@@ -7,6 +7,7 @@ import { AuthBootstrap } from '@/components/auth-bootstrap';
 import { ConfigInitializer } from '@/components/config-initializer';
 import { LocaleSync } from '@/components/locale-sync';
 import { Toaster } from 'sonner';
+import { AnnouncementBar } from '@/components/announcement-bar/announcement-bar';
 
 export default async function LocaleLayout({
   children,
@@ -34,6 +35,7 @@ export default async function LocaleLayout({
         <AuthBootstrap />
         <ConfigInitializer />
         <LocaleSync />
+        <AnnouncementBar />
         {children}
         <Toaster position="top-right" richColors />
       </ThemeProvider>

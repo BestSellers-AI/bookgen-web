@@ -488,6 +488,12 @@
     "invalidCredentials": "Invalid email or password.",
     "emailAlreadyExists": "An account with this email already exists."
   },
+  "announcement": {
+    "newFeature": "🚀 New: automatic chapter illustrations!",
+    "newFeatureLink": "Learn more →",
+    "kdpEarnings": "📚 Total Kindle Unlimited KDP author earnings in January: R$ 342.1 million",
+    "kdpEarningsLink": "Start your book →"
+  },
   "theme": {
     "toggle": "Toggle theme",
     "light": "Light",

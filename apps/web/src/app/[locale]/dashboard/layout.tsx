@@ -111,7 +111,7 @@ export default function DashboardLayout({
         </nav>
 
         {/* Main Content Area */}
-        <main className="flex-1 xl:pl-[19rem] pt-24 pb-28 xl:pb-12 px-6 xl:px-12 overflow-y-auto">
+        <main className="flex-1 xl:pl-[19rem] pt-[calc(6rem+var(--announcement-h,0px))] pb-28 xl:pb-12 px-6 xl:px-12 overflow-y-auto">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
