@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { X } from "lucide-react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
@@ -20,8 +20,8 @@ import { announcementConfig, type AnnouncementArea } from "./config";
 //   /chat/*      → "chat"
 //   everything else → "public" (home, LP, share, auth, etc.)
 //
-// It sets a CSS variable `--announcement-h` on <html> (32px when visible,
-// 0px when hidden). Use this variable in fixed elements to offset their
+// It sets a CSS variable `--announcement-h` on <html> matching the bar's
+// actual height. Use this variable in fixed elements to offset their
 // `top` position:
 //
 //   top: var(--announcement-h, 0px)
@@ -37,8 +37,6 @@ import { announcementConfig, type AnnouncementArea } from "./config";
 // Configuration lives in ./config.ts — see that file for all options.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const BAR_HEIGHT = 36; // px
-
 const themeClasses = {
   gradient: "bg-gradient-to-r from-amber-500 to-orange-500 text-white",
   solid: "bg-accent text-accent-foreground border-b border-border",
@@ -53,22 +51,33 @@ function detectArea(pathname: string): AnnouncementArea {
 
 export function AnnouncementBar() {
   const [dismissed, setDismissed] = useState(false);
+  const [barHeight, setBarHeight] = useState(0);
+  const barRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const t = useTranslations("announcement");
   const config = announcementConfig;
   const area = detectArea(pathname);
   const visible = config.enabled && config.areas.includes(area) && !dismissed;
 
-  // Set CSS variable so fixed elements (header, sidebar) can offset themselves
+  // Measure the bar's actual height and sync to CSS variable
+  const syncHeight = useCallback(() => {
+    const h = barRef.current?.offsetHeight ?? 0;
+    setBarHeight(h);
+    document.documentElement.style.setProperty("--announcement-h", `${h}px`);
+  }, []);
+
   useEffect(() => {
-    document.documentElement.style.setProperty(
-      "--announcement-h",
-      visible ? `${BAR_HEIGHT}px` : "0px",
-    );
+    if (!visible) {
+      document.documentElement.style.setProperty("--announcement-h", "0px");
+      return;
+    }
+    syncHeight();
+    window.addEventListener("resize", syncHeight);
     return () => {
+      window.removeEventListener("resize", syncHeight);
       document.documentElement.style.setProperty("--announcement-h", "0px");
     };
-  }, [visible]);
+  }, [visible, syncHeight]);
 
   if (!visible) return null;
 
@@ -78,12 +87,12 @@ export function AnnouncementBar() {
 
   return (
     <>
-      {/* Fixed bar at the very top */}
+      {/* Fixed bar at the very top — height adapts to content */}
       <div
+        ref={barRef}
         className={`fixed top-0 left-0 right-0 z-50 text-sm font-medium overflow-hidden ${themeClasses[config.theme]}`}
-        style={{ height: BAR_HEIGHT }}
       >
-        <div className="flex items-center justify-center h-full px-8">
+        <div className="flex items-center justify-center py-2 px-8 text-center">
           {isMarquee ? (
             <div className="flex whitespace-nowrap animate-marquee">
               {[0, 1].map((i) => (
@@ -101,12 +110,12 @@ export function AnnouncementBar() {
               ))}
             </div>
           ) : (
-            <span className="inline-flex items-center gap-2">
+            <span className="inline-flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5">
               <span>{message}</span>
               {config.link && linkText && (
                 <Link
                   href={config.link.href}
-                  className="underline underline-offset-2 font-bold hover:opacity-80 transition-opacity"
+                  className="underline underline-offset-2 font-bold hover:opacity-80 transition-opacity whitespace-nowrap"
                 >
                   {linkText}
                 </Link>
@@ -128,7 +137,7 @@ export function AnnouncementBar() {
       </div>
 
       {/* Spacer to push content below the fixed bar */}
-      <div style={{ height: BAR_HEIGHT }} />
+      <div style={{ height: barHeight }} />
     </>
   );
 }

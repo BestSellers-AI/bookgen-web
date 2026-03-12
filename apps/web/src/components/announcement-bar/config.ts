@@ -87,7 +87,7 @@ export const announcementConfig: AnnouncementConfig = {
   enabled: true,
   messageKey: "kdpEarnings",
   style: "static",
-  areas: ["public", "dashboard"],
+  areas: ["public", "dashboard", "chat"],
   theme: "gradient",
   link: { textKey: "kdpEarningsLink", href: "/dashboard/create" },
   dismissible: true,
