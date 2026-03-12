@@ -651,11 +651,11 @@ export class StripeWebhookService {
    */
   private resolvePlan(
     planSlug: string | undefined | null,
-  ): 'ASPIRANTE' | 'BESTSELLER' | 'ELITE' {
+  ): 'ASPIRANTE' | 'PROFISSIONAL' | 'BESTSELLER' {
     if (!planSlug) return 'ASPIRANTE';
 
     const upper = planSlug.toUpperCase();
-    if (upper === 'ASPIRANTE' || upper === 'BESTSELLER' || upper === 'ELITE') {
+    if (upper === 'ASPIRANTE' || upper === 'PROFISSIONAL' || upper === 'BESTSELLER') {
       return upper;
     }
 

@@ -75,8 +75,8 @@ async function main() {
     { currency: 'usd', amount: 22800, billingInterval: 'ANNUAL', stripePriceId: 'price_1T9cTt9UYPL3yWYTMQAKeG1W' },
   ]);
 
-  const bestsellerMetadata = {
-    plan: 'BESTSELLER',
+  const profissionalMetadata = {
+    plan: 'PROFISSIONAL',
     monthlyCredits: 750,
     booksPerMonth: 7,
     freeRegensPerMonth: 2,
@@ -89,26 +89,26 @@ async function main() {
     prioritySupport: false,
   };
 
-  const bestseller = await prisma.product.upsert({
-    where: { slug: 'plan-bestseller' },
-    update: { metadata: bestsellerMetadata },
+  const profissional = await prisma.product.upsert({
+    where: { slug: 'plan-profissional' },
+    update: { metadata: profissionalMetadata },
     create: {
-      name: 'BestSeller Author',
-      slug: 'plan-bestseller',
+      name: 'Autor Profissional',
+      slug: 'plan-profissional',
       kind: 'SUBSCRIPTION_PLAN',
       description: 'For serious authors who want commercial rights',
       creditsAmount: 750,
-      metadata: bestsellerMetadata,
+      metadata: profissionalMetadata,
       sortOrder: 2,
     },
   });
-  await upsertPrices(bestseller.id, [
+  await upsertPrices(profissional.id, [
     { currency: 'usd', amount: 5900, billingInterval: 'MONTHLY', stripePriceId: 'price_1T9cTu9UYPL3yWYTBl1ASRLr' },
     { currency: 'usd', amount: 46800, billingInterval: 'ANNUAL', stripePriceId: 'price_1T9cTu9UYPL3yWYT3alUpW00' },
   ]);
 
-  const eliteMetadata = {
-    plan: 'ELITE',
+  const bestsellerMetadata = {
+    plan: 'BESTSELLER',
     monthlyCredits: 2000,
     booksPerMonth: 20,
     freeRegensPerMonth: 5,
@@ -121,20 +121,20 @@ async function main() {
     prioritySupport: true,
   };
 
-  const elite = await prisma.product.upsert({
-    where: { slug: 'plan-elite' },
-    update: { metadata: eliteMetadata },
+  const bestseller = await prisma.product.upsert({
+    where: { slug: 'plan-bestseller' },
+    update: { metadata: bestsellerMetadata },
     create: {
-      name: 'Elite Author',
-      slug: 'plan-elite',
+      name: 'Autor BestSeller',
+      slug: 'plan-bestseller',
       kind: 'SUBSCRIPTION_PLAN',
       description: 'Maximum power for professional authors',
       creditsAmount: 2000,
-      metadata: eliteMetadata,
+      metadata: bestsellerMetadata,
       sortOrder: 3,
     },
   });
-  await upsertPrices(elite.id, [
+  await upsertPrices(bestseller.id, [
     { currency: 'usd', amount: 13900, billingInterval: 'MONTHLY', stripePriceId: 'price_1T9cTv9UYPL3yWYTp94au7DE' },
     { currency: 'usd', amount: 106800, billingInterval: 'ANNUAL', stripePriceId: 'price_1T9cTv9UYPL3yWYTi6i0RsZk' },
   ]);
@@ -332,8 +332,8 @@ async function main() {
   // ============================================
   const stripeProductIds: Record<string, string> = {
     'plan-aspirante': 'prod_U7sEmBMvWyr6zA',
-    'plan-bestseller': 'prod_U7sE88EYTNawIY',
-    'plan-elite': 'prod_U7sEzndvdaV0MD',
+    'plan-profissional': 'prod_U7sE88EYTNawIY',
+    'plan-bestseller': 'prod_U7sEzndvdaV0MD',
     'pack-100': 'prod_U7sEa7eJX2nFvv',
     'pack-300': 'prod_U7sEBNzwjxltBA',
     'pack-500': 'prod_U7sEWXU62GP2ib',

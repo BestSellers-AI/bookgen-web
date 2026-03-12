@@ -18,8 +18,8 @@ enum UserRole {
 
 enum SubscriptionPlan {
   ASPIRANTE
+  PROFISSIONAL
   BESTSELLER
-  ELITE
 }
 
 enum SubscriptionStatus {

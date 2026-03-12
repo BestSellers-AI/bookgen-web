@@ -161,12 +161,12 @@
           "Up to 3 books per month",
           "1 free regeneration included"
         ],
-        "BESTSELLER": [
+        "PROFISSIONAL": [
           "750 credits/month — 2.5x more",
           "Commercial license for your books",
           "Priority queue — faster generation"
         ],
-        "ELITE": [
+        "BESTSELLER": [
           "2,000 credits/month — unlimited scale",
           "Credits accumulate for up to 3 months",
           "Priority support + express queue"
@@ -508,7 +508,14 @@
     "buyNow": "Buy Now",
     "bestValue": "BEST VALUE",
     "costInfo": "1 book costs 100 credits. Buy more, save more.",
-    "purchaseError": "Failed to start checkout. Please try again."
+    "purchaseError": "Failed to start checkout. Please try again.",
+    "proTip": "Pro tip",
+    "upgradeHeadline": "Subscribers create more and spend less",
+    "upgradeDescription": "With a plan you get {credits} credits/month for ${price} — just ${perCredit}/credit. But the real value is in what comes with it:",
+    "upgradePerk1": "Only ${perCredit}/credit",
+    "upgradePerk2": "Up to {books} books/month",
+    "upgradePerk3": "Priority queue + free regens",
+    "upgradeCta": "See Plans"
   },
   "upgrade": {
     "title": "Plans & Pricing",
@@ -1014,12 +1021,12 @@
       "planAutorName": "Autor Aspirante",
       "planAutorCta": "Start with Autor Aspirante",
       "planAutorHighlight": "1 book + AI cover + translation for less than $20/mo",
+      "planProfissionalName": "Autor Profissional",
+      "planProfissionalCta": "Start with Autor Profissional",
+      "planProfissionalHighlight": "Publish, sell, and use in your business. Everything included.",
       "planBestsellerName": "Autor BestSeller",
       "planBestsellerCta": "Start with Autor BestSeller",
-      "planBestsellerHighlight": "Publish, sell, and use in your business. Everything included.",
-      "planEliteName": "Autor Elite",
-      "planEliteCta": "Start with Autor Elite",
-      "planEliteHighlight": "Professional scale. 2,000 credits that don't expire for 3 months.",
+      "planBestsellerHighlight": "Professional scale. 2,000 credits that don't expire for 3 months.",
       "planFeature300Credits": "300 credits per month",
       "planFeature750Credits": "750 credits per month",
       "planFeature2000Credits": "2,000 credits per month",

@@ -22,29 +22,29 @@ import { Link } from "@/i18n/navigation";
 
 const PLAN_ORDER = [
   SubscriptionPlan.ASPIRANTE,
+  SubscriptionPlan.PROFISSIONAL,
   SubscriptionPlan.BESTSELLER,
-  SubscriptionPlan.ELITE,
 ];
 
 const PLAN_ICONS = {
   [SubscriptionPlan.ASPIRANTE]: Zap,
-  [SubscriptionPlan.BESTSELLER]: Star,
-  [SubscriptionPlan.ELITE]: Crown,
+  [SubscriptionPlan.PROFISSIONAL]: Star,
+  [SubscriptionPlan.BESTSELLER]: Crown,
 };
 
 const PLAN_COLORS = {
   [SubscriptionPlan.ASPIRANTE]:
     "border-blue-500/20 hover:border-blue-500/40",
-  [SubscriptionPlan.BESTSELLER]:
+  [SubscriptionPlan.PROFISSIONAL]:
     "border-primary/20 hover:border-primary/40",
-  [SubscriptionPlan.ELITE]:
+  [SubscriptionPlan.BESTSELLER]:
     "border-amber-500/20 hover:border-amber-500/40",
 };
 
 const PLAN_ICON_BG = {
   [SubscriptionPlan.ASPIRANTE]: "bg-blue-500/10 text-blue-500",
-  [SubscriptionPlan.BESTSELLER]: "bg-primary/10 text-primary",
-  [SubscriptionPlan.ELITE]: "bg-amber-500/10 text-amber-500",
+  [SubscriptionPlan.PROFISSIONAL]: "bg-primary/10 text-primary",
+  [SubscriptionPlan.BESTSELLER]: "bg-amber-500/10 text-amber-500",
 };
 
 export default function UpgradePage() {
@@ -167,7 +167,7 @@ export default function UpgradePage() {
             ? config.annualMonthlyEquivalentCents
             : config.monthlyPriceCents;
           const features = getFeatures(planKey);
-          const isPopular = planKey === SubscriptionPlan.BESTSELLER;
+          const isPopular = planKey === SubscriptionPlan.PROFISSIONAL;
 
           return (
             <div

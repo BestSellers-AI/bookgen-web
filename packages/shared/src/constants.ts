@@ -36,9 +36,9 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, PlanConfig> = {
     fullEditor: false,
     prioritySupport: false,
   },
-  [SubscriptionPlan.BESTSELLER]: {
-    name: 'BestSeller Author',
-    plan: SubscriptionPlan.BESTSELLER,
+  [SubscriptionPlan.PROFISSIONAL]: {
+    name: 'Autor Profissional',
+    plan: SubscriptionPlan.PROFISSIONAL,
     monthlyPriceCents: 5900,
     annualPriceCents: 46800,
     annualMonthlyEquivalentCents: 3900,
@@ -53,9 +53,9 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, PlanConfig> = {
     fullEditor: true,
     prioritySupport: false,
   },
-  [SubscriptionPlan.ELITE]: {
-    name: 'Elite Author',
-    plan: SubscriptionPlan.ELITE,
+  [SubscriptionPlan.BESTSELLER]: {
+    name: 'Autor BestSeller',
+    plan: SubscriptionPlan.BESTSELLER,
     monthlyPriceCents: 13900,
     annualPriceCents: 106800,
     annualMonthlyEquivalentCents: 8900,

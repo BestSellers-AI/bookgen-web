@@ -161,12 +161,12 @@
           "Até 3 livros por mês",
           "1 regeneração gratuita inclusa"
         ],
-        "BESTSELLER": [
+        "PROFISSIONAL": [
           "750 créditos/mês — 2,5x mais",
           "Licença comercial para seus livros",
           "Fila prioritária — geração mais rápida"
         ],
-        "ELITE": [
+        "BESTSELLER": [
           "2.000 créditos/mês — escala ilimitada",
           "Créditos acumulam por até 3 meses",
           "Suporte prioritário + fila expressa"
@@ -508,7 +508,14 @@
     "buyNow": "Comprar Agora",
     "bestValue": "MELHOR VALOR",
     "costInfo": "1 livro custa 100 créditos. Compre mais, economize mais.",
-    "purchaseError": "Falha ao iniciar o checkout. Tente novamente."
+    "purchaseError": "Falha ao iniciar o checkout. Tente novamente.",
+    "proTip": "Dica esperta",
+    "upgradeHeadline": "Assinantes criam mais e gastam menos",
+    "upgradeDescription": "Com um plano você recebe {credits} créditos/mês por ${price} — apenas ${perCredit}/crédito. Mas o verdadeiro valor está no que vem junto:",
+    "upgradePerk1": "Apenas ${perCredit}/crédito",
+    "upgradePerk2": "Até {books} livros/mês",
+    "upgradePerk3": "Fila prioritária + regens grátis",
+    "upgradeCta": "Ver Planos"
   },
   "upgrade": {
     "title": "Planos e Preços",
@@ -1014,12 +1021,12 @@
       "planAutorName": "Autor Aspirante",
       "planAutorCta": "Começar com Autor Aspirante",
       "planAutorHighlight": "1 livro + capa IA + tradução por menos de $20/mês",
+      "planProfissionalName": "Autor Profissional",
+      "planProfissionalCta": "Começar com Autor Profissional",
+      "planProfissionalHighlight": "Publique, venda e use no seu negócio. Tudo incluso.",
       "planBestsellerName": "Autor BestSeller",
       "planBestsellerCta": "Começar com Autor BestSeller",
-      "planBestsellerHighlight": "Publique, venda e use no seu negócio. Tudo incluso.",
-      "planEliteName": "Autor Elite",
-      "planEliteCta": "Começar com Autor Elite",
-      "planEliteHighlight": "Escala profissional. 2.000 créditos que não expiram por 3 meses.",
+      "planBestsellerHighlight": "Escala profissional. 2.000 créditos que não expiram por 3 meses.",
       "planFeature300Credits": "300 créditos por mês",
       "planFeature750Credits": "750 créditos por mês",
       "planFeature2000Credits": "2.000 créditos por mês",

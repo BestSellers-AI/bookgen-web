@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { ShoppingCart, Loader2, ArrowLeft, Zap, Star, Crown } from "lucide-react";
+import { ShoppingCart, Loader2, ArrowLeft, Zap, Star, Crown, ArrowRight, Sparkles, BookOpen, BadgePercent } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { checkoutApi } from "@/lib/api/checkout";
 import { useConfigStore } from "@/stores/config-store";
+import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/ui/page-header";
 
@@ -27,6 +28,20 @@ export default function BuyCreditsPage() {
   const tCommon = useTranslations("common");
   const [loadingSlug, setLoadingSlug] = useState<string | null>(null);
   const creditPacks = useConfigStore((s) => s.getCreditPacks)();
+  const plans = useConfigStore((s) => s.getSubscriptionPlans)();
+  const { user } = useAuth();
+
+  const currentPlan = user?.planInfo?.plan ?? null;
+  const hasMaxPlan = currentPlan === "BESTSELLER";
+  // Pick the plan with the best cost/credit ratio for comparison
+  const bestValuePlan = plans.length > 0
+    ? plans.reduce((a, b) =>
+        (a.monthlyPriceCents / a.monthlyCredits) < (b.monthlyPriceCents / b.monthlyCredits) ? a : b
+      )
+    : null;
+  const bestPricePerCredit = bestValuePlan
+    ? (bestValuePlan.monthlyPriceCents / bestValuePlan.monthlyCredits / 100).toFixed(2)
+    : null;
 
   const handleBuy = async (slug: string) => {
     setLoadingSlug(slug);
@@ -111,9 +126,69 @@ export default function BuyCreditsPage() {
         })}
       </div>
 
-      <div className="p-6 rounded-[2rem] bg-primary/5 border border-primary/10 text-center">
-        <p className="text-sm text-muted-foreground">{t("costInfo")}</p>
-      </div>
+      {/* Upgrade CTA card */}
+      {!hasMaxPlan && bestValuePlan && (
+        <div className="glass rounded-[2rem] border border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-orange-500/5 p-6 md:p-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            {/* Left — persuasive copy */}
+            <div className="space-y-4 flex-1">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 shrink-0 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/30 flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-amber-500" />
+                </div>
+                <p className="text-sm font-black uppercase tracking-wider text-amber-500">
+                  {t("proTip")}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="text-lg font-black text-foreground leading-tight">
+                  {t("upgradeHeadline")}
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {t("upgradeDescription", {
+                    credits: bestValuePlan.monthlyCredits,
+                    price: (bestValuePlan.monthlyPriceCents / 100).toFixed(2),
+                    perCredit: bestPricePerCredit!,
+                  })}
+                </p>
+              </div>
+
+              <ul className="flex flex-col sm:flex-row gap-2 sm:gap-5">
+                {([
+                  { icon: BadgePercent, text: t("upgradePerk1", { perCredit: bestPricePerCredit! }) },
+                  { icon: BookOpen, text: t("upgradePerk2", { books: bestValuePlan.booksPerMonth }) },
+                  { icon: Zap, text: t("upgradePerk3") },
+                ]).map((perk, i) => (
+                  <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <perk.icon className="w-4 h-4 text-amber-500 shrink-0" />
+                    <span>{perk.text}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Right — CTA with rotating border (same as plan-card) */}
+            <div className="relative rounded-xl p-[2px] overflow-hidden w-full md:w-auto shrink-0">
+              <div
+                className="absolute top-1/2 left-1/2 w-[200%] aspect-square animate-border-spin"
+                style={{
+                  background: "conic-gradient(from 0deg, transparent 0%, transparent 60%, #f4eee6 75%, #ffffff 85%, #f4eee6 95%, transparent 100%)",
+                }}
+              />
+              <Button
+                asChild
+                className="relative w-full md:w-auto rounded-[calc(0.75rem-2px)] h-10 font-bold gap-2 glow-primary"
+              >
+                <Link href="/dashboard/upgrade">
+                  {t("upgradeCta")}
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

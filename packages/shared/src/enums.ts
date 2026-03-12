@@ -1,7 +1,7 @@
 export enum SubscriptionPlan {
   ASPIRANTE = 'ASPIRANTE',
+  PROFISSIONAL = 'PROFISSIONAL',
   BESTSELLER = 'BESTSELLER',
-  ELITE = 'ELITE',
 }
 
 export enum SubscriptionStatus {

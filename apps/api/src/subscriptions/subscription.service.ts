@@ -11,8 +11,8 @@ import { StripeService } from '../stripe/stripe.service';
 
 const VALID_PLAN_SLUGS: Record<string, SubscriptionPlan> = {
   'plan-aspirante': SubscriptionPlan.ASPIRANTE,
+  'plan-profissional': SubscriptionPlan.PROFISSIONAL,
   'plan-bestseller': SubscriptionPlan.BESTSELLER,
-  'plan-elite': SubscriptionPlan.ELITE,
 };
 
 @Injectable()

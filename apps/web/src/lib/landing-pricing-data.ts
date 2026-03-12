@@ -10,7 +10,7 @@ export interface PlanFeature {
 
 export interface Plan {
   id: string
-  planEnum: string // maps to SubscriptionPlanConfig.plan (ASPIRANTE, BESTSELLER, ELITE)
+  planEnum: string // maps to SubscriptionPlanConfig.plan (ASPIRANTE, PROFISSIONAL, BESTSELLER)
   nameKey: string
   credits: number
   booksPerMonth: number
@@ -89,13 +89,13 @@ const PLAN_UI: PlanUiData[] = [
     ],
   },
   {
-    id: 'bestseller',
-    planEnum: 'BESTSELLER',
-    nameKey: 'planBestsellerName',
+    id: 'profissional',
+    planEnum: 'PROFISSIONAL',
+    nameKey: 'planProfissionalName',
     popular: true,
     badgeKey: 'planBadgeMostPopular',
-    ctaKey: 'planBestsellerCta',
-    highlightKey: 'planBestsellerHighlight',
+    ctaKey: 'planProfissionalCta',
+    highlightKey: 'planProfissionalHighlight',
     features: [
       { textKey: 'planFeature750Credits', included: true },
       { textKey: 'planFeatureCommercialLicense', included: true },
@@ -114,12 +114,12 @@ const PLAN_UI: PlanUiData[] = [
     ],
   },
   {
-    id: 'editora',
-    planEnum: 'ELITE',
-    nameKey: 'planEliteName',
+    id: 'bestseller',
+    planEnum: 'BESTSELLER',
+    nameKey: 'planBestsellerName',
     popular: false,
-    ctaKey: 'planEliteCta',
-    highlightKey: 'planEliteHighlight',
+    ctaKey: 'planBestsellerCta',
+    highlightKey: 'planBestsellerHighlight',
     features: [
       { textKey: 'planFeature2000Credits', included: true },
       { textKey: 'planFeatureCommercialLicense', included: true },
@@ -142,8 +142,8 @@ const PLAN_UI: PlanUiData[] = [
 // Fallback prices (used when config store hasn't loaded yet)
 const PLAN_PRICE_FALLBACKS: Record<string, { monthlyPrice: number; annualMonthlyPrice: number; annualTotal: number; credits: number; booksPerMonth: number }> = {
   ASPIRANTE: { monthlyPrice: 29, annualMonthlyPrice: 19, annualTotal: 228, credits: 300, booksPerMonth: 3 },
-  BESTSELLER: { monthlyPrice: 59, annualMonthlyPrice: 39, annualTotal: 468, credits: 750, booksPerMonth: 7 },
-  ELITE: { monthlyPrice: 139, annualMonthlyPrice: 89, annualTotal: 1068, credits: 2000, booksPerMonth: 20 },
+  PROFISSIONAL: { monthlyPrice: 59, annualMonthlyPrice: 39, annualTotal: 468, credits: 750, booksPerMonth: 7 },
+  BESTSELLER: { monthlyPrice: 139, annualMonthlyPrice: 89, annualTotal: 1068, credits: 2000, booksPerMonth: 20 },
 }
 
 /**
@@ -301,8 +301,8 @@ export function buildServices(creditsCost?: Record<string, number>): Service[] {
 export const CALCULATOR_OPTIONS: CalculatorOption[] = [
   { labelKey: 'calc1Book', value: 1, recommendation: 'autor', recommendationLabelKey: 'planAutorName' },
   { labelKey: 'calc2to3Books', value: 3, recommendation: 'autor', recommendationLabelKey: 'planAutorName' },
-  { labelKey: 'calc4to7Books', value: 7, recommendation: 'bestseller', recommendationLabelKey: 'planBestsellerName' },
-  { labelKey: 'calc8PlusBooks', value: 8, recommendation: 'editora', recommendationLabelKey: 'planEliteName' },
+  { labelKey: 'calc4to7Books', value: 7, recommendation: 'profissional', recommendationLabelKey: 'planProfissionalName' },
+  { labelKey: 'calc8PlusBooks', value: 8, recommendation: 'bestseller', recommendationLabelKey: 'planBestsellerName' },
 ]
 
 // ─── FAQ count (items are in i18n) ────────────────────────────────────────────

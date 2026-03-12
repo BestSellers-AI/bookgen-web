@@ -11,7 +11,7 @@ interface PlanCardProps {
   user: UserProfile | null;
 }
 
-const PLAN_HIERARCHY = [null, "ASPIRANTE", "BESTSELLER", "ELITE"] as const;
+const PLAN_HIERARCHY = [null, "ASPIRANTE", "PROFISSIONAL", "BESTSELLER"] as const;
 
 function getNextPlan(current: string | null): string | null {
   const idx = PLAN_HIERARCHY.indexOf(current as typeof PLAN_HIERARCHY[number]);
