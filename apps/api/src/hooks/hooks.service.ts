@@ -412,7 +412,21 @@ export class HooksService {
       countWords(dto.appendix) +
       countWords(dto.closure);
     const totalWordCount = chaptersWordCount + sectionsWordCount;
-    const totalPageCount = estimatePageCount(totalWordCount);
+
+    // Count sections that exist (each starts on a new page in PDF)
+    const sectionCount = [
+      dto.introduction,
+      dto.conclusion,
+      dto.finalConsiderations,
+      dto.glossary,
+      dto.appendix,
+      dto.closure,
+    ].filter(Boolean).length;
+
+    const totalPageCount = estimatePageCount(totalWordCount, {
+      chapterCount: chapters.length,
+      sectionCount,
+    });
 
     await this.prisma.book.update({
       where: { id: dto.bookId },
@@ -714,6 +728,51 @@ export class HooksService {
   }
 
   /* ------------------------------------------------------------------ */
+  /*  Recalculate page count (after images are added/removed)            */
+  /* ------------------------------------------------------------------ */
+  private async recalculatePageCount(bookId: string): Promise<void> {
+    const book = await this.prisma.book.findUnique({
+      where: { id: bookId },
+      select: {
+        wordCount: true,
+        introduction: true,
+        conclusion: true,
+        finalConsiderations: true,
+        glossary: true,
+        appendix: true,
+        closure: true,
+        chapters: {
+          where: { status: ChapterStatus.GENERATED },
+          select: { id: true, selectedImageId: true },
+        },
+      },
+    });
+    if (!book) return;
+
+    const sectionCount = [
+      book.introduction,
+      book.conclusion,
+      book.finalConsiderations,
+      book.glossary,
+      book.appendix,
+      book.closure,
+    ].filter(Boolean).length;
+
+    const imageCount = book.chapters.filter((ch) => ch.selectedImageId).length;
+
+    const pageCount = estimatePageCount(book.wordCount ?? 0, {
+      chapterCount: book.chapters.length,
+      imageCount,
+      sectionCount,
+    });
+
+    await this.prisma.book.update({
+      where: { id: bookId },
+      data: { pageCount },
+    });
+  }
+
+  /* ------------------------------------------------------------------ */
   /*  Addon-specific processing (on success)                             */
   /* ------------------------------------------------------------------ */
   private async processAddonSpecific(dto: AddonResultDto): Promise<void> {
@@ -888,6 +947,9 @@ export class HooksService {
               );
             }
           }
+
+          // Recalculate pageCount to account for full-page images
+          await this.recalculatePageCount(dto.bookId);
         }
         break;
       }
