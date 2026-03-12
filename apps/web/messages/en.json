@@ -510,11 +510,11 @@
     "costInfo": "1 book costs 100 credits. Buy more, save more.",
     "purchaseError": "Failed to start checkout. Please try again.",
     "proTip": "Pro tip",
-    "upgradeHeadline": "Subscribers create more and spend less",
-    "upgradeDescription": "With a plan you get {credits} credits/month for ${price} — just ${perCredit}/credit. But the real value is in what comes with it:",
-    "upgradePerk1": "Only ${perCredit}/credit",
-    "upgradePerk2": "Up to {books} books/month",
-    "upgradePerk3": "Priority queue + free regens",
+    "upgradeHeadline": "Why buy once when you can have it every month?",
+    "upgradeDescription": "Starting at just ${price}/mo you get {credits} credits that renew automatically — plus exclusive perks that credit packs don't include:",
+    "upgradePerk1": "{credits} credits/mo on auto-renew",
+    "upgradePerk2": "{regens} free chapter regenerations",
+    "upgradePerk3": "Priority queue + premium support",
     "upgradeCta": "See Plans"
   },
   "upgrade": {

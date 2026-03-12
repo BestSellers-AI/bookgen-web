@@ -510,11 +510,11 @@
     "costInfo": "1 libro cuesta 100 créditos. Compra más, ahorra más.",
     "purchaseError": "Error al iniciar el pago. Inténtalo de nuevo.",
     "proTip": "Consejo pro",
-    "upgradeHeadline": "Los suscriptores crean más y gastan menos",
-    "upgradeDescription": "Con un plan recibes {credits} créditos/mes por ${price} — solo ${perCredit}/crédito. Pero el valor real está en lo que viene incluido:",
-    "upgradePerk1": "Solo ${perCredit}/crédito",
-    "upgradePerk2": "Hasta {books} libros/mes",
-    "upgradePerk3": "Cola prioritaria + regens gratis",
+    "upgradeHeadline": "¿Por qué comprar una vez si puedes tenerlo cada mes?",
+    "upgradeDescription": "Desde solo ${price}/mes recibes {credits} créditos que se renuevan automáticamente — más ventajas exclusivas que los paquetes sueltos no incluyen:",
+    "upgradePerk1": "{credits} créditos/mes con auto-renovación",
+    "upgradePerk2": "{regens} regeneraciones de capítulo gratis",
+    "upgradePerk3": "Cola prioritaria + soporte premium",
     "upgradeCta": "Ver Planes"
   },
   "upgrade": {

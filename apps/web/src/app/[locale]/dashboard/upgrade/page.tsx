@@ -6,6 +6,7 @@ import {
   Star,
   Crown,
   Check,
+  X,
   Loader2,
   ArrowRight,
 } from "lucide-react";
@@ -19,6 +20,65 @@ import { useConfigStore } from "@/stores/config-store";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/ui/page-header";
 import { Link } from "@/i18n/navigation";
+
+// ─── Static feature lists per plan (same as landing page) ─────────────────────
+
+interface PlanFeature {
+  textKey: string;
+  included: boolean;
+}
+
+const PLAN_FEATURES: Record<string, PlanFeature[]> = {
+  [SubscriptionPlan.ASPIRANTE]: [
+    { textKey: "planFeature300Credits", included: true },
+    { textKey: "planFeaturePersonalLicense", included: true },
+    { textKey: "planFeature30Languages", included: true },
+    { textKey: "planFeatureDocxPdf", included: true },
+    { textKey: "planFeatureEditor", included: true },
+    { textKey: "planFeatureImages", included: true },
+    { textKey: "planFeatureAudiobook", included: true },
+    { textKey: "planFeatureShare", included: true },
+    { textKey: "planFeatureSupport247", included: true },
+    { textKey: "planFeature1Regen", included: true },
+    { textKey: "planFeatureHistory30", included: true },
+    { textKey: "planFeatureStandardQueue", included: true },
+    { textKey: "planFeatureCreditsExpire", included: false },
+  ],
+  [SubscriptionPlan.PROFISSIONAL]: [
+    { textKey: "planFeature750Credits", included: true },
+    { textKey: "planFeatureCommercialLicense", included: true },
+    { textKey: "planFeature30Languages", included: true },
+    { textKey: "planFeatureDocxPdf", included: true },
+    { textKey: "planFeatureFullEditor", included: true },
+    { textKey: "planFeatureImages", included: true },
+    { textKey: "planFeatureAudiobook", included: true },
+    { textKey: "planFeatureShare", included: true },
+    { textKey: "planFeatureSupport247", included: true },
+    { textKey: "planFeature2Regens", included: true },
+    { textKey: "planFeatureHistory6m", included: true },
+    { textKey: "planFeaturePriorityQueue", included: true },
+    { textKey: "planFeature10Discount", included: true },
+    { textKey: "planFeatureCreditsAccum1m", included: true },
+  ],
+  [SubscriptionPlan.BESTSELLER]: [
+    { textKey: "planFeature2000Credits", included: true },
+    { textKey: "planFeatureCommercialLicense", included: true },
+    { textKey: "planFeature30Languages", included: true },
+    { textKey: "planFeatureDocxPdf", included: true },
+    { textKey: "planFeatureFullEditor", included: true },
+    { textKey: "planFeatureImages", included: true },
+    { textKey: "planFeatureAudiobook", included: true },
+    { textKey: "planFeatureShare", included: true },
+    { textKey: "planFeaturePriorityHuman", included: true },
+    { textKey: "planFeature5Regens", included: true },
+    { textKey: "planFeatureHistoryUnlimited", included: true },
+    { textKey: "planFeatureExpressQueue", included: true },
+    { textKey: "planFeature15Discount", included: true },
+    { textKey: "planFeatureCreditsAccum3m", included: true },
+  ],
+};
+
+// ─── Plan display config ──────────────────────────────────────────────────────
 
 const PLAN_ORDER = [
   SubscriptionPlan.ASPIRANTE,
@@ -49,27 +109,14 @@ const PLAN_ICON_BG = {
 
 export default function UpgradePage() {
   const t = useTranslations("upgrade");
-  const tCommon = useTranslations("common");
+  const tFeatures = useTranslations("landingV2.pricing");
   const { user } = useAuth();
-  const [annual, setAnnual] = useState(false);
+  const [annual, setAnnual] = useState(true);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const getPlanConfig = useConfigStore((s) => s.getPlanConfig);
 
   const currentPlan = user?.planInfo?.plan ?? null;
   const hasSubscription = user?.planInfo?.hasSubscription ?? false;
-
-  const getFeatures = (plan: SubscriptionPlan) => {
-    const config = getPlanConfig(plan);
-    if (!config) return [];
-    return [
-      t("featureCredits", { count: config.monthlyCredits }),
-      t("featureBooks", { count: config.booksPerMonth }),
-      t("featureRegens", { count: config.freeRegensPerMonth }),
-      config.commercialLicense ? t("featureCommercial") : null,
-      config.fullEditor ? t("featureEditor") : null,
-      config.prioritySupport ? t("featurePriority") : null,
-    ].filter(Boolean) as string[];
-  };
 
   const handleSubscribe = async (planKey: SubscriptionPlan) => {
     setLoadingPlan(planKey);
@@ -78,14 +125,12 @@ export default function UpgradePage() {
       const interval = annual ? "annual" : "monthly";
 
       if (!hasSubscription) {
-        // New subscription
         const res = await checkoutApi.createSession({
           productSlug: slug,
           billingInterval: interval,
         });
         window.location.href = res.url;
       } else {
-        // Change plan
         await subscriptionsApi.changePlan({
           planSlug: slug,
           billingInterval: interval,
@@ -112,10 +157,7 @@ export default function UpgradePage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
-      <PageHeader
-        title={t("title")}
-        subtitle={t("subtitle")}
-      />
+      <PageHeader title={t("title")} subtitle={t("subtitle")} />
 
       {/* Billing Toggle */}
       <div className="flex items-center justify-center gap-4">
@@ -166,8 +208,14 @@ export default function UpgradePage() {
           const price = annual
             ? config.annualMonthlyEquivalentCents
             : config.monthlyPriceCents;
-          const features = getFeatures(planKey);
+          const features = PLAN_FEATURES[planKey];
           const isPopular = planKey === SubscriptionPlan.PROFISSIONAL;
+          const savingsPercent = annual
+            ? Math.round(
+                (1 - config.annualPriceCents / (config.monthlyPriceCents * 12)) *
+                  100
+              )
+            : 0;
 
           return (
             <div
@@ -200,46 +248,114 @@ export default function UpgradePage() {
                   <h3 className="text-xl font-black">{config.name}</h3>
                 </div>
 
+                {/* Price */}
                 <div>
-                  <span className="text-4xl font-black text-foreground">
-                    ${(price / 100).toFixed(0)}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    /{t("month")}
-                  </span>
+                  {annual && (
+                    <div className="text-sm text-muted-foreground line-through mb-1">
+                      ${(config.monthlyPriceCents / 100).toFixed(0)}/{t("month")}
+                    </div>
+                  )}
+                  <div className="flex items-baseline justify-center gap-1">
+                    <span className="text-4xl font-black text-foreground">
+                      ${(price / 100).toFixed(0)}
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      /{t("month")}
+                    </span>
+                  </div>
                 </div>
 
                 {annual && (
-                  <p className="text-xs text-muted-foreground">
-                    ${(config.annualPriceCents / 100).toFixed(0)}{" "}
-                    {t("billedAnnually")}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs text-muted-foreground">
+                      ${(config.annualPriceCents / 100).toFixed(0)}{" "}
+                      {t("billedAnnually")}
+                    </p>
+                    {savingsPercent > 0 && (
+                      <span className="text-[10px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                        -{savingsPercent}%
+                      </span>
+                    )}
+                  </div>
                 )}
 
+                {/* Highlight */}
+                <p className="text-xs text-muted-foreground italic leading-snug min-h-[2.5rem]">
+                  {tFeatures(
+                    planKey === SubscriptionPlan.ASPIRANTE
+                      ? "planAutorHighlight"
+                      : planKey === SubscriptionPlan.PROFISSIONAL
+                        ? "planProfissionalHighlight"
+                        : "planBestsellerHighlight"
+                  )}
+                </p>
+
+                {/* Full feature list */}
                 <ul className="space-y-2 text-sm text-left w-full">
                   {features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-2">
-                      <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                      <span>{feature}</span>
+                    <li
+                      key={feature.textKey}
+                      className={`flex items-start gap-2 ${
+                        !feature.included ? "text-muted-foreground/50" : ""
+                      }`}
+                    >
+                      {feature.included ? (
+                        <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                      ) : (
+                        <X className="w-4 h-4 text-muted-foreground/40 shrink-0 mt-0.5" />
+                      )}
+                      <span
+                        className={
+                          !feature.included ? "line-through" : ""
+                        }
+                      >
+                        {tFeatures(feature.textKey)}
+                      </span>
                     </li>
                   ))}
                 </ul>
 
-                <Button
-                  className="w-full h-12 rounded-xl font-bold gap-2"
-                  variant={isCurrent ? "outline" : "default"}
-                  disabled={isCurrent || loadingPlan !== null}
-                  onClick={() => handleSubscribe(planKey)}
-                >
-                  {loadingPlan === planKey ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <>
-                      {getButtonLabel(planKey)}
-                      {!isCurrent && <ArrowRight className="w-4 h-4" />}
-                    </>
-                  )}
-                </Button>
+                {planKey !== SubscriptionPlan.ASPIRANTE && !isCurrent ? (
+                  <div className="relative rounded-xl p-[2px] overflow-hidden w-full">
+                    <div
+                      className="absolute top-1/2 left-1/2 w-[200%] aspect-square animate-border-spin"
+                      style={{
+                        background:
+                          "conic-gradient(from 0deg, transparent 0%, transparent 60%, #f4eee6 75%, #ffffff 85%, #f4eee6 95%, transparent 100%)",
+                      }}
+                    />
+                    <Button
+                      className="relative w-full h-12 rounded-[calc(0.75rem-2px)] font-bold gap-2 glow-primary"
+                      disabled={loadingPlan !== null}
+                      onClick={() => handleSubscribe(planKey)}
+                    >
+                      {loadingPlan === planKey ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <>
+                          {getButtonLabel(planKey)}
+                          <ArrowRight className="w-4 h-4" />
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    className="w-full h-12 rounded-xl font-bold gap-2"
+                    variant={isCurrent ? "outline" : "default"}
+                    disabled={isCurrent || loadingPlan !== null}
+                    onClick={() => handleSubscribe(planKey)}
+                  >
+                    {loadingPlan === planKey ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <>
+                        {getButtonLabel(planKey)}
+                        {!isCurrent && <ArrowRight className="w-4 h-4" />}
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
             </div>
           );

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ShoppingCart, Loader2, ArrowLeft, Zap, Star, Crown, ArrowRight, Sparkles, BookOpen, BadgePercent } from "lucide-react";
+import { ShoppingCart, Loader2, ArrowLeft, Zap, Star, Crown, ArrowRight, Sparkles, RefreshCw, RotateCcw, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
@@ -33,14 +33,9 @@ export default function BuyCreditsPage() {
 
   const currentPlan = user?.planInfo?.plan ?? null;
   const hasMaxPlan = currentPlan === "BESTSELLER";
-  // Pick the plan with the best cost/credit ratio for comparison
-  const bestValuePlan = plans.length > 0
-    ? plans.reduce((a, b) =>
-        (a.monthlyPriceCents / a.monthlyCredits) < (b.monthlyPriceCents / b.monthlyCredits) ? a : b
-      )
-    : null;
-  const bestPricePerCredit = bestValuePlan
-    ? (bestValuePlan.monthlyPriceCents / bestValuePlan.monthlyCredits / 100).toFixed(2)
+  // Pick the cheapest plan to show value even at entry level
+  const entryPlan = plans.length > 0
+    ? plans.reduce((a, b) => a.monthlyPriceCents < b.monthlyPriceCents ? a : b)
     : null;
 
   const handleBuy = async (slug: string) => {
@@ -127,7 +122,7 @@ export default function BuyCreditsPage() {
       </div>
 
       {/* Upgrade CTA card */}
-      {!hasMaxPlan && bestValuePlan && (
+      {!hasMaxPlan && entryPlan && (
         <div className="glass rounded-[2rem] border border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-orange-500/5 p-6 md:p-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             {/* Left — persuasive copy */}
@@ -147,18 +142,17 @@ export default function BuyCreditsPage() {
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   {t("upgradeDescription", {
-                    credits: bestValuePlan.monthlyCredits,
-                    price: (bestValuePlan.monthlyPriceCents / 100).toFixed(2),
-                    perCredit: bestPricePerCredit!,
+                    credits: entryPlan.monthlyCredits,
+                    price: (entryPlan.monthlyPriceCents / 100).toFixed(0),
                   })}
                 </p>
               </div>
 
               <ul className="flex flex-col sm:flex-row gap-2 sm:gap-5">
                 {([
-                  { icon: BadgePercent, text: t("upgradePerk1", { perCredit: bestPricePerCredit! }) },
-                  { icon: BookOpen, text: t("upgradePerk2", { books: bestValuePlan.booksPerMonth }) },
-                  { icon: Zap, text: t("upgradePerk3") },
+                  { icon: RefreshCw, text: t("upgradePerk1", { credits: entryPlan.monthlyCredits }) },
+                  { icon: RotateCcw, text: t("upgradePerk2", { regens: entryPlan.freeRegensPerMonth }) },
+                  { icon: Rocket, text: t("upgradePerk3") },
                 ]).map((perk, i) => (
                   <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
                     <perk.icon className="w-4 h-4 text-amber-500 shrink-0" />

@@ -59,7 +59,7 @@ async function main() {
 
   const aspirante = await prisma.product.upsert({
     where: { slug: 'plan-aspirante' },
-    update: { metadata: aspiranteMetadata },
+    update: { name: 'Aspiring Author', creditsAmount: 300, metadata: aspiranteMetadata, sortOrder: 1 },
     create: {
       name: 'Aspiring Author',
       slug: 'plan-aspirante',
@@ -91,7 +91,7 @@ async function main() {
 
   const profissional = await prisma.product.upsert({
     where: { slug: 'plan-profissional' },
-    update: { metadata: profissionalMetadata },
+    update: { name: 'Autor Profissional', creditsAmount: 750, metadata: profissionalMetadata, sortOrder: 2 },
     create: {
       name: 'Autor Profissional',
       slug: 'plan-profissional',
@@ -123,7 +123,7 @@ async function main() {
 
   const bestseller = await prisma.product.upsert({
     where: { slug: 'plan-bestseller' },
-    update: { metadata: bestsellerMetadata },
+    update: { name: 'Autor BestSeller', creditsAmount: 2000, metadata: bestsellerMetadata, sortOrder: 3 },
     create: {
       name: 'Autor BestSeller',
       slug: 'plan-bestseller',
