@@ -231,6 +231,8 @@
     "titleLabel": "Título",
     "subtitleLabel": "Subtítulo",
     "authorPlaceholder": "Nombre del autor",
+    "titlePlaceholder": "Ingrese el título del libro",
+    "subtitlePlaceholder": "Ingrese el subtítulo del libro",
     "titleRequired": "El título es obligatorio.",
     "authorRequired": "El nombre del autor es obligatorio.",
     "planningValidationError": "Cada capítulo necesita un título y al menos un tema.",

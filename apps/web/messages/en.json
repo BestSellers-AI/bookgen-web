@@ -231,6 +231,8 @@
     "titleLabel": "Title",
     "subtitleLabel": "Subtitle",
     "authorPlaceholder": "Author name",
+    "titlePlaceholder": "Enter your book title",
+    "subtitlePlaceholder": "Enter your book subtitle",
     "titleRequired": "Title is required.",
     "authorRequired": "Author name is required.",
     "planningValidationError": "Each chapter needs a title and at least one topic.",
