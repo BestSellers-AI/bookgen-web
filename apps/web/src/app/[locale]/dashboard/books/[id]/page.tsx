@@ -32,6 +32,7 @@ export default function BookViewPage() {
   const [error, setError] = useState<string | null>(null);
   const [creditDialogOpen, setCreditDialogOpen] = useState(false);
   const t = useTranslations("book");
+  const tStatus = useTranslations("statusLabels");
   const tCommon = useTranslations("common");
   const tErr = useTranslations("errors");
 
@@ -338,7 +339,7 @@ export default function BookViewPage() {
         </div>
         <div className="space-y-2">
           <h2 className="text-2xl font-heading font-bold text-foreground">
-            {t("statusError")}
+            {tStatus("ERROR")}
           </h2>
           <p className="text-muted-foreground max-w-md">
             {t("contentUnavailable")}

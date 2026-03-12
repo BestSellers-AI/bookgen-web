@@ -27,6 +27,7 @@ interface GenerationProgressProps {
 
 export function GenerationProgress({ book, onComplete }: GenerationProgressProps) {
   const t = useTranslations("book");
+  const tStatus = useTranslations("statusLabels");
   const tCommon = useTranslations("common");
   const router = useRouter();
 
@@ -135,7 +136,7 @@ export function GenerationProgress({ book, onComplete }: GenerationProgressProps
             {book.title}
           </h1>
           <Badge className="bg-orange-500/10 text-orange-400 border-orange-500/20 animate-pulse text-xs font-bold uppercase tracking-widest">
-            {t("generationInProgress")}
+            {tStatus("GENERATING")}
           </Badge>
         </div>
       </div>

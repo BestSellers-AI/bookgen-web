@@ -45,6 +45,7 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
   const [approvingStructure, setApprovingStructure] = useState(false);
   const [viewMode, setViewMode] = useState<"kdp" | "original">("kdp");
   const t = useTranslations("book");
+  const tStatus = useTranslations("statusLabels");
   const tErr = useTranslations("errors");
 
   const isStructureOnly = book.status === "PREVIEW";
@@ -106,7 +107,7 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
               variant="secondary"
               className="text-[10px] font-black uppercase tracking-widest h-6 px-3 rounded-full bg-amber-500/10 text-amber-400 border-amber-500/20"
             >
-              {t("preview")}
+              {tStatus(book.status)}
             </Badge>
             <span className="text-xs font-bold text-muted-foreground flex items-center gap-1.5 uppercase tracking-widest">
               <Calendar size={14} className="text-primary" />
