@@ -101,6 +101,20 @@ Barrel export from `src/index.ts`. Contains all domain enums (17), TypeScript ty
 - **Tailwind:** Static classes only (no string interpolation)
 - **i18n:** All UI strings via next-intl (en, pt-BR, es) — implemented across all pages
 - **Commits:** Conventional Commits (`feat(scope):`, `fix(scope):`, etc.)
+- **Plan names:** Three layers — see table below
+
+### Plan Name Architecture
+
+| Layer | Value | Where used |
+|-------|-------|------------|
+| **Enum (DB/code)** | `ASPIRANTE`, `PROFISSIONAL`, `BESTSELLER` | Prisma schema, backend logic, Stripe metadata (`metadata.plan`), webhook `resolvePlan()`. Never shown to users. |
+| **Canonical name (`constants.ts`)** | `Aspiring`, `Professional`, `BestSeller` | `SUBSCRIPTION_PLANS[plan].name`. Synced to Stripe product names. Shown in admin edit user select and admin products (read-only for subscriptions). |
+| **i18n label (`planNames.*`)** | Localized per language | `messages/{locale}.json` → `planNames.ASPIRANTE` etc. Shown everywhere in the user-facing app: PlanBadge, PlanCard, upgrade page, landing, settings, profile. Use `useTranslations("planNames")` + `t(enumValue)`. |
+
+- **Admin assign plan:** Select shows canonical names, sends enum to backend
+- **Admin products:** Subscription plan name field is **read-only** (defined in `constants.ts`, not editable)
+- **Subscription source:** `STRIPE` (from Stripe checkout) or `ADMIN` (manually assigned). Webhooks skip users with active ADMIN subscriptions.
+- **Free tier:** No subscription record — absence of active subscription = free user
 
 ## Infrastructure
 
