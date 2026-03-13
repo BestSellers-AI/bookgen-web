@@ -10,13 +10,29 @@ const CheckIcon = () => (
   </svg>
 )
 
+const ClockIcon = () => (
+  <svg className="w-4 h-4 text-gold-500/50 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+)
+
+const SoonBadge = ({ label }: { label: string }) => (
+  <span className="ml-auto flex-shrink-0 text-[10px] bg-gold-500/15 text-gold-400 border border-gold-500/20 px-1.5 py-0.5 rounded font-semibold tracking-wide">
+    {label}
+  </span>
+)
+
 function FeatureRow({ feature, t }: { feature: PlanFeature; t: (key: string) => string }) {
   return (
     <li className="flex items-start gap-2.5 text-sm">
-      <CheckIcon />
-      <span className="flex-1 leading-snug dark:text-cream-300 text-navy-800">
+      {feature.soon ? <ClockIcon /> : <CheckIcon />}
+      <span className={clsx(
+        'flex-1 leading-snug',
+        feature.soon ? 'dark:text-cream-500 text-navy-600' : 'dark:text-cream-300 text-navy-800',
+      )}>
         {t(feature.textKey)}
       </span>
+      {feature.soon && <SoonBadge label={t('featureSoonBadge')} />}
     </li>
   )
 }
