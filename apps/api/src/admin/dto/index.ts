@@ -2,6 +2,7 @@ export {
   AdminPaginationDto,
   AdminAddCreditsDto,
   AdminChangeRoleDto,
+  AdminAssignPlanDto,
 } from './admin-query.dto';
 export {
   UpdateProductDto,

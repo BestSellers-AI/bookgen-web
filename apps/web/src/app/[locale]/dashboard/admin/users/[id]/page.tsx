@@ -29,7 +29,7 @@ import { PlanBadge } from "@/components/dashboard/plan-badge";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { adminApi, type AdminUserDetail } from "@/lib/api/admin";
-import { UserRole } from "@bestsellers/shared";
+import { UserRole, SubscriptionPlan } from "@bestsellers/shared";
 import { toast } from "sonner";
 
 export default function AdminUserDetailPage() {
@@ -45,6 +45,8 @@ export default function AdminUserDetailPage() {
   const [creditAmount, setCreditAmount] = useState("");
   const [creditDesc, setCreditDesc] = useState("");
   const [addingCredits, setAddingCredits] = useState(false);
+  const [newPlan, setNewPlan] = useState("");
+  const [assigningPlan, setAssigningPlan] = useState(false);
 
   const fetchUser = async () => {
     setLoading(true);
@@ -75,6 +77,21 @@ export default function AdminUserDetailPage() {
       toast.error(t("roleChangeError"));
     } finally {
       setChangingRole(false);
+    }
+  };
+
+  const handleAssignPlan = async () => {
+    if (!user || !newPlan) return;
+    setAssigningPlan(true);
+    try {
+      await adminApi.assignPlan(user.id, newPlan as SubscriptionPlan);
+      toast.success(t("planAssigned"));
+      setNewPlan("");
+      fetchUser();
+    } catch {
+      toast.error(t("planAssignError"));
+    } finally {
+      setAssigningPlan(false);
     }
   };
 
@@ -206,6 +223,37 @@ export default function AdminUserDetailPage() {
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 t("save")
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {/* Assign Plan */}
+        <div className="glass rounded-[2rem] p-6 space-y-4">
+          <h2 className="text-lg font-bold font-heading flex items-center gap-2">
+            <Crown className="w-5 h-5 text-primary" />
+            {t("assignPlan")}
+          </h2>
+          <div className="flex gap-3">
+            <Select value={newPlan} onValueChange={setNewPlan}>
+              <SelectTrigger className="rounded-xl flex-1">
+                <SelectValue placeholder={t("selectPlan")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={SubscriptionPlan.ASPIRANTE}>Aspirante</SelectItem>
+                <SelectItem value={SubscriptionPlan.PROFISSIONAL}>Profissional</SelectItem>
+                <SelectItem value={SubscriptionPlan.BESTSELLER}>Bestseller</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              onClick={handleAssignPlan}
+              disabled={assigningPlan || !newPlan}
+              className="rounded-xl"
+            >
+              {assigningPlan ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                t("assignPlanBtn")
               )}
             </Button>
           </div>

@@ -9,7 +9,9 @@ import { WalletService } from '../wallet/wallet.service';
 import {
   UserRole,
   Prisma,
+  SubscriptionPlan,
   SubscriptionStatus,
+  BillingInterval,
   PurchaseStatus,
   CreditType,
   WalletTransactionType,
@@ -28,6 +30,7 @@ import {
   AdminPaginationDto,
   AdminAddCreditsDto,
   AdminChangeRoleDto,
+  AdminAssignPlanDto,
   UpdateProductDto,
   CreatePriceDto,
 } from './dto';
@@ -207,6 +210,77 @@ export class AdminService {
 
     this.logger.log(`Added ${dto.amount} bonus credits to user ${id}`);
     return { balance: wallet.balance };
+  }
+
+  async assignPlan(
+    userId: string,
+    dto: AdminAssignPlanDto,
+    callerId: string,
+  ): Promise<{ plan: string }> {
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, deletedAt: null },
+      select: { id: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Block if user has an active Stripe subscription
+    const activeStripeSub = await this.prisma.subscription.findFirst({
+      where: {
+        userId,
+        source: 'STRIPE',
+        status: {
+          in: [
+            SubscriptionStatus.ACTIVE,
+            SubscriptionStatus.TRIALING,
+            SubscriptionStatus.PAST_DUE,
+          ],
+        },
+      },
+    });
+
+    if (activeStripeSub) {
+      throw new BadRequestException(
+        'This user has an active Stripe subscription. Cancel it in Stripe before assigning a plan manually.',
+      );
+    }
+
+    // Cancel any existing admin-assigned subscription
+    await this.prisma.subscription.updateMany({
+      where: {
+        userId,
+        source: 'ADMIN',
+        status: {
+          in: [
+            SubscriptionStatus.ACTIVE,
+            SubscriptionStatus.TRIALING,
+            SubscriptionStatus.PAST_DUE,
+          ],
+        },
+      },
+      data: {
+        status: SubscriptionStatus.CANCELLED,
+        cancelledAt: new Date(),
+      },
+    });
+
+    // Create a new admin-assigned subscription (no Stripe)
+    await this.prisma.subscription.create({
+      data: {
+        userId,
+        plan: dto.plan,
+        status: SubscriptionStatus.ACTIVE,
+        billingInterval: BillingInterval.MONTHLY,
+        source: 'ADMIN',
+      },
+    });
+
+    this.logger.log(
+      `Admin ${callerId} assigned plan ${dto.plan} to user ${userId}`,
+    );
+    return { plan: dto.plan };
   }
 
   /* ------------------------------------------------------------------ */

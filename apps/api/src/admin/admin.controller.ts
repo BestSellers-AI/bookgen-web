@@ -18,6 +18,7 @@ import {
   AdminPaginationDto,
   AdminAddCreditsDto,
   AdminChangeRoleDto,
+  AdminAssignPlanDto,
   UpdateProductDto,
   CreatePriceDto,
   UpdateAppConfigDto,
@@ -56,6 +57,15 @@ export class AdminController {
     @Body() dto: AdminAddCreditsDto,
   ) {
     return this.adminService.addCredits(id, dto);
+  }
+
+  @Put('users/:id/plan')
+  async assignPlan(
+    @Param('id') id: string,
+    @CurrentUser('id') callerId: string,
+    @Body() dto: AdminAssignPlanDto,
+  ) {
+    return this.adminService.assignPlan(id, dto, callerId);
   }
 
   /* ── Books ───────────────────────────────────────────────────────── */

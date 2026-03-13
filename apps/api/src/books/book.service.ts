@@ -412,9 +412,10 @@ export class BookService {
         },
       });
 
-      if (previewCount >= 30) {
+      const freeTier = await this.configDataService.getFreeTier();
+      if (previewCount >= freeTier.previewsPerMonth) {
         throw new ForbiddenException(
-          'Free tier preview limit reached (3/month)',
+          `Free tier preview limit reached (${freeTier.previewsPerMonth}/month)`,
         );
       }
     }
@@ -632,6 +633,50 @@ export class BookService {
       );
     }
 
+    // Enforce booksPerMonth limit
+    const activeSubscription = await this.prisma.subscription.findFirst({
+      where: {
+        userId,
+        status: {
+          in: [
+            SubscriptionStatus.ACTIVE,
+            SubscriptionStatus.TRIALING,
+            SubscriptionStatus.PAST_DUE,
+          ],
+        },
+      },
+    });
+
+    const plan = activeSubscription?.plan as SubscriptionPlan | null;
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const generatedThisMonth = await this.prisma.book.count({
+      where: {
+        userId,
+        status: { in: [BookStatus.QUEUED, BookStatus.GENERATING, BookStatus.GENERATED] },
+        generationStartedAt: { gte: startOfMonth },
+        deletedAt: null,
+      },
+    });
+
+    if (plan) {
+      const planConfig = await this.configDataService.getPlanConfig(plan);
+      if (planConfig && generatedThisMonth >= planConfig.booksPerMonth) {
+        throw new ForbiddenException(
+          `Monthly book generation limit reached (${planConfig.booksPerMonth}/month for ${planConfig.name})`,
+        );
+      }
+    } else {
+      const freeTier = await this.configDataService.getFreeTier();
+      if (generatedThisMonth >= freeTier.booksPerMonth) {
+        throw new ForbiddenException(
+          `Free tier book generation limit reached (${freeTier.booksPerMonth}/month)`,
+        );
+      }
+    }
+
     const originalStatus = book.status;
 
     // Atomic status transition to QUEUED (prevents double-debit race)
@@ -668,24 +713,10 @@ export class BookService {
       throw error;
     }
 
-    // Determine queue priority based on user's subscription plan
-    const activeSubscription = await this.prisma.subscription.findFirst({
-      where: {
-        userId,
-        status: {
-          in: [
-            SubscriptionStatus.ACTIVE,
-            SubscriptionStatus.TRIALING,
-            SubscriptionStatus.PAST_DUE,
-          ],
-        },
-      },
-    });
-
-    const plan = activeSubscription?.plan as SubscriptionPlan | null;
-    const planConfig = plan ? await this.configDataService.getPlanConfig(plan) : null;
-    const queuePriority = planConfig
-      ? QUEUE_PRIORITIES[planConfig.queuePriority as keyof typeof QUEUE_PRIORITIES]
+    // Determine queue priority based on user's subscription plan (reuse plan from above)
+    const queuePlanConfig = plan ? await this.configDataService.getPlanConfig(plan) : null;
+    const queuePriority = queuePlanConfig
+      ? QUEUE_PRIORITIES[queuePlanConfig.queuePriority as keyof typeof QUEUE_PRIORITIES]
       : QUEUE_PRIORITIES.standard;
 
     const generationData = {

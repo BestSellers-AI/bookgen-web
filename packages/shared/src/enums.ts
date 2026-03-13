@@ -18,6 +18,11 @@ export enum BillingInterval {
   ANNUAL = 'ANNUAL',
 }
 
+export enum SubscriptionSource {
+  STRIPE = 'STRIPE',
+  ADMIN = 'ADMIN',
+}
+
 export enum CreditType {
   SUBSCRIPTION = 'SUBSCRIPTION',
   PURCHASE = 'PURCHASE',

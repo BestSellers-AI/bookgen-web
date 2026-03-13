@@ -1,6 +1,6 @@
 import { IsOptional, IsString, IsInt, Min, Max, MaxLength, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
-import { UserRole } from '@prisma/client';
+import { UserRole, SubscriptionPlan } from '@prisma/client';
 
 export class AdminPaginationDto {
   @IsOptional()
@@ -35,4 +35,9 @@ export class AdminAddCreditsDto {
 export class AdminChangeRoleDto {
   @IsEnum(UserRole)
   role!: UserRole;
+}
+
+export class AdminAssignPlanDto {
+  @IsEnum(SubscriptionPlan)
+  plan!: SubscriptionPlan;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Library, PlusCircle, Wallet as WalletIcon, User, LogOut, Menu } from "lucide-react";
+import { Library, PlusCircle, Wallet as WalletIcon, User, LogOut, Menu, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -15,7 +15,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { useWalletStore } from "@/stores/wallet-store";
 import { Link, usePathname } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { PlanBadge } from "./plan-badge";
 
 export function MobileNav() {
@@ -36,7 +35,7 @@ export function MobileNav() {
   const navItems = [
     { label: t("myBooks"), icon: Library, href: "/dashboard/books" },
     { label: t("createNew"), icon: PlusCircle, href: "/dashboard/create" },
-    { label: t("wallet"), icon: WalletIcon, href: "/dashboard/wallet" },
+    { label: t("plansAndPricing"), icon: Crown, href: "/dashboard/upgrade", highlight: true },
     { label: t("profileSettings"), icon: User, href: "/dashboard/settings" },
   ];
 
@@ -80,6 +79,24 @@ export function MobileNav() {
           <nav className="flex flex-col gap-2">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
+              const hasPlan = !!user?.planInfo?.hasSubscription;
+              const highlighted = "highlight" in item && item.highlight && !hasPlan;
+
+              if (highlighted && !isActive) {
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setOpen(false)}
+                    className="relative flex items-center gap-3 h-12 px-4 rounded-xl overflow-hidden transition-all duration-300 border border-gold-500/30 bg-gold-500/5 text-gold-500 hover:bg-gold-500/10 hover:border-gold-500/50 shadow-gold-sm"
+                  >
+                    <div className="absolute inset-y-0 -inset-x-full w-[200%] animate-shimmer pointer-events-none bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+                    <item.icon className="w-5 h-5 text-gold-500" />
+                    <span className="font-bold">{item.label}</span>
+                  </Link>
+                );
+              }
+
               return (
                 <Button
                   key={item.href}
@@ -110,9 +127,6 @@ export function MobileNav() {
             </Button>
           </nav>
 
-          <div className="flex items-center gap-3 pt-4 border-t border-border">
-            <ThemeToggle />
-          </div>
         </div>
       </SheetContent>
     </Sheet>

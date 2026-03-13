@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, Library, PlusCircle, Wallet as WalletIcon, User, LogOut, ShieldCheck, Users, CreditCard, Package, Settings2, Megaphone } from "lucide-react";
+import { BookOpen, Library, PlusCircle, Wallet as WalletIcon, User, LogOut, ShieldCheck, Users, CreditCard, Package, Settings2, Megaphone, Crown } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 import { UserRole } from "@bestsellers/shared";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,7 @@ export function Sidebar() {
   const navItems = [
     { label: t("myBooks"), icon: Library, href: "/dashboard/books" },
     { label: t("createNew"), icon: PlusCircle, href: "/dashboard/create" },
-    { label: t("wallet"), icon: WalletIcon, href: "/dashboard/wallet" },
+    { label: t("plansAndPricing"), icon: Crown, href: "/dashboard/upgrade", highlight: true },
     { label: t("profileSettings"), icon: User, href: "/dashboard/settings" },
   ];
 
@@ -42,6 +42,23 @@ export function Sidebar() {
       <nav className="flex flex-col gap-2 flex-1 min-h-0 overflow-y-auto scrollbar-thin">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
+          const hasPlan = !!user?.planInfo?.hasSubscription;
+          const highlighted = "highlight" in item && item.highlight && !hasPlan;
+
+          if (highlighted && !isActive) {
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="group relative flex items-center gap-3 h-12 min-h-12 px-4 rounded-2xl overflow-hidden transition-all duration-300 border border-gold-500/30 bg-gold-500/5 text-gold-500 hover:bg-gold-500/10 hover:border-gold-500/50 shadow-gold-sm"
+              >
+                <div className="absolute inset-y-0 -inset-x-full w-[200%] animate-shimmer pointer-events-none bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+                <item.icon className="w-5 h-5 text-gold-500 transition-transform duration-300 group-hover:scale-110" />
+                <span className="font-bold">{item.label}</span>
+              </Link>
+            );
+          }
+
           return (
             <Button
               key={item.href}

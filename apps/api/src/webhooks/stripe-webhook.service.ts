@@ -279,6 +279,22 @@ export class StripeWebhookService {
         return;
       }
 
+      // Skip if user has an active admin-assigned subscription
+      const adminSub = await this.prisma.subscription.findFirst({
+        where: {
+          userId: user.id,
+          source: 'ADMIN',
+          status: { in: ['ACTIVE', 'TRIALING', 'PAST_DUE'] },
+        },
+      });
+
+      if (adminSub) {
+        this.logger.warn(
+          `User ${user.id} has admin-assigned subscription, skipping invoice-based subscription create`,
+        );
+        return;
+      }
+
       this.logger.log(
         `Creating subscription record for user ${user.id} from first invoice`,
       );
@@ -330,20 +346,14 @@ export class StripeWebhookService {
     if (invoiceId) {
       const existingLedger = await this.prisma.creditLedger.findFirst({
         where: {
-          source: 'subscription',
-          sourceId: subscription.id,
-          // Use source + sourceId + approximate timing to detect duplicates
-          createdAt: {
-            gte: invoice.period_start
-              ? new Date(invoice.period_start * 1000)
-              : new Date(Date.now() - 60_000),
-          },
+          source: 'invoice',
+          sourceId: invoiceId,
         },
       });
 
       if (existingLedger) {
         this.logger.warn(
-          `Credits already granted for subscription ${subscription.id} in this period, skipping`,
+          `Credits already granted for invoice ${invoiceId}, skipping`,
         );
         return;
       }
@@ -357,17 +367,26 @@ export class StripeWebhookService {
     }
 
     // Calculate credit expiration based on creditAccumulationMonths
+    const periodEnd = invoice.period_end
+      ? new Date(invoice.period_end * 1000)
+      : undefined;
+
     let expiresAt: Date | undefined;
-    if ((planConfig.creditAccumulationMonths ?? 0) > 0) {
-      expiresAt = new Date();
-      expiresAt.setMonth(
-        expiresAt.getMonth() + (planConfig.creditAccumulationMonths ?? 0),
-      );
+    const accumMonths = planConfig.creditAccumulationMonths ?? 0;
+    if (accumMonths > 0 && periodEnd) {
+      // Credits expire N months after the period end date
+      expiresAt = new Date(periodEnd);
+      // Safe month addition: clamp to last day of target month
+      const targetMonth = expiresAt.getMonth() + accumMonths;
+      const day = expiresAt.getDate();
+      expiresAt.setDate(1); // avoid overflow
+      expiresAt.setMonth(targetMonth);
+      // Clamp: if original day > days in target month, use last day
+      const lastDay = new Date(expiresAt.getFullYear(), expiresAt.getMonth() + 1, 0).getDate();
+      expiresAt.setDate(Math.min(day, lastDay));
     } else {
       // Credits expire at end of current period
-      expiresAt = invoice.period_end
-        ? new Date(invoice.period_end * 1000)
-        : undefined;
+      expiresAt = periodEnd;
     }
 
     // Grant monthly credits
@@ -377,8 +396,8 @@ export class StripeWebhookService {
       CreditType.SUBSCRIPTION,
       {
         expiresAt,
-        source: 'subscription',
-        sourceId: subscription.id,
+        source: 'invoice',
+        sourceId: invoiceId ?? subscription.id,
         transactionType: WalletTransactionType.SUBSCRIPTION_CREDIT,
         description: `Monthly ${planConfig.name} subscription credits`,
       },
@@ -432,6 +451,22 @@ export class StripeWebhookService {
     if (existing) {
       this.logger.warn(
         `Subscription ${stripeSubscription.id} already exists, skipping create`,
+      );
+      return;
+    }
+
+    // Skip if user has an active admin-assigned subscription
+    const adminSub = await this.prisma.subscription.findFirst({
+      where: {
+        userId: user.id,
+        source: 'ADMIN',
+        status: { in: ['ACTIVE', 'TRIALING', 'PAST_DUE'] },
+      },
+    });
+
+    if (adminSub) {
+      this.logger.warn(
+        `User ${user.id} has admin-assigned subscription, skipping Stripe subscription create`,
       );
       return;
     }
@@ -572,15 +607,22 @@ export class StripeWebhookService {
       },
     });
 
+    // Expire remaining subscription credits
+    const expiredCredits = await this.creditLedgerService.expireSubscriptionCredits(
+      subscription.userId,
+    );
+
     await this.notificationService.create({
       userId: subscription.userId,
       type: NotificationType.SUBSCRIPTION_CANCELLED,
       title: 'Subscription Cancelled',
-      message: 'Your subscription has been cancelled.',
-      data: { subscriptionId: subscription.id },
+      message: expiredCredits > 0
+        ? `Your subscription has been cancelled. ${expiredCredits} unused subscription credits have expired.`
+        : 'Your subscription has been cancelled.',
+      data: { subscriptionId: subscription.id, expiredCredits },
     });
 
-    this.logger.log(`Deleted subscription ${subscription.id}`);
+    this.logger.log(`Deleted subscription ${subscription.id}, expired ${expiredCredits} credits`);
   }
 
   /**
@@ -652,13 +694,17 @@ export class StripeWebhookService {
   private resolvePlan(
     planSlug: string | undefined | null,
   ): 'ASPIRANTE' | 'PROFISSIONAL' | 'BESTSELLER' {
-    if (!planSlug) return 'ASPIRANTE';
-
-    const upper = planSlug.toUpperCase();
-    if (upper === 'ASPIRANTE' || upper === 'PROFISSIONAL' || upper === 'BESTSELLER') {
-      return upper;
+    if (!planSlug) {
+      this.logger.warn('resolvePlan: no plan slug provided, defaulting to ASPIRANTE');
+      return 'ASPIRANTE';
     }
 
+    const normalized = planSlug.toUpperCase().replace('PLAN-', '');
+    if (normalized === 'ASPIRANTE' || normalized === 'PROFISSIONAL' || normalized === 'BESTSELLER') {
+      return normalized;
+    }
+
+    this.logger.error(`resolvePlan: unrecognized plan slug "${planSlug}", defaulting to ASPIRANTE`);
     return 'ASPIRANTE';
   }
 

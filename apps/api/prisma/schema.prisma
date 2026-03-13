@@ -36,6 +36,11 @@ enum BillingInterval {
   ANNUAL
 }
 
+enum SubscriptionSource {
+  STRIPE
+  ADMIN
+}
+
 enum CreditType {
   SUBSCRIPTION
   PURCHASE
@@ -233,6 +238,7 @@ model Subscription {
   plan                 SubscriptionPlan
   status               SubscriptionStatus
   billingInterval      BillingInterval    @map("billing_interval")
+  source               SubscriptionSource @default(STRIPE)
   stripeSubscriptionId String?            @unique @map("stripe_subscription_id")
   stripeCustomerId     String?            @map("stripe_customer_id")
   stripePriceId        String?            @map("stripe_price_id")

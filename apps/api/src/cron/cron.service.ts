@@ -6,6 +6,11 @@ import { CreditLedgerService } from '../wallet/credit-ledger.service';
 import { NotificationService } from '../notifications/notification.service';
 import { AddonStatus, BookStatus, NotificationType } from '@prisma/client';
 
+/** Configurable thresholds (can be moved to ConfigDataService later) */
+const NOTIFICATION_RETENTION_DAYS = 90;
+const STUCK_BOOK_THRESHOLD_MS = 45 * 60 * 1000;   // 45 minutes
+const STUCK_ADDON_THRESHOLD_MS = 30 * 60 * 1000;   // 30 minutes
+
 @Injectable()
 export class CronService {
   private readonly logger = new Logger(CronService.name);
@@ -78,7 +83,7 @@ export class CronService {
     this.logger.log('Cron: cleanOldNotifications started');
 
     const ninetyDaysAgo = new Date();
-    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - NOTIFICATION_RETENTION_DAYS);
 
     const result = await this.prisma.notification.deleteMany({
       where: {
@@ -127,8 +132,7 @@ export class CronService {
   /* ------------------------------------------------------------------ */
   @Cron('*/10 * * * *', { name: 'recoverStuckGenerations', timeZone: 'UTC' })
   async recoverStuckGenerations() {
-    // Books stuck in GENERATING/QUEUED/PREVIEW_GENERATING/PREVIEW_COMPLETING for > 45 min
-    const stuckThreshold = new Date(Date.now() - 45 * 60 * 1000);
+    const stuckThreshold = new Date(Date.now() - STUCK_BOOK_THRESHOLD_MS);
 
     const stuckBooks = await this.prisma.book.findMany({
       where: {
@@ -158,7 +162,7 @@ export class CronService {
           where: { id: book.id, status: book.status },
           data: {
             status: BookStatus.ERROR,
-            generationError: `Generation timed out (stuck in ${book.status} for over 45 minutes). Please try again.`,
+            generationError: `Generation timed out (stuck in ${book.status} for over ${STUCK_BOOK_THRESHOLD_MS / 60_000} minutes). Please try again.`,
           },
         });
 
@@ -178,8 +182,8 @@ export class CronService {
       }
     }
 
-    // Also recover stuck addons (PENDING/QUEUED for > 30 min)
-    const addonThreshold = new Date(Date.now() - 30 * 60 * 1000);
+    // Also recover stuck addons
+    const addonThreshold = new Date(Date.now() - STUCK_ADDON_THRESHOLD_MS);
 
     const stuckAddons = await this.prisma.bookAddon.findMany({
       where: {
@@ -195,7 +199,7 @@ export class CronService {
           where: { id: addon.id, status: addon.status },
           data: {
             status: AddonStatus.ERROR,
-            error: `Add-on timed out (stuck in ${addon.status} for over 30 minutes).`,
+            error: `Add-on timed out (stuck in ${addon.status} for over ${STUCK_ADDON_THRESHOLD_MS / 60_000} minutes).`,
           },
         });
 

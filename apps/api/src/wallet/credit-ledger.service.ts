@@ -325,6 +325,44 @@ export class CreditLedgerService {
   }
 
   /**
+   * Expire all remaining subscription credits for a specific user.
+   * Used when a subscription is cancelled to prevent indefinite credit retention.
+   */
+  async expireSubscriptionCredits(userId: string): Promise<number> {
+    const wallet = await this.prisma.wallet.findUnique({
+      where: { userId },
+      select: { id: true },
+    });
+
+    if (!wallet) return 0;
+
+    const entries = await this.prisma.creditLedger.findMany({
+      where: {
+        walletId: wallet.id,
+        remaining: { gt: 0 },
+        type: 'SUBSCRIPTION',
+      },
+      select: { id: true, remaining: true },
+    });
+
+    if (entries.length === 0) return 0;
+
+    const totalExpired = entries.reduce((sum, e) => sum + e.remaining, 0);
+
+    await this.prisma.creditLedger.updateMany({
+      where: { id: { in: entries.map((e) => e.id) } },
+      data: { remaining: 0 },
+    });
+
+    await this.syncWalletBalance(wallet.id);
+
+    this.logger.log(
+      `Expired ${totalExpired} subscription credits for user ${userId}`,
+    );
+    return totalExpired;
+  }
+
+  /**
    * Recalculate and sync the wallet balance from ledger entries.
    * Accepts an optional Prisma transaction client.
    */

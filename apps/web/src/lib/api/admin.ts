@@ -1,6 +1,6 @@
 import { apiClient } from '../api-client';
 import type { PaginatedResponse } from './types';
-import type { UserRole } from '@bestsellers/shared';
+import type { UserRole, SubscriptionPlan } from '@bestsellers/shared';
 
 // ---------------------------------------------------------------------------
 // Types — aligned with packages/shared/src/types/admin.ts
@@ -163,6 +163,11 @@ export const adminApi = {
         amount,
         description,
       })
+      .then((r) => r.data),
+
+  assignPlan: (id: string, plan: SubscriptionPlan) =>
+    apiClient
+      .put<{ plan: string }>(`/admin/users/${id}/plan`, { plan })
       .then((r) => r.data),
 
   listBooks: (params?: AdminListParams) =>
