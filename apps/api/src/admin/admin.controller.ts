@@ -76,6 +76,11 @@ export class AdminController {
     return this.adminService.removePlan(id, callerId);
   }
 
+  /**
+   * One-time utility: syncs plan names from DB to Stripe products.
+   * Run after changing plan names in constants.ts + running the data migration.
+   * Not exposed in admin UI — call via API: POST /api/admin/sync-plan-names
+   */
   @Post('sync-plan-names')
   async syncPlanNames() {
     return this.adminService.syncPlanNamesToStripe();

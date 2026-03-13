@@ -115,6 +115,7 @@ Barrel export from `src/index.ts`. Contains all domain enums (17), TypeScript ty
 - **Admin products:** Subscription plan name field is **read-only** (defined in `constants.ts`, not editable)
 - **Subscription source:** `STRIPE` (from Stripe checkout) or `ADMIN` (manually assigned). Webhooks skip users with active ADMIN subscriptions.
 - **Free tier:** No subscription record — absence of active subscription = free user
+- **Sync plan names to Stripe:** `POST /api/admin/sync-plan-names` (admin auth required). One-time utility — run after changing plan names in `constants.ts` + data migration. Not in admin UI.
 
 ## Infrastructure
 
