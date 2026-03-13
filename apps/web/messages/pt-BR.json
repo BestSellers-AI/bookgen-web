@@ -1,4 +1,10 @@
 {
+  "planNames": {
+    "FREE": "Gratuito",
+    "ASPIRANTE": "Autor Aspirante",
+    "PROFISSIONAL": "Autor Profissional",
+    "BESTSELLER": "Autor BestSeller"
+  },
   "common": {
     "appName": "BookGen",
     "loading": "Carregando...",
@@ -1282,6 +1288,7 @@
     "noPrices": "Sem preços",
     "noProducts": "Nenhum produto nesta categoria.",
     "noConfigs": "Nenhuma configuração encontrada.",
+    "nameReadOnlyHint": "Nome do plano é definido no código e sincronizado com o Stripe.",
     "editProduct": "Editar Produto",
     "addPriceTo": "Adicionar Preço a {name}",
     "save": "Salvar",

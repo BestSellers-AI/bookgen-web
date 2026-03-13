@@ -100,6 +100,7 @@ const XIcon = () => (
 export default function UpgradePage() {
   const t = useTranslations("upgrade");
   const tFeatures = useTranslations("landingV2.pricing");
+  const tPlan = useTranslations("planNames");
   const { user } = useAuth();
   const [annual, setAnnual] = useState(true);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
@@ -265,7 +266,7 @@ export default function UpgradePage() {
                         : "dark:text-cream-200 text-navy-900"
                     )}
                   >
-                    {config.name}
+                    {tPlan(planKey)}
                   </h3>
                   <p className="dark:text-cream-400 text-navy-700 text-sm font-medium">
                     {tFeatures("upToBooksPerMonth", {

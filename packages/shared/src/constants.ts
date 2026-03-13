@@ -20,7 +20,7 @@ export interface PlanConfig {
 
 export const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, PlanConfig> = {
   [SubscriptionPlan.ASPIRANTE]: {
-    name: 'Aspiring Author',
+    name: 'Aspiring',
     plan: SubscriptionPlan.ASPIRANTE,
     monthlyPriceCents: 2900,
     annualPriceCents: 22800,
@@ -37,7 +37,7 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, PlanConfig> = {
     prioritySupport: false,
   },
   [SubscriptionPlan.PROFISSIONAL]: {
-    name: 'Autor Profissional',
+    name: 'Professional',
     plan: SubscriptionPlan.PROFISSIONAL,
     monthlyPriceCents: 5900,
     annualPriceCents: 46800,
@@ -54,7 +54,7 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, PlanConfig> = {
     prioritySupport: false,
   },
   [SubscriptionPlan.BESTSELLER]: {
-    name: 'Autor BestSeller',
+    name: 'BestSeller',
     plan: SubscriptionPlan.BESTSELLER,
     monthlyPriceCents: 13900,
     annualPriceCents: 106800,

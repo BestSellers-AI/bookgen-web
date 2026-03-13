@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
+import { useTranslations } from "next-intl";
 
 const PLAN_COLORS: Record<string, string> = {
   FREE: "bg-gray-500/10 text-gray-400 border-gray-500/20",
@@ -14,8 +15,10 @@ interface PlanBadgeProps {
 }
 
 export function PlanBadge({ plan }: PlanBadgeProps) {
-  const label = plan ?? "FREE";
-  const colorClass = PLAN_COLORS[label] ?? PLAN_COLORS.FREE;
+  const t = useTranslations("planNames");
+  const key = plan ?? "FREE";
+  const colorClass = PLAN_COLORS[key] ?? PLAN_COLORS.FREE;
+  const label = t.has(key) ? t(key) : key;
 
   return (
     <Badge

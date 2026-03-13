@@ -21,6 +21,7 @@ function getNextPlan(current: string | null): string | null {
 
 export function PlanCard({ user }: PlanCardProps) {
   const t = useTranslations("dashboard");
+  const tPlan = useTranslations("planNames");
 
   const plan = user?.planInfo?.plan ?? null;
   const hasSubscription = user?.planInfo?.hasSubscription ?? false;
@@ -34,7 +35,7 @@ export function PlanCard({ user }: PlanCardProps) {
           <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
             <Crown className="w-5 h-5 text-amber-500" />
           </div>
-          <span className="text-xl font-black text-foreground">{plan}</span>
+          <span className="text-xl font-black text-foreground">{plan ? tPlan(plan) : tPlan("FREE")}</span>
           <PlanBadge plan={plan} />
         </div>
         <Button asChild variant="outline" className="rounded-xl h-10 shrink-0">
@@ -57,7 +58,7 @@ export function PlanCard({ user }: PlanCardProps) {
               {t("currentPlan")}
             </span>
             <span className="text-lg font-black text-foreground">
-              {plan ?? t("freePlan")}
+              {plan ? tPlan(plan) : tPlan("FREE")}
             </span>
             <PlanBadge plan={plan} />
           </div>
@@ -65,7 +66,7 @@ export function PlanCard({ user }: PlanCardProps) {
           {nextPlan && (
             <div className="space-y-3">
               <p className="text-sm font-semibold text-primary">
-                {t("planCard.upgradeHook", { plan: nextPlan })}
+                {t("planCard.upgradeHook", { plan: tPlan(nextPlan) })}
               </p>
               <ul className="flex flex-col sm:flex-row gap-2 sm:gap-6">
                 {(t.raw(`planCard.perks.${nextPlan}`) as string[]).map((perk, i) => {
@@ -96,7 +97,7 @@ export function PlanCard({ user }: PlanCardProps) {
             className="relative w-full md:w-auto rounded-[calc(0.75rem-2px)] h-10 font-bold gap-2 glow-primary"
           >
             <Link href={hasSubscription ? "/dashboard/settings" : "/dashboard/upgrade"}>
-              {t("planCard.upgradeCta", { plan: nextPlan })}
+              {t("planCard.upgradeCta", { plan: tPlan(nextPlan) })}
               <ArrowRight className="w-4 h-4" />
             </Link>
           </Button>

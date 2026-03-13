@@ -594,7 +594,15 @@ function EditProductDialog({
           {/* Basic fields */}
           <div className="space-y-2">
             <Label>{t("thName")}</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} />
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              readOnly={isSub}
+              className={isSub ? "opacity-60 cursor-not-allowed" : ""}
+            />
+            {isSub && (
+              <p className="text-[10px] text-muted-foreground">{t("nameReadOnlyHint")}</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label>{t("description")}</Label>

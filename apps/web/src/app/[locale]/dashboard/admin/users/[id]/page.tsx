@@ -246,9 +246,9 @@ export default function AdminUserDetailPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="FREE">Free</SelectItem>
-                <SelectItem value={SubscriptionPlan.ASPIRANTE}>Aspirante</SelectItem>
-                <SelectItem value={SubscriptionPlan.PROFISSIONAL}>Profissional</SelectItem>
-                <SelectItem value={SubscriptionPlan.BESTSELLER}>Bestseller</SelectItem>
+                <SelectItem value={SubscriptionPlan.ASPIRANTE}>Aspiring</SelectItem>
+                <SelectItem value={SubscriptionPlan.PROFISSIONAL}>Professional</SelectItem>
+                <SelectItem value={SubscriptionPlan.BESTSELLER}>BestSeller</SelectItem>
               </SelectContent>
             </Select>
             <Button
