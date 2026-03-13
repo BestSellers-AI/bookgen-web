@@ -283,6 +283,50 @@ export class AdminService {
     return { plan: dto.plan };
   }
 
+  async removePlan(
+    userId: string,
+    callerId: string,
+  ): Promise<{ success: boolean }> {
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, deletedAt: null },
+      select: { id: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Only cancel admin-assigned subscriptions
+    const result = await this.prisma.subscription.updateMany({
+      where: {
+        userId,
+        source: 'ADMIN',
+        status: {
+          in: [
+            SubscriptionStatus.ACTIVE,
+            SubscriptionStatus.TRIALING,
+            SubscriptionStatus.PAST_DUE,
+          ],
+        },
+      },
+      data: {
+        status: SubscriptionStatus.CANCELLED,
+        cancelledAt: new Date(),
+      },
+    });
+
+    if (result.count === 0) {
+      throw new BadRequestException(
+        'No admin-assigned subscription found to remove. Stripe subscriptions must be cancelled via Stripe.',
+      );
+    }
+
+    this.logger.log(
+      `Admin ${callerId} removed plan from user ${userId}`,
+    );
+    return { success: true };
+  }
+
   /* ------------------------------------------------------------------ */
   /*  Books                                                              */
   /* ------------------------------------------------------------------ */

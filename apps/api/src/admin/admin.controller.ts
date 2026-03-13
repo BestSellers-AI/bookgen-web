@@ -68,6 +68,14 @@ export class AdminController {
     return this.adminService.assignPlan(id, dto, callerId);
   }
 
+  @Patch('users/:id/plan/remove')
+  async removePlan(
+    @Param('id') id: string,
+    @CurrentUser('id') callerId: string,
+  ) {
+    return this.adminService.removePlan(id, callerId);
+  }
+
   /* ── Books ───────────────────────────────────────────────────────── */
 
   @Get('books')

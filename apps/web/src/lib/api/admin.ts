@@ -170,6 +170,11 @@ export const adminApi = {
       .put<{ plan: string }>(`/admin/users/${id}/plan`, { plan })
       .then((r) => r.data),
 
+  removePlan: (id: string) =>
+    apiClient
+      .patch<{ success: boolean }>(`/admin/users/${id}/plan/remove`)
+      .then((r) => r.data),
+
   listBooks: (params?: AdminListParams) =>
     apiClient
       .get<PaginatedResponse<AdminBookSummary>>('/admin/books', { params })

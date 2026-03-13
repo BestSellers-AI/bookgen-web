@@ -84,8 +84,13 @@ export default function AdminUserDetailPage() {
     if (!user || !newPlan) return;
     setAssigningPlan(true);
     try {
-      await adminApi.assignPlan(user.id, newPlan as SubscriptionPlan);
-      toast.success(t("planAssigned"));
+      if (newPlan === "FREE") {
+        await adminApi.removePlan(user.id);
+        toast.success(t("planRemoved"));
+      } else {
+        await adminApi.assignPlan(user.id, newPlan as SubscriptionPlan);
+        toast.success(t("planAssigned"));
+      }
       setNewPlan("");
       fetchUser();
     } catch {
@@ -240,6 +245,7 @@ export default function AdminUserDetailPage() {
                 <SelectValue placeholder={t("selectPlan")} />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="FREE">Free</SelectItem>
                 <SelectItem value={SubscriptionPlan.ASPIRANTE}>Aspirante</SelectItem>
                 <SelectItem value={SubscriptionPlan.PROFISSIONAL}>Profissional</SelectItem>
                 <SelectItem value={SubscriptionPlan.BESTSELLER}>Bestseller</SelectItem>
