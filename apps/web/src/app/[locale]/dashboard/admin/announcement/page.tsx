@@ -173,7 +173,7 @@ export default function AdminAnnouncementPage() {
       {config.enabled && config.messages.en.message && (
         <div className={`rounded-xl text-sm font-medium overflow-hidden ${
           config.theme === "gradient" ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white" :
-          config.theme === "solid" ? "bg-accent text-accent-foreground border border-border" :
+          config.theme === "solid" ? "bg-muted text-accent-foreground border border-border" :
           "bg-primary text-primary-foreground"
         }`}>
           <div className="flex items-center justify-center py-2.5 px-4 text-center">

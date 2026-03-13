@@ -46,7 +46,7 @@ import type { AnnouncementArea } from "./config";
 
 const themeClasses = {
   gradient: "bg-gradient-to-r from-amber-500 to-orange-500 text-white",
-  solid: "bg-accent text-accent-foreground border-b border-border",
+  solid: "bg-muted text-accent-foreground border-b border-border backdrop-blur-sm",
   primary: "bg-primary text-primary-foreground",
 } as const;
 
