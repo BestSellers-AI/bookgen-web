@@ -76,6 +76,11 @@ export class AdminController {
     return this.adminService.removePlan(id, callerId);
   }
 
+  @Post('sync-plan-names')
+  async syncPlanNames() {
+    return this.adminService.syncPlanNamesToStripe();
+  }
+
   /* ── Books ───────────────────────────────────────────────────────── */
 
   @Get('books')

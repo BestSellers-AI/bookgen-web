@@ -59,9 +59,9 @@ async function main() {
 
   const aspirante = await prisma.product.upsert({
     where: { slug: 'plan-aspirante' },
-    update: { name: 'Aspiring Author', creditsAmount: 300, metadata: aspiranteMetadata, sortOrder: 1 },
+    update: { name: 'Aspiring', creditsAmount: 300, metadata: aspiranteMetadata, sortOrder: 1 },
     create: {
-      name: 'Aspiring Author',
+      name: 'Aspiring',
       slug: 'plan-aspirante',
       kind: 'SUBSCRIPTION_PLAN',
       description: 'Perfect for getting started with AI book generation',
@@ -91,9 +91,9 @@ async function main() {
 
   const profissional = await prisma.product.upsert({
     where: { slug: 'plan-profissional' },
-    update: { name: 'Autor Profissional', creditsAmount: 750, metadata: profissionalMetadata, sortOrder: 2 },
+    update: { name: 'Professional', creditsAmount: 750, metadata: profissionalMetadata, sortOrder: 2 },
     create: {
-      name: 'Autor Profissional',
+      name: 'Professional',
       slug: 'plan-profissional',
       kind: 'SUBSCRIPTION_PLAN',
       description: 'For serious authors who want commercial rights',
@@ -123,9 +123,9 @@ async function main() {
 
   const bestseller = await prisma.product.upsert({
     where: { slug: 'plan-bestseller' },
-    update: { name: 'Autor BestSeller', creditsAmount: 2000, metadata: bestsellerMetadata, sortOrder: 3 },
+    update: { name: 'BestSeller', creditsAmount: 2000, metadata: bestsellerMetadata, sortOrder: 3 },
     create: {
-      name: 'Autor BestSeller',
+      name: 'BestSeller',
       slug: 'plan-bestseller',
       kind: 'SUBSCRIPTION_PLAN',
       description: 'Maximum power for professional authors',

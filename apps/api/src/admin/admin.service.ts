@@ -327,6 +327,30 @@ export class AdminService {
     return { success: true };
   }
 
+  async syncPlanNamesToStripe(): Promise<{ synced: string[] }> {
+    const plans = await this.prisma.product.findMany({
+      where: { kind: 'SUBSCRIPTION_PLAN', stripeProductId: { not: null } },
+      select: { id: true, name: true, slug: true, stripeProductId: true },
+    });
+
+    const synced: string[] = [];
+    for (const plan of plans) {
+      try {
+        await this.stripeService.updateStripeProduct(plan.stripeProductId!, {
+          name: plan.name,
+        });
+        synced.push(plan.slug);
+        this.logger.log(`Synced plan "${plan.slug}" → "${plan.name}" to Stripe`);
+      } catch (error) {
+        this.logger.error(
+          `Failed to sync plan ${plan.slug} to Stripe: ${error}`,
+        );
+      }
+    }
+
+    return { synced };
+  }
+
   /* ------------------------------------------------------------------ */
   /*  Books                                                              */
   /* ------------------------------------------------------------------ */
@@ -579,10 +603,13 @@ export class AdminService {
     const product = await this.prisma.product.findUnique({ where: { id } });
     if (!product) throw new NotFoundException('Product not found');
 
+    // Subscription plan names are defined in constants.ts, not editable
+    const nameUpdate = product.kind === 'SUBSCRIPTION_PLAN' ? undefined : dto.name;
+
     const updated = await this.prisma.product.update({
       where: { id },
       data: {
-        name: dto.name,
+        name: nameUpdate,
         description: dto.description,
         metadata: dto.metadata,
         isActive: dto.isActive,
@@ -593,10 +620,10 @@ export class AdminService {
     });
 
     // Sync name/description to Stripe if product has a stripeProductId
-    if (product.stripeProductId && (dto.name || dto.description)) {
+    if (product.stripeProductId && (nameUpdate || dto.description)) {
       try {
         await this.stripeService.updateStripeProduct(product.stripeProductId, {
-          name: dto.name,
+          name: nameUpdate,
           description: dto.description,
         });
       } catch (error) {
