@@ -41,6 +41,16 @@ prisma/migrations/*.lock
 # vercel
 .vercel
 
+# agent skills
+.agents/
+.agent/
+.claude/skills/
+.windsurf/
+
+# plan drafts
+plan/publishing-page/
+plan/style-reference/
+
 # misc
 .pnp
 .pnp.*
