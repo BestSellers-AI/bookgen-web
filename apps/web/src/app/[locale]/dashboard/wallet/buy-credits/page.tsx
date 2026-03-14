@@ -10,6 +10,7 @@ import { useConfigStore } from "@/stores/config-store";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/ui/page-header";
+import clsx from "clsx";
 
 const PACK_ICONS = [Zap, Star, Crown];
 const PACK_COLORS = [
@@ -23,20 +24,31 @@ const PACK_ICON_BG = [
   "bg-amber-500/10 text-amber-500",
 ];
 
+const PREMIUM_SLUGS = ['aspiring-work', 'complete-work', 'bestseller-mundial'];
+const CREDITS_SLUGS = ['pack-100', 'pack-300', 'pack-500'];
+
+type ActiveTab = 'premium' | 'credits';
+
 export default function BuyCreditsPage() {
   const t = useTranslations("buyCredits");
   const tCommon = useTranslations("common");
   const [loadingSlug, setLoadingSlug] = useState<string | null>(null);
-  const creditPacks = useConfigStore((s) => s.getCreditPacks)();
+  const [activeTab, setActiveTab] = useState<ActiveTab>('premium');
+  const allCreditPacks = useConfigStore((s) => s.getCreditPacks)();
   const plans = useConfigStore((s) => s.getSubscriptionPlans)();
   const { user } = useAuth();
 
   const currentPlan = user?.planInfo?.plan ?? null;
   const hasMaxPlan = currentPlan === "BESTSELLER";
-  // Pick the cheapest plan to show value even at entry level
   const entryPlan = plans.length > 0
     ? plans.reduce((a, b) => a.monthlyPriceCents < b.monthlyPriceCents ? a : b)
     : null;
+
+  const filteredPacks = allCreditPacks.filter((p) =>
+    activeTab === 'premium'
+      ? PREMIUM_SLUGS.includes(p.slug)
+      : CREDITS_SLUGS.includes(p.slug),
+  );
 
   const handleBuy = async (slug: string) => {
     setLoadingSlug(slug);
@@ -60,13 +72,33 @@ export default function BuyCreditsPage() {
         <PageHeader title={t("title")} subtitle={t("subtitle")} />
       </div>
 
+      {/* Tab toggle */}
+      <div className="flex justify-center">
+        <div className="flex bg-muted rounded-xl p-1 gap-1">
+          {(['premium', 'credits'] as ActiveTab[]).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={clsx(
+                'px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-200',
+                activeTab === tab
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground',
+              )}
+            >
+              {tab === 'premium' ? t('tabPremiumPackages') : t('tabCreditsOnly')}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {creditPacks.map((pack, i) => {
+        {filteredPacks.map((pack, i) => {
           const Icon = PACK_ICONS[i];
           const pricePerCredit = (pack.priceCents / pack.credits / 100).toFixed(
             2
           );
-          const isBest = i === creditPacks.length - 1;
+          const isBest = i === filteredPacks.length - 1;
 
           return (
             <div

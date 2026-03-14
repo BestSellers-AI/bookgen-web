@@ -6,8 +6,12 @@ import { useTranslations } from 'next-intl'
 import PlanCard from '@/components/landing/pricing/PlanCard'
 import CreditCard from '@/components/landing/pricing/CreditCard'
 import PlanCalculator from '@/components/landing/pricing/PlanCalculator'
+import EmailPromptDialog from '@/components/landing/pricing/EmailPromptDialog'
 import { buildPlans, buildCreditPacks, buildServices } from '@/lib/landing-pricing-data'
 import { useConfigStore } from '@/stores/config-store'
+import { useAuth } from '@/hooks/use-auth'
+import { checkoutApi } from '@/lib/api/checkout'
+import { toast } from 'sonner'
 import clsx from 'clsx'
 
 type PricingTab = 'plans' | 'credits'
@@ -18,6 +22,12 @@ export default function PricingSection() {
   const [activeTab, setActiveTab] = useState<PricingTab>('plans')
   const [billing, setBilling] = useState<BillingPeriod>('annual')
   const [highlightedPlan, setHighlightedPlan] = useState<string | null>(null)
+  const [loadingSlug, setLoadingSlug] = useState<string | null>(null)
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false)
+  const [pendingSlug, setPendingSlug] = useState<string | null>(null)
+  const [pendingBillingInterval, setPendingBillingInterval] = useState<'monthly' | 'annual' | undefined>(undefined)
+
+  const { user } = useAuth()
 
   // Pull dynamic data from config store (admin-managed)
   const configPlans = useConfigStore((s) => s.config?.subscriptionPlans)
@@ -29,6 +39,43 @@ export default function PricingSection() {
   const creditPacks = buildCreditPacks(configPacks)
   const services = buildServices(configCreditsCost)
 
+  const handleBuy = (slug: string, billingInterval?: 'monthly' | 'annual') => {
+    if (user) {
+      handleAuthenticatedBuy(slug, billingInterval)
+    } else {
+      setPendingSlug(slug)
+      setPendingBillingInterval(billingInterval)
+      setEmailDialogOpen(true)
+    }
+  }
+
+  const handleAuthenticatedBuy = async (slug: string, billingInterval?: 'monthly' | 'annual') => {
+    setLoadingSlug(slug)
+    try {
+      const res = await checkoutApi.createSession({ productSlug: slug, billingInterval })
+      window.location.href = res.url
+    } catch {
+      toast.error(t('purchaseError'))
+      setLoadingSlug(null)
+    }
+  }
+
+  const handleGuestBuy = async (email: string) => {
+    if (!pendingSlug) return
+    setLoadingSlug(pendingSlug)
+    try {
+      const res = await checkoutApi.createGuestSession({
+        productSlug: pendingSlug,
+        email,
+        billingInterval: pendingBillingInterval,
+      })
+      window.location.href = res.url
+    } catch {
+      toast.error(t('purchaseError'))
+      setLoadingSlug(null)
+    }
+  }
+
   const comparisonRows = [
     { label: t('whySubRow1Label'), price: t('whySubRow1Price'), savings: t('whySubRow1Savings'), highlight: false },
     { label: t('whySubRow2Label'), price: t('whySubRow2Price'), savings: t('whySubRow2Savings'), highlight: false },
@@ -39,6 +86,13 @@ export default function PricingSection() {
   const savingsBadges: Record<string, string> = {
     profissional: t('savingsBestseller'),
     bestseller: t('savingsElite'),
+  }
+
+  // Map plan UI id to a subscription product slug for checkout
+  const planSlugMap: Record<string, string> = {
+    autor: 'plan-aspirante',
+    profissional: 'plan-profissional',
+    bestseller: 'plan-bestseller',
   }
 
   return (
@@ -142,6 +196,8 @@ export default function PricingSection() {
                       billing={billing}
                       isHighlighted={highlightedPlan === plan.id}
                       savingsBadge={savingsBadges[plan.id]}
+                      onBuy={() => handleBuy(planSlugMap[plan.id], billing)}
+                      loading={loadingSlug === planSlugMap[plan.id]}
                     />
                   </motion.div>
                 ))}
@@ -254,7 +310,11 @@ export default function PricingSection() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: i * 0.08 }}
                   >
-                    <CreditCard pack={pack} />
+                    <CreditCard
+                      pack={pack}
+                      onBuy={() => handleBuy(pack.slug)}
+                      loading={loadingSlug === pack.slug}
+                    />
                   </motion.div>
                 ))}
               </div>
@@ -294,6 +354,13 @@ export default function PricingSection() {
           )}
         </AnimatePresence>
       </div>
+
+      <EmailPromptDialog
+        open={emailDialogOpen}
+        onOpenChange={setEmailDialogOpen}
+        onSubmit={handleGuestBuy}
+        loading={loadingSlug !== null}
+      />
     </section>
   )
 }

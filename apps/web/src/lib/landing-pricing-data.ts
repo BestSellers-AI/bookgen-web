@@ -180,7 +180,7 @@ interface CreditPackUiData {
 
 const CREDIT_PACK_UI: CreditPackUiData[] = [
   {
-    slug: 'pack-100',
+    slug: 'aspiring-work',
     nameKey: 'creditSoloName',
     popular: false,
     labelKey: 'creditSoloLabel',
@@ -200,7 +200,7 @@ const CREDIT_PACK_UI: CreditPackUiData[] = [
     ],
   },
   {
-    slug: 'pack-300',
+    slug: 'complete-work',
     nameKey: 'creditPackName',
     popular: true,
     labelKey: 'creditPackLabel',
@@ -221,7 +221,7 @@ const CREDIT_PACK_UI: CreditPackUiData[] = [
     ],
   },
   {
-    slug: 'pack-500',
+    slug: 'bestseller-mundial',
     nameKey: 'creditBundleName',
     popular: false,
     labelKey: 'creditBundleLabel',
@@ -246,9 +246,9 @@ const CREDIT_PACK_UI: CreditPackUiData[] = [
 
 // Fallback values for credit packs
 const CREDIT_PACK_FALLBACKS: Record<string, { credits: number; price: number }> = {
-  'pack-100': { credits: 100, price: 9.90 },
-  'pack-300': { credits: 300, price: 24.90 },
-  'pack-500': { credits: 500, price: 34.90 },
+  'aspiring-work': { credits: 100, price: 9.90 },
+  'complete-work': { credits: 300, price: 24.90 },
+  'bestseller-mundial': { credits: 500, price: 34.90 },
 }
 
 /**

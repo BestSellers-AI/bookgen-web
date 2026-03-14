@@ -82,17 +82,13 @@ export const FREE_TIER = {
   fullEditor: false,
 };
 
-export const ONE_TIME_PURCHASE = {
-  name: 'Obra Aspirante',
-  slug: 'one-time-book',
-  priceCents: 1900,
-  description: 'Generate 1 complete book (DOCX + PDF, personal license)',
-};
-
 export const CREDIT_PACKS = [
   { name: '100 Credits', slug: 'pack-100', credits: 100, priceCents: 990 },
   { name: '300 Credits', slug: 'pack-300', credits: 300, priceCents: 2490 },
   { name: '500 Credits', slug: 'pack-500', credits: 500, priceCents: 3490 },
+  { name: 'Aspiring Work', slug: 'aspiring-work', credits: 100, priceCents: 990 },
+  { name: 'Complete Work', slug: 'complete-work', credits: 300, priceCents: 2490 },
+  { name: 'BestSeller Mundial', slug: 'bestseller-mundial', credits: 500, priceCents: 3490 },
 ] as const;
 
 export const CREDITS_COST: Record<string, number> = {

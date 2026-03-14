@@ -86,6 +86,15 @@ export class AdminController {
     return this.adminService.syncPlanNamesToStripe();
   }
 
+  /**
+   * Syncs credit pack names/descriptions from DB to Stripe products.
+   * POST /api/admin/sync-credit-packs
+   */
+  @Post('sync-credit-packs')
+  async syncCreditPacks() {
+    return this.adminService.syncCreditPacksToStripe();
+  }
+
   /* ── Books ───────────────────────────────────────────────────────── */
 
   @Get('books')

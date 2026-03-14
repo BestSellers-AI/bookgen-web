@@ -140,25 +140,6 @@ async function main() {
   ]);
 
   // ============================================
-  // One-Time Book Purchase
-  // ============================================
-  const oneTimeBook = await prisma.product.upsert({
-    where: { slug: 'one-time-book' },
-    update: {},
-    create: {
-      name: 'Obra Aspirante',
-      slug: 'one-time-book',
-      kind: 'ONE_TIME_BOOK',
-      description: 'Generate 1 complete book (DOCX + PDF, personal license)',
-      creditsAmount: 100,
-      sortOrder: 10,
-    },
-  });
-  await upsertPrices(oneTimeBook.id, [
-    { currency: 'usd', amount: 1900, stripePriceId: 'price_1T9cTx9UYPL3yWYT00SbEksm' },
-  ]);
-
-  // ============================================
   // Credit Packs
   // ============================================
   const pack100 = await prisma.product.upsert({
@@ -207,6 +188,57 @@ async function main() {
   });
   await upsertPrices(pack500.id, [
     { currency: 'usd', amount: 3490, stripePriceId: 'price_1T9cTw9UYPL3yWYThkXcbvBf' },
+  ]);
+
+  // ============================================
+  // Branded Credit Packs (Landing Page)
+  // ============================================
+  const aspiringWork = await prisma.product.upsert({
+    where: { slug: 'aspiring-work' },
+    update: {},
+    create: {
+      name: 'Aspiring Work',
+      slug: 'aspiring-work',
+      kind: 'CREDIT_PACK',
+      description: 'Perfect for your first book — 100 credits to get started',
+      creditsAmount: 100,
+      sortOrder: 23,
+    },
+  });
+  await upsertPrices(aspiringWork.id, [
+    { currency: 'usd', amount: 990, stripePriceId: 'price_1TAmRr9UYPL3yWYTBogYU2nU' },
+  ]);
+
+  const completeWork = await prisma.product.upsert({
+    where: { slug: 'complete-work' },
+    update: {},
+    create: {
+      name: 'Complete Work',
+      slug: 'complete-work',
+      kind: 'CREDIT_PACK',
+      description: 'Full creative toolkit — 300 credits for books, covers, and more',
+      creditsAmount: 300,
+      sortOrder: 24,
+    },
+  });
+  await upsertPrices(completeWork.id, [
+    { currency: 'usd', amount: 2490, stripePriceId: 'price_1TAmRr9UYPL3yWYTIL5vypRi' },
+  ]);
+
+  const bestsellerMundial = await prisma.product.upsert({
+    where: { slug: 'bestseller-mundial' },
+    update: {},
+    create: {
+      name: 'BestSeller Mundial',
+      slug: 'bestseller-mundial',
+      kind: 'CREDIT_PACK',
+      description: 'Maximum value — 500 credits for the complete publishing experience',
+      creditsAmount: 500,
+      sortOrder: 25,
+    },
+  });
+  await upsertPrices(bestsellerMundial.id, [
+    { currency: 'usd', amount: 3490, stripePriceId: 'price_1TAmRs9UYPL3yWYTMgbRIDKa' },
   ]);
 
   // ============================================
@@ -337,7 +369,9 @@ async function main() {
     'pack-100': 'prod_U7sEa7eJX2nFvv',
     'pack-300': 'prod_U7sEBNzwjxltBA',
     'pack-500': 'prod_U7sEWXU62GP2ib',
-    'one-time-book': 'prod_U7sE9Ygsf9HBNx',
+    'aspiring-work': 'prod_U94aQBhp8UFwnH',
+    'complete-work': 'prod_U94a6uzhy2FYqx',
+    'bestseller-mundial': 'prod_U94ad3gHNMRDCk',
   };
 
   for (const [slug, stripeId] of Object.entries(stripeProductIds)) {
@@ -407,7 +441,7 @@ async function main() {
   }
 
   console.log('Seed completed!');
-  console.log(`Created: 3 subscription plans, 1 one-time book, 3 credit packs, 1 book-generation, 7 addons`);
+  console.log(`Created: 3 subscription plans, 6 credit packs, 1 book-generation, 7 addons`);
   console.log(`Created dev users:`);
   console.log(`  Admin: admin@bestsellers.ai / Admin123!`);
   console.log(`  User:  user@bestsellers.ai  / User1234!`);

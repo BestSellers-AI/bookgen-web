@@ -515,6 +515,8 @@
     "buyNow": "Comprar Agora",
     "bestValue": "MELHOR VALOR",
     "costInfo": "1 livro custa 100 créditos. Compre mais, economize mais.",
+    "tabPremiumPackages": "Pacotes Premium",
+    "tabCreditsOnly": "Somente Créditos",
     "purchaseError": "Falha ao iniciar o checkout. Tente novamente.",
     "proTip": "Dica esperta",
     "upgradeHeadline": "Por que comprar uma vez se você pode ter todo mês?",
@@ -1106,7 +1108,10 @@
       "calc1Book": "1 livro",
       "calc2to3Books": "2–3 livros",
       "calc4to7Books": "4–7 livros",
-      "calc8PlusBooks": "8 ou mais"
+      "calc8PlusBooks": "8 ou mais",
+      "emailPromptTitle": "Informe seu email",
+      "emailPromptSubmit": "Continuar para pagamento",
+      "purchaseError": "Algo deu errado. Tente novamente."
     },
     "faq": {
       "badge": "FAQ",
@@ -1263,7 +1268,6 @@
     "subsHintPriceWarning": "Preços do Stripe são imutáveis. Para alterar um preço, adicione um novo e desative o antigo.",
     "packsHintTitle": "Como funcionam os pacotes de créditos",
     "packsHintDesc": "Compras avulsas via Stripe. Os usuários pagam em USD e recebem créditos na carteira. Créditos comprados nunca expiram.",
-    "packsHintOneTime": "A 'Obra Aspirante' ($19) é uma compra avulsa especial que concede exatamente 100 créditos — suficiente para 1 livro completo.",
     "costsHintTitle": "Custos em créditos por operação",
     "costsHintDesc": "Defina quantos créditos cada operação custa. Geração de livros e todos os addons são pagos exclusivamente com créditos — nunca com dinheiro diretamente.",
     "noCreditsCostConfig": "Configuração CREDITS_COST não encontrada. Execute o seed do banco de dados.",

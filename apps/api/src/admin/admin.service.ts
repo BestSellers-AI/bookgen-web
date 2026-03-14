@@ -351,6 +351,31 @@ export class AdminService {
     return { synced };
   }
 
+  async syncCreditPacksToStripe(): Promise<{ synced: string[] }> {
+    const packs = await this.prisma.product.findMany({
+      where: { kind: 'CREDIT_PACK', stripeProductId: { not: null } },
+      select: { id: true, name: true, slug: true, description: true, stripeProductId: true },
+    });
+
+    const synced: string[] = [];
+    for (const pack of packs) {
+      try {
+        await this.stripeService.updateStripeProduct(pack.stripeProductId!, {
+          name: pack.name,
+          description: pack.description ?? undefined,
+        });
+        synced.push(pack.slug);
+        this.logger.log(`Synced credit pack "${pack.slug}" → "${pack.name}" to Stripe`);
+      } catch (error) {
+        this.logger.error(
+          `Failed to sync credit pack ${pack.slug} to Stripe: ${error}`,
+        );
+      }
+    }
+
+    return { synced };
+  }
+
   /* ------------------------------------------------------------------ */
   /*  Books                                                              */
   /* ------------------------------------------------------------------ */

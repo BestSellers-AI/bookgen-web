@@ -515,6 +515,8 @@
     "buyNow": "Buy Now",
     "bestValue": "BEST VALUE",
     "costInfo": "1 book costs 100 credits. Buy more, save more.",
+    "tabPremiumPackages": "Premium Packages",
+    "tabCreditsOnly": "Credits Only",
     "purchaseError": "Failed to start checkout. Please try again.",
     "proTip": "Pro tip",
     "upgradeHeadline": "Why buy once when you can have it every month?",
@@ -1106,7 +1108,10 @@
       "calc1Book": "1 book",
       "calc2to3Books": "2–3 books",
       "calc4to7Books": "4–7 books",
-      "calc8PlusBooks": "8 or more"
+      "calc8PlusBooks": "8 or more",
+      "emailPromptTitle": "Enter your email",
+      "emailPromptSubmit": "Continue to payment",
+      "purchaseError": "Something went wrong. Please try again."
     },
     "faq": {
       "badge": "FAQ",
@@ -1263,7 +1268,6 @@
     "subsHintPriceWarning": "Stripe prices are immutable. To change a price, add a new one and deactivate the old one.",
     "packsHintTitle": "How credit packs work",
     "packsHintDesc": "One-time purchases via Stripe. Users pay in USD and receive credits in their wallet. Purchased credits never expire.",
-    "packsHintOneTime": "The 'Obra Aspirante' ($19) is a special one-time purchase that grants exactly 100 credits — enough for 1 full book.",
     "costsHintTitle": "Credit costs per operation",
     "costsHintDesc": "Define how many credits each operation costs. Book generation and all addons are paid exclusively with credits — never with money directly.",
     "noCreditsCostConfig": "CREDITS_COST configuration not found. Run the database seed.",

@@ -9,7 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AppConfigService } from '../config/app-config.service';
 import { StripeService } from '../stripe/stripe.service';
 import { ProductService } from '../products/product.service';
-import { CreateCheckoutSessionDto } from './dto';
+import { CreateCheckoutSessionDto, CreateGuestCheckoutSessionDto } from './dto';
 
 @Injectable()
 export class CheckoutService {
@@ -80,6 +80,52 @@ export class CheckoutService {
   }
 
   /**
+   * Create a Stripe Checkout Session for a guest user (no account required).
+   */
+  async createGuestSession(dto: CreateGuestCheckoutSessionDto) {
+    this.logger.log(
+      `Creating guest checkout session for ${dto.email}, product: ${dto.productSlug}`,
+    );
+
+    const product = await this.productService.findBySlug(dto.productSlug);
+    const mode = this.getCheckoutMode(product.kind);
+    const price = this.resolvePrice(product, dto.billingInterval);
+
+    if (!price.stripePriceId) {
+      throw new BadRequestException(
+        `Product price for "${dto.productSlug}" has no Stripe price ID configured`,
+      );
+    }
+
+    const successUrl = `${this.appConfig.frontendUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${this.appConfig.frontendUrl}/checkout/cancel`;
+
+    const subscriptionMetadata =
+      mode === 'subscription' && product.metadata
+        ? { plan: (product.metadata as Record<string, string>).plan }
+        : undefined;
+
+    const { sessionUrl, sessionId } =
+      await this.stripeService.createGuestCheckoutSession({
+        customerEmail: dto.email,
+        mode,
+        lineItems: [{ price: price.stripePriceId, quantity: 1 }],
+        successUrl,
+        cancelUrl,
+        metadata: {
+          productSlug: product.slug,
+          productId: product.id,
+          guestEmail: dto.email,
+        },
+        subscriptionMetadata,
+      });
+
+    this.logger.log(`Guest checkout session ${sessionId} created for ${dto.email}`);
+
+    return { url: sessionUrl, sessionId };
+  }
+
+  /**
    * Get the status of a Stripe Checkout Session.
    */
   async getSessionStatus(sessionId: string, userId: string) {
@@ -109,7 +155,6 @@ export class CheckoutService {
       case ProductKind.SUBSCRIPTION_PLAN:
         return 'subscription';
       case ProductKind.CREDIT_PACK:
-      case ProductKind.ONE_TIME_BOOK:
       case ProductKind.BOOK_GENERATION:
       default:
         return 'payment';

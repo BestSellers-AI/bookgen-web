@@ -1,4 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
+import * as bcrypt from 'bcryptjs';
+import * as crypto from 'crypto';
 import Stripe from 'stripe';
 import { CreditType, WalletTransactionType, NotificationType } from '@prisma/client';
 import { ConfigDataService } from '../config-data/config-data.service';
@@ -6,6 +8,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { WalletService } from '../wallet/wallet.service';
 import { CreditLedgerService } from '../wallet/credit-ledger.service';
 import { NotificationService } from '../notifications/notification.service';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class StripeWebhookService {
@@ -17,6 +20,7 @@ export class StripeWebhookService {
     private readonly creditLedgerService: CreditLedgerService,
     private readonly notificationService: NotificationService,
     private readonly configDataService: ConfigDataService,
+    private readonly usersService: UsersService,
   ) {}
 
   /**
@@ -108,18 +112,81 @@ export class StripeWebhookService {
 
   /**
    * Handle checkout.session.completed — fulfills credit packs and one-time book purchases.
+   * Supports guest checkout: auto-creates user if no userId in metadata.
    */
   private async handleCheckoutSessionCompleted(
     session: Stripe.Checkout.Session,
   ): Promise<void> {
     const metadata = session.metadata ?? {};
-    const { userId, productSlug, productId } = metadata;
+    const { productSlug, productId } = metadata;
+    let userId = metadata.userId;
 
-    if (!userId || !productId) {
+    if (!productId) {
       this.logger.warn(
-        'checkout.session.completed missing userId or productId in metadata',
+        'checkout.session.completed missing productId in metadata',
       );
       return;
+    }
+
+    // Guest checkout: resolve or create user from email
+    if (!userId) {
+      const email =
+        session.customer_details?.email ??
+        metadata.guestEmail;
+
+      if (!email) {
+        this.logger.error(
+          'Guest checkout session has no email — cannot fulfill',
+        );
+        return;
+      }
+
+      const existingUser = await this.usersService.findByEmail(email);
+
+      if (existingUser) {
+        userId = existingUser.id;
+        this.logger.log(`Guest checkout: found existing user ${userId} for ${email}`);
+
+        // Save stripeCustomerId if missing
+        if (!existingUser.stripeCustomerId && session.customer) {
+          const stripeCustomerId =
+            typeof session.customer === 'string'
+              ? session.customer
+              : (session.customer as Stripe.Customer)?.id;
+          if (stripeCustomerId) {
+            await this.prisma.user.update({
+              where: { id: userId },
+              data: { stripeCustomerId },
+            });
+          }
+        }
+      } else {
+        // Create new user
+        const password = crypto.randomUUID().slice(0, 16);
+        const passwordHash = await bcrypt.hash(password, 12);
+        const newUser = await this.usersService.create({
+          email,
+          passwordHash,
+          emailVerified: new Date(),
+        });
+        userId = newUser.id;
+
+        // Save stripeCustomerId
+        const stripeCustomerId =
+          typeof session.customer === 'string'
+            ? session.customer
+            : (session.customer as Stripe.Customer)?.id;
+        if (stripeCustomerId) {
+          await this.prisma.user.update({
+            where: { id: userId },
+            data: { stripeCustomerId },
+          });
+        }
+
+        this.logger.log(
+          `Guest checkout: created new user ${userId} for ${email}`,
+        );
+      }
     }
 
     this.logger.log(
@@ -181,6 +248,7 @@ export class StripeWebhookService {
 
     // Fulfill based on product kind
     switch (product.kind) {
+      case 'ONE_TIME_BOOK':
       case 'CREDIT_PACK': {
         const credits = product.creditsAmount ?? 0;
         if (credits > 0) {
@@ -197,25 +265,6 @@ export class StripeWebhookService {
           type: NotificationType.CREDITS_ADDED,
           title: 'Credits Added',
           message: `${credits} credits have been added to your wallet from purchasing ${product.name}.`,
-          data: { purchaseId: purchase.id, credits, productSlug: product.slug },
-        });
-        break;
-      }
-
-      case 'ONE_TIME_BOOK': {
-        const credits = await this.configDataService.getCreditsCost('BOOK_GENERATION');
-        await this.walletService.addCredits(userId, credits, CreditType.PURCHASE, {
-          source: 'purchase',
-          sourceId: purchase.id,
-          transactionType: WalletTransactionType.CREDIT_PURCHASE,
-          description: `Purchased ${product.name}`,
-        });
-
-        await this.notificationService.create({
-          userId,
-          type: NotificationType.CREDITS_ADDED,
-          title: 'Book Credits Added',
-          message: `${credits} credits have been added to your wallet for your book purchase.`,
           data: { purchaseId: purchase.id, credits, productSlug: product.slug },
         });
         break;

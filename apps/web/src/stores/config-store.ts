@@ -15,7 +15,6 @@ import {
   CREDIT_PACKS,
   CREDITS_COST,
   FREE_TIER,
-  ONE_TIME_PURCHASE,
   BUNDLES,
 } from '@bestsellers/shared';
 
@@ -61,12 +60,6 @@ const buildFallbackConfig = (): AppConfigPayload => ({
     credits: p.credits,
     priceCents: p.priceCents,
   })),
-  oneTimePurchase: {
-    name: ONE_TIME_PURCHASE.name,
-    slug: ONE_TIME_PURCHASE.slug,
-    priceCents: ONE_TIME_PURCHASE.priceCents,
-    description: ONE_TIME_PURCHASE.description,
-  },
   creditsCost: { ...CREDITS_COST },
   freeTier: { ...FREE_TIER },
   bundles: Object.fromEntries(

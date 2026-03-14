@@ -53,9 +53,11 @@ interface PlanCardProps {
   billing: 'annual' | 'monthly'
   isHighlighted: boolean
   savingsBadge?: string
+  onBuy?: () => void
+  loading?: boolean
 }
 
-export default function PlanCard({ plan, billing, isHighlighted, savingsBadge }: PlanCardProps) {
+export default function PlanCard({ plan, billing, isHighlighted, savingsBadge, onBuy, loading }: PlanCardProps) {
   const t = useTranslations('landingV2.pricing')
   const price = billing === 'annual' ? plan.annualMonthlyPrice : plan.monthlyPrice
   const strikePrice = billing === 'annual' ? plan.monthlyPrice : null
@@ -143,14 +145,23 @@ export default function PlanCard({ plan, billing, isHighlighted, savingsBadge }:
 
         <div className="mt-6">
           <button
+            onClick={onBuy}
+            disabled={loading}
             className={clsx(
-              'w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200 active:scale-[0.98]',
+              'w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed',
               isPopular
                 ? 'bg-gold-500 hover:bg-gold-600 text-navy-900 shadow-gold-sm hover:shadow-gold-md'
                 : 'dark:bg-white/[0.07] bg-navy-900/[0.07] dark:hover:bg-white/[0.12] hover:bg-navy-900/[0.12] dark:text-cream-200 text-navy-900 border dark:border-white/10 border-navy-900/10 dark:hover:border-white/20 hover:border-navy-900/20',
             )}
           >
-            {t(plan.ctaKey)}
+            {loading ? (
+              <svg className="w-5 h-5 animate-spin mx-auto" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+            ) : (
+              t(plan.ctaKey)
+            )}
           </button>
         </div>
       </div>

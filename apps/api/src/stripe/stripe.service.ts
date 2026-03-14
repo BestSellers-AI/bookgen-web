@@ -118,6 +118,47 @@ export class StripeService {
   }
 
   /**
+   * Create a Stripe Checkout Session for guest users (no Stripe customer, uses customer_email).
+   */
+  async createGuestCheckoutSession(params: {
+    customerEmail: string;
+    mode: 'payment' | 'subscription';
+    lineItems: Array<{ price: string; quantity: number }>;
+    successUrl: string;
+    cancelUrl: string;
+    metadata?: Record<string, string>;
+    subscriptionMetadata?: Record<string, string>;
+  }): Promise<{ sessionUrl: string; sessionId: string }> {
+    this.logger.log(
+      `Creating guest checkout session for ${params.customerEmail} (mode: ${params.mode})`,
+    );
+
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
+      customer_email: params.customerEmail,
+      mode: params.mode,
+      line_items: params.lineItems,
+      success_url: params.successUrl,
+      cancel_url: params.cancelUrl,
+      metadata: params.metadata,
+    };
+
+    if (params.mode === 'subscription' && params.subscriptionMetadata) {
+      sessionParams.subscription_data = {
+        metadata: params.subscriptionMetadata,
+      };
+    }
+
+    const session = await this.stripe.checkout.sessions.create(sessionParams);
+
+    this.logger.log(`Created guest checkout session ${session.id}`);
+
+    return {
+      sessionUrl: session.url!,
+      sessionId: session.id,
+    };
+  }
+
+  /**
    * Retrieve a Stripe Checkout Session with expanded line_items and payment_intent.
    */
   async getCheckoutSession(

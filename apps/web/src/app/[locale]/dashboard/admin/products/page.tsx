@@ -239,7 +239,6 @@ export default function AdminProductsPage() {
           <HintBox>
             <p className="font-semibold text-foreground">{t("packsHintTitle")}</p>
             <p>{t("packsHintDesc")}</p>
-            <p className="text-xs">{t("packsHintOneTime")}</p>
           </HintBox>
           <ProductTable
             products={creditPacks}

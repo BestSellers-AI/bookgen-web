@@ -1,7 +1,6 @@
 export interface AppConfigPayload {
   subscriptionPlans: SubscriptionPlanConfig[];
   creditPacks: CreditPackConfig[];
-  oneTimePurchase: OneTimePurchaseConfig | null;
   creditsCost: Record<string, number>;
   freeTier: FreeTierConfig;
   bundles: Record<string, BundleConfigPayload>;
@@ -52,13 +51,6 @@ export interface CreditPackConfig {
   slug: string;
   credits: number;
   priceCents: number;
-}
-
-export interface OneTimePurchaseConfig {
-  name: string;
-  slug: string;
-  priceCents: number;
-  description: string | null;
 }
 
 export interface FreeTierConfig {

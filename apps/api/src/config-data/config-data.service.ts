@@ -5,7 +5,6 @@ import {
   AnnouncementConfigPayload,
   SubscriptionPlanConfig,
   CreditPackConfig,
-  OneTimePurchaseConfig,
   FreeTierConfig,
   BundleConfigPayload,
 } from '@bestsellers/shared';
@@ -151,17 +150,6 @@ export class ConfigDataService implements OnModuleInit {
           priceCents: p.prices[0]?.amount ?? 0,
         }));
 
-      // Build one-time purchase
-      const oneTimeProduct = products.find((p) => p.kind === 'ONE_TIME_BOOK');
-      const oneTimePurchase: OneTimePurchaseConfig | null = oneTimeProduct
-        ? {
-            name: oneTimeProduct.name,
-            slug: oneTimeProduct.slug,
-            priceCents: oneTimeProduct.prices[0]?.amount ?? 0,
-            description: oneTimeProduct.description,
-          }
-        : null;
-
       // Credits cost from AppConfig, with fallback to shared constants
       const dbCreditsCost = (configMap.get('CREDITS_COST') ?? {}) as Record<
         string,
@@ -223,7 +211,6 @@ export class ConfigDataService implements OnModuleInit {
       const payload: AppConfigPayload = {
         subscriptionPlans,
         creditPacks,
-        oneTimePurchase,
         creditsCost,
         freeTier,
         bundles,
