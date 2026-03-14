@@ -244,18 +244,79 @@ const CREDIT_PACK_UI: CreditPackUiData[] = [
   },
 ]
 
+// ─── Pure Credit Pack UI data (for dashboard buy-credits page) ───────────────
+
+const PURE_CREDIT_PACK_UI: CreditPackUiData[] = [
+  {
+    slug: 'pack-100',
+    nameKey: 'purePack100Name',
+    popular: false,
+    labelKey: 'purePack100Label',
+    ctaKey: 'purePack100Cta',
+    useCases: [
+      { emoji: '📖', textKey: 'purePack100Use1' },
+      { emoji: '🌐', textKey: 'purePack100Use2' },
+    ],
+    features: [
+      { textKey: 'creditFeatureNoExpiry', included: true },
+      { textKey: 'planFeaturePersonalLicense', included: true },
+      { textKey: 'planFeatureDocxPdf', included: true },
+      { textKey: 'planFeatureSupport247', included: true },
+    ],
+  },
+  {
+    slug: 'pack-300',
+    nameKey: 'purePack300Name',
+    popular: true,
+    labelKey: 'purePack300Label',
+    ctaKey: 'purePack300Cta',
+    useCases: [
+      { emoji: '📖', textKey: 'purePack300Use1' },
+      { emoji: '🎨', textKey: 'purePack300Use2' },
+      { emoji: '🖼️', textKey: 'purePack300Use3' },
+    ],
+    features: [
+      { textKey: 'creditFeatureNoExpiry', included: true },
+      { textKey: 'planFeaturePersonalLicense', included: true },
+      { textKey: 'planFeatureDocxPdf', included: true },
+      { textKey: 'planFeatureImages', included: true },
+      { textKey: 'planFeatureSupport247', included: true },
+    ],
+  },
+  {
+    slug: 'pack-500',
+    nameKey: 'purePack500Name',
+    popular: false,
+    labelKey: 'purePack500Label',
+    ctaKey: 'purePack500Cta',
+    useCases: [
+      { emoji: '📖', textKey: 'purePack500Use1' },
+      { emoji: '🎨', textKey: 'purePack500Use2' },
+      { emoji: '🌍', textKey: 'purePack500Use3' },
+    ],
+    features: [
+      { textKey: 'creditFeatureNoExpiry', included: true },
+      { textKey: 'planFeatureCommercialLicense', included: true },
+      { textKey: 'planFeatureDocxPdf', included: true },
+      { textKey: 'planFeatureImages', included: true },
+      { textKey: 'creditFeatureFullEditor', included: true },
+      { textKey: 'planFeatureSupport247', included: true },
+    ],
+  },
+]
+
 // Fallback values for credit packs
 const CREDIT_PACK_FALLBACKS: Record<string, { credits: number; price: number }> = {
   'aspiring-work': { credits: 100, price: 9.90 },
   'complete-work': { credits: 300, price: 24.90 },
   'bestseller-mundial': { credits: 500, price: 34.90 },
+  'pack-100': { credits: 100, price: 9.90 },
+  'pack-300': { credits: 300, price: 24.90 },
+  'pack-500': { credits: 500, price: 34.90 },
 }
 
-/**
- * Build CreditPack[] by merging static UI data with config store credit pack data.
- */
-export function buildCreditPacks(configPacks?: CreditPackConfig[]): CreditPack[] {
-  return CREDIT_PACK_UI.map((ui) => {
+function buildFromUiData(uiData: CreditPackUiData[], configPacks?: CreditPackConfig[]): CreditPack[] {
+  return uiData.map((ui) => {
     const config = configPacks?.find((p) => p.slug === ui.slug)
     const fallback = CREDIT_PACK_FALLBACKS[ui.slug]
 
@@ -272,6 +333,20 @@ export function buildCreditPacks(configPacks?: CreditPackConfig[]): CreditPack[]
       features: ui.features,
     }
   })
+}
+
+/**
+ * Build branded CreditPack[] (landing page).
+ */
+export function buildCreditPacks(configPacks?: CreditPackConfig[]): CreditPack[] {
+  return buildFromUiData(CREDIT_PACK_UI, configPacks)
+}
+
+/**
+ * Build pure CreditPack[] (dashboard buy-credits page).
+ */
+export function buildPureCreditPacks(configPacks?: CreditPackConfig[]): CreditPack[] {
+  return buildFromUiData(PURE_CREDIT_PACK_UI, configPacks)
 }
 
 // ─── Services ─────────────────────────────────────────────────────────────────

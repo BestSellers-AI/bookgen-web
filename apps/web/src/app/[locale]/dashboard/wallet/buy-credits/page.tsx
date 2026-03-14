@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ShoppingCart, Loader2, ArrowLeft, Zap, Star, Crown, ArrowRight, Sparkles, RefreshCw, RotateCcw, Rocket } from "lucide-react";
+import { ArrowLeft, ArrowRight, Sparkles, RefreshCw, RotateCcw, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
@@ -10,31 +10,17 @@ import { useConfigStore } from "@/stores/config-store";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/ui/page-header";
+import CreditCard from "@/components/landing/pricing/CreditCard";
+import { buildCreditPacks, buildPureCreditPacks } from "@/lib/landing-pricing-data";
 import clsx from "clsx";
-
-const PACK_ICONS = [Zap, Star, Crown];
-const PACK_COLORS = [
-  "border-blue-500/20 hover:border-blue-500/40",
-  "border-primary/20 hover:border-primary/40",
-  "border-amber-500/20 hover:border-amber-500/40",
-];
-const PACK_ICON_BG = [
-  "bg-blue-500/10 text-blue-500",
-  "bg-primary/10 text-primary",
-  "bg-amber-500/10 text-amber-500",
-];
-
-const PREMIUM_SLUGS = ['aspiring-work', 'complete-work', 'bestseller-mundial'];
-const CREDITS_SLUGS = ['pack-100', 'pack-300', 'pack-500'];
 
 type ActiveTab = 'premium' | 'credits';
 
 export default function BuyCreditsPage() {
   const t = useTranslations("buyCredits");
-  const tCommon = useTranslations("common");
   const [loadingSlug, setLoadingSlug] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<ActiveTab>('premium');
-  const allCreditPacks = useConfigStore((s) => s.getCreditPacks)();
+  const configPacks = useConfigStore((s) => s.config?.creditPacks);
   const plans = useConfigStore((s) => s.getSubscriptionPlans)();
   const { user } = useAuth();
 
@@ -44,11 +30,9 @@ export default function BuyCreditsPage() {
     ? plans.reduce((a, b) => a.monthlyPriceCents < b.monthlyPriceCents ? a : b)
     : null;
 
-  const filteredPacks = allCreditPacks.filter((p) =>
-    activeTab === 'premium'
-      ? PREMIUM_SLUGS.includes(p.slug)
-      : CREDITS_SLUGS.includes(p.slug),
-  );
+  const premiumPacks = buildCreditPacks(configPacks);
+  const purePacks = buildPureCreditPacks(configPacks);
+  const displayPacks = activeTab === 'premium' ? premiumPacks : purePacks;
 
   const handleBuy = async (slug: string) => {
     setLoadingSlug(slug);
@@ -93,71 +77,20 @@ export default function BuyCreditsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {filteredPacks.map((pack, i) => {
-          const Icon = PACK_ICONS[i];
-          const pricePerCredit = (pack.priceCents / pack.credits / 100).toFixed(
-            2
-          );
-          const isBest = i === filteredPacks.length - 1;
-
-          return (
-            <div
-              key={pack.slug}
-              className={`glass rounded-[2rem] p-6 border transition-all duration-300 relative ${PACK_COLORS[i]}`}
-            >
-              {isBest && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest rounded-full">
-                  {t("bestValue")}
-                </div>
-              )}
-
-              <div className="flex flex-col items-center text-center space-y-4">
-                <div
-                  className={`w-14 h-14 rounded-2xl flex items-center justify-center ${PACK_ICON_BG[i]}`}
-                >
-                  <Icon className="w-7 h-7" />
-                </div>
-
-                <div>
-                  <h3 className="text-2xl font-black">{t(`packName_${pack.slug}` as any)}</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {pack.credits} {tCommon("credits")}
-                  </p>
-                </div>
-
-                <div className="text-4xl font-black text-foreground">
-                  ${(pack.priceCents / 100).toFixed(2)}
-                </div>
-
-                <p className="text-xs text-muted-foreground">
-                  ${pricePerCredit} {t("perCredit")}
-                </p>
-
-                <Button
-                  className="w-full h-12 rounded-xl font-bold gap-2"
-                  disabled={loadingSlug !== null}
-                  onClick={() => handleBuy(pack.slug)}
-                >
-                  {loadingSlug === pack.slug ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <>
-                      <ShoppingCart className="w-4 h-4" />
-                      {t("buyNow")}
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          );
-        })}
+        {displayPacks.map((pack) => (
+          <CreditCard
+            key={pack.slug}
+            pack={pack}
+            onBuy={() => handleBuy(pack.slug)}
+            loading={loadingSlug === pack.slug}
+          />
+        ))}
       </div>
 
       {/* Upgrade CTA card */}
       {!hasMaxPlan && entryPlan && (
         <div className="glass rounded-[2rem] border border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-orange-500/5 p-6 md:p-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            {/* Left — persuasive copy */}
             <div className="space-y-4 flex-1">
               <div className="flex items-center gap-3">
                 <div className="w-11 h-11 shrink-0 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/30 flex items-center justify-center">
@@ -194,7 +127,6 @@ export default function BuyCreditsPage() {
               </ul>
             </div>
 
-            {/* Right — CTA with rotating border (same as plan-card) */}
             <div className="relative rounded-xl p-[2px] overflow-hidden w-full md:w-auto shrink-0">
               <div
                 className="absolute top-1/2 left-1/2 w-[200%] aspect-square animate-border-spin"
