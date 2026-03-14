@@ -1334,5 +1334,143 @@
     "queuePriority_express": "Express",
     "nullMeansUnlimited": "Vacío = ilimitado",
     "lastUpdatedBy": "Última actualización por {user} el {date}"
+  },
+  "publishing": {
+    "learnMore": "Ver qué incluye",
+    "hero": {
+      "badge": "Disponibilidad Limitada",
+      "title": "¡Tu Libro Ya Está Escrito!",
+      "subtitle": "No dejes que tu manuscrito acumule polvo. Vamos a publicarlo profesionalmente en Amazon y ponerlo al alcance de millones de lectores en todo el mundo.",
+      "urgency": "Únete a 2,500+ autores que ya están vendiendo en Amazon"
+    },
+    "statsBar": {
+      "authors": "Autores publicados",
+      "countries": "Países alcanzados",
+      "approval": "Tasa de aprobación",
+      "days": "Días hábiles"
+    },
+    "plans": {
+      "title": "Elige Tu Plan de Publicación",
+      "subtitle": "Ambos planes incluyen todo lo que necesitas para convertirte en autor publicado",
+      "popular": "Más Popular",
+      "standard": {
+        "name": "Publicación Profesional",
+        "tagline": "Todo lo que necesitas para lanzar en Amazon",
+        "features": {
+          "formatting": "Formateo profesional para ebook (EPUB) y tapa blanda (PDF)",
+          "kdp": "Publicación directa en Amazon KDP",
+          "pricing": "Optimización estratégica de precio para máximos ingresos",
+          "isbn": "Creación de ficha catalográfica e ISBN",
+          "support": "Soporte completo para ajustes y revisiones",
+          "timeline": "Proceso garantizado en 10 días hábiles"
+        }
+      },
+      "premium": {
+        "name": "BestSeller Mundial",
+        "tagline": "Máxima exposición en todas las plataformas principales",
+        "features": {
+          "everything": "Todo del plan Standard",
+          "multiPlatform": "Multi-plataforma: Amazon KDP + Kobo + Draft2Digital",
+          "premiumFormatting": "Diseño interior premium con tus propias imágenes",
+          "seo": "Optimización SEO avanzada para dominar los rankings",
+          "marketing": "Curso de marketing y estrategia de lanzamiento incluido",
+          "prioritySupport": "Soporte prioritario vía WhatsApp — línea directa",
+          "directGuidance": "Acompañamiento 1-a-1 durante todo el proceso"
+        },
+        "highlight": "Mejor relación calidad-precio — elegido por el 73% de nuestros autores"
+      }
+    },
+    "benefits": {
+      "title": "¿Por Qué Publicación Profesional?",
+      "subtitle": "Deja de perder dinero. Mira lo que te estás perdiendo sin nosotros.",
+      "noRejections": {
+        "title": "Cero Rechazos",
+        "description": "Amazon rechaza el 73% de los libros autopublicados por errores técnicos en formato, metadatos o estructura de archivo. Nuestro equipo garantiza que tu libro pase a la primera.",
+        "stat": "0% de rechazo"
+      },
+      "fastLaunch": {
+        "title": "Lanza en Días, No Meses",
+        "description": "Mientras otros luchan por semanas tratando de entender KDP, tu libro ya estará vendiendo para millones de lectores.",
+        "stat": "10 días o menos"
+      },
+      "higherSales": {
+        "title": "Ventas Drásticamente Mayores",
+        "description": "Optimización profesional de tu anuncio, palabras clave y estrategia de precios. Nuestros autores consistentemente venden más que quienes publican solos.",
+        "stat": "Hasta 300% más ventas"
+      },
+      "globalReach": {
+        "title": "Alcance Global Instantáneo",
+        "description": "Tu libro disponible en 190+ países desde el primer día. Tapa blanda y ebook. Los lectores pueden encontrarte en cualquier lugar del planeta.",
+        "stat": "190+ países, desde el día 1"
+      }
+    },
+    "testimonials": {
+      "title": "Autores Reales, Resultados Reales",
+      "subtitle": "No nos creas a nosotros — escucha a autores que lo lograron",
+      "items": {
+        "0": {
+          "quote": "En solo 10 días mi libro estaba vendiendo en Amazon. El equipo cuidó cada detalle y ahora tengo ventas todos los días. La mejor inversión que he hecho.",
+          "author": "María González",
+          "role": "Autora de \"Caminos de Luz\""
+        },
+        "1": {
+          "quote": "Elegí el plan Premium y fue la mejor decisión de mi carrera como escritor. Mi libro está en 4 plataformas y las ventas no paran de crecer mes tras mes.",
+          "author": "Carlos Méndez",
+          "role": "Autor bestseller"
+        },
+        "2": {
+          "quote": "Me acompañaron en todo el proceso. Tenía miedo de publicar sola — pero lo hicieron simple, rápido y con resultados desde la primera semana.",
+          "author": "Laura Paredes",
+          "role": "Autora primeriza"
+        }
+      }
+    },
+    "faq": {
+      "title": "¿Tienes Preguntas?",
+      "subtitle": "Todo lo que necesitas saber antes de publicar",
+      "items": {
+        "0": {
+          "question": "¿Quién recibe las regalías de mi libro?",
+          "answer": "Tú, directamente en tu cuenta bancaria. Nosotros solo hacemos la configuración y te entregamos acceso total a tus cuentas de publicación. El 100% de las regalías son tuyas."
+        },
+        "1": {
+          "question": "¿Ustedes se quedan con derechos de mi libro?",
+          "answer": "Para nada. Todos los derechos de autor y regalías son 100% tuyos, para siempre. Nuestro rol es puramente técnico — nos encargamos del proceso de publicación para que tú no tengas que hacerlo."
+        },
+        "2": {
+          "question": "¿Qué necesito para empezar?",
+          "answer": "Tu manuscrito final y una portada personalizada. Eso es todo. Nosotros nos encargamos del formateo, metadatos, ISBN, estrategia de precios y todo el proceso de carga."
+        },
+        "3": {
+          "question": "¿Cuánto tiempo hasta que mi libro esté disponible en Amazon?",
+          "answer": "Normalmente entre 3 y 10 días después de subirlo. Algunos libros quedan disponibles en menos de 48 horas. Te notificaremos en el momento en que esté en línea."
+        },
+        "4": {
+          "question": "¿Puedo hacer cambios después de publicar?",
+          "answer": "¡Sí! Puedes modificar el manuscrito, la portada o el precio en cualquier momento desde tu cuenta KDP sin costo adicional. Te mostramos cómo."
+        },
+        "5": {
+          "question": "¿Qué pasa si no quedo satisfecho con el servicio?",
+          "answer": "Nuestro compromiso es entregarte exactamente lo que incluye tu plan. Si hay cualquier error de nuestra parte — un problema de formato, un detalle incorrecto — lo corregimos de inmediato sin costo extra."
+        },
+        "6": {
+          "question": "¿Puedo pedir la devolución de mi dinero?",
+          "answer": "Sí. Ofrecemos una garantía de 7 días desde la fecha de compra. Si el servicio aún no ha comenzado, procesamos el reembolso completo — sin preguntas."
+        },
+        "7": {
+          "question": "¿Qué pasa si Amazon rechaza mi libro?",
+          "answer": "Para eso estamos nosotros. Nos encargamos de todos los requisitos técnicos para que los rechazos no ocurran. En el raro caso de que suceda, lo corregimos y reenviamos hasta que sea aprobado — sin costo extra."
+        }
+      }
+    },
+    "guarantee": {
+      "title": "Garantía 100% de Satisfacción",
+      "description": "Si no quedas completamente satisfecho con la publicación de tu libro, te devolvemos tu dinero. Sin preguntas, sin letra pequeña, sin complicaciones. Tu éxito es nuestra reputación.",
+      "badge": "Garantía de 7 días — devolución total"
+    },
+    "cta": {
+      "text": "Tus lectores están esperando. No los hagas esperar más.",
+      "button": "Elegir cómo publicar"
+    }
   }
 }

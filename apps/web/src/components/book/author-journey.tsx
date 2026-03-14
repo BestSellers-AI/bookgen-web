@@ -57,6 +57,7 @@ import { ProductKind, AddonStatus, FileType, SUPPORTED_LANGUAGES } from "@bestse
 import type { BundleConfigPayload } from "@bestsellers/shared";
 import { useConfigStore } from "@/stores/config-store";
 import type { BookAddonSummary, BookDetail, BookImageSummary } from "@/lib/api/types";
+import { PublishingInfoOverlay } from "./publishing-info-overlay";
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -218,6 +219,7 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
   const t = useTranslations("addons");
   const tj = useTranslations("authorJourney");
   const tCommon = useTranslations("common");
+  const tPublishing = useTranslations("publishing");
   const fetchWalletStore = useWalletStore((s) => s.fetchWallet);
   const getCreditsCost = useConfigStore((s) => s.getCreditsCost);
   const getBundles = useConfigStore((s) => s.getBundles);
@@ -254,6 +256,9 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
 
   // Confirmation dialog for "generate more" actions
   const [confirmMoreType, setConfirmMoreType] = useState<"covers" | "images" | null>(null);
+
+  // Publishing overlay state
+  const [publishingOverlayOpen, setPublishingOverlayOpen] = useState(false);
 
   // Bundle state
   const [bundleDialogOpen, setBundleDialogOpen] = useState(false);
@@ -732,6 +737,15 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
                                 sublabel={`${getCreditsCost(ProductKind.ADDON_AMAZON_PREMIUM)} ${tCommon("credits")}`}
                                 premium
                               />
+                              <button
+                                type="button"
+                                onClick={() => setPublishingOverlayOpen(true)}
+                                className="w-full mt-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-500/20 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-wider hover:from-amber-500/30 hover:via-orange-500/30 hover:to-amber-500/30 hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/10 transition-all duration-300 flex items-center justify-center gap-2"
+                              >
+                                <Sparkles className="w-3.5 h-3.5" />
+                                {tPublishing("learnMore")}
+                                <ArrowRight className="w-3.5 h-3.5" />
+                              </button>
                             </div>
                           )}
 
@@ -1375,6 +1389,11 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <PublishingInfoOverlay
+        open={publishingOverlayOpen}
+        onClose={() => setPublishingOverlayOpen(false)}
+      />
     </>
   );
 }
