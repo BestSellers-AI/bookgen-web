@@ -119,7 +119,7 @@ export default function BuyCreditsPage() {
                 </div>
 
                 <div>
-                  <h3 className="text-2xl font-black">{pack.name}</h3>
+                  <h3 className="text-2xl font-black">{t(`packName_${pack.slug}` as any)}</h3>
                   <p className="text-sm text-muted-foreground mt-1">
                     {pack.credits} {tCommon("credits")}
                   </p>
