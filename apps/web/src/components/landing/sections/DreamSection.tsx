@@ -140,7 +140,7 @@ export default function DreamSection() {
         </motion.div>
       </div>
 
-      <motion.div {...fadeUp(0.3)} className="text-center">
+      <div className="relative z-10 text-center">
         <p className="dark:text-cream-500 text-navy-600 text-sm mb-4">
           {t('microCtaText')}
         </p>
@@ -153,7 +153,7 @@ export default function DreamSection() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
           </svg>
         </a>
-      </motion.div>
+      </div>
     </section>
   )
 }

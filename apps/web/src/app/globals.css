@@ -529,3 +529,9 @@
 .dark .landing ::-webkit-scrollbar-thumb:hover { background: #F59E0B; }
 
 .dark .landing ::selection { background: rgba(245,158,11,0.28); color: #F5F0E8; }
+
+/* Push Chatwoot bubble above bottom nav on mobile */
+@media (max-width: 1279px) {
+  #cw-bubble-holder { bottom: 6rem !important; }
+  #cw-widget-holder { bottom: 6rem !important; }
+}
