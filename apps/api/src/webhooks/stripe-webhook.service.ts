@@ -9,6 +9,7 @@ import { WalletService } from '../wallet/wallet.service';
 import { CreditLedgerService } from '../wallet/credit-ledger.service';
 import { NotificationService } from '../notifications/notification.service';
 import { UsersService } from '../users/users.service';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class StripeWebhookService {
@@ -21,6 +22,7 @@ export class StripeWebhookService {
     private readonly notificationService: NotificationService,
     private readonly configDataService: ConfigDataService,
     private readonly usersService: UsersService,
+    private readonly authService: AuthService,
   ) {}
 
   /**
@@ -186,6 +188,9 @@ export class StripeWebhookService {
         this.logger.log(
           `Guest checkout: created new user ${userId} for ${email}`,
         );
+
+        // Send welcome + set-password email for auto-created guest
+        this.authService.sendWelcomeSetPasswordEmail(email, newUser.name);
       }
     }
 

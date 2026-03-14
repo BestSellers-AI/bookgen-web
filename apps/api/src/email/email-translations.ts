@@ -9,6 +9,10 @@ const translations: Record<string, {
   welcomeBody: (name: string) => string;
   welcomeButton: string;
   welcomeHelp: string;
+  welcomeSetPasswordSubject: string;
+  welcomeSetPasswordBody: string;
+  welcomeSetPasswordButton: string;
+  welcomeSetPasswordExpiry: string;
   bookSubject: (title: string) => string;
   bookBody: (title: string) => string;
   bookButton: string;
@@ -27,6 +31,10 @@ const translations: Record<string, {
       `Welcome to <strong>BestSellers AI</strong>! Your account has been created and you're all set to start generating amazing books with AI.`,
     welcomeButton: 'Go to Dashboard',
     welcomeHelp: 'If you have any questions, feel free to reach out to our support team.',
+    welcomeSetPasswordSubject: 'Welcome to BestSellers AI — Set your password',
+    welcomeSetPasswordBody: 'Your account has been created! To access it anytime, please set your password by clicking the button below.',
+    welcomeSetPasswordButton: 'Set My Password',
+    welcomeSetPasswordExpiry: 'This link will expire in <strong>1 hour</strong>.',
     bookSubject: (title: string) => `Your book "${title}" is ready! — BestSellers AI`,
     bookBody: (title: string) =>
       `Great news! Your book <strong>"${title}"</strong> has been fully generated and is ready for you to review.`,
@@ -46,6 +54,10 @@ const translations: Record<string, {
       `Bem-vindo ao <strong>BestSellers AI</strong>! Sua conta foi criada e voce esta pronto para comecar a gerar livros incriveis com IA.`,
     welcomeButton: 'Ir para o Painel',
     welcomeHelp: 'Se tiver alguma duvida, entre em contato com nossa equipe de suporte.',
+    welcomeSetPasswordSubject: 'Bem-vindo ao BestSellers AI — Defina sua senha',
+    welcomeSetPasswordBody: 'Sua conta foi criada! Para acessar a qualquer momento, defina sua senha clicando no botao abaixo.',
+    welcomeSetPasswordButton: 'Definir Minha Senha',
+    welcomeSetPasswordExpiry: 'Este link expira em <strong>1 hora</strong>.',
     bookSubject: (title: string) => `Seu livro "${title}" esta pronto! — BestSellers AI`,
     bookBody: (title: string) =>
       `Otimas noticias! Seu livro <strong>"${title}"</strong> foi totalmente gerado e esta pronto para revisao.`,
@@ -65,6 +77,10 @@ const translations: Record<string, {
       `Bienvenido a <strong>BestSellers AI</strong>! Tu cuenta ha sido creada y estas listo para empezar a generar libros increibles con IA.`,
     welcomeButton: 'Ir al Panel',
     welcomeHelp: 'Si tienes alguna pregunta, no dudes en contactar a nuestro equipo de soporte.',
+    welcomeSetPasswordSubject: 'Bienvenido a BestSellers AI — Define tu contrasena',
+    welcomeSetPasswordBody: 'Tu cuenta ha sido creada! Para acceder en cualquier momento, define tu contrasena haciendo clic en el boton de abajo.',
+    welcomeSetPasswordButton: 'Definir Mi Contrasena',
+    welcomeSetPasswordExpiry: 'Este enlace expirara en <strong>1 hora</strong>.',
     bookSubject: (title: string) => `Tu libro "${title}" esta listo! — BestSellers AI`,
     bookBody: (title: string) =>
       `Excelentes noticias! Tu libro <strong>"${title}"</strong> ha sido completamente generado y esta listo para que lo revises.`,

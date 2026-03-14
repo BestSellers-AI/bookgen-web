@@ -7,6 +7,7 @@ export interface RegisterInput {
   name?: string;
   locale?: string;
   phoneNumber?: string;
+  source?: 'chat' | 'guest';
 }
 
 export interface LoginInput {

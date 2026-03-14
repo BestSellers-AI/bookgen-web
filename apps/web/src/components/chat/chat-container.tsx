@@ -420,6 +420,7 @@ export function ChatContainer() {
         name: state.userName,
         locale,
         phoneNumber: state.userPhone,
+        source: 'chat',
       });
 
       // Auto-login — must save to localStorage so Axios interceptor picks up the token

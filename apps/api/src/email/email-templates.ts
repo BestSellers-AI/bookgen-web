@@ -92,6 +92,29 @@ export function welcomeEmail(params: {
   return { subject: t.welcomeSubject, html };
 }
 
+export function welcomeSetPasswordEmail(params: {
+  userName: string;
+  resetUrl: string;
+  locale?: string;
+}): { subject: string; html: string } {
+  const locale = params.locale ?? 'en';
+  const t = getTranslations(locale);
+  const html = baseLayout(`
+    <p style="margin:0 0 16px;font-size:16px;color:#18181b;">${t.greeting(params.userName)}</p>
+    <p style="margin:0 0 16px;font-size:16px;color:#3f3f46;">
+      ${t.welcomeSetPasswordBody}
+    </p>
+    ${button(params.resetUrl, t.welcomeSetPasswordButton)}
+    <p style="margin:0 0 8px;font-size:14px;color:#71717a;">
+      ${t.welcomeSetPasswordExpiry}
+    </p>
+    <p style="margin:0;font-size:14px;color:#71717a;">
+      ${t.welcomeHelp}
+    </p>
+  `, locale);
+  return { subject: t.welcomeSetPasswordSubject, html };
+}
+
 export function bookGeneratedEmail(params: {
   userName: string;
   bookTitle: string;

@@ -12,7 +12,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AppConfigService } from '../config/app-config.service';
 import { UsersService } from '../users/users.service';
 import { EmailService } from '../email/email.service';
-import { passwordResetEmail, welcomeEmail } from '../email/email-templates';
+import { passwordResetEmail, welcomeEmail, welcomeSetPasswordEmail } from '../email/email-templates';
 import {
   RegisterDto,
   LoginDto,
@@ -70,16 +70,21 @@ export class AuthService {
 
     const profile = await this.usersService.buildUserProfile(user);
 
-    const email = welcomeEmail({
-      userName: user.name ?? 'there',
-      loginUrl: `${this.appConfig.frontendUrl}/dashboard`,
-      locale: user.locale,
-    });
-    this.emailService.send({
-      to: user.email,
-      subject: email.subject,
-      html: email.html,
-    });
+    if (dto.source === 'chat' || dto.source === 'guest') {
+      // Auto-generated password: send welcome + set password email
+      this.sendWelcomeSetPasswordEmail(user.email, user.name, user.locale);
+    } else {
+      const email = welcomeEmail({
+        userName: user.name ?? 'there',
+        loginUrl: `${this.appConfig.frontendUrl}/dashboard`,
+        locale: user.locale,
+      });
+      this.emailService.send({
+        to: user.email,
+        subject: email.subject,
+        html: email.html,
+      });
+    }
 
     return { user: profile, tokens };
   }
@@ -287,30 +292,8 @@ export class AuthService {
       return;
     }
 
-    // Generate a random token
-    const rawToken = crypto.randomBytes(32).toString('hex');
-    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const resetUrl = await this.generatePasswordResetUrl(user.email);
 
-    // Delete any existing verification tokens for this user
-    await this.prisma.verificationToken.deleteMany({
-      where: { identifier: user.email },
-    });
-
-    // Create verification token with hashed value
-    await this.prisma.verificationToken.create({
-      data: {
-        identifier: user.email,
-        token: tokenHash,
-        expires: new Date(Date.now() + PASSWORD_RESET_EXPIRY_MS),
-      },
-    });
-
-    // In development, log the token for testing
-    if (!this.appConfig.isProduction) {
-      this.logger.debug(`Password reset token for ${user.email}: ${rawToken}`);
-    }
-
-    const resetUrl = `${this.appConfig.frontendUrl}/auth/reset-password?token=${rawToken}`;
     const email = passwordResetEmail({
       resetUrl,
       userName: user.name ?? undefined,
@@ -321,6 +304,37 @@ export class AuthService {
       subject: email.subject,
       html: email.html,
     });
+  }
+
+  // ─── Welcome + Set Password Email ──────────────────────────────────
+
+  /**
+   * Generates a password reset token and sends a welcome + set-password email.
+   * Used for auto-created accounts (chat funnel, guest checkout).
+   */
+  async sendWelcomeSetPasswordEmail(
+    userEmail: string,
+    userName?: string | null,
+    locale?: string | null,
+  ): Promise<void> {
+    try {
+      const resetUrl = await this.generatePasswordResetUrl(userEmail);
+
+      const email = welcomeSetPasswordEmail({
+        userName: userName ?? 'there',
+        resetUrl,
+        locale: locale ?? undefined,
+      });
+      this.emailService.send({
+        to: userEmail,
+        subject: email.subject,
+        html: email.html,
+      });
+    } catch (error) {
+      this.logger.error(
+        `Failed to send welcome set-password email to ${userEmail}: ${error instanceof Error ? error.message : error}`,
+      );
+    }
   }
 
   // ─── Reset Password ─────────────────────────────────────────────────
@@ -431,6 +445,35 @@ export class AuthService {
   }
 
   // ─── Private Methods ────────────────────────────────────────────────
+
+  /**
+   * Creates a verification token for password reset and returns the full reset URL.
+   * Reused by forgotPassword and sendWelcomeSetPasswordEmail.
+   */
+  private async generatePasswordResetUrl(email: string): Promise<string> {
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+
+    // Delete any existing verification tokens for this user
+    await this.prisma.verificationToken.deleteMany({
+      where: { identifier: email },
+    });
+
+    // Create verification token with hashed value
+    await this.prisma.verificationToken.create({
+      data: {
+        identifier: email,
+        token: tokenHash,
+        expires: new Date(Date.now() + PASSWORD_RESET_EXPIRY_MS),
+      },
+    });
+
+    if (!this.appConfig.isProduction) {
+      this.logger.debug(`Password reset token for ${email}: ${rawToken}`);
+    }
+
+    return `${this.appConfig.frontendUrl}/auth/reset-password?token=${rawToken}`;
+  }
 
   private async generateTokens(userId: string): Promise<AuthTokens> {
     const payload = { sub: userId };

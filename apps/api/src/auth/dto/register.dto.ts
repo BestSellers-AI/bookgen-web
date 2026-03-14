@@ -23,4 +23,9 @@ export class RegisterDto {
   @IsString()
   @MaxLength(20)
   phoneNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['chat', 'guest'])
+  source?: string;
 }
