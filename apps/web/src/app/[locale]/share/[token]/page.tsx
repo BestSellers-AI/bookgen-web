@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import {
   BookOpen,
@@ -32,6 +32,53 @@ export default function SharedBookPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [activeChapter, setActiveChapter] = useState<number | null>(null);
+
+  // ─── Copy Protection ─────────────────────────────────────────────
+  const blockEvent = useCallback((e: Event) => {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  }, []);
+
+  useEffect(() => {
+    // Block keyboard shortcuts (Ctrl+C, Ctrl+A, Ctrl+X, Ctrl+P, Ctrl+S)
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (
+        (e.ctrlKey || e.metaKey) &&
+        ['c', 'x', 'a', 'p', 's', 'u'].includes(e.key.toLowerCase())
+      ) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      // Block PrintScreen
+      if (e.key === 'PrintScreen') {
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener('keydown', onKeyDown, true);
+    document.addEventListener('copy', blockEvent, true);
+    document.addEventListener('cut', blockEvent, true);
+    document.addEventListener('contextmenu', blockEvent, true);
+    document.addEventListener('selectstart', blockEvent, true);
+    document.addEventListener('dragstart', blockEvent, true);
+
+    // Inject print protection style
+    const style = document.createElement('style');
+    style.id = 'share-print-block';
+    style.textContent = '@media print { body { display: none !important; } }';
+    document.head.appendChild(style);
+
+    return () => {
+      document.removeEventListener('keydown', onKeyDown, true);
+      document.removeEventListener('copy', blockEvent, true);
+      document.removeEventListener('cut', blockEvent, true);
+      document.removeEventListener('contextmenu', blockEvent, true);
+      document.removeEventListener('selectstart', blockEvent, true);
+      document.removeEventListener('dragstart', blockEvent, true);
+      document.getElementById('share-print-block')?.remove();
+    };
+  }, [blockEvent]);
 
   useEffect(() => {
     if (!params.token) return;
@@ -82,7 +129,7 @@ export default function SharedBookPage() {
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background select-none" style={{ WebkitUserSelect: 'none', userSelect: 'none' }}>
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border px-6 py-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
