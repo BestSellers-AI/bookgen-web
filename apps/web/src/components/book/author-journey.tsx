@@ -19,6 +19,7 @@ import {
   Zap,
   ArrowRight,
   Plus,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -657,6 +658,12 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
                             <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
                               {tj(`stepDesc_${step.id}`)}
                             </p>
+                            {step.kinds.length > 0 && (
+                              <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-bold text-primary/70">
+                                <Clock className="w-3 h-3" />
+                                {t(`time_${step.kinds[0]}`)}
+                              </span>
+                            )}
                           </div>
                           {step.status === "completed" && (
                             <CheckBadge />
@@ -1203,6 +1210,10 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {t(`kindDesc_${config.kind}`)}
                     </p>
+                    <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-bold text-primary/70">
+                      <Clock className="w-3 h-3" />
+                      {t(`time_${config.kind}`)}
+                    </span>
                   </div>
                   <div className="shrink-0">
                     <ExtraAddonAction

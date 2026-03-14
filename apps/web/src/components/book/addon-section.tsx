@@ -252,6 +252,10 @@ export function AddonSection({ book, onRefetch }: AddonSectionProps) {
                 <p className="text-xs text-muted-foreground mt-1">
                   {t(`kindDesc_${config.kind}`)}
                 </p>
+                <span className="inline-flex items-center gap-1 mt-1.5 text-[10px] font-bold text-primary/70">
+                  <Clock className="w-3 h-3" />
+                  {t(`time_${config.kind}`)}
+                </span>
               </div>
 
               <div className="flex items-center justify-between">
