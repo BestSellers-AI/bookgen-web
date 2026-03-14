@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useLocale } from "next-intl";
 import { usePathname } from "@/i18n/navigation";
 import { useAuth } from "@/hooks/use-auth";
@@ -33,43 +33,52 @@ declare global {
         },
       ) => void;
       setLocale: (locale: string) => void;
-      toggle: (state?: 'open' | 'close') => void;
+      toggle: (state?: "open" | "close") => void;
       reset: () => void;
     };
   }
 }
 
-function destroyChatwoot() {
-  window.$chatwoot?.reset();
-
-  document.getElementById("chatwoot-sdk")?.remove();
+function removeChatwootDOM() {
   document.getElementById("cw-widget-holder")?.remove();
   document.getElementById("cw-bubble-holder")?.remove();
-  document
-    .querySelectorAll('script[src*="chatwoot"]')
-    .forEach((el) => el.remove());
-
-  delete window.$chatwoot;
-  delete window.chatwootSDK;
 }
 
 export function ChatwootWidget() {
   const locale = useLocale();
   const pathname = usePathname();
   const { user } = useAuth();
+  const loadedTokenRef = useRef<string | null>(null);
 
   const isHidden = HIDDEN_ROUTES.some((route) => pathname.startsWith(route));
+  const websiteToken = CHATWOOT_TOKENS[locale] ?? CHATWOOT_TOKENS.en;
 
-  // Load SDK + init widget — re-runs when locale changes
+  // Load / reload widget
   useEffect(() => {
+    // Hidden route — hide the bubble if it exists
     if (isHidden) {
-      destroyChatwoot();
+      removeChatwootDOM();
       return;
     }
 
-    destroyChatwoot();
+    // Already loaded with correct token
+    if (loadedTokenRef.current === websiteToken) return;
 
-    const websiteToken = CHATWOOT_TOKENS[locale] ?? CHATWOOT_TOKENS.en;
+    // Locale changed — need to reload with new token
+    // Remove old widget DOM but keep the SDK script (it's cached)
+    if (loadedTokenRef.current) {
+      try { window.$chatwoot?.reset(); } catch { /* noop */ }
+      removeChatwootDOM();
+      delete window.$chatwoot;
+      delete window.chatwootSDK;
+      // Remove old script so we get a fresh onload
+      document.getElementById("chatwoot-sdk")?.remove();
+    }
+
+    loadedTokenRef.current = websiteToken;
+
+    // Check if SDK script already exists (Strict Mode re-mount)
+    if (document.getElementById("chatwoot-sdk")) return;
 
     const script = document.createElement("script");
     script.id = "chatwoot-sdk";
@@ -83,13 +92,10 @@ export function ChatwootWidget() {
       });
     };
     document.body.appendChild(script);
+    // No cleanup — widget persists across route changes
+  }, [locale, isHidden, websiteToken]);
 
-    return () => {
-      destroyChatwoot();
-    };
-  }, [locale, isHidden]);
-
-  // Identify logged-in user; anonymous visitors are tracked by Chatwoot natively
+  // Identify logged-in user
   useEffect(() => {
     if (!user || isHidden) return;
 

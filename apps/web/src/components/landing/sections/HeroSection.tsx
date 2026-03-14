@@ -1,8 +1,40 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
+
+function TypingText({ text, delay = 0 }: { text: string; delay?: number }) {
+  const [displayed, setDisplayed] = useState('')
+  const [started, setStarted] = useState(false)
+
+  useEffect(() => {
+    const timeout = setTimeout(() => setStarted(true), delay)
+    return () => clearTimeout(timeout)
+  }, [delay])
+
+  useEffect(() => {
+    if (!started) return
+    if (displayed.length >= text.length) return
+
+    const timeout = setTimeout(() => {
+      setDisplayed(text.slice(0, displayed.length + 1))
+    }, 80)
+    return () => clearTimeout(timeout)
+  }, [started, displayed, text])
+
+  return (
+    <>
+      {displayed}
+      <span
+        className={`inline-block w-[3px] h-[0.8em] bg-gold-500 ml-0.5 align-baseline ${
+          displayed.length >= text.length ? 'animate-blink' : ''
+        }`}
+      />
+    </>
+  )
+}
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 28 },
@@ -44,7 +76,9 @@ export default function HeroSection() {
           className="font-playfair font-bold text-5xl sm:text-6xl md:text-7xl lg:text-8xl leading-[1.05] tracking-tight max-w-4xl"
         >
           {t('headlinePre')}{' '}
-          <span className="italic text-gradient-gold">{t('headlineHighlight')}</span>
+          <span className="italic text-gradient-gold">
+            <TypingText text={t('headlineHighlight')} delay={600} />
+          </span>
           <br />
           <span className="dark:text-cream-200 text-navy-900">{t('headlinePost')}</span>
         </motion.h1>

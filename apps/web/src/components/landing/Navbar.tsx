@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { LocaleSwitcher } from '@/components/ui/locale-switcher'
 import { Logo } from '@/components/ui/logo'
 
 export default function Navbar() {
@@ -53,6 +54,7 @@ export default function Navbar() {
 
           <div className="hidden md:flex items-center gap-3">
             <ThemeToggle />
+            <LocaleSwitcher />
             <Link href="/auth/login" className="text-sm dark:text-cream-400 text-navy-700 dark:hover:text-cream-200 hover:text-navy-900 transition-colors px-3 py-2">
               {t('signIn')}
             </Link>
@@ -102,7 +104,10 @@ export default function Navbar() {
               <div className="pt-3 mt-2 border-t dark:border-white/[0.06] border-navy-900/[0.06] flex flex-col gap-2">
                 <div className="flex items-center justify-between px-4 py-2">
                   <span className="text-sm dark:text-cream-400 text-navy-700">{t('theme') ?? 'Theme'}</span>
-                  <ThemeToggle />
+                  <div className="flex items-center gap-2">
+                    <ThemeToggle />
+                    <LocaleSwitcher />
+                  </div>
                 </div>
                 <Link href="/auth/register" onClick={() => setMobileOpen(false)} className="btn-primary justify-center">
                   {t('createFree')}
