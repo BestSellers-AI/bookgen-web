@@ -520,7 +520,7 @@
     "purchaseError": "Falha ao iniciar o checkout. Tente novamente.",
     "packName_aspiring-work": "Obra Aspirante",
     "packName_complete-work": "Obra Completa",
-    "packName_bestseller-mundial": "BestSeller Mundial",
+    "packName_bestseller": "BestSeller",
     "packName_pack-100": "100 Créditos",
     "packName_pack-300": "300 Créditos",
     "packName_pack-500": "500 Créditos",
@@ -1098,12 +1098,12 @@
       "creditPackUse1": "Livro completo (100cr)",
       "creditPackUse2": "Capa IA — 6 variações (150cr)",
       "creditPackUse3": "Pack de imagens (150cr)",
-      "creditBundleName": "BestSeller Mundial",
+      "creditBundleName": "BestSeller",
       "creditBundleLabel": "Para publicar na Amazon",
-      "creditBundleCta": "Comprar BestSeller Mundial",
+      "creditBundleCta": "Comprar BestSeller",
       "creditBundleUse1": "1 Livro completo (100cr)",
       "creditBundleUse2": "1 Capa IA personalizada (150cr)",
-      "creditBundleUse3": "Publicação BestSeller Mundial — Amazon + Outras (1.000cr)",
+      "creditBundleUse3": "Publicação BestSeller — Amazon + Outras (1.000cr)",
       "purePack100Name": "100 Créditos",
       "purePack100Label": "Para começar",
       "purePack100Cta": "Comprar 100 Créditos",
@@ -1159,7 +1159,7 @@
       "q8": "A capa do meu livro é realmente única?",
       "a8": "Sim. Geramos 6 variações de capa exclusivas para o seu livro usando modelos de geração de imagem de última geração. Cada capa é criada especificamente para o seu título.",
       "q9": "A publicação na Amazon está inclusa nos planos?",
-      "a9": "A publicação é um serviço especializado cobrado à parte em créditos. No plano Standard (700 créditos), nossa equipe cuida de tudo: formatação profissional, publicação na Amazon KDP, ISBN e ficha catalográfica. O plano BestSeller Mundial (1.000 créditos) vai além: distribuição também na Kobo e Draft2Digital, formatação premium, otimização de SEO e acompanhamento prioritário.",
+      "a9": "A publicação é um serviço especializado cobrado à parte em créditos. No plano Standard (700 créditos), nossa equipe cuida de tudo: formatação profissional, publicação na Amazon KDP, ISBN e ficha catalográfica. O plano BestSeller (1.000 créditos) vai além: distribuição também na Kobo e Draft2Digital, formatação premium, otimização de SEO e acompanhamento prioritário.",
       "q10": "Posso criar e ver meu livro gratuitamente?",
       "a10": "Sim. Você pode criar seu projeto e visualizar prévias do seu livro gratuitamente, sem cartão de crédito. Para gerar e baixar a versão final, você precisará de créditos."
     },
@@ -1400,7 +1400,7 @@
         }
       },
       "premium": {
-        "name": "BestSeller Mundial",
+        "name": "BestSeller",
         "tagline": "Exposição máxima em todas as principais plataformas",
         "features": {
           "everything": "Tudo do plano Standard",

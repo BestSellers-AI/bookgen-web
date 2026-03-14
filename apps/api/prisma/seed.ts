@@ -195,7 +195,7 @@ async function main() {
   // ============================================
   const aspiringWork = await prisma.product.upsert({
     where: { slug: 'aspiring-work' },
-    update: {},
+    update: { name: 'Aspiring Work', creditsAmount: 100 },
     create: {
       name: 'Aspiring Work',
       slug: 'aspiring-work',
@@ -206,39 +206,39 @@ async function main() {
     },
   });
   await upsertPrices(aspiringWork.id, [
-    { currency: 'usd', amount: 990, stripePriceId: 'price_1TAmRr9UYPL3yWYTBogYU2nU' },
+    { currency: 'usd', amount: 1900, stripePriceId: 'price_1TAmqL9UYPL3yWYT3SnphATk' },
   ]);
 
   const completeWork = await prisma.product.upsert({
     where: { slug: 'complete-work' },
-    update: {},
+    update: { name: 'Complete Work', creditsAmount: 400 },
     create: {
       name: 'Complete Work',
       slug: 'complete-work',
       kind: 'CREDIT_PACK',
-      description: 'Full creative toolkit — 300 credits for books, covers, and more',
-      creditsAmount: 300,
+      description: 'Full creative toolkit — 400 credits for books, covers, and more',
+      creditsAmount: 400,
       sortOrder: 24,
     },
   });
   await upsertPrices(completeWork.id, [
-    { currency: 'usd', amount: 2490, stripePriceId: 'price_1TAmRr9UYPL3yWYTIL5vypRi' },
+    { currency: 'usd', amount: 6900, stripePriceId: 'price_1TAmqM9UYPL3yWYTBg1CbvxC' },
   ]);
 
-  const bestsellerMundial = await prisma.product.upsert({
-    where: { slug: 'bestseller-mundial' },
-    update: {},
+  const bestsellerPack = await prisma.product.upsert({
+    where: { slug: 'bestseller' },
+    update: { name: 'BestSeller', creditsAmount: 1500 },
     create: {
-      name: 'BestSeller Mundial',
-      slug: 'bestseller-mundial',
+      name: 'BestSeller',
+      slug: 'bestseller',
       kind: 'CREDIT_PACK',
-      description: 'Maximum value — 500 credits for the complete publishing experience',
-      creditsAmount: 500,
+      description: 'Maximum value — 1500 credits for the complete publishing experience',
+      creditsAmount: 1500,
       sortOrder: 25,
     },
   });
-  await upsertPrices(bestsellerMundial.id, [
-    { currency: 'usd', amount: 3490, stripePriceId: 'price_1TAmRs9UYPL3yWYTMgbRIDKa' },
+  await upsertPrices(bestsellerPack.id, [
+    { currency: 'usd', amount: 24900, stripePriceId: 'price_1TAmsf9UYPL3yWYTbe2fhed6' },
   ]);
 
   // ============================================
@@ -371,7 +371,7 @@ async function main() {
     'pack-500': 'prod_U7sEWXU62GP2ib',
     'aspiring-work': 'prod_U94aQBhp8UFwnH',
     'complete-work': 'prod_U94a6uzhy2FYqx',
-    'bestseller-mundial': 'prod_U94ad3gHNMRDCk',
+    'bestseller': 'prod_U95248e80AloB8',
   };
 
   for (const [slug, stripeId] of Object.entries(stripeProductIds)) {

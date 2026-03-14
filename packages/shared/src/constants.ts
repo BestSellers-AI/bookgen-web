@@ -86,9 +86,9 @@ export const CREDIT_PACKS = [
   { name: '100 Credits', slug: 'pack-100', credits: 100, priceCents: 990 },
   { name: '300 Credits', slug: 'pack-300', credits: 300, priceCents: 2490 },
   { name: '500 Credits', slug: 'pack-500', credits: 500, priceCents: 3490 },
-  { name: 'Aspiring Work', slug: 'aspiring-work', credits: 100, priceCents: 990 },
-  { name: 'Complete Work', slug: 'complete-work', credits: 300, priceCents: 2490 },
-  { name: 'BestSeller Mundial', slug: 'bestseller-mundial', credits: 500, priceCents: 3490 },
+  { name: 'Aspiring Work', slug: 'aspiring-work', credits: 100, priceCents: 1900 },
+  { name: 'Complete Work', slug: 'complete-work', credits: 400, priceCents: 6900 },
+  { name: 'BestSeller', slug: 'bestseller', credits: 1500, priceCents: 24900 },
 ] as const;
 
 export const CREDITS_COST: Record<string, number> = {

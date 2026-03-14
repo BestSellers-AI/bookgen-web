@@ -221,7 +221,7 @@ const CREDIT_PACK_UI: CreditPackUiData[] = [
     ],
   },
   {
-    slug: 'bestseller-mundial',
+    slug: 'bestseller',
     nameKey: 'creditBundleName',
     popular: false,
     labelKey: 'creditBundleLabel',
@@ -307,9 +307,9 @@ const PURE_CREDIT_PACK_UI: CreditPackUiData[] = [
 
 // Fallback values for credit packs
 const CREDIT_PACK_FALLBACKS: Record<string, { credits: number; price: number }> = {
-  'aspiring-work': { credits: 100, price: 9.90 },
-  'complete-work': { credits: 300, price: 24.90 },
-  'bestseller-mundial': { credits: 500, price: 34.90 },
+  'aspiring-work': { credits: 100, price: 19 },
+  'complete-work': { credits: 400, price: 69 },
+  'bestseller': { credits: 1500, price: 249 },
   'pack-100': { credits: 100, price: 9.90 },
   'pack-300': { credits: 300, price: 24.90 },
   'pack-500': { credits: 500, price: 34.90 },
