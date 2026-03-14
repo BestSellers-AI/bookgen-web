@@ -14,7 +14,7 @@ import {
 import type { RenderableBook } from '../types';
 import { getBookLabels } from '../labels';
 import { parseContent } from '../pdf/parse-content';
-import { estimatePageCount, getGutterInches } from '../constants';
+import { estimatePageCount, getGutterInches, FONT_BODY, FONT_HEADING } from '../constants';
 
 // KDP 6"×9" in twips
 const PAGE_WIDTH = convertInchesToTwip(6);
@@ -58,19 +58,19 @@ function contentBlocksToParagraphs(text: string): Paragraph[] {
     switch (block.type) {
       case 'heading2':
         return new Paragraph({
-          children: [new TextRun({ text: block.text, bold: true, size: 32, font: 'Helvetica' })],
+          children: [new TextRun({ text: block.text, bold: true, size: 32, font: FONT_HEADING })],
           heading: HeadingLevel.HEADING_2,
           spacing: { before: 280, after: 160 },
         });
       case 'heading3':
         return new Paragraph({
-          children: [new TextRun({ text: block.text, bold: true, size: 26, font: 'Helvetica', color: '333333' })],
+          children: [new TextRun({ text: block.text, bold: true, size: 26, font: FONT_HEADING, color: '333333' })],
           heading: HeadingLevel.HEADING_3,
           spacing: { before: 200, after: 120 },
         });
       case 'paragraph':
         return new Paragraph({
-          children: [new TextRun({ text: block.text, size: 22, font: 'Times New Roman' })],
+          children: [new TextRun({ text: block.text, size: 22, font: FONT_BODY })],
           spacing: { after: 160, line: 384 }, // 384 twips ≈ 1.6 line height at 11pt
           alignment: AlignmentType.JUSTIFIED,
         });
@@ -131,14 +131,14 @@ export async function generateBookDocx(book: RenderableBook): Promise<Blob> {
     children: [
       ...emptyLines(10),
       new Paragraph({
-        children: [new TextRun({ text: book.title, bold: true, size: 44, font: 'Helvetica' })],
+        children: [new TextRun({ text: book.title, bold: true, size: 44, font: FONT_HEADING })],
         alignment: AlignmentType.CENTER,
         spacing: { after: 280 },
       }),
       ...(book.subtitle
         ? [
             new Paragraph({
-              children: [new TextRun({ text: book.subtitle, italics: true, size: 26, font: 'Helvetica', color: '555555' })],
+              children: [new TextRun({ text: book.subtitle, italics: true, size: 26, font: FONT_HEADING, color: '555555' })],
               alignment: AlignmentType.CENTER,
               spacing: { after: 400 },
             }),
@@ -146,7 +146,7 @@ export async function generateBookDocx(book: RenderableBook): Promise<Blob> {
         : []),
       divider(),
       new Paragraph({
-        children: [new TextRun({ text: book.author.toUpperCase(), size: 22, font: 'Helvetica', color: '777777' })],
+        children: [new TextRun({ text: book.author.toUpperCase(), size: 22, font: FONT_HEADING, color: '777777' })],
         alignment: AlignmentType.CENTER,
       }),
     ],
@@ -211,7 +211,7 @@ export async function generateBookDocx(book: RenderableBook): Promise<Blob> {
     properties: props,
     children: [
       new Paragraph({
-        children: [new TextRun({ text: L.contents, bold: true, size: 40, font: 'Helvetica' })],
+        children: [new TextRun({ text: L.contents, bold: true, size: 40, font: FONT_HEADING })],
         alignment: AlignmentType.CENTER,
         spacing: { after: 480 },
       }),
@@ -225,7 +225,7 @@ export async function generateBookDocx(book: RenderableBook): Promise<Blob> {
       properties: props,
       children: [
         new Paragraph({
-          children: [new TextRun({ text: L.introduction, bold: true, size: 40, font: 'Helvetica' })],
+          children: [new TextRun({ text: L.introduction, bold: true, size: 40, font: FONT_HEADING })],
           alignment: AlignmentType.CENTER,
           spacing: { after: 360 },
         }),
@@ -239,13 +239,13 @@ export async function generateBookDocx(book: RenderableBook): Promise<Blob> {
     const chapterChildren: Paragraph[] = [
       // "CHAPTER X" label
       new Paragraph({
-        children: [new TextRun({ text: `${L.chapter} ${ch.sequence}`, size: 18, font: 'Helvetica', color: '999999' })],
+        children: [new TextRun({ text: `${L.chapter} ${ch.sequence}`, size: 18, font: FONT_HEADING, color: '999999' })],
         alignment: AlignmentType.CENTER,
         spacing: { after: 120 },
       }),
       // Chapter title
       new Paragraph({
-        children: [new TextRun({ text: ch.title, bold: true, size: 36, font: 'Helvetica' })],
+        children: [new TextRun({ text: ch.title, bold: true, size: 36, font: FONT_HEADING })],
         alignment: AlignmentType.CENTER,
         spacing: { after: 320 },
       }),
@@ -286,7 +286,7 @@ export async function generateBookDocx(book: RenderableBook): Promise<Blob> {
       properties: props,
       children: [
         new Paragraph({
-          children: [new TextRun({ text: section.label, bold: true, size: 40, font: 'Helvetica' })],
+          children: [new TextRun({ text: section.label, bold: true, size: 40, font: FONT_HEADING })],
           alignment: AlignmentType.CENTER,
           spacing: { after: 360 },
         }),

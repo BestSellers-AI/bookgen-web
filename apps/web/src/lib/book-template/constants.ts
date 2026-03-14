@@ -32,9 +32,9 @@ export const MARGIN_BOTTOM = 54; // 0.75"
 export const MARGIN_OUTER = 54; // 0.75"
 
 // Typography
-// Built-in PDF fonts (no registration needed)
-export const FONT_BODY = 'Times-Roman';
-export const FONT_HEADING = 'Helvetica';
+// Custom fonts registered via Google Fonts CDN (see pdf/fonts.ts)
+export const FONT_BODY = 'Lora';
+export const FONT_HEADING = 'Inter';
 
 export const FONT_SIZE_BODY = 11;
 export const FONT_SIZE_H1 = 24;
