@@ -272,12 +272,16 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
     try {
       const data = await addonsApi.list(book.id);
       // Detect addons that just completed → refetch book to get new files/images
+      // Covers two cases:
+      // 1. Addon existed in prev as processing, now completed
+      // 2. New addon appeared (wasn't in prev) and is already completed
       const prev = prevAddonsRef.current;
-      const justCompleted = data.some(
-        (a) =>
-          a.status === AddonStatus.COMPLETED &&
-          prev.some((p) => p.id === a.id && isAddonProcessing(p.status)),
-      );
+      const justCompleted = data.some((a) => {
+        if (a.status !== AddonStatus.COMPLETED) return false;
+        const prevAddon = prev.find((p) => p.id === a.id);
+        if (!prevAddon) return prev.length > 0; // new addon appeared (skip initial load)
+        return isAddonProcessing(prevAddon.status);
+      });
       prevAddonsRef.current = data;
       setAddons(data);
       if (justCompleted) {

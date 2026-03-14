@@ -10,15 +10,16 @@ interface CoverPromptInput {
 }
 
 /**
- * System prompt for Step 1: generate 6 cover concept prompts from book context.
- * Output is structured JSON consumed by the image generation model.
+ * System prompt for Step 1: generate 6 complete front cover concept prompts.
+ * Each concept is a full image-generation prompt for a professional
+ * book front cover with editorial typography (title, subtitle, author).
  */
 export function getCoverConceptSystemPrompt(input: CoverPromptInput): string {
   const language = getPromptLanguage(input.settings as { language?: string });
 
-  return `You are an expert book cover designer and visual director specializing in eBook covers.
-Your task is to generate 6 distinct visual concept prompts for an AI image generation model,
-based on the book's context.
+  return `You are an expert book cover designer and visual director specializing in professional editorial book covers for publishing.
+
+Your task is to generate 6 distinct, fully-detailed IMAGE GENERATION PROMPTS. Each prompt will be sent directly to an AI image model to produce a complete, professional front book cover with editorial typography.
 
 BOOK CONTEXT:
 - Title: ${input.title}
@@ -26,26 +27,51 @@ BOOK CONTEXT:
 - Author: ${input.author}
 - Language: ${language}
 
-REQUIREMENTS FOR EACH CONCEPT:
-1. Each prompt must describe a UNIQUE visual style/approach (e.g., minimalist, abstract, cinematic, editorial, illustrated, photographic)
-2. Prompts must be in English regardless of book language
-3. Images must have NO text, NO letters, NO words, NO typography in the generated image
-4. Leave generous negative space at the top and bottom for title/subtitle overlay
-5. Vertical orientation (portrait aspect ratio, like a book cover)
-6. Avoid hyper-realistic human faces or hands (they render poorly in AI)
-7. Favor artistic, illustrative, or abstract styles — bestseller-quality aesthetics
-8. Each prompt should reflect the book's theme and emotional tone
-9. DO NOT include technical parameters like --ar, --stylize, --v, or any flags
+EACH PROMPT YOU GENERATE MUST INSTRUCT THE IMAGE MODEL TO PRODUCE:
 
-STYLE DIVERSITY — each of the 6 concepts MUST use a different approach:
-- Concept 1: Minimalist / Clean design
-- Concept 2: Abstract / Artistic
-- Concept 3: Cinematic / Dramatic lighting
-- Concept 4: Editorial / Magazine-style
-- Concept 5: Illustrated / Hand-drawn feel
-- Concept 6: Bold / Graphic design
+1. FRONT COVER LAYOUT:
+   - Vertical portrait orientation (approximately 2:3 aspect ratio, like a book cover)
+   - 4K resolution, sharp and detailed, suitable for professional publishing
+   - Safe margin: 10-12mm from edges — all text must remain inside safe margins
 
-OUTPUT: Return ONLY valid JSON with exactly this structure. No markdown, no explanation.`;
+2. MANDATORY TEXT ELEMENTS (must appear readable in the generated image):
+   - Title: "${input.title}" — dominant element, upper area of cover
+   - Subtitle: "${input.subtitle || ''}" — secondary, near the title
+   - Author: "${input.author}" — smaller but clearly visible, typically bottom area
+   All text on the cover must be rendered in ${language}.
+
+3. TYPOGRAPHY HIERARCHY (proportional to canvas height):
+   - Title: 8-12% of canvas height, bold, dominant, commanding presence
+   - Subtitle: 3-5% of canvas height, complementary to title
+   - Author name: 2-3% of canvas height, clearly legible
+   - Clean, editorial typography — no distorted, warped, or overlapping lettering
+   - High contrast between text and background for readability
+   - Professional font styling appropriate to the genre
+
+4. PROFESSIONAL EDITORIAL AESTHETICS:
+   - Balanced composition with strong visual hierarchy
+   - Cohesive color palette aligned with the book's theme and genre
+   - Cinematic lighting when appropriate
+   - Sharp details, print-ready composition
+   - No overcrowding or text collision
+   - Modern publishing standards, bestseller-quality design
+   - Background visuals/imagery that reflect the book's content and mood
+
+STYLE DIVERSITY — each of the 6 concepts MUST use a different visual approach:
+- Concept 1: Minimalist / Clean editorial design
+- Concept 2: Abstract / Artistic composition
+- Concept 3: Cinematic / Dramatic lighting and atmosphere
+- Concept 4: Editorial / Magazine-quality typography-forward
+- Concept 5: Illustrated / Artistic hand-crafted feel
+- Concept 6: Bold / Modern graphic design
+
+IMPORTANT RULES:
+- Each prompt must be self-contained and ready to send directly to an image generation model
+- Prompts must be written in English (the text ON the cover must be in ${language})
+- DO NOT include technical parameters like --ar, --stylize, --v, or any model-specific flags
+- Each prompt should be detailed (150-300 words) describing the complete visual scene, layout, typography, colors, and mood
+
+OUTPUT: Return ONLY valid JSON. No markdown, no explanation.`;
 }
 
 export const COVER_CONCEPTS_SCHEMA = {
@@ -75,7 +101,7 @@ export function buildCoverConceptUserPrompt(input: CoverPromptInput): string {
       ? input.planning
       : JSON.stringify(input.planning, null, 2);
 
-  return `Generate 6 book cover image prompts for this book:
+  return `Generate 6 complete front book cover image prompts for this book:
 
 Title: ${input.title}
 Subtitle: ${input.subtitle || ''}
@@ -85,24 +111,44 @@ Briefing: ${input.briefing}
 Book Planning (chapters & topics):
 ${planningStr}
 
-Remember: each prompt must describe a complete visual scene for an AI image generator.
-The image must have NO text/letters. Leave space for title overlay. Vertical book cover format.`;
+Each prompt must describe a COMPLETE front book cover in vertical portrait orientation (2:3 aspect ratio).
+The cover MUST include clearly readable editorial typography with:
+- Title: "${input.title}"
+- Subtitle: "${input.subtitle || ''}"
+- Author: "${input.author}"
+All text on the cover must be in ${getPromptLanguage(input.settings as { language?: string })}.
+Each concept must have a unique visual style and color palette that reflects the book's theme and genre.`;
 }
 
 /**
- * Builds the final image generation prompt for the Gemini Flash Image model.
- * Wraps the raw concept prompt with quality and format instructions.
+ * Builds the final image generation prompt sent to the image model.
+ * Wraps the LLM-generated concept prompt with layout and quality rules.
  */
 export function buildImageGenerationPrompt(conceptPrompt: string): string {
-  return `Generate a high-quality book cover image with the following concept:
+  return `Generate a professional, print-ready front book cover image.
 
 ${conceptPrompt}
 
-CRITICAL REQUIREMENTS:
-- Vertical portrait orientation (book cover aspect ratio, approximately 2:3)
-- NO text, NO letters, NO words, NO typography anywhere in the image
-- Leave empty space at the top 20% and bottom 15% for title/subtitle overlay
-- Professional, polished, bestseller-quality aesthetic
-- Rich colors and strong visual hierarchy
-- The central visual element should be striking and memorable`;
+CRITICAL LAYOUT AND QUALITY REQUIREMENTS:
+- FRONT COVER ONLY: vertical portrait orientation, approximately 2:3 aspect ratio
+- RESOLUTION: 4K quality, sharp and detailed
+- SAFE MARGINS: all text and critical elements at least 10-12mm from edges
+
+TYPOGRAPHY REQUIREMENTS:
+- All text must be CLEARLY READABLE with clean editorial typography
+- Title: bold, dominant, 8-12% of canvas height, upper area of cover
+- Subtitle: secondary, 3-5% of canvas height, near the title
+- Author name: 2-3% of canvas height, clearly visible, typically bottom area
+- HIGH CONTRAST between text and background — text must be legible at any size
+- No distorted, warped, overlapping, or cut-off lettering
+- Professional editorial font styling appropriate to the genre
+- Text must be spelled correctly, every letter must be clear and properly formed
+
+DESIGN QUALITY:
+- Professional, bestseller-quality editorial cover design
+- Balanced composition with strong visual hierarchy
+- Cohesive color palette throughout
+- Cinematic lighting and sharp details where appropriate
+- Modern publishing standards
+- Print-ready composition suitable for professional publishing`;
 }

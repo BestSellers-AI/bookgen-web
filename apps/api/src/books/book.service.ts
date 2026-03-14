@@ -183,9 +183,7 @@ export class BookService {
       resourcesReferences: book.resourcesReferences,
       appendix: book.appendix,
       closure: book.closure,
-      coverUrl: book.selectedCoverFile?.fileUrl
-        ?? book.files.find((f) => f.fileType === FileType.COVER_IMAGE)?.fileUrl
-        ?? null,
+      coverUrl: book.selectedCoverFile?.fileUrl ?? null,
       selectedCoverFileId: book.selectedCoverFileId,
       wordCount: book.wordCount,
       pageCount: book.pageCount,

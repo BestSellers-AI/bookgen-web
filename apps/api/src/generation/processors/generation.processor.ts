@@ -653,6 +653,7 @@ export class GenerationProcessor extends WorkerHost {
     await job.updateProgress(20);
 
     // Step 2: Generate images in parallel (batches of 2 to avoid rate limits)
+    const batchTs = Date.now();
     const variations: Array<{ url: string; fileName: string; label: string }> = [];
 
     for (let batch = 0; batch < 3; batch++) {
@@ -680,7 +681,7 @@ export class GenerationProcessor extends WorkerHost {
 
           // Step 3: Upload to S3
           const ext = result.mimeType.includes('png') ? 'png' : 'jpg';
-          const key = `covers/${bookId}/cover-${index + 1}.${ext}`;
+          const key = `covers/${bookId}/${batchTs}-cover-${index + 1}.${ext}`;
           const buffer = Buffer.from(result.imageBase64, 'base64');
 
           const url = await this.storageService.upload(key, buffer, result.mimeType);
