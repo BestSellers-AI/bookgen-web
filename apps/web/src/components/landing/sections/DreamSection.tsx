@@ -3,18 +3,16 @@
 import { motion } from 'framer-motion'
 import { useTranslations } from 'next-intl'
 
-const books = [
-  { title: 'O Método dos\nCampeões', genre: 'Self-Help', from: '#1a1060', to: '#6d28d9' },
-  { title: 'Finanças para\nMamães', genre: 'Finanças', from: '#064e3b', to: '#059669' },
-  { title: 'Dieta dos\n30 Dias', genre: 'Saúde', from: '#7c2d12', to: '#ea580c' },
-  { title: 'Criança Feliz,\nFamília Plena', genre: 'Parentalidade', from: '#1e3a5f', to: '#2563eb' },
-  { title: 'Receitas da\nVovó Digital', genre: 'Gastronomia', from: '#4a1942', to: '#a21caf' },
-  { title: 'O Empreendedor\nSem Desculpas', genre: 'Negócios', from: '#1c1917', to: '#ca8a04' },
-  { title: 'Meditação\nPara Todos', genre: 'Bem-Estar', from: '#0f3460', to: '#0ea5e9' },
-  { title: 'Segredos do\nMercado Imobiliário', genre: 'Investimentos', from: '#14532d', to: '#16a34a' },
+const bookColors = [
+  { from: '#1a1060', to: '#6d28d9' },
+  { from: '#064e3b', to: '#059669' },
+  { from: '#7c2d12', to: '#ea580c' },
+  { from: '#1e3a5f', to: '#2563eb' },
+  { from: '#4a1942', to: '#a21caf' },
+  { from: '#1c1917', to: '#ca8a04' },
+  { from: '#0f3460', to: '#0ea5e9' },
+  { from: '#14532d', to: '#16a34a' },
 ]
-
-const allBooks = [...books, ...books]
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 24 },
@@ -23,21 +21,21 @@ const fadeUp = (delay = 0) => ({
   transition: { duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
 })
 
-function BookCard({ book }: { book: typeof books[0] }) {
+function BookCard({ title, genre, from, to }: { title: string; genre: string; from: string; to: string }) {
   return (
     <div className="flex-shrink-0 w-[120px] mx-3 select-none">
       <div
         className="w-[120px] h-[170px] rounded-r-lg rounded-l-sm relative overflow-hidden shadow-2xl"
-        style={{ background: `linear-gradient(135deg, ${book.from}, ${book.to})` }}
+        style={{ background: `linear-gradient(135deg, ${from}, ${to})` }}
       >
         <div className="absolute left-0 top-0 bottom-0 w-3 bg-black/30" />
         <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/20" />
         <div className="absolute inset-0 flex flex-col justify-between p-3">
           <p className="text-white/90 text-[10px] font-bold leading-tight whitespace-pre-line">
-            {book.title}
+            {title}
           </p>
           <p className="text-white/50 text-[8px] uppercase tracking-wider font-semibold">
-            {book.genre}
+            {genre}
           </p>
         </div>
       </div>
@@ -47,6 +45,13 @@ function BookCard({ book }: { book: typeof books[0] }) {
 
 export default function DreamSection() {
   const t = useTranslations('landingV2.dream')
+
+  const books = bookColors.map((color, i) => ({
+    title: t(`book${i + 1}Title`),
+    genre: t(`book${i + 1}Genre`),
+    ...color,
+  }))
+  const allBooks = [...books, ...books]
 
   const steps = [
     { icon: '💡', label: t('step1') },
@@ -130,7 +135,7 @@ export default function DreamSection() {
           transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
         >
           {allBooks.map((book, i) => (
-            <BookCard key={i} book={book} />
+            <BookCard key={i} title={book.title} genre={book.genre} from={book.from} to={book.to} />
           ))}
         </motion.div>
       </div>
