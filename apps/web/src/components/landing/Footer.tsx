@@ -24,7 +24,7 @@ const Logo = () => (
 export default function Footer() {
   const t = useTranslations('landingV2.footer')
 
-  const links = {
+  const links: Record<string, { label: string; href: string; openChat?: boolean }[]> = {
     [t('colProduct')]: [
       { label: t('linkPlans'), href: '#planos' },
       { label: t('linkHowItWorks'), href: '#como-funciona' },
@@ -36,8 +36,8 @@ export default function Footer() {
       { label: t('linkCookies'), href: '#' },
     ],
     [t('colContact')]: [
-      { label: t('linkSupport'), href: 'mailto:contato@bestsellers-ai.com' },
-      { label: t('linkContactUs'), href: 'mailto:contato@bestsellers-ai.com' },
+      { label: t('linkSupport'), href: '#', openChat: true },
+      { label: t('linkContactUs'), href: '#', openChat: true },
     ],
   }
 
@@ -58,12 +58,22 @@ export default function Footer() {
               <ul className="flex flex-col gap-2.5">
                 {items.map((item) => (
                   <li key={item.label}>
-                    <a
-                      href={item.href}
-                      className="dark:text-cream-500 text-navy-600 text-sm dark:hover:text-cream-200 hover:text-navy-900 transition-colors"
-                    >
-                      {item.label}
-                    </a>
+                    {item.openChat ? (
+                      <button
+                        type="button"
+                        onClick={() => window.$chatwoot?.toggle?.('open')}
+                        className="dark:text-cream-500 text-navy-600 text-sm dark:hover:text-cream-200 hover:text-navy-900 transition-colors cursor-pointer"
+                      >
+                        {item.label}
+                      </button>
+                    ) : (
+                      <a
+                        href={item.href}
+                        className="dark:text-cream-500 text-navy-600 text-sm dark:hover:text-cream-200 hover:text-navy-900 transition-colors"
+                      >
+                        {item.label}
+                      </a>
+                    )}
                   </li>
                 ))}
               </ul>

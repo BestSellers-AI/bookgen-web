@@ -8,6 +8,7 @@ import { ConfigInitializer } from '@/components/config-initializer';
 import { LocaleSync } from '@/components/locale-sync';
 import { Toaster } from 'sonner';
 import { AnnouncementBar } from '@/components/announcement-bar/announcement-bar';
+import { ChatwootWidget } from '@/components/dashboard/chatwoot-widget';
 
 export default async function LocaleLayout({
   children,
@@ -37,6 +38,7 @@ export default async function LocaleLayout({
         <LocaleSync />
         <AnnouncementBar />
         {children}
+        <ChatwootWidget />
         <Toaster position="top-right" richColors />
       </ThemeProvider>
     </NextIntlClientProvider>
