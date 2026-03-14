@@ -5,9 +5,11 @@ import { motion } from 'framer-motion';
 export function TypingIndicator() {
   return (
     <div className="flex items-start gap-2 px-4">
-      <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
-        <span className="text-xs">AI</span>
-      </div>
+      <img
+        src="/chat-avatar.png"
+        alt="AI"
+        className="w-10 h-10 rounded-full flex-shrink-0 object-cover"
+      />
       <div className="bg-card border border-border/50 rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-1">
         {[0, 1, 2].map((i) => (
           <motion.span

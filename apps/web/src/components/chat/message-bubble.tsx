@@ -20,9 +20,11 @@ export function MessageBubble({ message, onChoice }: MessageBubbleProps) {
       className={`flex items-start gap-2 px-4 ${isBot ? '' : 'justify-end'}`}
     >
       {isBot && (
-        <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-          <span className="text-xs font-semibold text-primary">AI</span>
-        </div>
+        <img
+          src="/chat-avatar.png"
+          alt="AI"
+          className="w-10 h-10 rounded-full flex-shrink-0 mt-0.5 object-cover"
+        />
       )}
 
       <div

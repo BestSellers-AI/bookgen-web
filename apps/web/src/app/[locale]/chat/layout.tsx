@@ -1,6 +1,7 @@
 import { Link } from '@/i18n/navigation';
 import { Logo } from '@/components/ui/logo';
 import { LocaleSwitcher } from '@/components/ui/locale-switcher';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 export default function ChatLayout({
   children,
@@ -14,7 +15,10 @@ export default function ChatLayout({
           <Link href="/">
             <Logo size="sm" />
           </Link>
-          <LocaleSwitcher />
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <LocaleSwitcher />
+          </div>
         </header>
         <main className="flex-1 overflow-hidden">{children}</main>
       </div>
