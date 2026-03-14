@@ -97,7 +97,7 @@ export function buildChapterImageGenerationPrompt(
 ${conceptPrompt}
 
 CRITICAL REQUIREMENTS:
-- Vertical portrait orientation (full-page book illustration)
+- Horizontal landscape orientation (half-page book illustration)
 - NO text, NO letters, NO words, NO typography anywhere in the image
 - Professional, polished, artistic quality
 - Rich colors and strong visual composition
