@@ -209,7 +209,11 @@ export default function PricingSection() {
                   <p className="dark:text-cream-300 text-navy-800 font-medium">{t('enterpriseTitle')}</p>
                   <p className="dark:text-cream-500 text-navy-600 text-sm mt-0.5">{t('enterpriseSubtitle')}</p>
                 </div>
-                <button className="btn-secondary text-sm py-2.5 flex-shrink-0">
+                <button
+                  type="button"
+                  onClick={() => window.$chatwoot?.toggle?.('open')}
+                  className="btn-secondary text-sm py-2.5 flex-shrink-0"
+                >
                   {t('enterpriseCta')}
                 </button>
               </div>
