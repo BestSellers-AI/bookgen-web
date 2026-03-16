@@ -180,32 +180,32 @@ export async function generateBookDocx(book: RenderableBook): Promise<Blob> {
   const tocEntries: Paragraph[] = [];
   if (book.introduction) {
     tocEntries.push(new Paragraph({
-      children: [new TextRun({ text: L.introduction, size: 22 })],
-      spacing: { after: 120 },
+      children: [new TextRun({ text: L.introduction, size: 20 })],
+      spacing: { after: 100 },
     }));
   }
   for (const ch of book.chapters) {
     tocEntries.push(new Paragraph({
-      children: [new TextRun({ text: `${ch.sequence}. ${ch.title}`, size: 22 })],
-      spacing: { after: 120 },
+      children: [new TextRun({ text: `${ch.sequence}. ${ch.title}`, size: 20 })],
+      spacing: { after: 100 },
     }));
   }
   if (book.conclusion) {
     tocEntries.push(new Paragraph({
-      children: [new TextRun({ text: L.conclusion, size: 22 })],
-      spacing: { after: 120 },
+      children: [new TextRun({ text: L.conclusion, size: 20 })],
+      spacing: { after: 100 },
     }));
   }
   if (book.glossary) {
     tocEntries.push(new Paragraph({
-      children: [new TextRun({ text: L.glossary, size: 22 })],
-      spacing: { after: 120 },
+      children: [new TextRun({ text: L.glossary, size: 20 })],
+      spacing: { after: 100 },
     }));
   }
   if (book.appendix) {
     tocEntries.push(new Paragraph({
-      children: [new TextRun({ text: L.appendix, size: 22 })],
-      spacing: { after: 120 },
+      children: [new TextRun({ text: L.appendix, size: 20 })],
+      spacing: { after: 100 },
     }));
   }
 
@@ -213,9 +213,9 @@ export async function generateBookDocx(book: RenderableBook): Promise<Blob> {
     properties: props,
     children: [
       new Paragraph({
-        children: [new TextRun({ text: L.contents, bold: true, size: 40, font: FONT_HEADING })],
+        children: [new TextRun({ text: L.contents, bold: true, size: 36, font: FONT_HEADING })],
         alignment: AlignmentType.CENTER,
-        spacing: { after: 480 },
+        spacing: { after: 360 },
       }),
       ...tocEntries,
     ],

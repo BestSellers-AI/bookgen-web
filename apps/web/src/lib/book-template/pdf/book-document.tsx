@@ -81,16 +81,16 @@ function buildStyles(gutter: number) {
     tocTitle: {
       fontFamily: FONT_HEADING,
       fontWeight: 700,
-      fontSize: 20,
+      fontSize: 18,
       textAlign: 'center',
-      marginBottom: 24,
+      marginBottom: 18,
     },
     tocRow: {
       flexDirection: 'row',
-      marginBottom: 6,
+      marginBottom: 5,
     },
     tocLabel: {
-      fontSize: 11,
+      fontSize: 10,
     },
     sectionTitle: {
       fontFamily: FONT_HEADING,
@@ -212,7 +212,7 @@ export function BookDocument({ book }: { book: RenderableBook }) {
       </Page>
 
       {/* Table of Contents */}
-      <Page size={size} style={s.page}>
+      <Page size={size} style={s.page} wrap>
         <Text style={s.tocTitle}>{L.contents}</Text>
         {book.introduction ? (
           <View style={s.tocRow}>
