@@ -923,7 +923,7 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
                 </div>
               ) : (
                 <Button
-                  className="w-full rounded-xl bg-gradient-to-r from-primary dark:to-amber-500 to-amber-600 text-primary-foreground dark:hover:from-primary/90 dark:hover:to-amber-400 hover:from-primary/90 hover:to-amber-700 font-bold"
+                  className="w-full rounded-xl bg-gradient-to-r from-primary to-amber-500 text-primary-foreground hover:from-primary/90 hover:to-amber-400 font-bold"
                   size="lg"
                   onClick={() => handleSelectCover(expandedCover.id)}
                   disabled={selectingCover === expandedCover.id}
@@ -1317,7 +1317,7 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
-              <Package className="w-5 h-5 dark:text-amber-400 text-amber-600" />
+              <Package className="w-5 h-5 text-amber-500" />
               {selectedBundle ? tj(`bundleTitle_${selectedBundle.id}`) : ""}
             </AlertDialogTitle>
             <AlertDialogDescription asChild>
@@ -1356,7 +1356,7 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
               <AlertDialogAction
                 onClick={handleBundleRequest}
                 disabled={requestingBundle}
-                className="bg-gradient-to-r dark:from-amber-500 dark:to-orange-500 from-amber-600 to-orange-600 text-white dark:hover:from-amber-400 dark:hover:to-orange-400 hover:from-amber-700 hover:to-orange-700"
+                className="bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600"
               >
                 {requestingBundle ? (
                   <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -1484,7 +1484,7 @@ function StepCTA({
         onClick={() => onRequest(config)}
         className={`w-full group relative overflow-hidden rounded-xl p-4 text-left transition-all active:scale-[0.97] ${
           premium
-            ? "bg-gradient-to-r dark:from-amber-500/20 dark:to-orange-500/15 from-amber-600/10 to-orange-600/10 border-2 dark:border-amber-500/40 dark:hover:border-amber-400/60 border-amber-600/30 hover:border-amber-600/50 shadow-lg dark:shadow-amber-500/10 dark:hover:shadow-amber-500/20 shadow-amber-600/5 hover:shadow-amber-600/10"
+            ? "dark:bg-gradient-to-br dark:from-amber-500/25 dark:via-orange-500/15 dark:to-yellow-500/20 bg-gradient-to-b from-amber-300 via-yellow-500 to-amber-600 border-2 dark:border-amber-400/50 dark:hover:border-amber-400/80 border-amber-400/30 hover:border-amber-400/50 shadow-lg dark:shadow-amber-500/15 dark:hover:shadow-amber-500/30 shadow-amber-950/15 hover:shadow-amber-950/25"
             : isNext
               ? "bg-gradient-to-r from-primary/15 to-primary/5 border-2 border-primary/40 hover:border-primary/60 shadow-lg shadow-primary/10 hover:shadow-primary/20"
               : "bg-accent/50 border-2 border-border hover:border-primary/30"
@@ -1495,7 +1495,7 @@ function StepCTA({
           <div
             className={`absolute inset-0 animate-shimmer pointer-events-none ${
               premium
-                ? "bg-gradient-to-r from-transparent dark:via-amber-400/20 via-amber-600/10 to-transparent"
+                ? "bg-gradient-to-r from-transparent via-amber-400/20 to-transparent"
                 : "bg-gradient-to-r from-transparent via-white/15 to-transparent"
             }`}
           />
@@ -1506,18 +1506,18 @@ function StepCTA({
             <div
               className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
                 premium
-                  ? "dark:bg-amber-500/20 bg-amber-600/15"
+                  ? "dark:bg-amber-500/20 bg-amber-800/20"
                   : "bg-primary/20"
               }`}
             >
               {premium ? (
-                <Crown className="w-5 h-5 dark:text-amber-400 text-amber-600" />
+                <Crown className="w-5 h-5 dark:text-amber-400 text-amber-950" />
               ) : (
                 <Zap className="w-5 h-5 text-primary" />
               )}
             </div>
             <div>
-              <p className={`text-sm font-black ${premium ? "dark:text-amber-400 text-amber-700" : "text-foreground"}`}>
+              <p className={`text-sm font-black ${premium ? "dark:text-amber-400 text-amber-950" : "text-foreground"}`}>
                 {displayLabel}
               </p>
               <p className="text-[11px] text-muted-foreground font-medium">
@@ -1528,13 +1528,13 @@ function StepCTA({
           <div
             className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-transform group-hover:translate-x-0.5 ${
               premium
-                ? "dark:bg-amber-500/20 bg-amber-600/15"
+                ? "dark:bg-amber-500/20 bg-amber-800/20"
                 : "bg-primary/20"
             }`}
           >
             <ArrowRight
               className={`w-4 h-4 ${
-                premium ? "dark:text-amber-400 text-amber-600" : "text-primary"
+                premium ? "dark:text-amber-400 text-amber-950" : "text-primary"
               }`}
             />
           </div>
@@ -1639,7 +1639,7 @@ function BundleCard({
     <button
       type="button"
       onClick={onRequest}
-      className={`w-full group relative overflow-hidden rounded-2xl p-5 text-left transition-all active:scale-[0.97] dark:bg-gradient-to-br dark:from-amber-500/25 dark:via-orange-500/15 dark:to-yellow-500/20 bg-gradient-to-br from-amber-700/15 via-orange-700/10 to-yellow-700/10 border-2 dark:border-amber-400/50 dark:hover:border-amber-400/80 border-amber-600/40 hover:border-amber-600/60 shadow-xl dark:shadow-amber-500/15 dark:hover:shadow-amber-500/30 shadow-amber-600/10 hover:shadow-amber-600/20 ${
+      className={`w-full group relative overflow-hidden rounded-2xl p-5 text-left transition-all active:scale-[0.97] dark:bg-gradient-to-br dark:from-amber-500/25 dark:via-orange-500/15 dark:to-yellow-500/20 bg-gradient-to-b from-amber-300 via-yellow-500 to-amber-600 border-2 dark:border-amber-400/50 dark:hover:border-amber-400/80 border-amber-400/30 hover:border-amber-400/50 shadow-xl dark:shadow-amber-500/15 dark:hover:shadow-amber-500/30 shadow-amber-950/20 hover:shadow-amber-950/30 ${
         shaking ? "animate-shake" : ""
       }`}
       onMouseEnter={() => {
@@ -1648,15 +1648,15 @@ function BundleCard({
       }}
     >
       {/* Shimmer sweep */}
-      <div className="absolute inset-0 animate-shimmer pointer-events-none bg-gradient-to-r from-transparent dark:via-amber-400/20 via-amber-600/10 to-transparent" />
+      <div className="absolute inset-0 animate-shimmer pointer-events-none bg-gradient-to-r from-transparent dark:via-amber-400/20 via-white/40 to-transparent" />
 
       {/* Glow pulse */}
-      <div className="absolute -top-6 -right-6 w-32 h-32 dark:bg-amber-400/20 bg-amber-600/10 rounded-full blur-[40px] animate-pulse" />
+      <div className="absolute -top-6 -right-6 w-32 h-32 dark:bg-amber-400/20 bg-white/20 rounded-full blur-[40px] animate-pulse" />
 
       <div className="relative">
         {/* Badge row */}
         <div className="flex items-center gap-2 mb-3">
-          <Badge className="dark:bg-amber-400 dark:text-amber-950 bg-amber-600 text-white text-[10px] font-black uppercase tracking-widest border-0 px-2.5 py-0.5 shadow-lg dark:shadow-amber-400/30 shadow-amber-600/30">
+          <Badge className="dark:bg-amber-400 dark:text-amber-950 bg-amber-900 text-amber-100 text-[10px] font-black uppercase tracking-widest border-0 px-2.5 py-0.5 shadow-lg shadow-amber-900/30">
             {tj("bundleBadge")}
           </Badge>
           <Badge className="bg-red-500/90 text-white text-[10px] font-black border-0 px-2 py-0.5">
@@ -1667,33 +1667,33 @@ function BundleCard({
         {/* Title + description */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <h4 className="text-sm font-black dark:text-amber-400 text-amber-700 flex items-center gap-1.5">
+            <h4 className="text-sm font-black dark:text-amber-400 text-amber-950 flex items-center gap-1.5">
               <Crown className="w-4 h-4 shrink-0" />
               {tj(`bundleTitle_${bundle.id}`)}
             </h4>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs dark:text-muted-foreground text-amber-800 mt-1">
               {tj(`bundleSubtitle_${bundle.id}`)}
             </p>
           </div>
 
           {/* Package icon */}
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br dark:from-amber-400/30 dark:to-orange-500/20 from-amber-600/20 to-orange-600/10 border-2 dark:border-amber-400/40 border-amber-600/30 flex items-center justify-center shrink-0 shadow-lg dark:shadow-amber-500/20 shadow-amber-600/10">
-            <Package className="w-6 h-6 dark:text-amber-400 text-amber-700" />
+          <div className="w-12 h-12 rounded-xl dark:bg-gradient-to-br dark:from-amber-400/30 dark:to-orange-500/20 bg-amber-800/20 border-2 dark:border-amber-400/40 border-amber-800/30 flex items-center justify-center shrink-0 shadow-lg dark:shadow-amber-500/20 shadow-amber-800/10">
+            <Package className="w-6 h-6 dark:text-amber-400 text-amber-950" />
           </div>
         </div>
 
         {/* Price row */}
         <div className="flex items-center gap-3 mt-3">
-          <span className="text-xs text-muted-foreground line-through">
+          <span className="text-xs dark:text-muted-foreground text-amber-800/70 line-through">
             {bundle.originalCost} {tCommon("credits")}
           </span>
-          <span className="text-lg font-black dark:text-amber-400 text-amber-700">
+          <span className="text-lg font-black dark:text-amber-400 text-amber-950">
             {bundle.cost} {tCommon("credits")}
           </span>
         </div>
 
         {/* CTA button */}
-        <div className="mt-3 flex items-center justify-between bg-gradient-to-r dark:from-amber-500 dark:to-orange-500 from-amber-600 to-orange-600 rounded-xl px-4 py-3 text-white dark:text-amber-950 dark:group-hover:from-amber-400 dark:group-hover:to-orange-400 group-hover:from-amber-700 group-hover:to-orange-700 transition-all shadow-lg dark:shadow-amber-500/25 shadow-amber-600/20">
+        <div className="mt-3 flex items-center justify-between dark:bg-gradient-to-r dark:from-amber-500 dark:to-orange-500 bg-amber-900 rounded-xl px-4 py-3 dark:text-amber-950 text-amber-100 dark:group-hover:from-amber-400 dark:group-hover:to-orange-400 group-hover:bg-amber-800 transition-all shadow-lg dark:shadow-amber-500/25 shadow-amber-900/30">
           <span className="text-sm font-black tracking-wide">
             {tj(`bundleCta_${bundle.id}`)}
           </span>
