@@ -1,4 +1,4 @@
-import type { BookDetail, ChapterDetail } from '@/lib/api/types';
+import type { BookDetail, ChapterDetail, TranslationDetail } from '@/lib/api/types';
 import type { RenderableBook } from './types';
 
 /**
@@ -56,5 +56,52 @@ export function toRenderableBook(book: BookDetail, fallbackLocale?: string): Ren
     closure: book.closure,
     wordCount: book.wordCount,
     language: book.settings?.language ?? fallbackLocale ?? null,
+  };
+}
+
+/**
+ * Converts a BookDetail + TranslationDetail into a RenderableBook using translated content.
+ * Falls back to original content when translation fields are missing.
+ */
+export function toRenderableTranslatedBook(
+  book: BookDetail,
+  translation: TranslationDetail,
+): RenderableBook {
+  // Try to find translated cover for same language
+  const translatedCoverFile = book.files.find(
+    (f) => f.fileType === ('COVER_TRANSLATED' as string) && f.fileName.includes(translation.targetLanguage),
+  );
+
+  // Use translated cover, or fall back to selected cover / original cover
+  const coverUrl = translatedCoverFile?.fileUrl
+    ?? (book.selectedCoverFileId
+      ? (book.files.find((f) => f.id === book.selectedCoverFileId)?.fileUrl ?? book.coverUrl)
+      : book.coverUrl);
+
+  // Map translated chapters
+  const translatedChapters = translation.chapters
+    .filter((ch) => ch.translatedContent)
+    .sort((a, b) => a.sequence - b.sequence)
+    .map((ch) => ({
+      sequence: ch.sequence,
+      title: ch.translatedTitle || `Chapter ${ch.sequence}`,
+      content: ch.translatedContent || '',
+      imageUrl: null,
+    }));
+
+  return {
+    title: translation.translatedTitle || book.title,
+    subtitle: translation.translatedSubtitle || book.subtitle,
+    author: book.author,
+    coverUrl,
+    introduction: translation.translatedIntroduction || book.introduction,
+    chapters: translatedChapters,
+    conclusion: translation.translatedConclusion || book.conclusion,
+    finalConsiderations: translation.translatedFinalConsiderations || book.finalConsiderations,
+    glossary: translation.translatedGlossary || book.glossary,
+    appendix: translation.translatedAppendix || book.appendix,
+    closure: translation.translatedClosure || book.closure,
+    wordCount: book.wordCount,
+    language: translation.targetLanguage,
   };
 }

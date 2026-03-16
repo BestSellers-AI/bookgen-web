@@ -10,5 +10,6 @@ export { shareApi } from './share';
 export { filesApi } from './files';
 export { adminApi } from './admin';
 export { configApi } from './config';
+export { translationsApi } from './translations';
 
 export type * from './types';

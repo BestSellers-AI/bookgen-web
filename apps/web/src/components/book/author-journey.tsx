@@ -20,6 +20,7 @@ import {
   ArrowRight,
   Plus,
   Clock,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -221,6 +222,7 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
   const tj = useTranslations("authorJourney");
   const tCommon = useTranslations("common");
   const tPublishing = useTranslations("publishing");
+  const tTrans = useTranslations("translations");
   const fetchWalletStore = useWalletStore((s) => s.fetchWallet);
   const getCreditsCost = useConfigStore((s) => s.getCreditsCost);
   const getBundles = useConfigStore((s) => s.getBundles);
@@ -254,6 +256,11 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
   const [selectingImage, setSelectingImage] = useState<string | null>(null);
   const [requestingMoreImages, setRequestingMoreImages] = useState(false);
   const [selectedChapterForImage, setSelectedChapterForImage] = useState("");
+
+  // Translation sheets state
+  const [translationsSheetOpen, setTranslationsSheetOpen] = useState(false);
+  const [coverTranslationsSheetOpen, setCoverTranslationsSheetOpen] = useState(false);
+  const [expandedTranslatedCover, setExpandedTranslatedCover] = useState<{ url: string; fileName: string } | null>(null);
 
   // Confirmation dialog for "generate more" actions
   const [confirmMoreType, setConfirmMoreType] = useState<"covers" | "images" | null>(null);
@@ -798,6 +805,41 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
                               );
                             }
 
+                            // Translation addons: open sheets
+                            const hasTranslation = addons.find(
+                              (a) =>
+                                step.kinds.includes(a.kind as ProductKind) &&
+                                a.status === AddonStatus.COMPLETED &&
+                                a.kind === ProductKind.ADDON_TRANSLATION,
+                            );
+                            if (hasTranslation) {
+                              return (
+                                <div className="mt-2">
+                                  <Button variant="outline" size="sm" className="rounded-xl text-xs gap-1.5 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10" onClick={() => setTranslationsSheetOpen(true)}>
+                                    <Globe className="w-3.5 h-3.5" />
+                                    {tTrans("viewTranslations")}
+                                  </Button>
+                                </div>
+                              );
+                            }
+
+                            const hasCoverTranslation = addons.find(
+                              (a) =>
+                                step.kinds.includes(a.kind as ProductKind) &&
+                                a.status === AddonStatus.COMPLETED &&
+                                a.kind === ProductKind.ADDON_COVER_TRANSLATION,
+                            );
+                            if (hasCoverTranslation) {
+                              return (
+                                <div className="mt-2">
+                                  <Button variant="outline" size="sm" className="rounded-xl text-xs gap-1.5 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10" onClick={() => setCoverTranslationsSheetOpen(true)}>
+                                    <Globe className="w-3.5 h-3.5" />
+                                    {tTrans("viewTranslatedCovers")}
+                                  </Button>
+                                </div>
+                              );
+                            }
+
                             const completed = addons.find(
                               (a) =>
                                 step.kinds.includes(a.kind as ProductKind) &&
@@ -1200,37 +1242,255 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
               return (
                 <div
                   key={config.kind}
-                  className="flex items-center gap-3 p-4 rounded-xl bg-accent/30 border border-border"
+                  className="p-4 rounded-xl bg-accent/30 border border-border space-y-3"
                 >
-                  <div
-                    className={`w-11 h-11 rounded-xl border flex items-center justify-center shrink-0 ${config.iconBg}`}
-                  >
-                    <Icon className={`w-5 h-5 ${config.color}`} />
+                  <div className="flex items-start gap-3">
+                    <div
+                      className={`w-11 h-11 rounded-xl border flex items-center justify-center shrink-0 ${config.iconBg}`}
+                    >
+                      <Icon className={`w-5 h-5 ${config.color}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-foreground">
+                        {t(`kind_${config.kind}`)}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {t(`kindDesc_${config.kind}`)}
+                      </p>
+                      {t(`time_${config.kind}`) && (
+                        <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-bold text-primary/70">
+                          <Clock className="w-3 h-3" />
+                          {t(`time_${config.kind}`)}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-foreground">
-                      {t(`kind_${config.kind}`)}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {t(`kindDesc_${config.kind}`)}
-                    </p>
-                    <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-bold text-primary/70">
-                      <Clock className="w-3 h-3" />
-                      {t(`time_${config.kind}`)}
-                    </span>
-                  </div>
-                  <div className="shrink-0">
+                  <div className="flex justify-end">
                     <ExtraAddonAction
                       config={config}
                       existing={existing}
                       onRequest={openRequestDialog}
                       tAddons={t}
                       tCommon={tCommon}
+                      onViewTranslations={() => setTranslationsSheetOpen(true)}
+                      onViewCoverTranslations={() => setCoverTranslationsSheetOpen(true)}
+                      viewLabel={
+                        config.kind === ProductKind.ADDON_TRANSLATION
+                          ? tj("viewTranslations")
+                          : config.kind === ProductKind.ADDON_COVER_TRANSLATION
+                            ? tj("viewTranslatedCovers")
+                            : undefined
+                      }
                     />
                   </div>
                 </div>
               );
             })}
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* ─── Translated Covers Sheet ─── */}
+      <Sheet open={coverTranslationsSheetOpen} onOpenChange={(open) => {
+        setCoverTranslationsSheetOpen(open);
+        if (!open) setExpandedTranslatedCover(null);
+      }}>
+        <SheetContent side="bottom" className="rounded-t-[2rem] max-h-[85vh] overflow-y-auto">
+          <SheetHeader className="text-left pb-4">
+            <SheetTitle className="flex items-center gap-2">
+              <Globe className="w-5 h-5 text-cyan-500" />
+              {tTrans("translatedCovers")}
+            </SheetTitle>
+          </SheetHeader>
+
+          {expandedTranslatedCover ? (
+            <div className="pb-6 space-y-4">
+              <button
+                type="button"
+                onClick={() => setExpandedTranslatedCover(null)}
+                className="text-xs font-bold text-primary flex items-center gap-1"
+              >
+                <ArrowRight className="w-3 h-3 rotate-180" />
+                {tTrans("backToGallery")}
+              </button>
+              <div className="flex justify-center">
+                <img
+                  src={expandedTranslatedCover.url}
+                  alt={expandedTranslatedCover.fileName}
+                  className="max-h-[50vh] w-auto rounded-xl border-2 border-border shadow-xl object-contain"
+                />
+              </div>
+              <div className="flex flex-col items-center gap-3">
+                <Badge variant="secondary" className="bg-cyan-500/10 text-cyan-400 text-xs font-bold">
+                  <Globe className="w-3 h-3 mr-1" />
+                  {(() => {
+                    const match = expandedTranslatedCover.fileName.match(/cover-translated-([^.]+)\./);
+                    const langCode = match ? match[1] : "unknown";
+                    return SUPPORTED_LANGUAGES.find((l) => l.code === langCode)?.name ?? langCode;
+                  })()}
+                </Badge>
+                {(() => {
+                  const match = expandedTranslatedCover.fileName.match(/cover-translated-([^.]+)\./);
+                  const langCode = match ? match[1] : "";
+                  const matchingTrans = book.translations?.find(
+                    (tr) => tr.targetLanguage === langCode && tr.status === "TRANSLATED"
+                  );
+                  if (matchingTrans) {
+                    return (
+                      <Button variant="outline" size="sm" className="rounded-xl text-xs gap-2" asChild>
+                        <Link href={`/dashboard/books/${book.id}/translations/${matchingTrans.id}`}>
+                          <Eye className="w-3 h-3" />
+                          {tTrans("viewTranslatedBook")}
+                        </Link>
+                      </Button>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 pb-6">
+              {book.files
+                .filter((f) => f.fileType === ("COVER_TRANSLATED" as string))
+                .map((file) => {
+                  const match = file.fileName.match(/cover-translated-([^.]+)\./);
+                  const langCode = match ? match[1] : "unknown";
+                  const langName = SUPPORTED_LANGUAGES.find((l) => l.code === langCode)?.name ?? langCode;
+
+                  return (
+                    <button
+                      key={file.id}
+                      type="button"
+                      onClick={() => setExpandedTranslatedCover({ url: file.fileUrl, fileName: file.fileName })}
+                      className="relative group rounded-xl overflow-hidden border-2 border-border hover:border-primary/50 transition-all aspect-[3/4]"
+                    >
+                      <img src={file.fileUrl} alt={file.fileName} className="w-full h-full object-cover" />
+                      <div className="absolute top-2 left-2">
+                        <Badge variant="secondary" className="bg-black/60 text-white text-[9px] font-bold backdrop-blur-sm border-none">
+                          <Globe className="w-2.5 h-2.5 mr-1" />
+                          {langName}
+                        </Badge>
+                      </div>
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-end justify-center pb-3 opacity-0 group-hover:opacity-100">
+                        <span className="text-white text-[10px] font-bold bg-black/60 px-2.5 py-1 rounded-lg backdrop-blur-sm">
+                          {tTrans("tapToExpand")}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              {book.files.filter((f) => f.fileType === ("COVER_TRANSLATED" as string)).length === 0 && (
+                <div className="col-span-full py-8 text-center text-muted-foreground text-sm">
+                  {tTrans("noCoverTranslations")}
+                </div>
+              )}
+
+              {/* Generate another translated cover */}
+              {(() => {
+                const hasCoverTransProcessing = addons.some(
+                  (a) => a.kind === ProductKind.ADDON_COVER_TRANSLATION && isAddonProcessing(a.status),
+                );
+                const coverTransConfig = ALL_ADDON_CONFIGS.find((c) => c.kind === ProductKind.ADDON_COVER_TRANSLATION);
+                if (!coverTransConfig) return null;
+                return (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCoverTranslationsSheetOpen(false);
+                      openRequestDialog(coverTransConfig);
+                    }}
+                    disabled={hasCoverTransProcessing}
+                    className="rounded-xl border-2 border-dashed border-primary/30 hover:border-primary/60 transition-all aspect-[3/4] flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {hasCoverTransProcessing ? (
+                      <>
+                        <Loader2 className="w-8 h-8 animate-spin text-primary/60" />
+                        <span className="text-[10px] font-bold text-primary/60">
+                          {t("processing")}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                          <Plus className="w-6 h-6 text-primary" />
+                        </div>
+                        <span className="text-xs font-bold text-center px-2">{tTrans("translatedCovers")}</span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {coverTransConfig.cost} {tCommon("credits")}
+                        </span>
+                      </>
+                    )}
+                  </button>
+                );
+              })()}
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      {/* ─── Book Translations Sheet ─── */}
+      <Sheet open={translationsSheetOpen} onOpenChange={setTranslationsSheetOpen}>
+        <SheetContent side="bottom" className="rounded-t-[2rem] max-h-[85vh] overflow-y-auto">
+          <SheetHeader className="text-left pb-4">
+            <SheetTitle className="flex items-center gap-2">
+              <Globe className="w-5 h-5 text-blue-500" />
+              {tTrans("bookTranslations")}
+            </SheetTitle>
+          </SheetHeader>
+
+          <div className="space-y-3 pb-6">
+            {(book.translations ?? []).length === 0 ? (
+              <div className="py-8 text-center text-muted-foreground text-sm">
+                {tTrans("noTranslations")}
+              </div>
+            ) : (
+              (book.translations ?? []).map((trans) => {
+                const langName = SUPPORTED_LANGUAGES.find((l) => l.code === trans.targetLanguage)?.name ?? trans.targetLanguage;
+                return (
+                  <div key={trans.id} className="flex items-center justify-between rounded-xl border border-border p-4 bg-accent/30">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                        <Globe className="w-4 h-4 text-blue-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold">{langName}</p>
+                        {trans.translatedTitle && (
+                          <p className="text-xs text-muted-foreground">{trans.translatedTitle}</p>
+                        )}
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <Badge variant="secondary" className={`text-[8px] font-black uppercase tracking-widest ${
+                            trans.status === "TRANSLATED"
+                              ? "bg-emerald-500/10 text-emerald-400"
+                              : "bg-amber-500/10 text-amber-400"
+                          }`}>
+                            {trans.status === "TRANSLATED" ? (
+                              <CheckCircle2 className="w-2.5 h-2.5 mr-0.5" />
+                            ) : (
+                              <Loader2 className="w-2.5 h-2.5 mr-0.5 animate-spin" />
+                            )}
+                            {trans.status === "TRANSLATED" ? tTrans("completed") : tTrans("translating")}
+                          </Badge>
+                          {trans.status === "TRANSLATING" && (
+                            <span className="text-[9px] text-muted-foreground">
+                              {tTrans("chapterProgress", { completed: trans.completedChapters, total: trans.totalChapters })}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    {trans.status === "TRANSLATED" && (
+                      <Button variant="outline" size="sm" className="rounded-lg text-xs gap-1" asChild>
+                        <Link href={`/dashboard/books/${book.id}/translations/${trans.id}`}>
+                          <Eye className="w-3 h-3" />
+                          {tTrans("viewTranslatedBook")}
+                        </Link>
+                      </Button>
+                    )}
+                  </div>
+                );
+              })
+            )}
           </div>
         </SheetContent>
       </Sheet>
@@ -1434,6 +1694,9 @@ function StepCTA({
   label,
   sublabel,
   premium,
+  onViewTranslations,
+  onViewCoverTranslations,
+  viewLabel,
 }: {
   config: AddonConfig;
   existing: BookAddonSummary | undefined;
@@ -1444,8 +1707,32 @@ function StepCTA({
   label?: string;
   sublabel?: string;
   premium?: boolean;
+  onViewTranslations?: () => void;
+  onViewCoverTranslations?: () => void;
+  viewLabel?: string;
 }) {
   if (existing?.status === AddonStatus.COMPLETED) {
+    // Translation addons open sheets via onViewTranslations/onViewCoverTranslations
+    if (config.kind === ProductKind.ADDON_TRANSLATION && onViewTranslations) {
+      return (
+        <div className="mt-2">
+          <Button variant="outline" size="sm" className="rounded-xl text-xs gap-1.5 border-emerald-500/20 text-emerald-400" onClick={onViewTranslations}>
+            <Globe className="w-3.5 h-3.5" />
+            {viewLabel ?? tAddons("viewResult")}
+          </Button>
+        </div>
+      );
+    }
+    if (config.kind === ProductKind.ADDON_COVER_TRANSLATION && onViewCoverTranslations) {
+      return (
+        <div className="mt-2">
+          <Button variant="outline" size="sm" className="rounded-xl text-xs gap-1.5 border-emerald-500/20 text-emerald-400" onClick={onViewCoverTranslations}>
+            <Globe className="w-3.5 h-3.5" />
+            {viewLabel ?? tAddons("viewResult")}
+          </Button>
+        </div>
+      );
+    }
     return existing.resultUrl ? (
       <div className="mt-2">
         <Button
@@ -1550,14 +1837,36 @@ function ExtraAddonAction({
   onRequest,
   tAddons,
   tCommon,
+  onViewTranslations,
+  onViewCoverTranslations,
+  viewLabel,
 }: {
   config: AddonConfig;
   existing: BookAddonSummary | undefined;
   onRequest: (config: AddonConfig) => void;
   tAddons: ReturnType<typeof useTranslations>;
   tCommon: ReturnType<typeof useTranslations>;
+  onViewTranslations?: () => void;
+  onViewCoverTranslations?: () => void;
+  viewLabel?: string;
 }) {
   if (existing?.status === AddonStatus.COMPLETED) {
+    if (config.kind === ProductKind.ADDON_TRANSLATION && onViewTranslations) {
+      return (
+        <Button variant="outline" size="sm" className="rounded-xl text-xs gap-1" onClick={onViewTranslations}>
+          <Globe className="w-3 h-3" />
+          {viewLabel ?? tAddons("viewResult")}
+        </Button>
+      );
+    }
+    if (config.kind === ProductKind.ADDON_COVER_TRANSLATION && onViewCoverTranslations) {
+      return (
+        <Button variant="outline" size="sm" className="rounded-xl text-xs gap-1" onClick={onViewCoverTranslations}>
+          <Globe className="w-3 h-3" />
+          {viewLabel ?? tAddons("viewResult")}
+        </Button>
+      );
+    }
     return existing.resultUrl ? (
       <Button
         variant="outline"

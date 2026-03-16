@@ -213,6 +213,26 @@ export interface BookTranslationSummary {
   createdAt: string;
 }
 
+export interface TranslationChapterDetail {
+  id: string;
+  chapterId: string;
+  sequence: number;
+  translatedTitle: string | null;
+  translatedContent: string | null;
+  status: TranslationStatus;
+  createdAt: string;
+}
+
+export interface TranslationDetail extends BookTranslationSummary {
+  translatedIntroduction: string | null;
+  translatedConclusion: string | null;
+  translatedFinalConsiderations: string | null;
+  translatedGlossary: string | null;
+  translatedAppendix: string | null;
+  translatedClosure: string | null;
+  chapters: TranslationChapterDetail[];
+}
+
 export interface SharedBookInfo {
   id: string;
   shareToken: string;

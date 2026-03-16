@@ -8,6 +8,7 @@ import { AppConfigService } from '../../config/app-config.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ChapterStatus, ProductKind } from '@prisma/client';
 import { StorageService } from '../../storage/storage.service';
+import { TranslationService } from '../../translations/translation.service';
 import {
   getGuidedPreviewSystemPrompt,
   getSimplePreviewSystemPrompt,
@@ -38,6 +39,15 @@ import {
   buildChapterImageGenerationPrompt,
   CHAPTER_IMAGES_SCHEMA,
 } from '../prompts/chapter-images.prompts';
+import {
+  getTranslationSystemPrompt,
+  buildChapterTranslationUserPrompt,
+  buildBackMatterTranslationUserPrompt,
+  buildTitleTranslationUserPrompt,
+  CHAPTER_TRANSLATION_SCHEMA,
+  TITLE_TRANSLATION_SCHEMA,
+} from '../prompts/translation.prompts';
+import { buildCoverTranslationPrompt } from '../prompts/cover-translation.prompts';
 import {
   capitalizeTitle,
   getPromptLanguage,
@@ -108,6 +118,7 @@ export class GenerationProcessor extends WorkerHost {
     private readonly prisma: PrismaService,
     private readonly eventEmitter: EventEmitter2,
     private readonly storageService: StorageService,
+    private readonly translationService: TranslationService,
   ) {
     super();
   }
@@ -579,6 +590,10 @@ export class GenerationProcessor extends WorkerHost {
         await this.processAddonCover(job);
       } else if (addonKind === ProductKind.ADDON_IMAGES) {
         await this.processAddonImages(job);
+      } else if (addonKind === ProductKind.ADDON_TRANSLATION) {
+        await this.processAddonTranslation(job);
+      } else if (addonKind === ProductKind.ADDON_COVER_TRANSLATION) {
+        await this.processAddonCoverTranslation(job);
       } else {
         // Other addon types not yet implemented — mock result
         await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -894,6 +909,316 @@ export class GenerationProcessor extends WorkerHost {
     this.logger.log(
       `[images] Chapter images completed for book ${bookId}: ${generatedImages.length}/${totalChapters} images`,
     );
+  }
+
+  // ─── Translation ────────────────────────────────────────────────────
+
+  private async processAddonTranslation(job: Job<AddonJobData>): Promise<void> {
+    const { bookId, addonId, addonKind, params } = job.data;
+    const bookContext = (params?.bookContext ?? {}) as Record<string, unknown>;
+    const targetLanguage = (params?.targetLanguage as string) || 'en';
+
+    // Fetch full book data from DB
+    const book = await this.prisma.book.findUnique({
+      where: { id: bookId },
+      select: {
+        title: true,
+        subtitle: true,
+        settings: true,
+        introduction: true,
+        conclusion: true,
+        finalConsiderations: true,
+        glossary: true,
+        appendix: true,
+        closure: true,
+        chapters: {
+          orderBy: { sequence: 'asc' as const },
+          select: { id: true, sequence: true, title: true, content: true, topics: true },
+        },
+      },
+    });
+
+    if (!book) throw new Error(`Book ${bookId} not found`);
+
+    const settings = book.settings as Record<string, unknown> | null;
+    const sourceLanguage = (settings?.language as string) || 'en';
+    const systemPrompt = getTranslationSystemPrompt(targetLanguage, sourceLanguage);
+
+    // Step 1: Find existing or create BookTranslation + TranslationChapter records
+    // Idempotency: if job is retried after crash, reuse the existing TRANSLATING translation
+    let translation = await this.prisma.bookTranslation.findFirst({
+      where: { bookId, targetLanguage, status: 'TRANSLATING' },
+    });
+
+    if (!translation) {
+      translation = await this.prisma.bookTranslation.create({
+        data: {
+          bookId,
+          targetLanguage,
+          status: 'TRANSLATING',
+          totalChapters: book.chapters.length,
+          completedChapters: 0,
+          chapters: {
+            create: book.chapters.map((ch) => ({
+              chapterId: ch.id,
+              sequence: ch.sequence,
+              status: 'PENDING',
+            })),
+          },
+        },
+      });
+      this.logger.log(`[translation] Created translation ${translation.id} for book ${bookId} → ${targetLanguage}`);
+    } else {
+      this.logger.log(`[translation] Resuming translation ${translation.id} for book ${bookId} → ${targetLanguage}`);
+    }
+
+    await job.updateProgress(5);
+
+    // Step 2: Translate title + subtitle (skip if already done on resume)
+    if (!translation.translatedTitle) {
+      const titleResult = await this.llmService.chatCompletionJson<{
+        translatedTitle: string;
+        translatedSubtitle: string;
+      }>({
+        model: this.config.llmModelGeneration,
+        systemPrompt,
+        userPrompt: buildTitleTranslationUserPrompt(book.title, book.subtitle, targetLanguage),
+        schema: TITLE_TRANSLATION_SCHEMA,
+        schemaName: 'title_translation',
+      });
+
+      await this.prisma.bookTranslation.update({
+        where: { id: translation.id },
+        data: {
+          translatedTitle: titleResult.translatedTitle,
+          translatedSubtitle: titleResult.translatedSubtitle || null,
+        },
+      });
+    } else {
+      this.logger.log(`[translation] Title already translated, skipping`);
+    }
+
+    await job.updateProgress(10);
+
+    // Step 3: Translate back matter in parallel (skip if already done on resume)
+    if (!translation.translatedIntroduction && !translation.translatedConclusion) {
+      const backMatterSections: Array<{ field: string; content: string; label: string }> = [];
+      if (book.introduction) backMatterSections.push({ field: 'translatedIntroduction', content: book.introduction, label: 'Introduction' });
+      if (book.conclusion) backMatterSections.push({ field: 'translatedConclusion', content: book.conclusion, label: 'Conclusion' });
+      if (book.finalConsiderations) backMatterSections.push({ field: 'translatedFinalConsiderations', content: book.finalConsiderations, label: 'Final Considerations' });
+      if (book.glossary) {
+        const glossaryText = typeof book.glossary === 'string' ? book.glossary : JSON.stringify(book.glossary);
+        backMatterSections.push({ field: 'translatedGlossary', content: glossaryText, label: 'Glossary' });
+      }
+      if (book.appendix) backMatterSections.push({ field: 'translatedAppendix', content: book.appendix, label: 'Appendix' });
+      if (book.closure) backMatterSections.push({ field: 'translatedClosure', content: book.closure, label: 'Closure' });
+
+      if (backMatterSections.length > 0) {
+        const backMatterResults = await Promise.all(
+          backMatterSections.map(async (section) => {
+            const result = await this.llmService.chatCompletion({
+              model: this.config.llmModelGeneration,
+              systemPrompt,
+              userPrompt: buildBackMatterTranslationUserPrompt(section.label, section.content, targetLanguage),
+            });
+            return { field: section.field, content: result.content };
+          }),
+        );
+
+        const updateData: Record<string, string> = {};
+        for (const r of backMatterResults) {
+          updateData[r.field] = r.content;
+        }
+
+        await this.prisma.bookTranslation.update({
+          where: { id: translation.id },
+          data: updateData,
+        });
+      }
+    } else {
+      this.logger.log(`[translation] Back matter already translated, skipping`);
+    }
+
+    await job.updateProgress(20);
+
+    // Step 4: Translate chapters sequentially
+    // Build set of already-translated chapter IDs for resumability
+    const completedChapterIds = new Set(
+      (await this.prisma.translationChapter.findMany({
+        where: { translationId: translation.id, status: 'TRANSLATED' },
+        select: { chapterId: true },
+      })).map((c) => c.chapterId),
+    );
+
+    const totalChapters = book.chapters.length;
+
+    for (let i = 0; i < book.chapters.length; i++) {
+      const chapter = book.chapters[i];
+
+      // Skip already translated chapters (resume after crash)
+      if (completedChapterIds.has(chapter.id)) {
+        this.logger.log(`[translation] Skipping already translated chapter ${chapter.sequence} for book ${bookId}`);
+        continue;
+      }
+
+      // Heartbeat before LLM call
+      const progressBefore = 20 + Math.round((i / totalChapters) * 75);
+      await job.updateProgress(progressBefore);
+
+      // Build chapter content from topics if flat content is not available
+      let chapterContent = chapter.content || '';
+      if (!chapterContent && chapter.topics) {
+        const topics = chapter.topics as Array<{ title: string; content: string }>;
+        chapterContent = topics.map((t) => `## ${t.title}\n\n${t.content}`).join('\n\n');
+      }
+
+      if (!chapterContent) {
+        this.logger.warn(`[translation] Chapter ${chapter.sequence} has no content, skipping`);
+        continue;
+      }
+
+      const chapterResult = await this.llmService.chatCompletionJson<{
+        translatedTitle: string;
+        translatedContent: string;
+      }>({
+        model: this.config.llmModelGeneration,
+        systemPrompt,
+        userPrompt: buildChapterTranslationUserPrompt(chapter.title, chapterContent, targetLanguage),
+        schema: CHAPTER_TRANSLATION_SCHEMA,
+        schemaName: 'chapter_translation',
+      });
+
+      // Heartbeat after LLM call
+      await job.updateProgress(progressBefore + 1);
+
+      // Save translated chapter (processChapterTranslation has its own idempotency guard)
+      await this.translationService.processChapterTranslation(translation.id, {
+        chapterId: chapter.id,
+        translatedTitle: chapterResult.translatedTitle,
+        translatedContent: chapterResult.translatedContent,
+      });
+
+      // Emit SSE progress
+      this.eventEmitter.emit('book.addon.progress', {
+        bookId,
+        addonId,
+        status: 'translating',
+        currentChapter: i + 1,
+        totalChapters,
+      });
+
+      this.logger.log(`[translation] Chapter ${i + 1}/${totalChapters} translated for book ${bookId}`);
+    }
+
+    await job.updateProgress(100);
+
+    // processChapterTranslation auto-completes the BookTranslation when all chapters are done
+    await this.hooksService.processAddonResult({
+      bookId,
+      addonId,
+      addonKind,
+      status: 'success',
+      resultData: { targetLanguage, translationId: translation.id },
+    });
+
+    this.logger.log(`[translation] Translation completed for book ${bookId} → ${targetLanguage}`);
+  }
+
+  private async processAddonCoverTranslation(job: Job<AddonJobData>): Promise<void> {
+    const { bookId, addonId, addonKind, params } = job.data;
+    const targetLanguage = (params?.targetLanguage as string) || 'en';
+
+    // Find the book with cover info
+    const book = await this.prisma.book.findUnique({
+      where: { id: bookId },
+      select: {
+        title: true,
+        subtitle: true,
+        author: true,
+        settings: true,
+        selectedCoverFileId: true,
+      },
+    });
+
+    if (!book) throw new Error(`Book ${bookId} not found`);
+
+    if (!book.selectedCoverFileId) {
+      throw new Error('No cover selected. Please select a cover before requesting cover translation.');
+    }
+
+    // Find the selected cover file
+    const selectedCover = await this.prisma.bookFile.findFirst({
+      where: { id: book.selectedCoverFileId, bookId, fileType: 'COVER_IMAGE' },
+      select: { fileUrl: true },
+    });
+
+    if (!selectedCover) {
+      throw new Error('Selected cover file not found.');
+    }
+
+    const referenceImageUrl = selectedCover.fileUrl;
+
+    await job.updateProgress(10);
+
+    // Translate title + subtitle
+    const settings = book.settings as Record<string, unknown> | null;
+    const sourceLanguage = (settings?.language as string) || 'en';
+    const systemPrompt = getTranslationSystemPrompt(targetLanguage, sourceLanguage);
+
+    const titleResult = await this.llmService.chatCompletionJson<{
+      translatedTitle: string;
+      translatedSubtitle: string;
+    }>({
+      model: this.config.llmModelGeneration,
+      systemPrompt,
+      userPrompt: buildTitleTranslationUserPrompt(book.title, book.subtitle, targetLanguage),
+      schema: TITLE_TRANSLATION_SCHEMA,
+      schemaName: 'title_translation',
+    });
+
+    await job.updateProgress(20);
+
+    // Generate translated cover via multimodal image model
+    const coverPrompt = buildCoverTranslationPrompt(
+      targetLanguage,
+      book.title,
+      book.subtitle,
+      book.author,
+      titleResult.translatedTitle,
+      titleResult.translatedSubtitle || null,
+    );
+
+    const imageResult = await this.llmService.generateImageWithReference({
+      model: this.config.llmModelImage,
+      prompt: coverPrompt,
+      referenceImageUrl,
+      temperature: 0.7,
+    });
+
+    await job.updateProgress(80);
+
+    // Upload to S3
+    const ext = imageResult.mimeType.includes('png') ? 'png' : 'jpg';
+    const key = `covers/${bookId}/translated-${targetLanguage}-${Date.now()}.${ext}`;
+    const buffer = Buffer.from(imageResult.imageBase64, 'base64');
+    const url = await this.storageService.upload(key, buffer, imageResult.mimeType);
+
+    await job.updateProgress(95);
+
+    await this.hooksService.processAddonResult({
+      bookId,
+      addonId,
+      addonKind,
+      status: 'success',
+      resultUrl: url,
+      resultData: {
+        targetLanguage,
+        translatedTitle: titleResult.translatedTitle,
+        translatedSubtitle: titleResult.translatedSubtitle,
+      },
+    });
+
+    this.logger.log(`[cover-translation] Cover translated for book ${bookId} → ${targetLanguage}`);
   }
 
   // ─── Shared helpers ───────────────────────────────────────────────────

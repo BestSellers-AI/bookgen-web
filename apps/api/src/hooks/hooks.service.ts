@@ -800,47 +800,25 @@ export class HooksService {
       }
 
       case ProductKind.ADDON_TRANSLATION: {
-        // Create BookTranslation + TranslationChapter records
-        const targetLanguage = (resultData?.targetLanguage as string) ?? 'unknown';
-        const translatedTitle = resultData?.translatedTitle as string | undefined;
-        const translatedSubtitle = resultData?.translatedSubtitle as string | undefined;
-
-        // Get book chapters to create translation chapter records
-        const chapters = await this.prisma.chapter.findMany({
-          where: { bookId: dto.bookId },
-          orderBy: { sequence: 'asc' },
-          select: { id: true, sequence: true, title: true },
-        });
-
-        await this.prisma.bookTranslation.create({
-          data: {
-            bookId: dto.bookId,
-            targetLanguage,
-            status: TranslationStatus.TRANSLATING,
-            translatedTitle: translatedTitle ?? null,
-            translatedSubtitle: translatedSubtitle ?? null,
-            totalChapters: chapters.length,
-            completedChapters: 0,
-            chapters: {
-              create: chapters.map((ch) => ({
-                chapterId: ch.id,
-                sequence: ch.sequence,
-                status: TranslationStatus.PENDING,
-              })),
-            },
-          },
-        });
+        // Translation records are now created by processAddonTranslation in the processor.
+        // The resultData contains the translationId for reference.
+        // If a translationId is provided, the translation was already created by the processor.
+        const translationId = resultData?.translationId as string | undefined;
+        if (translationId) {
+          this.logger.log(`Translation ${translationId} already created by processor for book ${dto.bookId}`);
+        }
         break;
       }
 
       case ProductKind.ADDON_COVER_TRANSLATION: {
         // Create BookFile for translated cover
+        const coverTargetLang = (resultData?.targetLanguage as string) ?? 'unknown';
         if (dto.resultUrl) {
           await this.prisma.bookFile.create({
             data: {
               bookId: dto.bookId,
               fileType: FileType.COVER_TRANSLATED,
-              fileName: 'cover-translated.png',
+              fileName: `cover-translated-${coverTargetLang}.png`,
               fileUrl: dto.resultUrl,
             },
           });

@@ -59,6 +59,7 @@ export class AddonService {
         closure: true,
         wordCount: true,
         pageCount: true,
+        selectedCoverFileId: true,
         chapters: {
           orderBy: { sequence: 'asc' as const },
           select: { id: true, sequence: true, title: true },
@@ -74,6 +75,15 @@ export class AddonService {
       throw new BadRequestException(
         'Add-ons can only be requested for fully generated books',
       );
+    }
+
+    // Validate a cover is selected before allowing cover translation
+    if (dto.kind === 'ADDON_COVER_TRANSLATION') {
+      if (!book.selectedCoverFileId) {
+        throw new BadRequestException(
+          'Please select a cover before requesting cover translation.',
+        );
+      }
     }
 
     // Determine credit cost
@@ -104,8 +114,13 @@ export class AddonService {
     // Build addon-specific params
     const dispatchParams: Record<string, unknown> = { ...(dto.params ?? {}) };
 
-    // Enrich cover/images addon dispatch with book context
-    if (dto.kind === 'ADDON_COVER' || dto.kind === 'ADDON_IMAGES') {
+    // Enrich addon dispatch with book context
+    if (
+      dto.kind === 'ADDON_COVER' ||
+      dto.kind === 'ADDON_IMAGES' ||
+      dto.kind === 'ADDON_TRANSLATION' ||
+      dto.kind === 'ADDON_COVER_TRANSLATION'
+    ) {
       dispatchParams.bookContext = {
         title: book.title,
         subtitle: book.subtitle,

@@ -130,6 +130,7 @@ interface AddonSectionProps {
 export function AddonSection({ book, onRefetch }: AddonSectionProps) {
   const t = useTranslations("addons");
   const tCommon = useTranslations("common");
+  const tTranslations = useTranslations("translations");
   const fetchWalletStore = useWalletStore((s) => s.fetchWallet);
   const getCreditsCost = useConfigStore((s) => s.getCreditsCost);
   const ADDON_CONFIGS = buildAddonConfigs(getCreditsCost);
@@ -156,7 +157,30 @@ export function AddonSection({ book, onRefetch }: AddonSectionProps) {
   }, [fetchAddons]);
 
   const getExistingAddon = (kind: ProductKind): BookAddonSummary | undefined => {
+    // For translation addons, prioritize COMPLETED or PROCESSING over ERROR
+    if (kind === ProductKind.ADDON_TRANSLATION || kind === ProductKind.ADDON_COVER_TRANSLATION) {
+      const matching = addons.filter((a) => a.kind === kind);
+      // Prefer completed, then processing, then most recent
+      const completed = matching.find((a) => a.status === AddonStatus.COMPLETED);
+      if (completed) return completed;
+      const processing = matching.find((a) =>
+        a.status === AddonStatus.PENDING ||
+        a.status === AddonStatus.QUEUED ||
+        a.status === AddonStatus.PROCESSING
+      );
+      if (processing) return processing;
+      // Fallback to most recent (e.g. ERROR)
+      return matching.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+    }
     return addons.find((a) => a.kind === kind);
+  };
+
+  const canRequestMore = (kind: ProductKind): boolean => {
+    // Translation addons can always be requested again (different languages)
+    if (kind === ProductKind.ADDON_TRANSLATION || kind === ProductKind.ADDON_COVER_TRANSLATION) {
+      return true;
+    }
+    return false;
   };
 
   const openRequestDialog = (config: AddonConfig) => {
@@ -264,31 +288,67 @@ export function AddonSection({ book, onRefetch }: AddonSectionProps) {
                 </span>
                 {existing ? (
                   existing.status === AddonStatus.COMPLETED ? (
-                    existing.resultUrl ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="rounded-lg text-xs gap-1"
-                        asChild
-                      >
-                        <a
-                          href={existing.resultUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                    <div className="flex items-center gap-1.5">
+                      {config.kind === ProductKind.ADDON_TRANSLATION ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="rounded-lg text-xs gap-1"
+                          asChild
                         >
-                          <ExternalLink className="w-3 h-3" />
-                          {t("viewResult")}
-                        </a>
-                      </Button>
-                    ) : (
-                      <Badge
-                        variant="secondary"
-                        className="bg-emerald-500/10 text-emerald-400 text-[10px]"
-                      >
-                        <CheckCircle2 className="w-3 h-3 mr-1" />
-                        {t("done")}
-                      </Badge>
-                    )
+                          <Link href={`/dashboard/books/${book.id}/translations`}>
+                            <Globe className="w-3 h-3" />
+                            {tTranslations("viewTranslations")}
+                          </Link>
+                        </Button>
+                      ) : config.kind === ProductKind.ADDON_COVER_TRANSLATION ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="rounded-lg text-xs gap-1"
+                          asChild
+                        >
+                          <Link href={`/dashboard/books/${book.id}/translations?tab=covers`}>
+                            <Globe className="w-3 h-3" />
+                            {tTranslations("viewTranslatedCovers")}
+                          </Link>
+                        </Button>
+                      ) : existing.resultUrl ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="rounded-lg text-xs gap-1"
+                          asChild
+                        >
+                          <a
+                            href={existing.resultUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            {t("viewResult")}
+                          </a>
+                        </Button>
+                      ) : (
+                        <Badge
+                          variant="secondary"
+                          className="bg-emerald-500/10 text-emerald-400 text-[10px]"
+                        >
+                          <CheckCircle2 className="w-3 h-3 mr-1" />
+                          {t("done")}
+                        </Badge>
+                      )}
+                      {canRequestMore(config.kind) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="rounded-lg text-xs"
+                          onClick={() => openRequestDialog(config)}
+                        >
+                          <Sparkles className="w-3 h-3" />
+                        </Button>
+                      )}
+                    </div>
                   ) : isProcessing(existing.status) ? (
                     <span className="text-xs text-amber-500 font-medium flex items-center gap-1">
                       <Loader2 className="w-3 h-3 animate-spin" />

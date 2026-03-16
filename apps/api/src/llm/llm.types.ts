@@ -17,6 +17,13 @@ export interface LlmImageGenerationOptions {
   temperature?: number;
 }
 
+export interface LlmImageWithReferenceOptions {
+  model: string;
+  prompt: string;
+  referenceImageUrl: string;
+  temperature?: number;
+}
+
 export interface LlmImageGenerationResult {
   imageBase64: string;
   mimeType: string;

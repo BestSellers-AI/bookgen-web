@@ -29,9 +29,10 @@ function getFileByType(
 interface BookViewerProps {
   book: BookDetail;
   onRefetch: () => void;
+  isTranslation?: boolean;
 }
 
-export function BookViewer({ book, onRefetch }: BookViewerProps) {
+export function BookViewer({ book, onRefetch, isTranslation }: BookViewerProps) {
   const [shareOpen, setShareOpen] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [downloadingDocx, setDownloadingDocx] = useState(false);
@@ -112,8 +113,8 @@ export function BookViewer({ book, onRefetch }: BookViewerProps) {
         </div>
       </header>
 
-      {/* Author Journey — publishing track + extras */}
-      <AuthorJourney book={book} onRefetch={onRefetch} />
+      {/* Author Journey — publishing track + extras (hidden for translations) */}
+      {!isTranslation && <AuthorJourney book={book} onRefetch={onRefetch} />}
 
       {/* PDF Viewer — KDP template (client-generated) or original (n8n) */}
       <div className="space-y-4">
@@ -215,14 +216,16 @@ export function BookViewer({ book, onRefetch }: BookViewerProps) {
             </Button>
           )}
 
-          <Button
-            variant="outline"
-            className="rounded-xl border-border"
-            onClick={() => setShareOpen(true)}
-          >
-            <Share2 className="mr-2 h-4 w-4" />
-            {t("share")}
-          </Button>
+          {!isTranslation && (
+            <Button
+              variant="outline"
+              className="rounded-xl border-border"
+              onClick={() => setShareOpen(true)}
+            >
+              <Share2 className="mr-2 h-4 w-4" />
+              {t("share")}
+            </Button>
+          )}
         </div>
       </div>
 

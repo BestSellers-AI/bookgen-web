@@ -5,6 +5,7 @@ import type {
   LlmJsonCompletionOptions,
   LlmCompletionResult,
   LlmImageGenerationOptions,
+  LlmImageWithReferenceOptions,
   LlmImageGenerationResult,
   OpenRouterChatResponse,
 } from './llm.types';
@@ -185,6 +186,142 @@ export class LlmService {
     }
 
     throw lastError ?? new Error('Image generation failed');
+  }
+
+  async generateImageWithReference(options: LlmImageWithReferenceOptions): Promise<LlmImageGenerationResult> {
+    const { model, prompt, referenceImageUrl, temperature = 0.7 } = options;
+    const maxRetries = this.config.llmMaxRetries;
+    const timeoutMs = 180_000;
+    let lastError: Error | null = null;
+
+    // Fetch reference image and convert to base64
+    let imageBase64Data: string;
+    let imageMimeType: string;
+    try {
+      const imgResponse = await fetch(referenceImageUrl);
+      if (!imgResponse.ok) {
+        throw new Error(`Failed to fetch reference image: HTTP ${imgResponse.status}`);
+      }
+      const imgBuffer = Buffer.from(await imgResponse.arrayBuffer());
+      imageMimeType = imgResponse.headers.get('content-type') || 'image/png';
+      imageBase64Data = `data:${imageMimeType};base64,${imgBuffer.toString('base64')}`;
+    } catch (error) {
+      throw new Error(`Failed to fetch reference image: ${error instanceof Error ? error.message : String(error)}`);
+    }
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      const start = Date.now();
+
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+        const body = {
+          model,
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'image_url', image_url: { url: imageBase64Data } },
+              { type: 'text', text: prompt },
+            ],
+          }],
+          modalities: ['image', 'text'],
+          temperature,
+        };
+
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${this.config.openRouterApiKey}`,
+          },
+          body: JSON.stringify(body),
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeout);
+
+        if (!response.ok) {
+          const statusCode = response.status;
+          const responseText = await response.text().catch(() => '');
+
+          if (RETRYABLE_STATUS_CODES.includes(statusCode) && attempt < maxRetries) {
+            const delay = Math.pow(4, attempt - 1) * 1000;
+            this.logger.warn(
+              `OpenRouter image-ref ${statusCode} for ${model} (attempt ${attempt}/${maxRetries}), retrying in ${delay}ms`,
+            );
+            await this.sleep(delay);
+            lastError = new Error(`OpenRouter HTTP ${statusCode}: ${responseText.slice(0, 200)}`);
+            continue;
+          }
+
+          throw new Error(`OpenRouter HTTP ${statusCode}: ${responseText.slice(0, 500)}`);
+        }
+
+        const data = (await response.json()) as OpenRouterChatResponse;
+        const latencyMs = Date.now() - start;
+
+        const images = data.choices?.[0]?.message?.images;
+        if (!images?.length) {
+          throw new Error('No image returned by the model');
+        }
+
+        const imageUrl = images[0].image_url.url;
+
+        let resultBase64: string;
+        let resultMime = 'image/png';
+
+        if (imageUrl.startsWith('data:')) {
+          const match = imageUrl.match(/^data:([^;]+);base64,(.+)$/);
+          if (!match) throw new Error('Invalid base64 data URL format');
+          resultMime = match[1];
+          resultBase64 = match[2];
+        } else {
+          const imgResp = await fetch(imageUrl);
+          const imgBuf = Buffer.from(await imgResp.arrayBuffer());
+          resultBase64 = imgBuf.toString('base64');
+          resultMime = imgResp.headers.get('content-type') || 'image/png';
+        }
+
+        this.logger.log(
+          `Image-ref gen: model=${data.model}, tokens=${data.usage?.total_tokens ?? 'N/A'}, latency=${latencyMs}ms`,
+        );
+
+        return {
+          imageBase64: resultBase64,
+          mimeType: resultMime,
+          textContent: data.choices?.[0]?.message?.content ?? '',
+          model: data.model,
+          usage: {
+            promptTokens: data.usage?.prompt_tokens ?? 0,
+            completionTokens: data.usage?.completion_tokens ?? 0,
+            totalTokens: data.usage?.total_tokens ?? 0,
+          },
+          latencyMs,
+        };
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+
+        if (lastError.name === 'AbortError') {
+          lastError = new Error(`Image-ref generation timeout after ${timeoutMs}ms for ${model}`);
+        }
+
+        if (attempt < maxRetries) {
+          const delay = Math.pow(4, attempt - 1) * 1000;
+          this.logger.warn(
+            `Image-ref gen failed for ${model} (attempt ${attempt}/${maxRetries}): ${lastError.message}, retrying in ${delay}ms`,
+          );
+          await this.sleep(delay);
+          continue;
+        }
+
+        this.logger.error(
+          `Image-ref gen failed for ${model} after ${maxRetries} attempts: ${lastError.message}`,
+        );
+      }
+    }
+
+    throw lastError ?? new Error('Image-ref generation failed');
   }
 
   private async callOpenRouter(

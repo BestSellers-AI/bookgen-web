@@ -7,6 +7,7 @@ import { AppConfigService } from '../config/app-config.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { HooksModule } from '../hooks/hooks.module';
 import { StorageModule } from '../storage/storage.module';
+import { TranslationsModule } from '../translations/translations.module';
 import { GenerationService } from './generation.service';
 import { GenerationProcessor } from './processors/generation.processor';
 
@@ -36,6 +37,7 @@ import { GenerationProcessor } from './processors/generation.processor';
     PrismaModule,
     HooksModule,
     StorageModule,
+    TranslationsModule,
   ],
   providers: [
     GenerationService,
