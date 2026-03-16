@@ -12,6 +12,8 @@ import {
   MARGIN_OUTER,
   FONT_BODY,
   FONT_HEADING,
+  FONT_SIZE_BODY,
+  LINE_HEIGHT_BODY,
 } from '../constants';
 import { getBookLabels } from '../labels';
 import { parseContent } from './parse-content';
@@ -27,8 +29,8 @@ function buildStyles(gutter: number) {
       paddingLeft: gutter,
       paddingRight: MARGIN_OUTER,
       fontFamily: FONT_BODY,
-      fontSize: 11,
-      lineHeight: 1.6,
+      fontSize: FONT_SIZE_BODY,
+      lineHeight: LINE_HEIGHT_BODY,
       color: '#1a1a1a',
     },
     titleWrap: {
@@ -205,7 +207,7 @@ export function BookDocument({ book }: { book: RenderableBook }) {
         <View style={s.copyrightWrap}>
           <Text style={s.copyrightText}>{`\u00A9 ${year} ${book.author}`}</Text>
           <Text style={s.copyrightText}>{L.allRightsReserved}</Text>
-          <Text style={s.copyrightText}>{L.generatedWith}</Text>
+          {/* <Text style={s.copyrightText}>{L.generatedWith}</Text> */}
         </View>
       </Page>
 

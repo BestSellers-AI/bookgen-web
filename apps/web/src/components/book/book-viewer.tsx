@@ -105,7 +105,7 @@ export function BookViewer({ book, onRefetch }: BookViewerProps) {
                 {t("stats")}
               </span>
               <span className="font-bold text-foreground text-sm">
-                {book.chapters.length} {t("chaptersCount")} · {book.wordCount.toLocaleString()} {t("words")} · {book.pageCount} {t("pages")}
+                {book.chapters.length} {t("chaptersCount")} · ~{book.wordCount.toLocaleString()} {t("words")} · ~{book.pageCount} {t("pages")}
               </span>
             </div>
           </div>

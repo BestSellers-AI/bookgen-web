@@ -170,12 +170,12 @@ export default function SharedBookPage() {
             </span>
             {book.wordCount > 0 && (
               <span>
-                {book.wordCount.toLocaleString()} {t("words")}
+                ~{book.wordCount.toLocaleString()} {t("words")}
               </span>
             )}
             {book.pageCount > 0 && (
               <span>
-                {book.pageCount} {t("pages")}
+                ~{book.pageCount} {t("pages")}
               </span>
             )}
           </div>

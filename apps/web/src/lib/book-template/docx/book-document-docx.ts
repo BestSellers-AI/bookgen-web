@@ -14,7 +14,7 @@ import {
 import type { RenderableBook } from '../types';
 import { getBookLabels } from '../labels';
 import { parseContent } from '../pdf/parse-content';
-import { estimatePageCount, getGutterInches, FONT_BODY, FONT_HEADING } from '../constants';
+import { estimatePageCount, getGutterInches, FONT_BODY, FONT_HEADING, FONT_SIZE_BODY, LINE_HEIGHT_BODY } from '../constants';
 
 // KDP 6"×9" in twips
 const PAGE_WIDTH = convertInchesToTwip(6);
@@ -70,8 +70,8 @@ function contentBlocksToParagraphs(text: string): Paragraph[] {
         });
       case 'paragraph':
         return new Paragraph({
-          children: [new TextRun({ text: block.text, size: 22, font: FONT_BODY })],
-          spacing: { after: 160, line: 384 }, // 384 twips ≈ 1.6 line height at 11pt
+          children: [new TextRun({ text: block.text, size: FONT_SIZE_BODY * 2, font: FONT_BODY })],
+          spacing: { after: 160, line: Math.round(LINE_HEIGHT_BODY * 240) }, // twips = lineHeight × 240
           alignment: AlignmentType.JUSTIFIED,
         });
     }
@@ -167,10 +167,12 @@ export async function generateBookDocx(book: RenderableBook): Promise<Blob> {
         alignment: AlignmentType.CENTER,
         spacing: { after: 80 },
       }),
+      /* generatedWith phrase hidden
       new Paragraph({
         children: [new TextRun({ text: L.generatedWith, size: 18, italics: true, color: '777777' })],
         alignment: AlignmentType.CENTER,
       }),
+      */
     ],
   });
 

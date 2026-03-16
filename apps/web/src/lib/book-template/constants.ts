@@ -36,18 +36,19 @@ export const MARGIN_OUTER = 54; // 0.75"
 export const FONT_BODY = 'Lora';
 export const FONT_HEADING = 'Inter';
 
-export const FONT_SIZE_BODY = 11;
-export const FONT_SIZE_H1 = 24;
-export const FONT_SIZE_H2 = 18;
-export const FONT_SIZE_H3 = 14;
+export const FONT_SIZE_BODY = 12;
+export const FONT_SIZE_H1 = 26;
+export const FONT_SIZE_H2 = 20;
+export const FONT_SIZE_H3 = 15;
 export const FONT_SIZE_SMALL = 9;
 export const FONT_SIZE_PAGE_NUMBER = 9;
 
-export const LINE_HEIGHT_BODY = 1.6;
+export const LINE_HEIGHT_BODY = 2.4;
 export const LINE_HEIGHT_HEADING = 1.3;
 
 // Estimated words per page for gutter calculation
-export const WORDS_PER_PAGE = 250;
+// With 12pt body + 2.4 line-height, fewer words fit per page
+export const WORDS_PER_PAGE = 137;
 
 export function estimatePageCount(wordCount: number): number {
   // Add ~10% for front/back matter
