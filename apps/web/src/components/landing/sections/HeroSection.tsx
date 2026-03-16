@@ -73,7 +73,7 @@ export default function HeroSection() {
 
         <motion.h1
           {...fadeUp(0.2)}
-          className="font-playfair font-bold text-5xl sm:text-6xl md:text-7xl lg:text-8xl leading-[1.05] tracking-tight max-w-4xl"
+          className="font-playfair font-bold text-5xl sm:text-6xl md:text-7xl lg:text-8xl leading-[1.05] tracking-tight max-w-5xl"
         >
           {t('headlinePre')}{' '}
           <span className="italic text-gradient-gold">
