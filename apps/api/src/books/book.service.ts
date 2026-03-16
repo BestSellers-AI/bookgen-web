@@ -68,7 +68,8 @@ export class BookService {
     };
 
     if (status) {
-      where.status = status;
+      const statuses = status.split(',').map((s) => s.trim());
+      where.status = statuses.length === 1 ? (statuses[0] as any) : { in: statuses as any[] };
     }
 
     if (search) {

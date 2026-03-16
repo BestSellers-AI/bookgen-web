@@ -308,16 +308,16 @@ export default function UpgradePage() {
                   )}
                 </div>
 
-                {/* Highlight */}
-                <p className="text-xs dark:text-cream-400 text-navy-600 italic leading-snug min-h-[2.5rem] mt-1">
-                  {tFeatures(
-                    planKey === SubscriptionPlan.ASPIRANTE
-                      ? "planAutorHighlight"
-                      : planKey === SubscriptionPlan.PROFISSIONAL
+                {/* Highlight — hidden for ASPIRANTE only (pricing phrase under review) */}
+                {planKey !== SubscriptionPlan.ASPIRANTE && (
+                  <p className="text-xs dark:text-cream-400 text-navy-600 italic leading-snug min-h-[2.5rem] mt-1">
+                    {tFeatures(
+                      planKey === SubscriptionPlan.PROFISSIONAL
                         ? "planProfissionalHighlight"
                         : "planBestsellerHighlight"
-                  )}
-                </p>
+                    )}
+                  </p>
+                )}
 
                 <div
                   className={clsx(

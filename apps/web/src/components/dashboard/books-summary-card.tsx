@@ -36,12 +36,12 @@ export function BooksSummaryCard({ books }: BooksSummaryCardProps) {
       filter: "ALL",
     },
     {
-      label: t("inPreview"),
+      label: t("draftsAndPreviews"),
       value: counts.preview,
       icon: Sparkles,
       color: "text-amber-400",
       bg: "bg-amber-500/10 border-amber-500/20",
-      filter: "PREVIEW",
+      filter: "DRAFTS_AND_PREVIEWS",
     },
     {
       label: t("generating"),

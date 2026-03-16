@@ -45,18 +45,34 @@ import type { BookStatus } from "@bestsellers/shared";
 
 const STATUS_LABEL_MAP: Record<string, string> = {
   ALL: "filterAll",
+  DRAFTS_AND_PREVIEWS: "filterDraftsAndPreviews",
+  DRAFT: "filterDraft",
+  PREVIEW_GENERATING: "filterPreviewGenerating",
   PREVIEW: "filterPreview",
+  PREVIEW_COMPLETING: "filterPreviewCompleting",
+  PREVIEW_COMPLETED: "filterPreviewCompleted",
+  PREVIEW_APPROVED: "filterPreviewApproved",
+  QUEUED: "filterQueued",
   GENERATING: "filterGenerating",
   GENERATED: "filterReady",
   ERROR: "filterError",
+  CANCELLED: "filterCancelled",
 };
 
-const STATUS_FILTER_MAP: Record<string, BookStatus | undefined> = {
+const STATUS_FILTER_VALUES: Record<string, string | undefined> = {
   ALL: undefined,
-  PREVIEW: "PREVIEW" as BookStatus,
-  GENERATING: "GENERATING" as BookStatus,
-  GENERATED: "GENERATED" as BookStatus,
-  ERROR: "ERROR" as BookStatus,
+  DRAFTS_AND_PREVIEWS: "DRAFT,PREVIEW_GENERATING,PREVIEW,PREVIEW_COMPLETING,PREVIEW_COMPLETED,PREVIEW_APPROVED",
+  DRAFT: "DRAFT",
+  PREVIEW_GENERATING: "PREVIEW_GENERATING",
+  PREVIEW: "PREVIEW",
+  PREVIEW_COMPLETING: "PREVIEW_COMPLETING",
+  PREVIEW_COMPLETED: "PREVIEW_COMPLETED",
+  PREVIEW_APPROVED: "PREVIEW_APPROVED",
+  QUEUED: "QUEUED",
+  GENERATING: "GENERATING",
+  GENERATED: "GENERATED",
+  ERROR: "ERROR",
+  CANCELLED: "CANCELLED",
 };
 
 export default function BooksListPage() {
@@ -68,7 +84,7 @@ export default function BooksListPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState(
-    Object.keys(STATUS_FILTER_MAP).includes(initialFilter) ? initialFilter : "ALL"
+    Object.keys(STATUS_FILTER_VALUES).includes(initialFilter) ? initialFilter : "ALL"
   );
   const [sortBy, setSortBy] = useState<"createdAt" | "title" | "updatedAt">("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
@@ -95,7 +111,7 @@ export default function BooksListPage() {
           sortOrder,
         };
         if (debouncedSearch) params.search = debouncedSearch;
-        if (STATUS_FILTER_MAP[statusFilter]) params.status = STATUS_FILTER_MAP[statusFilter];
+        if (STATUS_FILTER_VALUES[statusFilter]) params.status = STATUS_FILTER_VALUES[statusFilter] as any;
 
         const res = await booksApi.list(params);
         setBooks(res.data);

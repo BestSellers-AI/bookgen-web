@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, Library, PlusCircle, Wallet as WalletIcon, User, LogOut, ShieldCheck, Users, CreditCard, Package, Settings2, Megaphone, Crown } from "lucide-react";
+import { BookOpen, Library, Pencil, Wallet as WalletIcon, User, LogOut, ShieldCheck, Users, CreditCard, Package, Settings2, Megaphone, Crown } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 import { UserRole } from "@bestsellers/shared";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,7 @@ export function Sidebar() {
 
   const navItems = [
     { label: t("myBooks"), icon: Library, href: "/dashboard/books" },
-    { label: t("createNew"), icon: PlusCircle, href: "/dashboard/create" },
+    { label: t("createNew"), icon: Pencil, href: "/dashboard/create" },
     { label: t("plansAndPricing"), icon: Crown, href: "/dashboard/upgrade", highlight: true },
     { label: t("profileSettings"), icon: User, href: "/dashboard/settings" },
   ];
@@ -42,8 +42,7 @@ export function Sidebar() {
       <nav className="flex flex-col gap-2 flex-1 min-h-0 overflow-y-auto scrollbar-thin">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
-          const hasPlan = !!user?.planInfo?.hasSubscription;
-          const highlighted = "highlight" in item && item.highlight && !hasPlan;
+          const highlighted = "highlight" in item && item.highlight;
 
           if (highlighted && !isActive) {
             return (

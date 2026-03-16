@@ -30,7 +30,7 @@ export interface BookQueryParams {
   page?: number;
   perPage?: number;
   sortOrder?: 'asc' | 'desc';
-  status?: BookStatus;
+  status?: BookStatus | string;
   search?: string;
   sortBy?: 'createdAt' | 'title' | 'updatedAt';
 }

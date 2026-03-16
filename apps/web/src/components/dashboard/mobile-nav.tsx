@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Library, PlusCircle, Wallet as WalletIcon, User, LogOut, Menu, Crown } from "lucide-react";
+import { Library, Pencil, Wallet as WalletIcon, User, LogOut, Menu, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -34,7 +34,7 @@ export function MobileNav() {
 
   const navItems = [
     { label: t("myBooks"), icon: Library, href: "/dashboard/books" },
-    { label: t("createNew"), icon: PlusCircle, href: "/dashboard/create" },
+    { label: t("createNew"), icon: Pencil, href: "/dashboard/create" },
     { label: t("plansAndPricing"), icon: Crown, href: "/dashboard/upgrade", highlight: true },
     { label: t("profileSettings"), icon: User, href: "/dashboard/settings" },
   ];
