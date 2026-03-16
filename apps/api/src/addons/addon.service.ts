@@ -77,12 +77,47 @@ export class AddonService {
       );
     }
 
-    // Validate a cover is selected before allowing cover translation
+    // Validate cover translation prerequisites
     if (dto.kind === 'ADDON_COVER_TRANSLATION') {
       if (!book.selectedCoverFileId) {
         throw new BadRequestException(
           'Please select a cover before requesting cover translation.',
         );
+      }
+      // Block if a translated cover already exists for this language (unless regenerating)
+      const targetLang = dto.params?.targetLanguage as string | undefined;
+      if (targetLang && dto.params?.regenerate !== true) {
+        const existingCover = await this.prisma.bookFile.findFirst({
+          where: {
+            bookId,
+            fileType: FileType.COVER_TRANSLATED,
+            fileName: `cover-translated-${targetLang}.png`,
+          },
+        });
+        if (existingCover) {
+          throw new BadRequestException(
+            'A translated cover already exists for this language. Use regenerate to update it.',
+          );
+        }
+      }
+    }
+
+    // Block duplicate book translation for same language
+    if (dto.kind === 'ADDON_TRANSLATION') {
+      const targetLang = dto.params?.targetLanguage as string | undefined;
+      if (targetLang) {
+        const existingTranslation = await this.prisma.bookTranslation.findFirst({
+          where: {
+            bookId,
+            targetLanguage: targetLang,
+            status: { not: 'ERROR' },
+          },
+        });
+        if (existingTranslation) {
+          throw new BadRequestException(
+            'A translation already exists for this language.',
+          );
+        }
       }
     }
 
@@ -92,24 +127,32 @@ export class AddonService {
       throw new BadRequestException(`Unknown addon kind: ${dto.kind}`);
     }
 
+    // Regeneration of existing cover translation is free
+    const isRegeneration = dto.params?.regenerate === true;
+    const actualCost = isRegeneration ? 0 : creditsCost;
+
     // Create addon record first (PENDING)
+    const translationId = (dto.params?.translationId as string) || null;
     const addon = await this.prisma.bookAddon.create({
       data: {
         bookId,
         kind: dto.kind,
         status: AddonStatus.PENDING,
-        creditsCost,
+        creditsCost: actualCost,
+        ...(translationId && { translationId }),
       },
     });
 
-    // Debit credits (throws 402 if insufficient)
-    await this.walletService.debitCredits(
-      userId,
-      creditsCost,
-      WalletTransactionType.ADDON_PURCHASE,
-      `Add-on: ${dto.kind}`,
-      { bookId, addonId: addon.id },
-    );
+    // Debit credits (skip for free regenerations)
+    if (actualCost > 0) {
+      await this.walletService.debitCredits(
+        userId,
+        actualCost,
+        WalletTransactionType.ADDON_PURCHASE,
+        `Add-on: ${dto.kind}`,
+        { bookId, addonId: addon.id },
+      );
+    }
 
     // Build addon-specific params
     const dispatchParams: Record<string, unknown> = { ...(dto.params ?? {}) };

@@ -398,26 +398,50 @@ export function AddonSection({ book, onRefetch }: AddonSectionProps) {
                 </p>
 
                 {selectedAddon?.hasLanguageParam && (
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">
-                      {t("selectLanguage")}
-                    </label>
-                    <Select
-                      value={selectedLanguage}
-                      onValueChange={setSelectedLanguage}
-                    >
-                      <SelectTrigger className="rounded-xl">
-                        <SelectValue placeholder={t("selectLanguage")} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {SUPPORTED_LANGUAGES.map((lang) => (
-                          <SelectItem key={lang.code} value={lang.code}>
-                            {lang.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  (() => {
+                    const excludedLangs = new Set<string>();
+                    // Exclude original language
+                    if (book.settings?.language) excludedLangs.add(book.settings.language);
+                    // Exclude languages with existing covers
+                    if (selectedAddon.kind === ProductKind.ADDON_COVER_TRANSLATION) {
+                      book.files
+                        .filter((f) => f.fileType === ("COVER_TRANSLATED" as string))
+                        .forEach((f) => {
+                          const m = f.fileName.match(/cover-translated-([^.]+)\./);
+                          if (m) excludedLangs.add(m[1]);
+                        });
+                    }
+                    // Exclude languages with existing translations
+                    if (selectedAddon.kind === ProductKind.ADDON_TRANSLATION) {
+                      (book.translations ?? [])
+                        .filter((tr) => tr.status !== "ERROR")
+                        .forEach((tr) => excludedLangs.add(tr.targetLanguage));
+                    }
+                    const availableLangs = SUPPORTED_LANGUAGES.filter((l) => !excludedLangs.has(l.code));
+
+                    return (
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">
+                          {t("selectLanguage")}
+                        </label>
+                        <Select
+                          value={selectedLanguage}
+                          onValueChange={setSelectedLanguage}
+                        >
+                          <SelectTrigger className="rounded-xl">
+                            <SelectValue placeholder={t("selectLanguage")} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableLangs.map((lang) => (
+                              <SelectItem key={lang.code} value={lang.code}>
+                                {lang.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    );
+                  })()
                 )}
 
                 {balance !== null &&

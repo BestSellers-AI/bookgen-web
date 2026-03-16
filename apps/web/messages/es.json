@@ -1563,6 +1563,11 @@
     "status": "Status",
     "backToGallery": "Volver a la galería",
     "tapToExpand": "Toca para expandir",
-    "coverLanguage": "Idioma: {language}"
+    "coverLanguage": "Idioma: {language}",
+    "regenerateCover": "Regenerar Portada",
+    "regenerating": "Regenerando...",
+    "translateToAnotherLanguage": "Traducir a otro idioma",
+    "allLanguages": "Todos los idiomas",
+    "filterByLanguage": "Filtrar por idioma"
   }
 }

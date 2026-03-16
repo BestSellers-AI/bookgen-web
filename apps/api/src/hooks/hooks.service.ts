@@ -579,6 +579,15 @@ export class HooksService {
         },
       });
 
+      // Mark associated BookTranslation as ERROR if this was a translation addon
+      if (dto.addonKind === ProductKind.ADDON_TRANSLATION) {
+        // Find TRANSLATING translations for this book and mark as ERROR
+        await this.prisma.bookTranslation.updateMany({
+          where: { bookId: dto.bookId, status: TranslationStatus.TRANSLATING },
+          data: { status: TranslationStatus.ERROR },
+        });
+      }
+
       // Refund credits on addon failure
       if (addon.creditsCost && addon.creditsCost > 0) {
         try {
@@ -811,14 +820,23 @@ export class HooksService {
       }
 
       case ProductKind.ADDON_COVER_TRANSLATION: {
-        // Create BookFile for translated cover
+        // Upsert BookFile for translated cover (replace existing for same language)
         const coverTargetLang = (resultData?.targetLanguage as string) ?? 'unknown';
+        const coverFileName = `cover-translated-${coverTargetLang}.png`;
         if (dto.resultUrl) {
+          // Delete existing cover for same language (regeneration replaces, not duplicates)
+          await this.prisma.bookFile.deleteMany({
+            where: {
+              bookId: dto.bookId,
+              fileType: FileType.COVER_TRANSLATED,
+              fileName: coverFileName,
+            },
+          });
           await this.prisma.bookFile.create({
             data: {
               bookId: dto.bookId,
               fileType: FileType.COVER_TRANSLATED,
-              fileName: `cover-translated-${coverTargetLang}.png`,
+              fileName: coverFileName,
               fileUrl: dto.resultUrl,
             },
           });

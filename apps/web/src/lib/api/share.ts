@@ -9,9 +9,9 @@ const publicClient = axios.create({
 });
 
 export const shareApi = {
-  create: (bookId: string) =>
+  create: (bookId: string, translationId?: string) =>
     apiClient
-      .post<SharedBookInfo>(`/books/${bookId}/share`)
+      .post<SharedBookInfo>(`/books/${bookId}/share`, translationId ? { translationId } : {})
       .then((r) => r.data),
 
   get: (bookId: string) =>

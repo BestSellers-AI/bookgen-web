@@ -1563,6 +1563,11 @@
     "status": "Status",
     "backToGallery": "Back to gallery",
     "tapToExpand": "Tap to expand",
-    "coverLanguage": "Language: {language}"
+    "coverLanguage": "Language: {language}",
+    "regenerateCover": "Regenerate Cover",
+    "regenerating": "Regenerating...",
+    "translateToAnotherLanguage": "Translate to another language",
+    "allLanguages": "All languages",
+    "filterByLanguage": "Filter by language"
   }
 }

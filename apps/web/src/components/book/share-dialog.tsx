@@ -14,29 +14,35 @@ import {
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import type { BookDetail } from "@/lib/api/types";
+import type { BookDetail, SharedBookInfo } from "@/lib/api/types";
 
 interface ShareDialogProps {
   book: BookDetail;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onRefetch: () => void;
+  translationId?: string;
 }
 
-export function ShareDialog({ book, open, onOpenChange, onRefetch }: ShareDialogProps) {
+export function ShareDialog({ book, open, onOpenChange, onRefetch, translationId }: ShareDialogProps) {
   const [creating, setCreating] = useState(false);
   const [removing, setRemoving] = useState(false);
+  const [translationShare, setTranslationShare] = useState<SharedBookInfo | null>(null);
   const t = useTranslations("book");
   const tErr = useTranslations("errors");
 
-  const share = book.share;
+  const share = translationId ? translationShare : book.share;
   const hasActiveShare = share && share.isActive;
 
   const handleCreate = async () => {
     setCreating(true);
     try {
-      await shareApi.create(book.id);
-      onRefetch();
+      const result = await shareApi.create(book.id, translationId);
+      if (translationId) {
+        setTranslationShare(result);
+      } else {
+        onRefetch();
+      }
     } catch {
       toast.error(tErr("generic"));
     } finally {
@@ -49,7 +55,11 @@ export function ShareDialog({ book, open, onOpenChange, onRefetch }: ShareDialog
     setRemoving(true);
     try {
       await shareApi.delete(book.id, share.id);
-      onRefetch();
+      if (translationId) {
+        setTranslationShare(null);
+      } else {
+        onRefetch();
+      }
     } catch {
       toast.error(tErr("generic"));
     } finally {

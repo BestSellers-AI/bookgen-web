@@ -4,6 +4,7 @@ import {
   Get,
   Delete,
   Param,
+  Body,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -20,8 +21,9 @@ export class ShareController {
   async createShare(
     @CurrentUser('id') userId: string,
     @Param('bookId') bookId: string,
+    @Body() body?: { translationId?: string },
   ) {
-    return this.shareService.createShareLink(bookId, userId);
+    return this.shareService.createShareLink(bookId, userId, body?.translationId);
   }
 
   @Delete('books/:bookId/share/:id')

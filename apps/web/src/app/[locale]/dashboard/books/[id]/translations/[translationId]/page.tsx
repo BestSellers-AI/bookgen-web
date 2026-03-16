@@ -155,6 +155,7 @@ export default function TranslatedBookViewerPage() {
         book={virtualBook}
         onRefetch={fetchData}
         isTranslation
+        translationId={translation.id}
       />
     </div>
   );

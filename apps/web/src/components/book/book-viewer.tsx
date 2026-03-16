@@ -30,9 +30,10 @@ interface BookViewerProps {
   book: BookDetail;
   onRefetch: () => void;
   isTranslation?: boolean;
+  translationId?: string;
 }
 
-export function BookViewer({ book, onRefetch, isTranslation }: BookViewerProps) {
+export function BookViewer({ book, onRefetch, isTranslation, translationId }: BookViewerProps) {
   const [shareOpen, setShareOpen] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [downloadingDocx, setDownloadingDocx] = useState(false);
@@ -113,8 +114,8 @@ export function BookViewer({ book, onRefetch, isTranslation }: BookViewerProps) 
         </div>
       </header>
 
-      {/* Author Journey — publishing track + extras (hidden for translations) */}
-      {!isTranslation && <AuthorJourney book={book} onRefetch={onRefetch} />}
+      {/* Author Journey — publishing track + extras */}
+      <AuthorJourney book={book} onRefetch={onRefetch} translationId={isTranslation ? translationId : undefined} />
 
       {/* PDF Viewer — KDP template (client-generated) or original (n8n) */}
       <div className="space-y-4">
@@ -216,16 +217,14 @@ export function BookViewer({ book, onRefetch, isTranslation }: BookViewerProps) 
             </Button>
           )}
 
-          {!isTranslation && (
-            <Button
-              variant="outline"
-              className="rounded-xl border-border"
-              onClick={() => setShareOpen(true)}
-            >
-              <Share2 className="mr-2 h-4 w-4" />
-              {t("share")}
-            </Button>
-          )}
+          <Button
+            variant="outline"
+            className="rounded-xl border-border"
+            onClick={() => setShareOpen(true)}
+          >
+            <Share2 className="mr-2 h-4 w-4" />
+            {t("share")}
+          </Button>
         </div>
       </div>
 
@@ -365,7 +364,7 @@ export function BookViewer({ book, onRefetch, isTranslation }: BookViewerProps) 
       </div>
       --- end hidden TOC + Content blocks --- */}
 
-      <ShareDialog book={book} open={shareOpen} onOpenChange={setShareOpen} onRefetch={onRefetch} />
+      <ShareDialog book={book} open={shareOpen} onOpenChange={setShareOpen} onRefetch={onRefetch} translationId={translationId} />
     </div>
   );
 }

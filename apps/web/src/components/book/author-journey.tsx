@@ -142,6 +142,22 @@ function buildExtraConfigs(getCost: (kind: string) => number): AddonConfig[] {
       color: "text-emerald-500",
       iconBg: "bg-emerald-500/10 border-emerald-500/20",
     },
+    {
+      kind: ProductKind.ADDON_AMAZON_STANDARD,
+      icon: Package,
+      cost: getCost(ProductKind.ADDON_AMAZON_STANDARD),
+      hasLanguageParam: false,
+      color: "text-orange-500",
+      iconBg: "bg-orange-500/10 border-orange-500/20",
+    },
+    {
+      kind: ProductKind.ADDON_AMAZON_PREMIUM,
+      icon: Package,
+      cost: getCost(ProductKind.ADDON_AMAZON_PREMIUM),
+      hasLanguageParam: false,
+      color: "text-amber-500",
+      iconBg: "bg-amber-500/10 border-amber-500/20",
+    },
   ];
 }
 
@@ -215,9 +231,11 @@ function getStepStatus(
 interface AuthorJourneyProps {
   book: BookDetail;
   onRefetch: () => void;
+  /** When set, this is a translated book — only show audiobook + publishing addons */
+  translationId?: string;
 }
 
-export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
+export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyProps) {
   const t = useTranslations("addons");
   const tj = useTranslations("authorJourney");
   const tCommon = useTranslations("common");
@@ -227,8 +245,37 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
   const getCreditsCost = useConfigStore((s) => s.getCreditsCost);
   const getBundles = useConfigStore((s) => s.getBundles);
 
-  const EXTRA_CONFIGS = buildExtraConfigs(getCreditsCost);
+  const EXTRA_CONFIGS_ALL = buildExtraConfigs(getCreditsCost);
   const ALL_ADDON_CONFIGS = buildAllAddonConfigs(getCreditsCost);
+
+  // For translated books: only show audiobook + publishing + cover translation (if needed)
+  // For original books: hide amazon (already in the stepper)
+  const currentTranslation = translationId
+    ? book.translations?.find((tr) => tr.id === translationId)
+    : null;
+  const translationLang = currentTranslation?.targetLanguage;
+  const hasTranslatedCoverForLang = translationLang
+    ? book.files.some(
+        (f) => f.fileType === ("COVER_TRANSLATED" as string) && f.fileName.includes(translationLang),
+      )
+    : false;
+
+  const TRANSLATION_ALLOWED_KINDS = new Set([
+    ProductKind.ADDON_AUDIOBOOK,
+    ProductKind.ADDON_AMAZON_STANDARD,
+    ProductKind.ADDON_AMAZON_PREMIUM,
+    // Show cover translation only if this translation doesn't have a translated cover yet
+    ...(!hasTranslatedCoverForLang && translationId ? [ProductKind.ADDON_COVER_TRANSLATION] : []),
+  ]);
+  const STEPPER_KINDS = new Set([
+    ProductKind.ADDON_COVER,
+    ProductKind.ADDON_IMAGES,
+    ProductKind.ADDON_AMAZON_STANDARD,
+    ProductKind.ADDON_AMAZON_PREMIUM,
+  ]);
+  const EXTRA_CONFIGS = translationId
+    ? EXTRA_CONFIGS_ALL.filter((c) => TRANSLATION_ALLOWED_KINDS.has(c.kind))
+    : EXTRA_CONFIGS_ALL.filter((c) => !STEPPER_KINDS.has(c.kind));
 
   const bundles = getBundles();
   const BUNDLE_PUBLISH_PREMIUM = bundles["BUNDLE_PUBLISH_PREMIUM"];
@@ -242,6 +289,7 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedAddon, setSelectedAddon] = useState<AddonConfig | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState("");
+  const [languagePreset, setLanguagePreset] = useState(false);
   const [requesting, setRequesting] = useState(false);
 
   // Cover gallery state
@@ -261,6 +309,20 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
   const [translationsSheetOpen, setTranslationsSheetOpen] = useState(false);
   const [coverTranslationsSheetOpen, setCoverTranslationsSheetOpen] = useState(false);
   const [expandedTranslatedCover, setExpandedTranslatedCover] = useState<{ url: string; fileName: string } | null>(null);
+  const [regeneratingCover, setRegeneratingCover] = useState(false);
+  const [coverLangFilter, setCoverLangFilter] = useState<string>("all");
+
+  // Sync expanded translated cover when book files update (after regeneration)
+  useEffect(() => {
+    if (!expandedTranslatedCover) return;
+    const updated = book.files.find(
+      (f) => f.fileType === ("COVER_TRANSLATED" as string) && f.fileName === expandedTranslatedCover.fileName,
+    );
+    if (updated && updated.fileUrl !== expandedTranslatedCover.url) {
+      setExpandedTranslatedCover({ url: updated.fileUrl, fileName: updated.fileName });
+      setRegeneratingCover(false);
+    }
+  }, [book.files, expandedTranslatedCover]);
 
   // Confirmation dialog for "generate more" actions
   const [confirmMoreType, setConfirmMoreType] = useState<"covers" | "images" | null>(null);
@@ -317,12 +379,21 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
     return () => clearInterval(interval);
   }, [hasProcessing, fetchAddons]);
 
-  const getExistingAddon = (kind: ProductKind | string): BookAddonSummary | undefined =>
-    addons.find((a) => a.kind === kind);
+  const getExistingAddon = (kind: ProductKind | string): BookAddonSummary | undefined => {
+    const matching = addons.filter((a) => a.kind === kind);
+    if (matching.length <= 1) return matching[0];
+    // Prioritize: COMPLETED > processing > most recent (ERROR etc.)
+    return (
+      matching.find((a) => a.status === AddonStatus.COMPLETED) ??
+      matching.find((a) => isAddonProcessing(a.status)) ??
+      matching.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0]
+    );
+  };
 
-  const openRequestDialog = (config: AddonConfig) => {
+  const openRequestDialog = (config: AddonConfig, presetLanguage?: string) => {
     setSelectedAddon(config);
-    setSelectedLanguage("");
+    setSelectedLanguage(presetLanguage ?? "");
+    setLanguagePreset(!!presetLanguage);
     setDialogOpen(true);
   };
 
@@ -333,6 +404,10 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
       const params: Record<string, unknown> = {};
       if (selectedAddon.hasLanguageParam && selectedLanguage) {
         params.targetLanguage = selectedLanguage;
+      }
+      // Cover translation is always a book-level addon (not tied to a specific translation)
+      if (translationId && selectedAddon.kind !== ProductKind.ADDON_COVER_TRANSLATION) {
+        params.translationId = translationId;
       }
       await addonsApi.create(book.id, {
         kind: selectedAddon.kind,
@@ -507,6 +582,23 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
     }
   };
 
+  const handleRegenerateCoverTranslation = async (langCode: string) => {
+    setRegeneratingCover(true);
+    try {
+      await addonsApi.create(book.id, {
+        kind: ProductKind.ADDON_COVER_TRANSLATION,
+        params: { targetLanguage: langCode, regenerate: true },
+      });
+      toast.success(t("requestSuccess"));
+      fetchAddons();
+      onRefetch();
+    } catch {
+      toast.error(t("requestError"));
+    } finally {
+      setRegeneratingCover(false);
+    }
+  };
+
   // ── Compute track ──
 
   const stepStatuses = PUBLISHING_STEPS.map((step) => ({
@@ -535,7 +627,55 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
 
   return (
     <>
-      {/* ─── PUBLISHING TRACK ─── */}
+      {/* ─── PUBLISHING TRACK (hidden for translations) ─── */}
+      {translationId ? (
+        /* For translated books: show extras inline */
+        <div className="space-y-3">
+          {EXTRA_CONFIGS.map((config) => {
+            const Icon = config.icon;
+            const existing = getExistingAddon(config.kind);
+
+            return (
+              <div
+                key={config.kind}
+                className="p-4 rounded-xl bg-accent/30 border border-border space-y-3"
+              >
+                <div className="flex items-start gap-3">
+                  <div className={`w-11 h-11 rounded-xl border flex items-center justify-center shrink-0 ${config.iconBg}`}>
+                    <Icon className={`w-5 h-5 ${config.color}`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-foreground">{t(`kind_${config.kind}`)}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{t(`kindDesc_${config.kind}`)}</p>
+                    {t(`time_${config.kind}`) && (
+                      <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-bold text-primary/70">
+                        <Clock className="w-3 h-3" />
+                        {t(`time_${config.kind}`)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <ExtraAddonAction
+                    config={config}
+                    existing={existing}
+                    onRequest={(cfg) => {
+                      // For cover translation in translation view, preset the language
+                      if (cfg.kind === ProductKind.ADDON_COVER_TRANSLATION && translationLang) {
+                        openRequestDialog(cfg, translationLang);
+                      } else {
+                        openRequestDialog(cfg);
+                      }
+                    }}
+                    tAddons={t}
+                    tCommon={tCommon}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
       <div className="relative overflow-hidden rounded-2xl border-2 border-primary/30 bg-gradient-to-br from-primary/10 via-background to-amber-500/10">
         {/* Animated glow background */}
         {!allPublishingDone && (
@@ -920,6 +1060,7 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
           </div>
         </div>
       </div>
+      )}
 
       {/* ─── Cover Gallery Sheet ─── */}
       <Sheet open={coverGalleryOpen} onOpenChange={(open) => {
@@ -1293,7 +1434,7 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
       {/* ─── Translated Covers Sheet ─── */}
       <Sheet open={coverTranslationsSheetOpen} onOpenChange={(open) => {
         setCoverTranslationsSheetOpen(open);
-        if (!open) setExpandedTranslatedCover(null);
+        if (!open) { setExpandedTranslatedCover(null); setCoverLangFilter("all"); }
       }}>
         <SheetContent side="bottom" className="rounded-t-[2rem] max-h-[85vh] overflow-y-auto">
           <SheetHeader className="text-left pb-4">
@@ -1304,127 +1445,182 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
           </SheetHeader>
 
           {expandedTranslatedCover ? (
-            <div className="pb-6 space-y-4">
-              <button
-                type="button"
-                onClick={() => setExpandedTranslatedCover(null)}
-                className="text-xs font-bold text-primary flex items-center gap-1"
-              >
-                <ArrowRight className="w-3 h-3 rotate-180" />
-                {tTrans("backToGallery")}
-              </button>
-              <div className="flex justify-center">
-                <img
-                  src={expandedTranslatedCover.url}
-                  alt={expandedTranslatedCover.fileName}
-                  className="max-h-[50vh] w-auto rounded-xl border-2 border-border shadow-xl object-contain"
-                />
-              </div>
-              <div className="flex flex-col items-center gap-3">
-                <Badge variant="secondary" className="bg-cyan-500/10 text-cyan-400 text-xs font-bold">
-                  <Globe className="w-3 h-3 mr-1" />
-                  {(() => {
-                    const match = expandedTranslatedCover.fileName.match(/cover-translated-([^.]+)\./);
-                    const langCode = match ? match[1] : "unknown";
-                    return SUPPORTED_LANGUAGES.find((l) => l.code === langCode)?.name ?? langCode;
-                  })()}
-                </Badge>
-                {(() => {
-                  const match = expandedTranslatedCover.fileName.match(/cover-translated-([^.]+)\./);
-                  const langCode = match ? match[1] : "";
-                  const matchingTrans = book.translations?.find(
-                    (tr) => tr.targetLanguage === langCode && tr.status === "TRANSLATED"
-                  );
-                  if (matchingTrans) {
-                    return (
+            (() => {
+              const elMatch = expandedTranslatedCover.fileName.match(/cover-translated-([^.]+)\./);
+              const elLangCode = elMatch ? elMatch[1] : "";
+              const elLangName = SUPPORTED_LANGUAGES.find((l) => l.code === elLangCode)?.name ?? elLangCode;
+              const elIsLoading = regeneratingCover || addons.some(
+                (a) => a.kind === ProductKind.ADDON_COVER_TRANSLATION && isAddonProcessing(a.status),
+              );
+              const elMatchingTrans = book.translations?.find(
+                (tr) => tr.targetLanguage === elLangCode && tr.status === "TRANSLATED",
+              );
+
+              return (
+                <div className="pb-6 space-y-4">
+                  <button
+                    type="button"
+                    onClick={() => setExpandedTranslatedCover(null)}
+                    className="text-xs font-bold text-primary flex items-center gap-1"
+                  >
+                    <ArrowRight className="w-3 h-3 rotate-180" />
+                    {tTrans("backToGallery")}
+                  </button>
+
+                  <div className="flex justify-center relative">
+                    <img
+                      src={expandedTranslatedCover.url}
+                      alt={expandedTranslatedCover.fileName}
+                      className={`max-h-[50vh] w-auto rounded-xl border-2 border-border shadow-xl object-contain transition-opacity ${elIsLoading ? "opacity-40" : ""}`}
+                    />
+                    {elIsLoading && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                        <span className="text-sm font-bold text-primary">{tTrans("regenerating")}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col items-center gap-3">
+                    <Badge variant="secondary" className="bg-cyan-500/10 text-cyan-400 text-xs font-bold">
+                      <Globe className="w-3 h-3 mr-1" />
+                      {elLangName}
+                    </Badge>
+
+                    {elMatchingTrans && (
                       <Button variant="outline" size="sm" className="rounded-xl text-xs gap-2" asChild>
-                        <Link href={`/dashboard/books/${book.id}/translations/${matchingTrans.id}`}>
+                        <Link href={`/dashboard/books/${book.id}/translations/${elMatchingTrans.id}`}>
                           <Eye className="w-3 h-3" />
                           {tTrans("viewTranslatedBook")}
                         </Link>
                       </Button>
-                    );
-                  }
-                  return null;
-                })()}
-              </div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 pb-6">
-              {book.files
-                .filter((f) => f.fileType === ("COVER_TRANSLATED" as string))
-                .map((file) => {
-                  const match = file.fileName.match(/cover-translated-([^.]+)\./);
-                  const langCode = match ? match[1] : "unknown";
-                  const langName = SUPPORTED_LANGUAGES.find((l) => l.code === langCode)?.name ?? langCode;
-
-                  return (
-                    <button
-                      key={file.id}
-                      type="button"
-                      onClick={() => setExpandedTranslatedCover({ url: file.fileUrl, fileName: file.fileName })}
-                      className="relative group rounded-xl overflow-hidden border-2 border-border hover:border-primary/50 transition-all aspect-[3/4]"
-                    >
-                      <img src={file.fileUrl} alt={file.fileName} className="w-full h-full object-cover" />
-                      <div className="absolute top-2 left-2">
-                        <Badge variant="secondary" className="bg-black/60 text-white text-[9px] font-bold backdrop-blur-sm border-none">
-                          <Globe className="w-2.5 h-2.5 mr-1" />
-                          {langName}
-                        </Badge>
-                      </div>
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-end justify-center pb-3 opacity-0 group-hover:opacity-100">
-                        <span className="text-white text-[10px] font-bold bg-black/60 px-2.5 py-1 rounded-lg backdrop-blur-sm">
-                          {tTrans("tapToExpand")}
-                        </span>
-                      </div>
-                    </button>
-                  );
-                })}
-              {book.files.filter((f) => f.fileType === ("COVER_TRANSLATED" as string)).length === 0 && (
-                <div className="col-span-full py-8 text-center text-muted-foreground text-sm">
-                  {tTrans("noCoverTranslations")}
-                </div>
-              )}
-
-              {/* Generate another translated cover */}
-              {(() => {
-                const hasCoverTransProcessing = addons.some(
-                  (a) => a.kind === ProductKind.ADDON_COVER_TRANSLATION && isAddonProcessing(a.status),
-                );
-                const coverTransConfig = ALL_ADDON_CONFIGS.find((c) => c.kind === ProductKind.ADDON_COVER_TRANSLATION);
-                if (!coverTransConfig) return null;
-                return (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCoverTranslationsSheetOpen(false);
-                      openRequestDialog(coverTransConfig);
-                    }}
-                    disabled={hasCoverTransProcessing}
-                    className="rounded-xl border-2 border-dashed border-primary/30 hover:border-primary/60 transition-all aspect-[3/4] flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {hasCoverTransProcessing ? (
-                      <>
-                        <Loader2 className="w-8 h-8 animate-spin text-primary/60" />
-                        <span className="text-[10px] font-bold text-primary/60">
-                          {t("processing")}
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                          <Plus className="w-6 h-6 text-primary" />
-                        </div>
-                        <span className="text-xs font-bold text-center px-2">{tTrans("translatedCovers")}</span>
-                        <span className="text-[10px] text-muted-foreground">
-                          {coverTransConfig.cost} {tCommon("credits")}
-                        </span>
-                      </>
                     )}
-                  </button>
-                );
-              })()}
-            </div>
+
+                    {elLangCode && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="rounded-xl text-xs gap-2"
+                        onClick={() => handleRegenerateCoverTranslation(elLangCode)}
+                        disabled={elIsLoading}
+                      >
+                        <Palette className="w-3 h-3" />
+                        {tTrans("regenerateCover")}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              );
+            })()
+          ) : (
+            (() => {
+              const allTranslatedCovers = book.files.filter((f) => f.fileType === ("COVER_TRANSLATED" as string));
+              // Extract unique languages from cover filenames
+              const coverLanguages = [...new Set(allTranslatedCovers.map((f) => {
+                const m = f.fileName.match(/cover-translated-([^.]+)\./);
+                return m ? m[1] : "unknown";
+              }))];
+              const filteredCovers = coverLangFilter === "all"
+                ? allTranslatedCovers
+                : allTranslatedCovers.filter((f) => f.fileName.includes(`cover-translated-${coverLangFilter}`));
+
+              return (
+                <div className="pb-6 space-y-4">
+                  {/* Language filter dropdown */}
+                  {coverLanguages.length > 1 && (
+                    <Select value={coverLangFilter} onValueChange={setCoverLangFilter}>
+                      <SelectTrigger className="rounded-xl w-full">
+                        <SelectValue placeholder={tTrans("filterByLanguage")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{tTrans("allLanguages")}</SelectItem>
+                        {coverLanguages.map((lang) => (
+                          <SelectItem key={lang} value={lang}>
+                            {SUPPORTED_LANGUAGES.find((l) => l.code === lang)?.name ?? lang}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+
+                  {/* Grid */}
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {filteredCovers.map((file) => {
+                      const match = file.fileName.match(/cover-translated-([^.]+)\./);
+                      const langCode = match ? match[1] : "unknown";
+                      const langName = SUPPORTED_LANGUAGES.find((l) => l.code === langCode)?.name ?? langCode;
+
+                      return (
+                        <button
+                          key={file.id}
+                          type="button"
+                          onClick={() => setExpandedTranslatedCover({ url: file.fileUrl, fileName: file.fileName })}
+                          className="relative group rounded-xl overflow-hidden border-2 border-border hover:border-primary/50 transition-all aspect-[3/4]"
+                        >
+                          <img src={file.fileUrl} alt={file.fileName} className="w-full h-full object-cover" />
+                          <div className="absolute top-2 left-2">
+                            <Badge variant="secondary" className="bg-black/60 text-white text-[9px] font-bold backdrop-blur-sm border-none">
+                              <Globe className="w-2.5 h-2.5 mr-1" />
+                              {langName}
+                            </Badge>
+                          </div>
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-end justify-center pb-3 opacity-0 group-hover:opacity-100">
+                            <span className="text-white text-[10px] font-bold bg-black/60 px-2.5 py-1 rounded-lg backdrop-blur-sm">
+                              {tTrans("tapToExpand")}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+
+                    {allTranslatedCovers.length === 0 && (
+                      <div className="col-span-full py-8 text-center text-muted-foreground text-sm">
+                        {tTrans("noCoverTranslations")}
+                      </div>
+                    )}
+
+                    {/* Generate another translated cover */}
+                    {(() => {
+                      const hasCoverTransProcessing = addons.some(
+                        (a) => a.kind === ProductKind.ADDON_COVER_TRANSLATION && isAddonProcessing(a.status),
+                      );
+                      const coverTransConfig = ALL_ADDON_CONFIGS.find((c) => c.kind === ProductKind.ADDON_COVER_TRANSLATION);
+                      if (!coverTransConfig) return null;
+                      return (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCoverTranslationsSheetOpen(false);
+                            openRequestDialog(coverTransConfig);
+                          }}
+                          disabled={hasCoverTransProcessing}
+                          className="rounded-xl border-2 border-dashed border-primary/30 hover:border-primary/60 transition-all aspect-[3/4] flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {hasCoverTransProcessing ? (
+                            <>
+                              <Loader2 className="w-8 h-8 animate-spin text-primary/60" />
+                              <span className="text-[10px] font-bold text-primary/60">
+                                {t("processing")}
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                                <Plus className="w-6 h-6 text-primary" />
+                              </div>
+                              <span className="text-xs font-bold text-center px-2">{tTrans("translatedCovers")}</span>
+                              <span className="text-[10px] text-muted-foreground">
+                                {coverTransConfig.cost} {tCommon("credits")}
+                              </span>
+                            </>
+                          )}
+                        </button>
+                      );
+                    })()}
+                  </div>
+                </div>
+              );
+            })()
           )}
         </SheetContent>
       </Sheet>
@@ -1440,12 +1636,14 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
           </SheetHeader>
 
           <div className="space-y-3 pb-6">
-            {(book.translations ?? []).length === 0 ? (
-              <div className="py-8 text-center text-muted-foreground text-sm">
-                {tTrans("noTranslations")}
-              </div>
-            ) : (
-              (book.translations ?? []).map((trans) => {
+            {(() => {
+              const visibleTranslations = (book.translations ?? []).filter((tr) => tr.status !== "ERROR");
+              return visibleTranslations.length === 0 ? (
+                <div className="py-8 text-center text-muted-foreground text-sm">
+                  {tTrans("noTranslations")}
+                </div>
+              ) : (
+              visibleTranslations.map((trans) => {
                 const langName = SUPPORTED_LANGUAGES.find((l) => l.code === trans.targetLanguage)?.name ?? trans.targetLanguage;
                 return (
                   <div key={trans.id} className="flex items-center justify-between rounded-xl border border-border p-4 bg-accent/30">
@@ -1462,14 +1660,22 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
                           <Badge variant="secondary" className={`text-[8px] font-black uppercase tracking-widest ${
                             trans.status === "TRANSLATED"
                               ? "bg-emerald-500/10 text-emerald-400"
-                              : "bg-amber-500/10 text-amber-400"
+                              : trans.status === "ERROR"
+                                ? "bg-red-500/10 text-red-400"
+                                : "bg-amber-500/10 text-amber-400"
                           }`}>
                             {trans.status === "TRANSLATED" ? (
                               <CheckCircle2 className="w-2.5 h-2.5 mr-0.5" />
+                            ) : trans.status === "ERROR" ? (
+                              <XCircle className="w-2.5 h-2.5 mr-0.5" />
                             ) : (
                               <Loader2 className="w-2.5 h-2.5 mr-0.5 animate-spin" />
                             )}
-                            {trans.status === "TRANSLATED" ? tTrans("completed") : tTrans("translating")}
+                            {trans.status === "TRANSLATED"
+                              ? tTrans("completed")
+                              : trans.status === "ERROR"
+                                ? t("status_ERROR")
+                                : tTrans("translating")}
                           </Badge>
                           {trans.status === "TRANSLATING" && (
                             <span className="text-[9px] text-muted-foreground">
@@ -1490,7 +1696,45 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
                   </div>
                 );
               })
-            )}
+            );
+            })()}
+
+            {/* Translate to another language button */}
+            {(() => {
+              const hasTransProcessing = addons.some(
+                (a) => a.kind === ProductKind.ADDON_TRANSLATION && isAddonProcessing(a.status),
+              );
+              const transConfig = ALL_ADDON_CONFIGS.find((c) => c.kind === ProductKind.ADDON_TRANSLATION);
+              if (!transConfig) return null;
+              return (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTranslationsSheetOpen(false);
+                    openRequestDialog(transConfig);
+                  }}
+                  disabled={hasTransProcessing}
+                  className="w-full rounded-xl border-2 border-dashed border-primary/30 hover:border-primary/60 transition-all p-4 flex items-center justify-center gap-3 text-muted-foreground hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {hasTransProcessing ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin text-primary/60" />
+                      <span className="text-xs font-bold text-primary/60">{t("processing")}</span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Plus className="w-4 h-4 text-primary" />
+                      </div>
+                      <span className="text-xs font-bold">{tTrans("translateToAnotherLanguage")}</span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {transConfig.cost} {tCommon("credits")}
+                      </span>
+                    </>
+                  )}
+                </button>
+              );
+            })()}
           </div>
         </SheetContent>
       </Sheet>
@@ -1512,26 +1756,67 @@ export function AuthorJourney({ book, onRefetch }: AuthorJourneyProps) {
                 </p>
 
                 {selectedAddon?.hasLanguageParam && (
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">
-                      {t("selectLanguage")}
-                    </label>
-                    <Select
-                      value={selectedLanguage}
-                      onValueChange={setSelectedLanguage}
-                    >
-                      <SelectTrigger className="rounded-xl">
-                        <SelectValue placeholder={t("selectLanguage")} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {SUPPORTED_LANGUAGES.map((lang) => (
-                          <SelectItem key={lang.code} value={lang.code}>
-                            {lang.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  languagePreset ? (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        {t("selectLanguage")}
+                      </label>
+                      <Badge variant="secondary" className="bg-blue-500/10 text-blue-400 text-sm font-bold px-3 py-1.5">
+                        <Globe className="w-3.5 h-3.5 mr-1.5" />
+                        {SUPPORTED_LANGUAGES.find((l) => l.code === selectedLanguage)?.name ?? selectedLanguage}
+                      </Badge>
+                    </div>
+                  ) :
+                  (() => {
+                    // Hide: original language + languages that already have a translated cover/book
+                    const existingLangs = new Set<string>();
+
+                    // Exclude the book's original language
+                    const originalLang = book.settings?.language;
+                    if (originalLang) existingLangs.add(originalLang);
+
+                    if (selectedAddon.kind === ProductKind.ADDON_COVER_TRANSLATION) {
+                      book.files
+                        .filter((f) => f.fileType === ("COVER_TRANSLATED" as string))
+                        .forEach((f) => {
+                          const m = f.fileName.match(/cover-translated-([^.]+)\./);
+                          if (m) existingLangs.add(m[1]);
+                        });
+                    }
+
+                    if (selectedAddon.kind === ProductKind.ADDON_TRANSLATION) {
+                      (book.translations ?? [])
+                        .filter((tr) => tr.status !== "ERROR")
+                        .forEach((tr) => existingLangs.add(tr.targetLanguage));
+                    }
+
+                    const availableLanguages = SUPPORTED_LANGUAGES.filter(
+                      (lang) => !existingLangs.has(lang.code),
+                    );
+
+                    return (
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">
+                          {t("selectLanguage")}
+                        </label>
+                        <Select
+                          value={selectedLanguage}
+                          onValueChange={setSelectedLanguage}
+                        >
+                          <SelectTrigger className="rounded-xl">
+                            <SelectValue placeholder={t("selectLanguage")} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableLanguages.map((lang) => (
+                              <SelectItem key={lang.code} value={lang.code}>
+                                {lang.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    );
+                  })()
                 )}
 
                 {balance !== null &&

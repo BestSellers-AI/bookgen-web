@@ -22,6 +22,7 @@ export class ShareService {
   async createShareLink(
     bookId: string,
     userId: string,
+    translationId?: string,
   ): Promise<SharedBookInfo> {
     const book = await this.prisma.book.findFirst({
       where: { id: bookId, userId, deletedAt: null },
@@ -38,9 +39,9 @@ export class ShareService {
       );
     }
 
-    // Check for existing active share (idempotent)
+    // Check for existing active share (idempotent — match by bookId + translationId)
     const existing = await this.prisma.sharedBook.findFirst({
-      where: { bookId, isActive: true },
+      where: { bookId, isActive: true, translationId: translationId ?? null },
     });
 
     if (existing) {
@@ -54,10 +55,11 @@ export class ShareService {
         bookId,
         shareToken,
         isActive: true,
+        ...(translationId && { translationId }),
       },
     });
 
-    this.logger.log(`Share link created for book ${bookId}: ${shareToken}`);
+    this.logger.log(`Share link created for book ${bookId}${translationId ? ` (translation ${translationId})` : ''}: ${shareToken}`);
 
     return this.toSharedBookInfo(shared);
   }
@@ -95,6 +97,7 @@ export class ShareService {
   async getShareByBook(
     bookId: string,
     userId: string,
+    translationId?: string,
   ): Promise<SharedBookInfo | null> {
     const book = await this.prisma.book.findFirst({
       where: { id: bookId, userId, deletedAt: null },
@@ -106,7 +109,7 @@ export class ShareService {
     }
 
     const shared = await this.prisma.sharedBook.findFirst({
-      where: { bookId, isActive: true },
+      where: { bookId, isActive: true, translationId: translationId ?? null },
     });
 
     if (!shared) {
@@ -126,12 +129,18 @@ export class ShareService {
               orderBy: { sequence: 'asc' },
             },
             files: {
-              where: { fileType: 'COVER_IMAGE' },
-              take: 1,
-              select: { fileUrl: true },
+              where: { fileType: { in: ['COVER_IMAGE', 'COVER_TRANSLATED'] } },
+              select: { id: true, fileUrl: true, fileType: true, fileName: true },
             },
             selectedCoverFile: {
               select: { fileUrl: true },
+            },
+          },
+        },
+        translation: {
+          include: {
+            chapters: {
+              orderBy: { sequence: 'asc' },
             },
           },
         },
@@ -162,7 +171,50 @@ export class ShareService {
         /* best-effort */
       });
 
-    const { book } = shared;
+    const { book, translation } = shared;
+
+    // If this share is for a translation, overlay translated content
+    if (translation) {
+      const translatedChapterMap = new Map(
+        translation.chapters.map((tc) => [tc.chapterId, tc]),
+      );
+
+      // Find translated cover for same language
+      const translatedCover = book.files.find(
+        (f) => f.fileType === 'COVER_TRANSLATED' && f.fileName.includes(translation.targetLanguage),
+      );
+
+      return {
+        title: translation.translatedTitle || book.title,
+        subtitle: translation.translatedSubtitle || book.subtitle,
+        author: book.author,
+        introduction: translation.translatedIntroduction || book.introduction,
+        conclusion: translation.translatedConclusion || book.conclusion,
+        finalConsiderations: translation.translatedFinalConsiderations || book.finalConsiderations,
+        glossary: translation.translatedGlossary || ((book.glossary as string | null) ?? null),
+        appendix: translation.translatedAppendix || book.appendix,
+        closure: translation.translatedClosure || book.closure,
+        chapters: book.chapters.map((ch) => {
+          const tc = translatedChapterMap.get(ch.id);
+          return {
+            id: ch.id,
+            sequence: ch.sequence,
+            title: tc?.translatedTitle || ch.title,
+            status: ch.status as unknown as SharedBookPublicView['chapters'][number]['status'],
+            wordCount: ch.wordCount,
+            isEdited: false,
+            content: tc?.translatedContent || ch.editedContent || ch.content,
+            editedContent: null,
+            topics: tc?.translatedContent ? [] : (ch.topics as SharedBookPublicView['chapters'][number]['topics']),
+            contextSummary: null,
+            selectedImageId: ch.selectedImageId,
+          };
+        }),
+        coverUrl: translatedCover?.fileUrl ?? book.selectedCoverFile?.fileUrl ?? book.files.find((f) => f.fileType === 'COVER_IMAGE')?.fileUrl ?? null,
+        wordCount: book.wordCount,
+        pageCount: book.pageCount,
+      };
+    }
 
     return {
       title: book.title,
@@ -187,7 +239,7 @@ export class ShareService {
         contextSummary: null,
         selectedImageId: ch.selectedImageId,
       })),
-      coverUrl: book.selectedCoverFile?.fileUrl ?? book.files[0]?.fileUrl ?? null,
+      coverUrl: book.selectedCoverFile?.fileUrl ?? book.files.find((f) => f.fileType === 'COVER_IMAGE')?.fileUrl ?? null,
       wordCount: book.wordCount,
       pageCount: book.pageCount,
     };

@@ -135,13 +135,13 @@ export default function TranslationsPage() {
       {/* Book Translations Tab */}
       {activeTab === "translations" && (
         <div className="space-y-4">
-          {translations.length === 0 ? (
+          {translations.filter((tr) => tr.status !== "ERROR").length === 0 ? (
             <div className="glass rounded-2xl p-8 text-center border border-border">
               <Globe className="w-12 h-12 mx-auto text-muted-foreground/30 mb-4" />
               <p className="text-muted-foreground">{t("noTranslations")}</p>
             </div>
           ) : (
-            translations.map((trans) => (
+            translations.filter((tr) => tr.status !== "ERROR").map((trans) => (
               <div
                 key={trans.id}
                 className="glass rounded-2xl p-5 border border-border flex items-center justify-between"
