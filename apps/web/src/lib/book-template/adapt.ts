@@ -72,11 +72,8 @@ export function toRenderableTranslatedBook(
     (f) => f.fileType === ('COVER_TRANSLATED' as string) && f.fileName.includes(translation.targetLanguage),
   );
 
-  // Use translated cover, or fall back to selected cover / original cover
-  const coverUrl = translatedCoverFile?.fileUrl
-    ?? (book.selectedCoverFileId
-      ? (book.files.find((f) => f.id === book.selectedCoverFileId)?.fileUrl ?? book.coverUrl)
-      : book.coverUrl);
+  // Use translated cover only — no fallback to original cover
+  const coverUrl = translatedCoverFile?.fileUrl ?? null;
 
   // Map translated chapters
   const translatedChapters = translation.chapters

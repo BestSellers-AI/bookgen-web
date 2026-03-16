@@ -64,9 +64,9 @@ function buildTranslatedBookDetail(
     appendix: translation.translatedAppendix || book.appendix,
     closure: translation.translatedClosure || book.closure,
     chapters,
-    // Use translated cover as selected cover if available
-    coverUrl: translatedCoverFile?.fileUrl ?? book.coverUrl ?? null,
-    selectedCoverFileId: translatedCoverFile?.id ?? book.selectedCoverFileId,
+    // Use translated cover only — no fallback to original
+    coverUrl: translatedCoverFile?.fileUrl ?? null,
+    selectedCoverFileId: translatedCoverFile?.id ?? null,
     // Override settings language for PDF labels
     settings: book.settings
       ? { ...book.settings, language: translation.targetLanguage }

@@ -254,18 +254,11 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
     ? book.translations?.find((tr) => tr.id === translationId)
     : null;
   const translationLang = currentTranslation?.targetLanguage;
-  const hasTranslatedCoverForLang = translationLang
-    ? book.files.some(
-        (f) => f.fileType === ("COVER_TRANSLATED" as string) && f.fileName.includes(translationLang),
-      )
-    : false;
-
   const TRANSLATION_ALLOWED_KINDS = new Set([
     ProductKind.ADDON_AUDIOBOOK,
     ProductKind.ADDON_AMAZON_STANDARD,
     ProductKind.ADDON_AMAZON_PREMIUM,
-    // Show cover translation only if this translation doesn't have a translated cover yet
-    ...(!hasTranslatedCoverForLang && translationId ? [ProductKind.ADDON_COVER_TRANSLATION] : []),
+    ProductKind.ADDON_COVER_TRANSLATION,
   ]);
   const STEPPER_KINDS = new Set([
     ProductKind.ADDON_COVER,
@@ -669,6 +662,12 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                     }}
                     tAddons={t}
                     tCommon={tCommon}
+                    onViewCoverTranslations={() => setCoverTranslationsSheetOpen(true)}
+                    viewLabel={
+                      config.kind === ProductKind.ADDON_COVER_TRANSLATION
+                        ? tj("viewTranslatedCovers")
+                        : undefined
+                    }
                   />
                 </div>
               </div>
