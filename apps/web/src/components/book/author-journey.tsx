@@ -22,6 +22,7 @@ import {
   Clock,
   Eye,
   Lock,
+  UserCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -712,20 +713,45 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
           {EXTRA_CONFIGS.map((config) => {
             const Icon = config.icon;
             const existing = getExistingAddon(config.kind);
+            const isPublishingAddonProcessing =
+              (config.kind === ProductKind.ADDON_AMAZON_STANDARD || config.kind === ProductKind.ADDON_AMAZON_PREMIUM) &&
+              existing && isAddonProcessing(existing.status);
 
             return (
               <div
                 key={config.kind}
-                className="p-4 rounded-xl bg-accent/30 border border-border space-y-3"
+                className={`p-4 rounded-xl space-y-3 ${
+                  isPublishingAddonProcessing
+                    ? "bg-blue-500/5 border border-blue-500/30"
+                    : "bg-accent/30 border border-border"
+                }`}
               >
                 <div className="flex items-start gap-3">
-                  <div className={`w-11 h-11 rounded-xl border flex items-center justify-center shrink-0 ${config.iconBg}`}>
-                    <Icon className={`w-5 h-5 ${config.color}`} />
+                  <div className={`w-11 h-11 rounded-xl border flex items-center justify-center shrink-0 ${
+                    isPublishingAddonProcessing
+                      ? "bg-blue-500/10 border-blue-500/20"
+                      : config.iconBg
+                  }`}>
+                    {isPublishingAddonProcessing ? (
+                      <UserCheck className="w-5 h-5 text-blue-400" />
+                    ) : (
+                      <Icon className={`w-5 h-5 ${config.color}`} />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-foreground">{t(`kind_${config.kind}`)}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">{t(`kindDesc_${config.kind}`)}</p>
-                    {t(`time_${config.kind}`) && (
+                    {isPublishingAddonProcessing ? (
+                      <>
+                        <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-bold text-blue-400/80">
+                          <Clock className="w-3 h-3" />
+                          {t(`time_${config.kind}`)}
+                        </span>
+                        <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
+                          {tj("publishingMessage")}
+                        </p>
+                      </>
+                    ) : t(`time_${config.kind}`) && (
                       <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-bold text-primary/70">
                         <Clock className="w-3 h-3" />
                         {t(`time_${config.kind}`)}
@@ -850,6 +876,8 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                     step.status === "available" &&
                     nextStep?.id === step.id;
 
+                  const isPublishingStep = step.id === "amazon" && step.status === "processing";
+
                   return (
                     <div key={step.id} className="flex gap-3">
                       {/* Vertical connector + icon */}
@@ -858,17 +886,21 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                           className={`w-10 h-10 rounded-xl border-2 flex items-center justify-center shrink-0 transition-all ${
                             step.status === "completed"
                               ? step.completedBg
-                              : step.status === "processing"
-                                ? "bg-amber-500/10 border-amber-500/40 animate-pulse"
-                                : step.status === "error"
-                                  ? "bg-red-500/10 border-red-500/40"
-                                  : isNext
-                                    ? "bg-primary/10 border-primary/40 shadow-lg shadow-primary/10"
-                                    : "bg-accent/50 border-border"
+                              : isPublishingStep
+                                ? "bg-blue-500/10 border-blue-500/40"
+                                : step.status === "processing"
+                                  ? "bg-amber-500/10 border-amber-500/40 animate-pulse"
+                                  : step.status === "error"
+                                    ? "bg-red-500/10 border-red-500/40"
+                                    : isNext
+                                      ? "bg-primary/10 border-primary/40 shadow-lg shadow-primary/10"
+                                      : "bg-accent/50 border-border"
                           }`}
                         >
                           {step.status === "completed" ? (
                             <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                          ) : isPublishingStep ? (
+                            <UserCheck className="w-5 h-5 text-blue-400" />
                           ) : step.status === "processing" ? (
                             <Loader2 className="w-5 h-5 dark:text-amber-400 text-amber-600 animate-spin" />
                           ) : step.status === "error" ? (
@@ -919,11 +951,27 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                             <CheckBadge />
                           )}
                           {step.status === "processing" && (
-                            <Badge className="bg-amber-500/10 dark:text-amber-400 text-amber-600 border-amber-500/20 text-[9px] font-black uppercase tracking-widest shrink-0 animate-pulse">
-                              {t("processing")}
-                            </Badge>
+                            isPublishingStep ? (
+                              <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-[9px] font-black uppercase tracking-widest shrink-0">
+                                <UserCheck className="w-3 h-3 mr-1" />
+                                {t("publishingAwaiting")}
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-amber-500/10 dark:text-amber-400 text-amber-600 border-amber-500/20 text-[9px] font-black uppercase tracking-widest shrink-0 animate-pulse">
+                                {t("processing")}
+                              </Badge>
+                            )
                           )}
                         </div>
+
+                        {/* Publishing step: human-action message */}
+                        {isPublishingStep && (
+                          <div className="mt-2 space-y-1.5">
+                            <p className="text-[11px] text-muted-foreground leading-relaxed">
+                              {tj("publishingMessage")}
+                            </p>
+                          </div>
+                        )}
 
                         {/* ── CTA Buttons ── */}
                         {(step.status === "available" || step.status === "error") &&

@@ -231,8 +231,16 @@ export default function AdminPublicationDetailPage() {
   const allCoverFiles = bookFiles.filter((f) =>
     f.fileType === "COVER_IMAGE" || f.fileType === "COVER_TRANSLATED",
   );
-  const selectedCover = allCoverFiles.find((f) => f.id === detail.book?.selectedCoverFileId);
-  const otherCovers = allCoverFiles.filter((f) => f.id !== detail.book?.selectedCoverFileId);
+  // For translations: prioritize the translated cover matching the target language
+  const translatedCover = detail.translation
+    ? allCoverFiles.find(
+        (f) =>
+          f.fileType === "COVER_TRANSLATED" &&
+          f.fileName.includes(`cover-translated-${detail.translation!.targetLanguage}`),
+      )
+    : undefined;
+  const selectedCover = translatedCover ?? allCoverFiles.find((f) => f.id === detail.book?.selectedCoverFileId);
+  const otherCovers = allCoverFiles.filter((f) => f.id !== selectedCover?.id);
   const allIllustrations = bookImages;
   const selectedIllustrations = allIllustrations.filter((img) => img.chapterId !== null);
   const otherIllustrations = allIllustrations.filter((img) => img.chapterId === null);
