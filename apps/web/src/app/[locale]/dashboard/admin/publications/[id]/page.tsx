@@ -200,18 +200,17 @@ export default function AdminPublicationDetailPage() {
   }
 
   // Categorize assets
-  const allCoverFiles = detail.book.files.filter((f) =>
+  const bookFiles = detail.book?.files ?? [];
+  const bookImages = detail.book?.images ?? [];
+  const allCoverFiles = bookFiles.filter((f) =>
     f.fileType === "COVER_IMAGE" || f.fileType === "COVER_TRANSLATED",
   );
-  const selectedCover = allCoverFiles.find((f) => f.id === detail.book.selectedCoverFileId);
-  const otherCovers = allCoverFiles.filter((f) => f.id !== detail.book.selectedCoverFileId);
-  const docFiles = detail.book.files.filter((f) =>
-    f.fileType === "PDF" || f.fileType === "DOCX" || f.fileType === "EPUB",
-  );
-  const allIllustrations = detail.book.images;
+  const selectedCover = allCoverFiles.find((f) => f.id === detail.book?.selectedCoverFileId);
+  const otherCovers = allCoverFiles.filter((f) => f.id !== detail.book?.selectedCoverFileId);
+  const allIllustrations = bookImages;
   const selectedIllustrations = allIllustrations.filter((img) => img.chapterId !== null);
   const otherIllustrations = allIllustrations.filter((img) => img.chapterId === null);
-  const audiobooks = detail.book.audiobooks;
+  const audiobooks = detail.book?.audiobooks ?? [];
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -631,7 +630,7 @@ export default function AdminPublicationDetailPage() {
           </AssetGroup>
         )}
 
-        {allCoverFiles.length === 0 && allIllustrations.length === 0 && docFiles.length === 0 && audiobooks.length === 0 && (
+        {allCoverFiles.length === 0 && allIllustrations.length === 0 && audiobooks.length === 0 && (
           <p className="text-sm text-muted-foreground text-center py-4">No assets available</p>
         )}
       </div>
