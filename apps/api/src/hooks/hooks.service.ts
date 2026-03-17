@@ -563,8 +563,12 @@ export class HooksService {
       throw new NotFoundException(`Addon ${dto.addonId} not found`);
     }
 
-    // Idempotency: skip if already completed or in a terminal state
-    if (addon.status === AddonStatus.COMPLETED || addon.status === AddonStatus.CANCELLED) {
+    // Idempotency: skip if already in a terminal state (prevents double refunds)
+    if (
+      addon.status === AddonStatus.COMPLETED ||
+      addon.status === AddonStatus.CANCELLED ||
+      addon.status === AddonStatus.ERROR
+    ) {
       this.logger.warn(`Addon ${dto.addonId} already ${addon.status}, skipping`);
       return;
     }

@@ -55,17 +55,23 @@ BUNDLES: Record<string, BundleConfig>  // indexed by id
 
 **Controller**: `addon.controller.ts` — routes to `AddonService.requestBundle()`
 
-**Service**: `addon.service.ts` — `requestBundle(userId, bookId, bundleId)`:
+**Service**: `addon.service.ts` — `requestBundle(userId, bookId, bundleId, params?)`:
 
-1. **Validate** bundle exists in `BUNDLES` record
-2. **Verify** book ownership + status (`GENERATED` required)
-3. **Check** no existing active addons for the bundle kinds (prevents duplicate purchase)
-4. **Create** individual `BookAddon` records (one per kind, status `PENDING`, `creditsCost` = individual cost for record-keeping)
-5. **Debit** bundle price as a single wallet transaction (`WalletTransactionType.ADDON_PURCHASE`)
-6. **Dispatch** each addon to n8n individually via `n8nClient.dispatchAddon()` (sequential loop)
-7. **Update** all addon records to `QUEUED`
+1. **Validate** bundle exists in `BUNDLES` record (fetched from `ConfigDataService`)
+2. **Validate params**: bundles with `ADDON_TRANSLATION` require `params.targetLanguage`; bundles with `ADDON_COVER_TRANSLATION` require `selectedCoverFileId` on the book
+3. **Verify** book ownership + status (`GENERATED` required)
+4. **Check** no existing active addons for the bundle kinds (prevents duplicate purchase)
+5. **Create** individual `BookAddon` records:
+   - Publishing addons (`ADDON_AMAZON_STANDARD`, `ADDON_AMAZON_PREMIUM`): status `PROCESSING` directly (manual workflow)
+   - Other addons: status `PENDING`
+   - `creditsCost` fetched from `ConfigDataService` for record-keeping
+6. **Debit** bundle price as a single wallet transaction (`WalletTransactionType.ADDON_PURCHASE`)
+7. **Dispatch** each addon:
+   - **Publishing addons**: handled inline — creates `PublishingRequest` (PREPARING) + notification, no BullMQ dispatch
+   - **Translation addons**: dispatched to BullMQ with `targetLanguage` param
+   - **Other addons**: dispatched to BullMQ normally
 
-**Error handling**: If any n8n dispatch fails:
+**Error handling**: If any dispatch fails:
 - Full bundle cost is refunded (`CreditType.REFUND`)
 - All addon records marked as `ERROR`
 - `BadRequestException` thrown to client
@@ -74,8 +80,8 @@ BUNDLES: Record<string, BundleConfig>  // indexed by id
 
 **API** (`apps/web/src/lib/api/addons.ts`):
 ```typescript
-addonsApi.createBundle(bookId: string, bundleId: string)
-// POST /books/:bookId/addons/bundle/:bundleId
+addonsApi.createBundle(bookId: string, bundleId: string, params?: Record<string, unknown>)
+// POST /books/:bookId/addons/bundle/:bundleId — params sent as request body
 ```
 
 **UI** (`apps/web/src/components/book/author-journey.tsx`):
@@ -89,7 +95,17 @@ addonsApi.createBundle(bookId: string, bundleId: string)
   - Full-width CTA button with gradient
 - Bundle availability computed per-bundle: all kinds must be unpurchased (or cancelled/error)
 - Confirmation dialog shows bundle-specific copy and credit balance check
+- **Language selector**: bundle dialog shows a language dropdown when the bundle includes a translation addon (e.g., Global Launch)
 - On purchase: closes dialog, refreshes addons list, updates wallet balance
+
+**Global Launch Bundle Restrictions:**
+
+- Requires the original book to have an active publishing request first
+- When no original book publication exists:
+  - Shows `LockedBundleCard` with a padlock overlay on the card
+  - Clicking the locked card shows an alert message explaining the requirement
+  - Description updated to "Second publication" with "50% off" messaging
+- This enforces the intended flow: publish original first, then use Global Launch for translated version
 
 **CSS Animations** (`apps/web/src/app/globals.css`):
 - `--animate-shake`: 0.6s ease-in-out shake with rotation
@@ -109,10 +125,20 @@ Per-bundle keys (suffix = bundle ID):
 
 All keys translated in `en.json`, `pt-BR.json`, `es.json`.
 
+## Bundle Configuration
+
+Bundle configs are **configurable via the admin panel**:
+
+- Admin: Products > Settings > BUNDLES JSON textarea
+- Stored in DB via `AppConfig` model
+- Frontend fetches config from `useConfigStore` -> `/api/config` -> `ConfigDataService`
+- Fallback: `constants.ts` defaults if no DB config exists
+- Changes take effect immediately (config cache invalidated on save)
+
 ## Adding a New Bundle
 
-1. **Shared**: Add `BUNDLE_*` constant in `constants.ts` with `BundleConfig` shape, add to `BUNDLES` record
-2. **Rebuild shared**: `pnpm --filter @bestsellers/shared build`
+1. **Admin panel**: Edit the BUNDLES JSON in Products > Settings (or add `BUNDLE_*` constant in `constants.ts` as fallback)
+2. **Rebuild shared** (if editing constants.ts): `pnpm --filter @bestsellers/shared build`
 3. **i18n**: Add `bundleTitle_*`, `bundleSubtitle_*`, `bundleCta_*`, `bundleConfirm_*`, `bundleSuccess_*` in all 3 locales
 4. **Frontend**: Render `<BundleCard bundle={BUNDLE_*} ... />` where appropriate, compute availability with `isBundleAvailable(bundle)`
 5. No backend changes needed — the endpoint is generic via `bundleId` param

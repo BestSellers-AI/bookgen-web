@@ -1,6 +1,82 @@
-# Current Status — 2026-03-11
+# Current Status — 2026-03-17
 
 ## What was done this session
+
+### 1. Audiobook Addon (ADDON_AUDIOBOOK)
+
+Full audiobook generation using Edge TTS (Microsoft Azure via `node-edge-tts`). 60 credits.
+
+- **TTS Service** (`apps/api/src/tts/tts.service.ts`): 10+ languages with male/female neural voices, MP3 24kHz 48kbit/s mono, chunking at ~2500 chars, 120s timeout per chunk
+- **Content preparation**: Strips HTML tags and Markdown formatting (headings, bold, italic, lists, code blocks, links, blockquotes, horizontal rules) for clean narration
+- **Segments**: introduction -> chapters -> conclusion -> finalConsiderations -> glossary -> resourcesReferences -> appendix -> closure, with localized section labels (en/pt-BR/es)
+- **Chapter content fallback**: editedContent -> content -> topics
+- **Translated books**: Uses translatedContent + targetLanguage for voice resolution, S3 path: `audiobooks/{bookId}/tr-{translationId}/...`
+- **Output**: Per-segment audio uploaded to S3 + concatenated full audiobook
+- **SSE progress**: Events emitted per segment during generation
+- **Free regeneration**: `params.regenerate = true` -> cost 0, regenerate button in audiobook viewer header, opens voice selection dialog
+- **Frontend**: `audiobook-viewer.tsx` bottom sheet with Chapters tab (per-segment play/download, auto-advance, prev/next) + Full Audiobook tab (play/download)
+- **Database**: Audiobook model (bookId, translationId?, voiceId, voiceName, status, totalDuration, fullAudioUrl, fullAudioSize) + AudiobookChapter model (audiobookId, chapterId?, sectionType?, sequence, title, audioUrl, durationSecs)
+
+### 2. Publishing Addon (ADDON_AMAZON_STANDARD / ADDON_AMAZON_PREMIUM)
+
+Manual publishing workflow managed by admin. Not automated (no BullMQ dispatch).
+
+- **Short-circuit**: Publishing addons skip BullMQ — creates PublishingRequest + notification inline in `AddonService`
+- **Status flow**: PREPARING -> REVIEW -> READY -> SUBMITTED -> PUBLISHED (also: REJECTED, CANCELLED)
+- **PublishingRequest model**: bookId, addonId, userId, translationId?, platform, status, publishedUrl, amazonAsin, kdpUrl, publishedAt, adminNotes
+- **Admin module**: `apps/api/src/publishing/` (service, controller, module, DTOs)
+- **Admin endpoints**: `GET/PATCH /admin/publishing/:id/status`, `POST /admin/publishing/:id/complete`
+- **Admin pages**: `/admin/publications` (list with filters) + `/admin/publications/[id]` (detail with downloadable assets)
+- **Frontend**: Author journey shows publishing status + editor contact message, PublishingResultSheet for completed publications
+- **Mutual exclusion**: When one publishing type (standard/premium) is active, the other disappears from UI
+- **Works for translations**: PublishingRequest supports `translationId`
+
+### 3. Bundles Fix
+
+- **Language selection**: Bundle dialog shows language dropdown when bundle includes translation addon
+- **Publishing inline**: `requestBundle` handles Amazon addons inline (PublishingRequest + notification) instead of dispatching all to BullMQ
+- **Validation**: Bundles with ADDON_TRANSLATION require targetLanguage, bundles with ADDON_COVER_TRANSLATION require selectedCoverFileId
+- **Configurable bundles**: Bundle configs managed via admin panel (Products > Settings > BUNDLES JSON), fetched from ConfigDataService with fallback to constants.ts
+- **Global Launch locked state**: Requires original book to have an active publishing request first, shows LockedBundleCard with padlock overlay + alert on click when no publication exists
+
+### 4. Admin Credit Usage Report
+
+- `GET /admin/credit-usage` endpoint with filters (type, date range, search)
+- Aggregated view of credit spending by addon type
+
+### 5. Translation View Scoping
+
+- Cover translation sheet filtered to show only covers for the current translation language (not all languages)
+- "View Translated Cover" (singular) label used instead of "View Translated Covers" when viewing translated book
+- "Add another" cover button hidden when cover already exists for that language
+
+### 6. New Migrations
+
+- `20260316230000_add_audiobook_translation_id` — translationId on audiobooks
+- `20260316240000_audiobook_chapter_optional_section_type` — chapterId optional, sectionType field on audiobook_chapters
+- `20260317000000_publishing_request_enhancements` — userId, translationId, amazonAsin, kdpUrl, publishedAt, adminNotes on publishing_requests
+
+### 7. New Files Created
+
+| File | Purpose |
+|------|---------|
+| `apps/api/src/tts/tts.service.ts` | Edge TTS synthesis service |
+| `apps/api/src/tts/tts.module.ts` | TTS module |
+| `apps/api/src/publishing/publishing.service.ts` | Publishing CRUD + status management |
+| `apps/api/src/publishing/publishing.controller.ts` | User + Admin publishing endpoints |
+| `apps/api/src/publishing/publishing.module.ts` | Publishing module |
+| `apps/api/src/publishing/dto/index.ts` | Publishing DTOs |
+| `apps/web/src/components/book/audiobook-viewer.tsx` | Audiobook player UI |
+| `apps/web/src/app/[locale]/dashboard/admin/publications/page.tsx` | Admin publications list |
+| `apps/web/src/app/[locale]/dashboard/admin/publications/[id]/page.tsx` | Admin publication detail |
+| `plan/AUDIOBOOK.md` | Audiobook addon documentation |
+| `plan/PUBLISHING.md` | Publishing addon documentation |
+
+---
+
+# Previous Session — 2026-03-11
+
+## What was done that session
 
 ### 1. Internal Generation — BullMQ replaces n8n
 
@@ -183,16 +259,19 @@ Created detailed plan for in-app guided tour using `onborda`. See `plan/GUIDED_T
 ## Where we stopped
 
 ### Committed on `develop` branch
-All internal generation, mock addons, resilience, Stripe integration, admin panel, config store, and landing page migration.
+All internal generation, mock addons, resilience, Stripe integration, admin panel, config store, landing page migration, audiobook addon, publishing addon, bundles fix, and translation view scoping.
 
 ### Pending items
-- [ ] **Test generation end-to-end**: generate a new book, verify Bull Board at `http://localhost:3001/api/admin/queues`, chapter loader, onFailed→ERROR flow
+- [ ] **Test audiobook end-to-end**: generate audiobook for original + translated book, verify player UI, regeneration flow
+- [ ] **Test publishing end-to-end**: request standard/premium publishing, verify admin workflow (list, detail, status update, complete)
+- [ ] **Test bundles**: purchase Global Launch bundle with language selection, verify locked state without original publication
+- [ ] **Test generation end-to-end**: generate a new book, verify Bull Board at `http://localhost:3001/api/admin/queues`, chapter loader, onFailed->ERROR flow
 - [ ] Configure Stripe webhook endpoint in Dashboard (URL: `https://<domain>/api/webhooks/stripe`)
 - [ ] Set `STRIPE_WEBHOOK_SECRET` in production after webhook creation
 - [ ] Implement guided tour (`plan/GUIDED_TOUR.md`)
-- [ ] Test full Docker build locally (new LLM/Generation modules)
+- [ ] Test full Docker build locally (new LLM/Generation/TTS/Publishing modules)
 - [ ] Deploy to Coolify (API + DB + Redis)
-- [ ] Run `prisma migrate deploy` on first deploy
+- [ ] Run `prisma migrate deploy` on first deploy (includes audiobook + publishing migrations)
 - [ ] Deploy web separately (Vercel or Coolify)
 - [ ] Configure production env vars (OpenRouter key, Stripe, S3, etc.)
 - [ ] Monitor generation in production (check stalled detection, cron recovery)

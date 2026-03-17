@@ -161,54 +161,74 @@ export class AddonService {
       dto.kind === 'ADDON_AMAZON_STANDARD' ||
       dto.kind === 'ADDON_AMAZON_PREMIUM'
     ) {
-      // Update addon to PROCESSING (manual admin workflow)
-      const processingAddon = await this.prisma.bookAddon.update({
-        where: { id: addon.id },
-        data: { status: AddonStatus.PROCESSING },
-      });
+      try {
+        // Update addon to PROCESSING (manual admin workflow)
+        const processingAddon = await this.prisma.bookAddon.update({
+          where: { id: addon.id },
+          data: { status: AddonStatus.PROCESSING },
+        });
 
-      // Create the PublishingRequest
-      await this.prisma.publishingRequest.create({
-        data: {
-          bookId,
-          addonId: addon.id,
-          userId,
-          translationId: translationId || undefined,
-          platform:
-            dto.kind === 'ADDON_AMAZON_PREMIUM'
-              ? 'amazon_kdp_premium'
-              : 'amazon_kdp',
-          status: PublishingStatus.PREPARING,
-        },
-      });
+        // Create the PublishingRequest
+        await this.prisma.publishingRequest.create({
+          data: {
+            bookId,
+            addonId: addon.id,
+            userId,
+            translationId: translationId || undefined,
+            platform:
+              dto.kind === 'ADDON_AMAZON_PREMIUM'
+                ? 'amazon_kdp_premium'
+                : 'amazon_kdp',
+            status: PublishingStatus.PREPARING,
+          },
+        });
 
-      // Notify the user
-      await this.prisma.notification.create({
-        data: {
-          userId,
-          type: NotificationType.PUBLISHING_UPDATE,
-          title: 'Publishing Request Created',
-          message: `Your ${dto.kind === 'ADDON_AMAZON_PREMIUM' ? 'Premium' : 'Standard'} Amazon publishing request has been submitted for review.`,
-          data: { bookId, addonId: addon.id },
-        },
-      });
+        // Notify the user
+        await this.prisma.notification.create({
+          data: {
+            userId,
+            type: NotificationType.PUBLISHING_UPDATE,
+            title: 'Publishing Request Created',
+            message: `Your ${dto.kind === 'ADDON_AMAZON_PREMIUM' ? 'Premium' : 'Standard'} Amazon publishing request has been submitted for review.`,
+            data: { bookId, addonId: addon.id },
+          },
+        });
 
-      this.logger.log(
-        `Publishing addon ${addon.id} (${dto.kind}) created for book ${bookId}`,
-      );
+        this.logger.log(
+          `Publishing addon ${addon.id} (${dto.kind}) created for book ${bookId}`,
+        );
 
-      return {
-        id: processingAddon.id,
-        kind: processingAddon.kind as unknown as BookAddonSummary['kind'],
-        status: processingAddon.status as unknown as BookAddonSummary['status'],
-        translationId: processingAddon.translationId,
-        resultUrl: processingAddon.resultUrl,
-        resultData: processingAddon.resultData as Record<string, unknown> | null,
-        creditsCost: processingAddon.creditsCost,
-        error: processingAddon.error,
-        createdAt: processingAddon.createdAt.toISOString(),
-        updatedAt: processingAddon.updatedAt.toISOString(),
-      };
+        return {
+          id: processingAddon.id,
+          kind: processingAddon.kind as unknown as BookAddonSummary['kind'],
+          status: processingAddon.status as unknown as BookAddonSummary['status'],
+          translationId: processingAddon.translationId,
+          resultUrl: processingAddon.resultUrl,
+          resultData: processingAddon.resultData as Record<string, unknown> | null,
+          creditsCost: processingAddon.creditsCost,
+          error: processingAddon.error,
+          createdAt: processingAddon.createdAt.toISOString(),
+          updatedAt: processingAddon.updatedAt.toISOString(),
+        };
+      } catch {
+        // Refund credits if publishing request creation fails
+        if (addon.creditsCost && addon.creditsCost > 0) {
+          await this.walletService.addCredits(userId, addon.creditsCost, CreditType.REFUND, {
+            description: `Refund: ${dto.kind} publishing request failed`,
+            transactionType: WalletTransactionType.REFUND,
+          });
+        }
+        await this.prisma.bookAddon.update({
+          where: { id: addon.id },
+          data: {
+            status: AddonStatus.ERROR,
+            error: 'Failed to create publishing request',
+          },
+        });
+        throw new BadRequestException(
+          'Failed to create publishing request. Credits have been refunded.',
+        );
+      }
     }
 
     // Build addon-specific params
@@ -256,11 +276,13 @@ export class AddonService {
         await this.n8nClient.dispatchAddon(bookId, addon.id, dto.kind, dispatchParams);
       }
     } catch {
-      // Refund credits and mark addon as ERROR on dispatch failure
-      await this.walletService.addCredits(userId, creditsCost, CreditType.REFUND, {
-        description: `Refund: ${dto.kind} add-on dispatch failed`,
-        transactionType: WalletTransactionType.REFUND,
-      });
+      // Refund only what was actually charged (addon.creditsCost, not template creditsCost)
+      if (addon.creditsCost && addon.creditsCost > 0) {
+        await this.walletService.addCredits(userId, addon.creditsCost, CreditType.REFUND, {
+          description: `Refund: ${dto.kind} add-on dispatch failed`,
+          transactionType: WalletTransactionType.REFUND,
+        });
+      }
       await this.prisma.bookAddon.update({
         where: { id: addon.id },
         data: {
@@ -455,6 +477,12 @@ export class AddonService {
           }),
         ),
       );
+      // Clean up inline-created PublishingRequests for this bundle
+      await this.prisma.publishingRequest.deleteMany({
+        where: {
+          addonId: { in: addonRecords.map((a) => a.id) },
+        },
+      });
       throw new BadRequestException(
         'Failed to start bundle processing. Credits have been refunded.',
       );

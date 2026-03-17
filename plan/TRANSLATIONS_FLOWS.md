@@ -205,6 +205,27 @@ Translated books can have their own addons:
 - Cover Translation requested from translated book presets the language (shown as badge, no dropdown)
 - `params.translationId` passed in addon request (except for Cover Translation which is book-level)
 
+### Audiobook on Translated Books
+
+- Audiobook addon generates audio from translated content (`translatedContent` + `targetLanguage`)
+- Voice is resolved from `targetLanguage` (not the original book language)
+- Segments use translated back matter (translatedIntroduction, translatedConclusion, etc.)
+- S3 path includes translation ID: `audiobooks/{bookId}/tr-{translationId}/...`
+- See `plan/AUDIOBOOK.md` for full audiobook documentation
+
+### Publishing on Translated Books
+
+- Publishing addon creates `PublishingRequest` with `translationId` linked
+- Admin detail view shows the translation data alongside the book
+- Same status flow as original book publishing
+- See `plan/PUBLISHING.md` for full publishing documentation
+
+### Cover Translation Sheet Scoping
+
+- Cover translations sheet is filtered to show only covers for the **current translation language** (not all languages)
+- Label uses singular "View Translated Cover" instead of "View Translated Covers" when viewing a translated book
+- "Add another" cover button is hidden when a cover already exists for that specific language
+
 ---
 
 ## Validation Rules
@@ -239,3 +260,6 @@ Translated books can have their own addons:
 | `20260316200000_add_translation_back_matter_fields` | 6 fields on `book_translations` |
 | `20260316210000_add_addon_translation_id` | `translation_id` on `book_addons` |
 | `20260316220000_add_shared_book_translation_id` | `translation_id` on `shared_books` |
+| `20260316230000_add_audiobook_translation_id` | `translation_id` on `audiobooks` |
+| `20260316240000_audiobook_chapter_optional_section_type` | `chapterId` made optional on `audiobook_chapters`, added `sectionType` field |
+| `20260317000000_publishing_request_enhancements` | Added `userId`, `translationId`, `amazonAsin`, `kdpUrl`, `publishedAt`, `adminNotes` to `publishing_requests` |

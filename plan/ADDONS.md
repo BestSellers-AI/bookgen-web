@@ -1,4 +1,4 @@
-# Addons System (Covers & Chapter Images)
+# Addons System
 
 Complete documentation of the addon generation, display, selection, and re-generation flows.
 
@@ -6,7 +6,7 @@ Complete documentation of the addon generation, display, selection, and re-gener
 
 ### BookAddon
 Primary addon record tracking status and results.
-- `id`, `bookId`, `kind` (ADDON_COVER, ADDON_IMAGES, ADDON_TRANSLATION)
+- `id`, `bookId`, `kind` (ADDON_COVER, ADDON_IMAGES, ADDON_TRANSLATION, ADDON_COVER_TRANSLATION, ADDON_AUDIOBOOK, ADDON_AMAZON_STANDARD, ADDON_AMAZON_PREMIUM)
 - `status`: PENDING → QUEUED → PROCESSING → COMPLETED | ERROR | CANCELLED
 - `resultUrl`: first image S3 URL (quick display)
 - `resultData`: JSON with structured results (variations/images array)
@@ -191,6 +191,35 @@ bookImages = book.images
 
 ---
 
+## ADDON_AUDIOBOOK (Audiobook)
+
+Generates a full narrated audiobook using Edge TTS (Microsoft Azure neural voices). 60 credits. Supports 10+ languages with male/female voices. Works for original and translated books.
+
+- Segments: introduction, chapters, conclusion, back matter sections
+- Output: per-segment MP3 files + concatenated full audiobook on S3
+- Free regeneration with different voice gender
+- Frontend: bottom sheet player with chapters tab + full audiobook tab
+
+See **`plan/AUDIOBOOK.md`** for full documentation.
+
+---
+
+## ADDON_AMAZON_STANDARD / ADDON_AMAZON_PREMIUM (Publishing)
+
+Manual publishing workflow managed by admin. **Not automated** — no BullMQ dispatch.
+
+- **ADDON_AMAZON_STANDARD**: Standard Amazon KDP publishing (40 credits)
+- **ADDON_AMAZON_PREMIUM**: Premium Amazon KDP publishing (80 credits)
+- Short-circuits in `AddonService` — creates `PublishingRequest` + notification inline
+- Status flow: PREPARING → REVIEW → SUBMITTED → PUBLISHED (also: REJECTED, CANCELLED)
+- Admin manages via `/admin/publications` pages
+- Works for both original and translated books (via `translationId` param)
+- Mutual exclusion: when one type is active, the other disappears from UI
+
+See **`plan/PUBLISHING.md`** for full documentation.
+
+---
+
 ## Addon Status Machine
 
 ```
@@ -198,6 +227,8 @@ PENDING → QUEUED → PROCESSING → COMPLETED (success)
                               → ERROR (+ auto refund)
          → CANCELLED (+ refund if charged)
 ```
+
+**Note:** Amazon publishing addons (`ADDON_AMAZON_STANDARD`, `ADDON_AMAZON_PREMIUM`) skip `PENDING` and `QUEUED` — they go directly to `PROCESSING` since they are handled inline (no BullMQ dispatch).
 
 Terminal states: `COMPLETED`, `ERROR`, `CANCELLED`
 
@@ -250,6 +281,13 @@ Terminal states: `COMPLETED`, `ERROR`, `CANCELLED`
 | `DELETE` | `/books/:id/addons/:addonId` | Cancel addon (refund if charged) |
 | `PATCH` | `/books/:id/addons/cover/:fileId` | Select cover image |
 | `PATCH` | `/books/:id/addons/chapters/:chId/image/:imgId` | Select chapter image |
+| `GET` | `/books/:bookId/publishing` | List publishing requests for book (user) |
+| `GET` | `/books/:bookId/publishing/:id` | Get publishing request detail (user) |
+| `GET` | `/admin/publishing` | List all publishing requests (admin, paginated, filterable) |
+| `GET` | `/admin/publishing/:id` | Get publishing request with full book assets (admin) |
+| `PATCH` | `/admin/publishing/:id/status` | Update publishing status (admin) |
+| `POST` | `/admin/publishing/:id/complete` | Complete publishing with details (admin) |
+| `GET` | `/admin/credit-usage` | Credit usage report with filters (admin) |
 
 ## Key Files
 
