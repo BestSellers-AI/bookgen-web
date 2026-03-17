@@ -69,6 +69,12 @@ export default function AdminPublicationDetailPage() {
   const [cancelling, setCancelling] = useState(false);
   const [showOtherCovers, setShowOtherCovers] = useState(false);
   const [showOtherIllustrations, setShowOtherIllustrations] = useState(false);
+
+  // Webhook dispatch
+  const [showWebhook, setShowWebhook] = useState(false);
+  const [webhookUrl, setWebhookUrl] = useState("https://n8n-api.01.prod.bestsellers.digital/webhook/saas-publishing");
+  const [webhookEditable, setWebhookEditable] = useState(false);
+  const [dispatching, setDispatching] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [generatingDocx, setGeneratingDocx] = useState(false);
 
@@ -149,6 +155,42 @@ export default function AdminPublicationDetailPage() {
       toast.error("Failed to generate DOCX");
     } finally {
       setGeneratingDocx(false);
+    }
+  };
+
+  const handleDispatchWebhook = async () => {
+    if (!detail || !webhookUrl) return;
+    setDispatching(true);
+    try {
+      const payload = {
+        publishingRequest: {
+          id: detail.id,
+          status: detail.status,
+          platform: detail.platform,
+          createdAt: detail.createdAt,
+        },
+        user: detail.user,
+        book: {
+          id: detail.book?.id,
+          title: detail.book?.title,
+          subtitle: detail.book?.subtitle,
+          author: detail.book?.author,
+          status: detail.book?.status,
+        },
+        addon: detail.addon,
+        translation: detail.translation,
+      };
+      const res = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      toast.success(t("webhookSuccess"));
+    } catch {
+      toast.error(t("webhookError"));
+    } finally {
+      setDispatching(false);
     }
   };
 
@@ -319,6 +361,60 @@ export default function AdminPublicationDetailPage() {
               {updatingStatus && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
               {t("updateStatus")}
             </Button>
+          </div>
+
+          {/* Add to spreadsheet */}
+          <div className="border-t border-border pt-4">
+            {showWebhook ? (
+              <div className="space-y-3">
+                <h4 className="text-sm font-bold">{t("addToSpreadsheet")}</h4>
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={webhookUrl}
+                    onChange={(e) => setWebhookUrl(e.target.value)}
+                    disabled={!webhookEditable}
+                    className="rounded-xl flex-1 font-mono text-xs"
+                  />
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="rounded-xl text-xs shrink-0"
+                    onClick={() => setWebhookEditable((v) => !v)}
+                  >
+                    {webhookEditable ? t("lockUrl") : t("editUrl")}
+                  </Button>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    className="rounded-xl"
+                    onClick={handleDispatchWebhook}
+                    disabled={dispatching || !webhookUrl}
+                  >
+                    {dispatching && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                    {t("dispatchWebhook")}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="rounded-xl"
+                    onClick={() => setShowWebhook(false)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                className="rounded-xl"
+                onClick={() => setShowWebhook(true)}
+              >
+                <ExternalLink className="w-4 h-4 mr-2" />
+                {t("addToSpreadsheet")}
+              </Button>
+            )}
           </div>
 
           <div className="border-t border-border pt-4">
