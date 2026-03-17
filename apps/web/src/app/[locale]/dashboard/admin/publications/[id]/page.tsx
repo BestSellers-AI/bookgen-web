@@ -73,6 +73,8 @@ export default function AdminPublicationDetailPage() {
 
   // Webhook dispatch
   const [showWebhook, setShowWebhook] = useState(false);
+  // TODO: persist webhook URL in AppConfig (e.g. key "PUBLISHING_WEBHOOK_URL")
+  // so it survives page reloads and is editable via admin settings
   const [webhookUrl, setWebhookUrl] = useState("https://n8n-api.01.prod.bestsellers.digital/webhook/saas-publishing");
   const [webhookEditable, setWebhookEditable] = useState(false);
   const [dispatching, setDispatching] = useState(false);
