@@ -9,6 +9,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { ChapterStatus, ProductKind } from '@prisma/client';
 import { StorageService } from '../../storage/storage.service';
 import { TranslationService } from '../../translations/translation.service';
+import { TtsService, type VoiceGender } from '../../tts/tts.service';
 import {
   getGuidedPreviewSystemPrompt,
   getSimplePreviewSystemPrompt,
@@ -119,6 +120,7 @@ export class GenerationProcessor extends WorkerHost {
     private readonly eventEmitter: EventEmitter2,
     private readonly storageService: StorageService,
     private readonly translationService: TranslationService,
+    private readonly ttsService: TtsService,
   ) {
     super();
   }
@@ -129,14 +131,15 @@ export class GenerationProcessor extends WorkerHost {
   }
 
   @OnWorkerEvent('failed')
-  async onFailed(job: Job, error: Error) {
+  async onFailed(job: Job, error: Error | undefined) {
     const bookId = job.data?.bookId;
-    this.logger.error(`[${job.name}] Failed for book ${bookId}: ${error.message}`);
+    const errorMessage = error?.message ?? 'Unknown error';
+    this.logger.error(`[${job.name}] Failed for book ${bookId}: ${errorMessage}`);
 
     if (!bookId) return;
 
     const maxAttempts = (job.opts?.attempts ?? 3);
-    const isFinalFailure = job.attemptsMade >= maxAttempts || error.message.includes('stalled');
+    const isFinalFailure = job.attemptsMade >= maxAttempts || errorMessage.includes('stalled');
 
     if (!isFinalFailure) return;
 
@@ -150,13 +153,13 @@ export class GenerationProcessor extends WorkerHost {
             addonId,
             addonKind,
             status: 'error',
-            error: `Add-on failed: ${error.message}`,
+            error: `Add-on failed: ${errorMessage}`,
           });
         }
       } else {
         await this.hooksService.processGenerationError({
           bookId,
-          error: `Generation failed: ${error.message}`,
+          error: `Generation failed: ${errorMessage}`,
         });
       }
     } catch (hookError) {
@@ -594,6 +597,8 @@ export class GenerationProcessor extends WorkerHost {
         await this.processAddonTranslation(job);
       } else if (addonKind === ProductKind.ADDON_COVER_TRANSLATION) {
         await this.processAddonCoverTranslation(job);
+      } else if (addonKind === ProductKind.ADDON_AUDIOBOOK) {
+        await this.processAddonAudiobook(job);
       } else {
         // Other addon types not yet implemented — mock result
         await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -1219,6 +1224,293 @@ export class GenerationProcessor extends WorkerHost {
     });
 
     this.logger.log(`[cover-translation] Cover translated for book ${bookId} → ${targetLanguage}`);
+  }
+
+  // ─── Audiobook Generation ────────────────────────────────────────────
+
+  private async processAddonAudiobook(job: Job<AddonJobData>): Promise<void> {
+    const { bookId, addonId, addonKind, params } = job.data;
+    const translationId = (params?.translationId as string) || null;
+    const voiceGender = ((params?.voiceGender as string) || 'female') as VoiceGender;
+
+    // Each segment is either a chapter or a book section (intro, conclusion, etc.)
+    interface AudioSegment {
+      chapterId: string | null;
+      sectionType: string | null; // introduction, conclusion, finalConsiderations, glossary, resourcesReferences, appendix, closure
+      sequence: number;
+      title: string;
+      content: string;
+    }
+
+    // Section labels by language for TTS narration titles
+    const sectionLabels: Record<string, Record<string, string>> = {
+      en: { introduction: 'Introduction', conclusion: 'Conclusion', finalConsiderations: 'Final Considerations', glossary: 'Glossary', resourcesReferences: 'Resources and References', appendix: 'Appendix', closure: 'Closure' },
+      'pt-BR': { introduction: 'Introdução', conclusion: 'Conclusão', finalConsiderations: 'Considerações Finais', glossary: 'Glossário', resourcesReferences: 'Recursos e Referências', appendix: 'Apêndice', closure: 'Encerramento' },
+      es: { introduction: 'Introducción', conclusion: 'Conclusión', finalConsiderations: 'Consideraciones Finales', glossary: 'Glosario', resourcesReferences: 'Recursos y Referencias', appendix: 'Apéndice', closure: 'Cierre' },
+    };
+
+    let language: string;
+    let segments: AudioSegment[];
+
+    if (translationId) {
+      // Translated book: fetch translated chapter content + back matter
+      const translation = await this.prisma.bookTranslation.findUnique({
+        where: { id: translationId },
+        select: {
+          targetLanguage: true,
+          translatedIntroduction: true,
+          translatedConclusion: true,
+          translatedFinalConsiderations: true,
+          translatedGlossary: true,
+          translatedAppendix: true,
+          translatedClosure: true,
+          chapters: {
+            where: { status: 'TRANSLATED' },
+            orderBy: { sequence: 'asc' },
+            select: {
+              chapterId: true,
+              sequence: true,
+              translatedTitle: true,
+              translatedContent: true,
+            },
+          },
+        },
+      });
+
+      if (!translation) throw new Error(`Translation ${translationId} not found`);
+      if (translation.chapters.length === 0) throw new Error(`Translation ${translationId} has no translated chapters`);
+
+      language = translation.targetLanguage;
+      const labels = sectionLabels[language] || sectionLabels['en'];
+
+      // Build segments: intro → chapters → conclusion → finalConsiderations → glossary → appendix → closure
+      segments = [];
+      let seq = 0;
+
+      if (translation.translatedIntroduction) {
+        segments.push({ chapterId: null, sectionType: 'introduction', sequence: seq++, title: labels.introduction, content: translation.translatedIntroduction });
+      }
+
+      for (const ch of translation.chapters) {
+        segments.push({ chapterId: ch.chapterId, sectionType: null, sequence: seq++, title: ch.translatedTitle || `Chapter ${ch.sequence}`, content: ch.translatedContent || '' });
+      }
+
+      if (translation.translatedConclusion) {
+        segments.push({ chapterId: null, sectionType: 'conclusion', sequence: seq++, title: labels.conclusion, content: translation.translatedConclusion });
+      }
+      if (translation.translatedFinalConsiderations) {
+        segments.push({ chapterId: null, sectionType: 'finalConsiderations', sequence: seq++, title: labels.finalConsiderations, content: translation.translatedFinalConsiderations });
+      }
+      if (translation.translatedGlossary) {
+        const glossaryText = typeof translation.translatedGlossary === 'string' ? translation.translatedGlossary : JSON.stringify(translation.translatedGlossary);
+        segments.push({ chapterId: null, sectionType: 'glossary', sequence: seq++, title: labels.glossary, content: glossaryText });
+      }
+      if (translation.translatedAppendix) {
+        segments.push({ chapterId: null, sectionType: 'appendix', sequence: seq++, title: labels.appendix, content: translation.translatedAppendix });
+      }
+      if (translation.translatedClosure) {
+        segments.push({ chapterId: null, sectionType: 'closure', sequence: seq++, title: labels.closure, content: translation.translatedClosure });
+      }
+
+      this.logger.log(`[audiobook] Generating audiobook for translation ${translationId} (${language}), ${segments.length} segments`);
+    } else {
+      // Original book: fetch original chapter content + back matter
+      const book = await this.prisma.book.findUnique({
+        where: { id: bookId },
+        select: {
+          settings: true,
+          introduction: true,
+          conclusion: true,
+          finalConsiderations: true,
+          glossary: true,
+          resourcesReferences: true,
+          appendix: true,
+          closure: true,
+          chapters: {
+            where: { status: ChapterStatus.GENERATED },
+            orderBy: { sequence: 'asc' },
+            select: {
+              id: true,
+              sequence: true,
+              title: true,
+              content: true,
+              editedContent: true,
+              topics: true,
+            },
+          },
+        },
+      });
+
+      if (!book) throw new Error(`Book ${bookId} not found`);
+      if (book.chapters.length === 0) throw new Error(`Book ${bookId} has no generated chapters`);
+
+      const settings = book.settings as Record<string, unknown> | null;
+      language = (settings?.language as string) || 'en';
+      const labels = sectionLabels[language] || sectionLabels['en'];
+
+      // Build segments: intro → chapters → conclusion → finalConsiderations → glossary → resourcesReferences → appendix → closure
+      segments = [];
+      let seq = 0;
+
+      if (book.introduction) {
+        segments.push({ chapterId: null, sectionType: 'introduction', sequence: seq++, title: labels.introduction, content: book.introduction });
+      }
+
+      for (const ch of book.chapters) {
+        let content = ch.editedContent || ch.content || '';
+        if (!content && ch.topics) {
+          const topics = ch.topics as Array<{ title: string; content: string }>;
+          content = topics.map((t) => `${t.title}\n\n${t.content}`).join('\n\n');
+        }
+        segments.push({ chapterId: ch.id, sectionType: null, sequence: seq++, title: ch.title, content });
+      }
+
+      if (book.conclusion) {
+        segments.push({ chapterId: null, sectionType: 'conclusion', sequence: seq++, title: labels.conclusion, content: book.conclusion });
+      }
+      if (book.finalConsiderations) {
+        segments.push({ chapterId: null, sectionType: 'finalConsiderations', sequence: seq++, title: labels.finalConsiderations, content: book.finalConsiderations });
+      }
+      if (book.glossary) {
+        const glossaryText = typeof book.glossary === 'string' ? book.glossary : JSON.stringify(book.glossary);
+        segments.push({ chapterId: null, sectionType: 'glossary', sequence: seq++, title: labels.glossary, content: glossaryText });
+      }
+      if (book.resourcesReferences) {
+        segments.push({ chapterId: null, sectionType: 'resourcesReferences', sequence: seq++, title: labels.resourcesReferences, content: book.resourcesReferences });
+      }
+      if (book.appendix) {
+        segments.push({ chapterId: null, sectionType: 'appendix', sequence: seq++, title: labels.appendix, content: book.appendix });
+      }
+      if (book.closure) {
+        segments.push({ chapterId: null, sectionType: 'closure', sequence: seq++, title: labels.closure, content: book.closure });
+      }
+    }
+
+    const { voiceId, voiceName } = this.ttsService.getVoiceForLanguage(language, voiceGender);
+
+    await job.updateProgress(5);
+
+    const totalSegments = segments.length;
+    const segmentResults: Array<{
+      chapterId: string | null;
+      sectionType: string | null;
+      sequence: number;
+      title: string;
+      audioUrl: string;
+      durationSecs: number;
+    }> = [];
+    const allBuffers: Buffer[] = [];
+    let totalDuration = 0;
+
+    const pathPrefix = translationId
+      ? `audiobooks/${bookId}/tr-${translationId}`
+      : `audiobooks/${bookId}`;
+
+    for (let i = 0; i < totalSegments; i++) {
+      const segment = segments[i];
+      const cleanTitle = this.stripHtmlTags(segment.title);
+      const cleanContent = this.stripHtmlTags(segment.content);
+      const plainText = cleanTitle ? `${cleanTitle}.\n\n${cleanContent}` : cleanContent;
+
+      if (!plainText.trim()) {
+        this.logger.warn(`[audiobook] Segment ${segment.sequence} (${segment.sectionType || 'chapter'}) is empty, skipping`);
+        continue;
+      }
+
+      const { buffer, durationSecs } = await this.ttsService.synthesize(plainText, voiceId);
+
+      const fileLabel = segment.sectionType || `chapter-${segment.sequence}`;
+      const key = `${pathPrefix}/${fileLabel}-${Date.now()}.mp3`;
+      const audioUrl = await this.storageService.upload(key, buffer, 'audio/mpeg');
+
+      segmentResults.push({
+        chapterId: segment.chapterId,
+        sectionType: segment.sectionType,
+        sequence: segment.sequence,
+        title: segment.title,
+        audioUrl,
+        durationSecs,
+      });
+
+      allBuffers.push(buffer);
+      totalDuration += durationSecs;
+
+      // Heartbeat + progress (5% → 85%)
+      await job.updateProgress(5 + ((i + 1) / totalSegments) * 80);
+
+      this.eventEmitter.emit('book.addon.progress', {
+        bookId,
+        addonId,
+        status: 'generating',
+        currentChapter: i + 1,
+        totalChapters: totalSegments,
+      });
+    }
+
+    if (segmentResults.length === 0) {
+      throw new Error('No segments with content available for audiobook generation');
+    }
+
+    // Concatenate all segment buffers into full audiobook
+    const fullBuffer = Buffer.concat(allBuffers);
+    const fullKey = `${pathPrefix}/full-${Date.now()}.mp3`;
+    const fullAudioUrl = await this.storageService.upload(fullKey, fullBuffer, 'audio/mpeg');
+
+    await job.updateProgress(95);
+
+    await this.hooksService.processAddonResult({
+      bookId,
+      addonId,
+      addonKind,
+      status: 'success',
+      resultData: {
+        voiceId,
+        voiceName,
+        totalDuration,
+        fullAudioUrl,
+        fullAudioSize: fullBuffer.length,
+        translationId,
+        chapters: segmentResults,
+      },
+    });
+
+    this.logger.log(
+      `[audiobook] Audiobook completed for book ${bookId}${translationId ? ` (translation ${translationId})` : ''}: ${segmentResults.length} segments, ${totalDuration}s total`,
+    );
+  }
+
+  /** Strip HTML tags and Markdown formatting from content, returning plain text for TTS */
+  private stripHtmlTags(html: string): string {
+    return (
+      html
+        // HTML → plain text
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<\/p>/gi, '\n\n')
+        .replace(/<[^>]+>/g, '')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        // Markdown → plain text
+        .replace(/^#{1,6}\s+/gm, '') // headings: ## Title → Title
+        .replace(/\*\*(.+?)\*\*/g, '$1') // bold: **text** → text
+        .replace(/__(.+?)__/g, '$1') // bold: __text__ → text
+        .replace(/\*(.+?)\*/g, '$1') // italic: *text* → text
+        .replace(/_(.+?)_/g, '$1') // italic: _text_ → text
+        .replace(/~~(.+?)~~/g, '$1') // strikethrough: ~~text~~ → text
+        .replace(/`{3}[\s\S]*?`{3}/g, '') // code blocks: ```...``` → remove
+        .replace(/`(.+?)`/g, '$1') // inline code: `text` → text
+        .replace(/^\s*[-*+]\s+/gm, '') // unordered list markers: - item → item
+        .replace(/^\s*\d+\.\s+/gm, '') // ordered list markers: 1. item → item
+        .replace(/^>\s?/gm, '') // blockquotes: > text → text
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // links: [text](url) → text
+        .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1') // images: ![alt](url) → alt
+        .replace(/^-{3,}$/gm, '') // horizontal rules: --- → remove
+        .replace(/\n{3,}/g, '\n\n')
+        .trim()
+    );
   }
 
   // ─── Shared helpers ───────────────────────────────────────────────────

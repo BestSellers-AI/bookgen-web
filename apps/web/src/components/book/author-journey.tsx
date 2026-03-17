@@ -60,6 +60,7 @@ import type { BundleConfigPayload } from "@bestsellers/shared";
 import { useConfigStore } from "@/stores/config-store";
 import type { BookAddonSummary, BookDetail, BookImageSummary } from "@/lib/api/types";
 import { PublishingInfoOverlay } from "./publishing-info-overlay";
+import { AudiobookViewer } from "./audiobook-viewer";
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -283,7 +284,12 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
   const [selectedAddon, setSelectedAddon] = useState<AddonConfig | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState("");
   const [languagePreset, setLanguagePreset] = useState(false);
+  const [selectedVoiceGender, setSelectedVoiceGender] = useState<"female" | "male">("female");
+  const [isRegeneration, setIsRegeneration] = useState(false);
   const [requesting, setRequesting] = useState(false);
+
+  // Audiobook viewer state
+  const [audiobookViewerOpen, setAudiobookViewerOpen] = useState(false);
 
   // Cover gallery state
   const [coverGalleryOpen, setCoverGalleryOpen] = useState(false);
@@ -372,21 +378,39 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
     return () => clearInterval(interval);
   }, [hasProcessing, fetchAddons]);
 
+  // Addon kinds that are linked to a specific translation (have translationId in params)
+  const TRANSLATION_SCOPED_KINDS = new Set([
+    ProductKind.ADDON_AUDIOBOOK,
+    ProductKind.ADDON_AMAZON_STANDARD,
+    ProductKind.ADDON_AMAZON_PREMIUM,
+  ]);
+
   const getExistingAddon = (kind: ProductKind | string): BookAddonSummary | undefined => {
-    const matching = addons.filter((a) => a.kind === kind);
+    const matching = addons.filter((a) => {
+      if (a.kind !== kind) return false;
+      // For translation-scoped addons, filter by translationId context
+      if (TRANSLATION_SCOPED_KINDS.has(a.kind as ProductKind)) {
+        if (translationId) return a.translationId === translationId;
+        return !a.translationId;
+      }
+      // For book-level addons (cover, images, translation, cover-translation), always show
+      return true;
+    });
     if (matching.length <= 1) return matching[0];
-    // Prioritize: COMPLETED > processing > most recent (ERROR etc.)
+    // Prioritize: processing > COMPLETED > most recent (ERROR etc.)
+    // Processing takes precedence so regeneration shows loading state
     return (
-      matching.find((a) => a.status === AddonStatus.COMPLETED) ??
       matching.find((a) => isAddonProcessing(a.status)) ??
+      matching.find((a) => a.status === AddonStatus.COMPLETED) ??
       matching.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0]
     );
   };
 
-  const openRequestDialog = (config: AddonConfig, presetLanguage?: string) => {
+  const openRequestDialog = (config: AddonConfig, presetLanguage?: string, regenerate?: boolean) => {
     setSelectedAddon(config);
     setSelectedLanguage(presetLanguage ?? "");
     setLanguagePreset(!!presetLanguage);
+    setIsRegeneration(regenerate ?? false);
     setDialogOpen(true);
   };
 
@@ -397,6 +421,10 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
       const params: Record<string, unknown> = {};
       if (selectedAddon.hasLanguageParam && selectedLanguage) {
         params.targetLanguage = selectedLanguage;
+      }
+      if (selectedAddon.kind === ProductKind.ADDON_AUDIOBOOK) {
+        params.voiceGender = selectedVoiceGender;
+        if (isRegeneration) params.regenerate = true;
       }
       // Cover translation is always a book-level addon (not tied to a specific translation)
       if (translationId && selectedAddon.kind !== ProductKind.ADDON_COVER_TRANSLATION) {
@@ -660,14 +688,20 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                         openRequestDialog(cfg);
                       }
                     }}
+
                     tAddons={t}
                     tCommon={tCommon}
                     onViewCoverTranslations={() => setCoverTranslationsSheetOpen(true)}
+                    onViewAudiobook={() => setAudiobookViewerOpen(true)}
                     viewLabel={
                       config.kind === ProductKind.ADDON_COVER_TRANSLATION
                         ? tj("viewTranslatedCovers")
-                        : undefined
+                        : config.kind === ProductKind.ADDON_AUDIOBOOK
+                          ? tj("viewAudiobook")
+                          : undefined
                     }
+                    disabled={config.kind === ProductKind.ADDON_COVER_TRANSLATION && !book.selectedCoverFileId}
+                    disabledMessage={t("coverRequired")}
                   />
                 </div>
               </div>
@@ -1410,17 +1444,23 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                       config={config}
                       existing={existing}
                       onRequest={openRequestDialog}
+  
                       tAddons={t}
                       tCommon={tCommon}
                       onViewTranslations={() => setTranslationsSheetOpen(true)}
                       onViewCoverTranslations={() => setCoverTranslationsSheetOpen(true)}
+                      onViewAudiobook={() => setAudiobookViewerOpen(true)}
                       viewLabel={
                         config.kind === ProductKind.ADDON_TRANSLATION
                           ? tj("viewTranslations")
                           : config.kind === ProductKind.ADDON_COVER_TRANSLATION
                             ? tj("viewTranslatedCovers")
-                            : undefined
+                            : config.kind === ProductKind.ADDON_AUDIOBOOK
+                              ? tj("viewAudiobook")
+                              : undefined
                       }
+                      disabled={config.kind === ProductKind.ADDON_COVER_TRANSLATION && !book.selectedCoverFileId}
+                      disabledMessage={t("coverRequired")}
                     />
                   </div>
                 </div>
@@ -1585,6 +1625,7 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                       );
                       const coverTransConfig = ALL_ADDON_CONFIGS.find((c) => c.kind === ProductKind.ADDON_COVER_TRANSLATION);
                       if (!coverTransConfig) return null;
+                      const noCoverYet = !book.selectedCoverFileId;
                       return (
                         <button
                           type="button"
@@ -1592,7 +1633,7 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                             setCoverTranslationsSheetOpen(false);
                             openRequestDialog(coverTransConfig);
                           }}
-                          disabled={hasCoverTransProcessing}
+                          disabled={hasCoverTransProcessing || noCoverYet}
                           className="rounded-xl border-2 border-dashed border-primary/30 hover:border-primary/60 transition-all aspect-[3/4] flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {hasCoverTransProcessing ? (
@@ -1600,6 +1641,13 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                               <Loader2 className="w-8 h-8 animate-spin text-primary/60" />
                               <span className="text-[10px] font-bold text-primary/60">
                                 {t("processing")}
+                              </span>
+                            </>
+                          ) : noCoverYet ? (
+                            <>
+                              <Palette className="w-8 h-8 text-muted-foreground/50" />
+                              <span className="text-[10px] font-medium text-center px-2">
+                                {t("coverRequired")}
                               </span>
                             </>
                           ) : (
@@ -1748,10 +1796,12 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
             <AlertDialogDescription asChild>
               <div className="space-y-4">
                 <p>
-                  {t("requestConfirm", {
-                    cost: selectedAddon?.cost ?? 0,
-                    balance: balance ?? 0,
-                  })}
+                  {isRegeneration
+                    ? t("regenerateConfirm")
+                    : t("requestConfirm", {
+                        cost: selectedAddon?.cost ?? 0,
+                        balance: balance ?? 0,
+                      })}
                 </p>
 
                 {selectedAddon?.hasLanguageParam && (
@@ -1818,7 +1868,40 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                   })()
                 )}
 
-                {balance !== null &&
+                {selectedAddon?.kind === ProductKind.ADDON_AUDIOBOOK && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      {t("selectVoice")}
+                    </label>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        className={`flex-1 px-3 py-2 rounded-xl border text-sm font-medium transition-colors ${
+                          selectedVoiceGender === "female"
+                            ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500"
+                            : "bg-accent/30 border-border text-muted-foreground hover:bg-accent/50"
+                        }`}
+                        onClick={() => setSelectedVoiceGender("female")}
+                      >
+                        {t("voiceFemale")}
+                      </button>
+                      <button
+                        type="button"
+                        className={`flex-1 px-3 py-2 rounded-xl border text-sm font-medium transition-colors ${
+                          selectedVoiceGender === "male"
+                            ? "bg-blue-500/10 border-blue-500/30 text-blue-500"
+                            : "bg-accent/30 border-border text-muted-foreground hover:bg-accent/50"
+                        }`}
+                        onClick={() => setSelectedVoiceGender("male")}
+                      >
+                        {t("voiceMale")}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {!isRegeneration &&
+                  balance !== null &&
                   selectedAddon &&
                   balance < selectedAddon.cost && (
                     <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400">
@@ -1830,7 +1913,8 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
-            {balance !== null &&
+            {!isRegeneration &&
+            balance !== null &&
             selectedAddon &&
             balance < selectedAddon.cost ? (
               <Button asChild>
@@ -1953,6 +2037,23 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
         open={publishingOverlayOpen}
         onClose={() => setPublishingOverlayOpen(false)}
       />
+
+      {/* ─── Audiobook Viewer ─── */}
+      {(() => {
+        const audiobookAddon = getExistingAddon(ProductKind.ADDON_AUDIOBOOK);
+        return audiobookAddon?.status === AddonStatus.COMPLETED ? (
+          <AudiobookViewer
+            open={audiobookViewerOpen}
+            onOpenChange={setAudiobookViewerOpen}
+            addon={audiobookAddon}
+            onRegenerate={() => {
+              setAudiobookViewerOpen(false);
+              const audiobookConfig = EXTRA_CONFIGS.find((c) => c.kind === ProductKind.ADDON_AUDIOBOOK);
+              if (audiobookConfig) openRequestDialog(audiobookConfig, undefined, true);
+            }}
+          />
+        ) : null;
+      })()}
     </>
   );
 }
@@ -2123,7 +2224,10 @@ function ExtraAddonAction({
   tCommon,
   onViewTranslations,
   onViewCoverTranslations,
+  onViewAudiobook,
   viewLabel,
+  disabled,
+  disabledMessage,
 }: {
   config: AddonConfig;
   existing: BookAddonSummary | undefined;
@@ -2132,7 +2236,10 @@ function ExtraAddonAction({
   tCommon: ReturnType<typeof useTranslations>;
   onViewTranslations?: () => void;
   onViewCoverTranslations?: () => void;
+  onViewAudiobook?: () => void;
   viewLabel?: string;
+  disabled?: boolean;
+  disabledMessage?: string;
 }) {
   if (existing?.status === AddonStatus.COMPLETED) {
     if (config.kind === ProductKind.ADDON_TRANSLATION && onViewTranslations) {
@@ -2147,6 +2254,14 @@ function ExtraAddonAction({
       return (
         <Button variant="outline" size="sm" className="rounded-xl text-xs gap-1" onClick={onViewCoverTranslations}>
           <Globe className="w-3 h-3" />
+          {viewLabel ?? tAddons("viewResult")}
+        </Button>
+      );
+    }
+    if (config.kind === ProductKind.ADDON_AUDIOBOOK && onViewAudiobook) {
+      return (
+        <Button variant="outline" size="sm" className="rounded-xl text-xs gap-1" onClick={onViewAudiobook}>
+          <Headphones className="w-3 h-3" />
           {viewLabel ?? tAddons("viewResult")}
         </Button>
       );
@@ -2190,6 +2305,14 @@ function ExtraAddonAction({
       >
         {tAddons("retry")}
       </Button>
+    );
+  }
+
+  if (disabled) {
+    return (
+      <p className="text-[11px] text-muted-foreground italic">
+        {disabledMessage}
+      </p>
     );
   }
 

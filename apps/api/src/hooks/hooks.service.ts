@@ -957,8 +957,10 @@ export class HooksService {
         const totalDuration = resultData?.totalDuration as number | undefined;
         const fullAudioUrl = resultData?.fullAudioUrl as string | undefined;
         const fullAudioSize = resultData?.fullAudioSize as number | undefined;
+        const audioTranslationId = resultData?.translationId as string | undefined;
         const audioChapters = (resultData?.chapters ?? []) as Array<{
-          chapterId: string;
+          chapterId: string | null;
+          sectionType: string | null;
           sequence: number;
           title: string;
           audioUrl: string;
@@ -968,6 +970,7 @@ export class HooksService {
         await this.prisma.audiobook.create({
           data: {
             bookId: dto.bookId,
+            translationId: audioTranslationId ?? null,
             voiceId: voiceId ?? null,
             voiceName: voiceName ?? null,
             status: AddonStatus.COMPLETED,
@@ -976,7 +979,8 @@ export class HooksService {
             fullAudioSize: fullAudioSize ?? null,
             chapters: {
               create: audioChapters.map((ch) => ({
-                chapterId: ch.chapterId,
+                chapterId: ch.chapterId ?? undefined,
+                sectionType: ch.sectionType ?? null,
                 sequence: ch.sequence,
                 title: ch.title,
                 audioUrl: ch.audioUrl,

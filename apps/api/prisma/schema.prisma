@@ -480,6 +480,7 @@ model BookTranslation {
   chapters    TranslationChapter[]
   addons      BookAddon[]
   sharedBooks SharedBook[]
+  audiobooks  Audiobook[]
 
   @@index([bookId])
   @@map("book_translations")
@@ -525,6 +526,7 @@ model BookImage {
 model Audiobook {
   id            String      @id @default(cuid())
   bookId        String      @map("book_id")
+  translationId String?     @map("translation_id")
   voiceId       String?     @map("voice_id")
   voiceName     String?     @map("voice_name")
   status        AddonStatus @default(PENDING)
@@ -534,17 +536,20 @@ model Audiobook {
   createdAt     DateTime    @default(now()) @map("created_at")
   updatedAt     DateTime    @updatedAt @map("updated_at")
 
-  book     Book               @relation(fields: [bookId], references: [id], onDelete: Cascade)
-  chapters AudiobookChapter[]
+  book        Book               @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  translation BookTranslation?   @relation(fields: [translationId], references: [id], onDelete: SetNull)
+  chapters    AudiobookChapter[]
 
   @@index([bookId])
+  @@index([translationId])
   @@map("audiobooks")
 }
 
 model AudiobookChapter {
   id           String        @id @default(cuid())
   audiobookId  String        @map("audiobook_id")
-  chapterId    String        @map("chapter_id")
+  chapterId    String?       @map("chapter_id")
+  sectionType  String?       @map("section_type") // introduction, conclusion, glossary, appendix, closure
   sequence     Int
   title        String
   audioUrl     String?       @map("audio_url")
@@ -553,7 +558,7 @@ model AudiobookChapter {
   createdAt    DateTime      @default(now()) @map("created_at")
 
   audiobook Audiobook @relation(fields: [audiobookId], references: [id], onDelete: Cascade)
-  chapter   Chapter   @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  chapter   Chapter?  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
 
   @@index([audiobookId])
   @@index([chapterId])
