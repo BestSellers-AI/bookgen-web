@@ -303,7 +303,7 @@ export default function AdminPublicationDetailPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {PUBLISHING_STATUSES.filter((s) => s !== "PUBLISHED").map((s) => (
+                {PUBLISHING_STATUSES.filter((s) => s !== "PUBLISHED" && s !== "CANCELLED" && s !== "REJECTED").map((s) => (
                   <SelectItem key={s} value={s}>
                     {tStatus.has(s as "PREPARING") ? tStatus(s as "PREPARING") : s}
                   </SelectItem>

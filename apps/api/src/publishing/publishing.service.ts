@@ -139,27 +139,38 @@ export class PublishingService {
   }
 
   async updateStatus(id: string, dto: UpdatePublishingStatusDto) {
+    // Only allow operational status transitions (not terminal states)
+    const BLOCKED_STATUSES = new Set<string>([
+      PublishingStatus.PUBLISHED,
+      PublishingStatus.CANCELLED,
+      PublishingStatus.REJECTED,
+    ]);
+    if (BLOCKED_STATUSES.has(dto.status)) {
+      throw new BadRequestException(
+        `Cannot set status to ${dto.status} via this endpoint. Use the dedicated cancel or complete endpoints.`,
+      );
+    }
+
     const request = await this.prisma.publishingRequest.findUnique({
       where: { id },
-      select: { id: true, userId: true, bookId: true, addonId: true },
+      select: { id: true, userId: true, bookId: true, addonId: true, status: true },
     });
 
     if (!request) {
       throw new NotFoundException('Publishing request not found');
     }
 
+    // Cannot update terminal states
+    if (BLOCKED_STATUSES.has(request.status)) {
+      throw new BadRequestException(
+        `Cannot update publishing request with status: ${request.status}`,
+      );
+    }
+
     const updated = await this.prisma.publishingRequest.update({
       where: { id },
       data: { status: dto.status },
     });
-
-    // If published, also mark the parent addon as COMPLETED
-    if (dto.status === PublishingStatus.PUBLISHED) {
-      await this.prisma.bookAddon.update({
-        where: { id: request.addonId },
-        data: { status: AddonStatus.COMPLETED },
-      });
-    }
 
     // Create notification for the user
     await this.prisma.notification.create({
