@@ -30,6 +30,7 @@ import {
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { publishingApi } from "@/lib/api/publishing";
+import { booksApi } from "@/lib/api/books";
 import { toast } from "sonner";
 import type { AdminPublishingDetail } from "@/lib/api/types";
 import { PageHeader } from "@/components/ui/page-header";
@@ -65,6 +66,11 @@ export default function AdminPublicationDetailPage() {
   const [kdpUrl, setKdpUrl] = useState("");
   const [adminNotes, setAdminNotes] = useState("");
   const [completing, setCompleting] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [showOtherCovers, setShowOtherCovers] = useState(false);
+  const [showOtherIllustrations, setShowOtherIllustrations] = useState(false);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [generatingDocx, setGeneratingDocx] = useState(false);
 
   const fetchDetail = async () => {
     setLoading(true);
@@ -118,6 +124,48 @@ export default function AdminPublicationDetailPage() {
     }
   };
 
+  const handleDownloadPdf = async () => {
+    if (!detail) return;
+    setGeneratingPdf(true);
+    try {
+      const bookDetail = await booksApi.getById(detail.bookId);
+      const { downloadBookPdf } = await import("@/lib/book-template/download");
+      await downloadBookPdf(bookDetail, (detail.book.settings?.language as string) ?? "en");
+    } catch {
+      toast.error("Failed to generate PDF");
+    } finally {
+      setGeneratingPdf(false);
+    }
+  };
+
+  const handleDownloadDocx = async () => {
+    if (!detail) return;
+    setGeneratingDocx(true);
+    try {
+      const bookDetail = await booksApi.getById(detail.bookId);
+      const { downloadBookDocx } = await import("@/lib/book-template/download");
+      await downloadBookDocx(bookDetail, (detail.book.settings?.language as string) ?? "en");
+    } catch {
+      toast.error("Failed to generate DOCX");
+    } finally {
+      setGeneratingDocx(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    if (!confirm(t("cancelPublishingConfirm"))) return;
+    setCancelling(true);
+    try {
+      await publishingApi.cancel(id);
+      await fetchDetail();
+      toast.success(t("cancelPublishingSuccess"));
+    } catch {
+      toast.error("Failed to cancel publication");
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "PUBLISHED":
@@ -152,13 +200,17 @@ export default function AdminPublicationDetailPage() {
   }
 
   // Categorize assets
-  const coverFiles = detail.book.files.filter((f) =>
+  const allCoverFiles = detail.book.files.filter((f) =>
     f.fileType === "COVER_IMAGE" || f.fileType === "COVER_TRANSLATED",
   );
+  const selectedCover = allCoverFiles.find((f) => f.id === detail.book.selectedCoverFileId);
+  const otherCovers = allCoverFiles.filter((f) => f.id !== detail.book.selectedCoverFileId);
   const docFiles = detail.book.files.filter((f) =>
     f.fileType === "PDF" || f.fileType === "DOCX" || f.fileType === "EPUB",
   );
-  const illustrations = detail.book.images;
+  const allIllustrations = detail.book.images;
+  const selectedIllustrations = allIllustrations.filter((img) => img.chapterId !== null);
+  const otherIllustrations = allIllustrations.filter((img) => img.chapterId === null);
   const audiobooks = detail.book.audiobooks;
 
   return (
@@ -243,7 +295,7 @@ export default function AdminPublicationDetailPage() {
       </div>
 
       {/* ─── Status Update ─── */}
-      {detail.status !== "PUBLISHED" && (
+      {detail.status !== "PUBLISHED" && detail.status !== "CANCELLED" && (
         <div className="glass rounded-[2rem] p-6 space-y-4">
           <h3 className="text-sm font-bold">{t("updateStatus")}</h3>
           <div className="flex items-center gap-3">
@@ -342,6 +394,21 @@ export default function AdminPublicationDetailPage() {
               </Button>
             )}
           </div>
+
+          {/* Cancel button */}
+          <div className="border-t border-border pt-4">
+            <Button
+              variant="destructive"
+              size="sm"
+              className="rounded-xl"
+              onClick={handleCancel}
+              disabled={cancelling}
+            >
+              {cancelling && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+              {t("cancelPublishing")}
+            </Button>
+            <p className="text-xs text-muted-foreground mt-1.5">{t("cancelPublishingDesc")}</p>
+          </div>
         </div>
       )}
 
@@ -350,83 +417,168 @@ export default function AdminPublicationDetailPage() {
         <h3 className="text-sm font-bold">{t("downloadAssets")}</h3>
 
         {/* Covers */}
-        {coverFiles.length > 0 && (
+        {allCoverFiles.length > 0 && (
           <AssetGroup
             title={t("covers")}
             icon={<Palette className="w-4 h-4 text-pink-500" />}
             defaultOpen
           >
-            <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
-              {coverFiles.map((file) => (
-                <div key={file.id} className="space-y-1.5">
-                  <div className="aspect-[3/4] rounded-lg overflow-hidden border border-border">
-                    <img src={file.fileUrl} alt={file.fileName} className="w-full h-full object-cover" />
+            <div className="space-y-3">
+              {/* Selected cover */}
+              {selectedCover && (
+                <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
+                  <div className="space-y-1.5">
+                    <div className="aspect-[3/4] rounded-lg overflow-hidden border-2 border-emerald-500/50 ring-2 ring-emerald-500/20">
+                      <img src={selectedCover.fileUrl} alt={selectedCover.fileName} className="w-full h-full object-cover" />
+                    </div>
+                    <a
+                      href={selectedCover.fileUrl}
+                      download={selectedCover.fileName}
+                      className="flex items-center gap-1 text-[10px] text-blue-400 hover:text-blue-300"
+                    >
+                      <Download className="w-3 h-3" />
+                      {selectedCover.fileName}
+                    </a>
                   </div>
-                  <a
-                    href={file.fileUrl}
-                    download={file.fileName}
-                    className="flex items-center gap-1 text-[10px] text-blue-400 hover:text-blue-300"
-                  >
-                    <Download className="w-3 h-3" />
-                    {file.fileName}
-                  </a>
                 </div>
-              ))}
+              )}
+
+              {/* Other covers toggle */}
+              {otherCovers.length > 0 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setShowOtherCovers((v) => !v)}
+                    className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1.5 transition-colors"
+                  >
+                    <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showOtherCovers ? "rotate-180" : ""}`} />
+                    {showOtherCovers ? t("hideOthers") : `${t("showOthers")} (${otherCovers.length})`}
+                  </button>
+                  {showOtherCovers && (
+                    <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
+                      {otherCovers.map((file) => (
+                        <div key={file.id} className="space-y-1.5">
+                          <div className="aspect-[3/4] rounded-lg overflow-hidden border border-border opacity-70">
+                            <img src={file.fileUrl} alt={file.fileName} className="w-full h-full object-cover" />
+                          </div>
+                          <a
+                            href={file.fileUrl}
+                            download={file.fileName}
+                            className="flex items-center gap-1 text-[10px] text-blue-400 hover:text-blue-300"
+                          >
+                            <Download className="w-3 h-3" />
+                            {file.fileName}
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </AssetGroup>
         )}
 
         {/* Illustrations */}
-        {illustrations.length > 0 && (
+        {allIllustrations.length > 0 && (
           <AssetGroup
             title={t("illustrations")}
             icon={<ImageIcon className="w-4 h-4 text-indigo-500" />}
           >
-            <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
-              {illustrations.map((img) => (
-                <div key={img.id} className="space-y-1.5">
-                  <div className="aspect-square rounded-lg overflow-hidden border border-border">
-                    <img src={img.imageUrl} alt={img.caption ?? ""} className="w-full h-full object-cover" />
-                  </div>
-                  <a
-                    href={img.imageUrl}
-                    download
-                    className="flex items-center gap-1 text-[10px] text-blue-400 hover:text-blue-300"
-                  >
-                    <Download className="w-3 h-3" />
-                    {img.caption ? img.caption.slice(0, 30) : "illustration"}
-                  </a>
+            <div className="space-y-3">
+              {/* Selected illustrations (assigned to chapters) */}
+              {selectedIllustrations.length > 0 && (
+                <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
+                  {selectedIllustrations.map((img) => (
+                    <div key={img.id} className="space-y-1.5">
+                      <div className="aspect-square rounded-lg overflow-hidden border-2 border-emerald-500/50 ring-2 ring-emerald-500/20">
+                        <img src={img.imageUrl} alt={img.caption ?? ""} className="w-full h-full object-cover" />
+                      </div>
+                      <a
+                        href={img.imageUrl}
+                        download
+                        className="flex items-center gap-1 text-[10px] text-blue-400 hover:text-blue-300"
+                      >
+                        <Download className="w-3 h-3" />
+                        {img.caption ? img.caption.slice(0, 30) : "illustration"}
+                      </a>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
+
+              {/* Other illustrations toggle */}
+              {otherIllustrations.length > 0 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setShowOtherIllustrations((v) => !v)}
+                    className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1.5 transition-colors"
+                  >
+                    <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showOtherIllustrations ? "rotate-180" : ""}`} />
+                    {showOtherIllustrations ? t("hideOthers") : `${t("showOthers")} (${otherIllustrations.length})`}
+                  </button>
+                  {showOtherIllustrations && (
+                    <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
+                      {otherIllustrations.map((img) => (
+                        <div key={img.id} className="space-y-1.5">
+                          <div className="aspect-square rounded-lg overflow-hidden border border-border opacity-70">
+                            <img src={img.imageUrl} alt={img.caption ?? ""} className="w-full h-full object-cover" />
+                          </div>
+                          <a
+                            href={img.imageUrl}
+                            download
+                            className="flex items-center gap-1 text-[10px] text-blue-400 hover:text-blue-300"
+                          >
+                            <Download className="w-3 h-3" />
+                            {img.caption ? img.caption.slice(0, 30) : "illustration"}
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </AssetGroup>
         )}
 
         {/* Documents */}
-        {docFiles.length > 0 && (
-          <AssetGroup
-            title={t("documents")}
-            icon={<FileText className="w-4 h-4 text-blue-500" />}
-          >
-            <div className="space-y-2">
-              {docFiles.map((file) => (
-                <a
-                  key={file.id}
-                  href={file.fileUrl}
-                  download={file.fileName}
-                  className="flex items-center gap-3 p-3 rounded-xl bg-accent/30 border border-border hover:bg-accent/50 transition-colors"
-                >
-                  <FileText className="w-5 h-5 text-blue-400 shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{file.fileName}</p>
-                    <p className="text-[10px] text-muted-foreground uppercase">{file.fileType}</p>
-                  </div>
-                  <Download className="w-4 h-4 text-muted-foreground shrink-0" />
-                </a>
-              ))}
-            </div>
-          </AssetGroup>
-        )}
+        <AssetGroup
+          title={t("documents")}
+          icon={<FileText className="w-4 h-4 text-blue-500" />}
+          defaultOpen
+        >
+          <div className="space-y-2">
+            {/* Generate PDF / DOCX buttons */}
+            <button
+              type="button"
+              onClick={handleDownloadPdf}
+              disabled={generatingPdf}
+              className="flex items-center gap-3 p-3 rounded-xl bg-accent/30 border border-border hover:bg-accent/50 transition-colors w-full text-left disabled:opacity-50"
+            >
+              {generatingPdf ? <Loader2 className="w-5 h-5 text-red-400 shrink-0 animate-spin" /> : <FileText className="w-5 h-5 text-red-400 shrink-0" />}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium">{t("generatePdf")}</p>
+                <p className="text-[10px] text-muted-foreground">KDP 6&quot;×9&quot;</p>
+              </div>
+              <Download className="w-4 h-4 text-muted-foreground shrink-0" />
+            </button>
+            <button
+              type="button"
+              onClick={handleDownloadDocx}
+              disabled={generatingDocx}
+              className="flex items-center gap-3 p-3 rounded-xl bg-accent/30 border border-border hover:bg-accent/50 transition-colors w-full text-left disabled:opacity-50"
+            >
+              {generatingDocx ? <Loader2 className="w-5 h-5 text-blue-400 shrink-0 animate-spin" /> : <FileText className="w-5 h-5 text-blue-400 shrink-0" />}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium">{t("generateDocx")}</p>
+                <p className="text-[10px] text-muted-foreground">Word</p>
+              </div>
+              <Download className="w-4 h-4 text-muted-foreground shrink-0" />
+            </button>
+          </div>
+        </AssetGroup>
 
         {/* Audio */}
         {audiobooks.length > 0 && (
@@ -479,7 +631,7 @@ export default function AdminPublicationDetailPage() {
           </AssetGroup>
         )}
 
-        {coverFiles.length === 0 && illustrations.length === 0 && docFiles.length === 0 && audiobooks.length === 0 && (
+        {allCoverFiles.length === 0 && allIllustrations.length === 0 && docFiles.length === 0 && audiobooks.length === 0 && (
           <p className="text-sm text-muted-foreground text-center py-4">No assets available</p>
         )}
       </div>

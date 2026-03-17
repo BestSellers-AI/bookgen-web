@@ -29,4 +29,8 @@ export const publishingApi = {
     const { data } = await apiClient.post(`/admin/publishing/${id}/complete`, body);
     return data;
   },
+  cancel: async (id: string): Promise<{ message: string }> => {
+    const { data } = await apiClient.delete(`/admin/publishing/${id}`);
+    return data;
+  },
 };

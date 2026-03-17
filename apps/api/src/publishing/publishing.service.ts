@@ -1,9 +1,12 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { WalletService } from '../wallet/wallet.service';
 import {
   PublishingStatus,
   NotificationType,
   AddonStatus,
+  CreditType,
+  WalletTransactionType,
 } from '@prisma/client';
 import {
   PublishingQueryDto,
@@ -15,7 +18,10 @@ import {
 export class PublishingService {
   private readonly logger = new Logger(PublishingService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly walletService: WalletService,
+  ) {}
 
   /* ── User endpoints ─────────────────────────────────────────────── */
 
@@ -225,5 +231,80 @@ export class PublishingService {
     this.logger.log(`Publishing request ${id} completed (published)`);
 
     return updated;
+  }
+
+  async cancel(id: string) {
+    const request = await this.prisma.publishingRequest.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        userId: true,
+        bookId: true,
+        addonId: true,
+        status: true,
+        addon: { select: { id: true, status: true, creditsCost: true } },
+      },
+    });
+
+    if (!request) {
+      throw new NotFoundException('Publishing request not found');
+    }
+
+    // Cannot cancel already published or cancelled
+    if (
+      request.status === PublishingStatus.PUBLISHED ||
+      request.status === PublishingStatus.CANCELLED
+    ) {
+      throw new BadRequestException(
+        `Cannot cancel publishing request with status: ${request.status}`,
+      );
+    }
+
+    // Mark PublishingRequest as CANCELLED
+    await this.prisma.publishingRequest.update({
+      where: { id },
+      data: { status: PublishingStatus.CANCELLED },
+    });
+
+    // Mark BookAddon as CANCELLED
+    await this.prisma.bookAddon.update({
+      where: { id: request.addonId },
+      data: { status: AddonStatus.CANCELLED },
+    });
+
+    // Refund credits
+    if (request.addon.creditsCost && request.addon.creditsCost > 0) {
+      await this.walletService.addCredits(
+        request.userId,
+        request.addon.creditsCost,
+        CreditType.REFUND,
+        {
+          description: `Refund: publishing request cancelled by admin`,
+          transactionType: WalletTransactionType.REFUND,
+        },
+      );
+      this.logger.log(
+        `Refunded ${request.addon.creditsCost} credits for cancelled publishing ${id}`,
+      );
+    }
+
+    // Notify user
+    await this.prisma.notification.create({
+      data: {
+        userId: request.userId,
+        type: NotificationType.PUBLISHING_UPDATE,
+        title: 'Publishing Cancelled',
+        message: 'Your publishing request has been cancelled and credits refunded.',
+        data: {
+          bookId: request.bookId,
+          publishingRequestId: id,
+          status: PublishingStatus.CANCELLED,
+        },
+      },
+    });
+
+    this.logger.log(`Publishing request ${id} cancelled + credits refunded`);
+
+    return { message: 'Publishing request cancelled and credits refunded' };
   }
 }

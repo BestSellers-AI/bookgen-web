@@ -3,6 +3,7 @@ import {
   Get,
   Patch,
   Post,
+  Delete,
   Param,
   Query,
   Body,
@@ -76,5 +77,10 @@ export class AdminPublishingController {
     @Body() dto: CompletePublishingDto,
   ) {
     return this.publishingService.complete(id, dto);
+  }
+
+  @Delete(':id')
+  async cancel(@Param('id') id: string) {
+    return this.publishingService.cancel(id);
   }
 }
