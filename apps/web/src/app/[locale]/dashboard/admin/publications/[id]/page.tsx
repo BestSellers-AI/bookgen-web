@@ -49,6 +49,7 @@ export default function AdminPublicationDetailPage() {
   const params = useParams();
   const id = params.id as string;
   const t = useTranslations("admin");
+  const tCommon = useTranslations("common");
   const tStatus = useTranslations("publishingStatus");
 
   const [detail, setDetail] = useState<AdminPublishingDetail | null>(null);
@@ -105,7 +106,7 @@ export default function AdminPublicationDetailPage() {
       setDetail(updated);
       toast.success(t("statusUpdateSuccess"));
     } catch {
-      toast.error("Failed to update status");
+      toast.error(t("statusUpdateError"));
     } finally {
       setUpdatingStatus(false);
     }
@@ -124,7 +125,7 @@ export default function AdminPublicationDetailPage() {
       setShowCompleteForm(false);
       toast.success(t("completeSuccess"));
     } catch {
-      toast.error("Failed to complete publication");
+      toast.error(t("completeError"));
     } finally {
       setCompleting(false);
     }
@@ -202,7 +203,7 @@ export default function AdminPublicationDetailPage() {
       await fetchDetail();
       toast.success(t("cancelPublishingSuccess"));
     } catch {
-      toast.error("Failed to cancel publication");
+      toast.error(t("cancelPublishingError"));
     } finally {
       setCancelling(false);
     }
@@ -279,7 +280,7 @@ export default function AdminPublicationDetailPage() {
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="text-xs font-bold">
-              {detail.addon?.kind === "ADDON_AMAZON_PREMIUM" ? "Premium" : "Standard"}
+              {detail.addon?.kind === "ADDON_AMAZON_PREMIUM" ? t("typePremium") : t("typeStandard")}
             </Badge>
             <Badge
               variant="secondary"
@@ -310,7 +311,7 @@ export default function AdminPublicationDetailPage() {
           </div>
           {detail.publishedAt && (
             <div>
-              <p className="font-bold text-foreground text-[10px] uppercase tracking-wider mb-0.5">Published</p>
+              <p className="font-bold text-foreground text-[10px] uppercase tracking-wider mb-0.5">{t("publishedDate")}</p>
               <p>{new Date(detail.publishedAt).toLocaleDateString()}</p>
             </div>
           )}
@@ -400,7 +401,7 @@ export default function AdminPublicationDetailPage() {
                     className="rounded-xl"
                     onClick={() => setShowWebhook(false)}
                   >
-                    Cancel
+                    {tCommon("cancel")}
                   </Button>
                 </div>
               </div>
@@ -473,7 +474,7 @@ export default function AdminPublicationDetailPage() {
                     className="rounded-xl"
                     onClick={() => setShowCompleteForm(false)}
                   >
-                    Cancel
+                    {tCommon("cancel")}
                   </Button>
                 </div>
               </div>
@@ -692,7 +693,7 @@ export default function AdminPublicationDetailPage() {
                     >
                       <Headphones className="w-5 h-5 text-emerald-400 shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium">Full Audiobook</p>
+                        <p className="text-sm font-medium">{t("fullAudiobook")}</p>
                         <p className="text-[10px] text-muted-foreground">
                           {ab.voiceName && `Voice: ${ab.voiceName}`}
                           {ab.totalDuration && ` · ${Math.floor(ab.totalDuration / 60)}min`}
@@ -727,7 +728,7 @@ export default function AdminPublicationDetailPage() {
         )}
 
         {allCoverFiles.length === 0 && allIllustrations.length === 0 && audiobooks.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center py-4">No assets available</p>
+          <p className="text-sm text-muted-foreground text-center py-4">{t("noAssets")}</p>
         )}
       </div>
     </div>

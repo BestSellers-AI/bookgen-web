@@ -77,8 +77,8 @@ export default function AdminPublicationsPage() {
   };
 
   const getAddonTypeLabel = (kind: string) => {
-    if (kind === "ADDON_AMAZON_PREMIUM") return "Premium";
-    return "Standard";
+    if (kind === "ADDON_AMAZON_PREMIUM") return t("typePremium");
+    return t("typeStandard");
   };
 
   return (
@@ -87,10 +87,10 @@ export default function AdminPublicationsPage() {
 
       <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
         <TabsList>
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="requested">Requested</TabsTrigger>
-          <TabsTrigger value="in_progress">In Progress</TabsTrigger>
-          <TabsTrigger value="completed">Completed</TabsTrigger>
+          <TabsTrigger value="all">{t("filterAll")}</TabsTrigger>
+          <TabsTrigger value="requested">{t("filterRequested")}</TabsTrigger>
+          <TabsTrigger value="in_progress">{t("filterInProgress")}</TabsTrigger>
+          <TabsTrigger value="completed">{t("filterCompleted")}</TabsTrigger>
         </TabsList>
       </Tabs>
 
