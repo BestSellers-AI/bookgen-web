@@ -33,6 +33,7 @@ import {
   AdminAssignPlanDto,
   UpdateProductDto,
   CreatePriceDto,
+  CreditUsageQueryDto,
 } from './dto';
 import { StripeService } from '../stripe/stripe.service';
 import { ConfigDataService } from '../config-data/config-data.service';
@@ -750,5 +751,116 @@ export class AdminService {
 
     await this.configDataService.invalidateCache();
     return config;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Credit Usage                                                       */
+  /* ------------------------------------------------------------------ */
+
+  async getCreditUsage(query: CreditUsageQueryDto) {
+    const { page = 1, perPage = 50, search, type, dateFrom, dateTo } = query;
+
+    const where: Prisma.WalletTransactionWhereInput = {};
+
+    if (type) {
+      where.type = type;
+    }
+
+    if (dateFrom || dateTo) {
+      where.createdAt = {};
+      if (dateFrom) {
+        where.createdAt.gte = new Date(dateFrom);
+      }
+      if (dateTo) {
+        where.createdAt.lte = new Date(dateTo);
+      }
+    }
+
+    if (search) {
+      where.OR = [
+        { description: { contains: search, mode: 'insensitive' } },
+        {
+          wallet: {
+            user: { email: { contains: search, mode: 'insensitive' } },
+          },
+        },
+      ];
+    }
+
+    const [transactions, total, aggregation] = await this.prisma.$transaction([
+      this.prisma.walletTransaction.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        ...paginate(page, perPage),
+        include: {
+          wallet: {
+            include: {
+              user: { select: { id: true, email: true, name: true } },
+            },
+          },
+        },
+      }),
+      this.prisma.walletTransaction.count({ where }),
+      this.prisma.walletTransaction.aggregate({
+        where,
+        _sum: { amount: true },
+        _count: true,
+      }),
+    ]);
+
+    // Fetch book titles for transactions that reference a bookId
+    const bookIds = transactions
+      .map((tx) => tx.bookId)
+      .filter((id): id is string => id !== null);
+
+    const books =
+      bookIds.length > 0
+        ? await this.prisma.book.findMany({
+            where: { id: { in: bookIds } },
+            select: { id: true, title: true },
+          })
+        : [];
+
+    const bookTitleMap = new Map(books.map((b) => [b.id, b.title]));
+
+    // Calculate credits spent (negative amounts) and added (positive amounts) separately
+    const allMatchingAmounts = await this.prisma.walletTransaction.findMany({
+      where,
+      select: { amount: true },
+    });
+
+    let totalCreditsSpent = 0;
+    let totalCreditsAdded = 0;
+    for (const tx of allMatchingAmounts) {
+      if (tx.amount < 0) {
+        totalCreditsSpent += Math.abs(tx.amount);
+      } else {
+        totalCreditsAdded += tx.amount;
+      }
+    }
+
+    const data = transactions.map((tx) => ({
+      id: tx.id,
+      type: tx.type,
+      amount: tx.amount,
+      balance: tx.balance,
+      description: tx.description,
+      bookId: tx.bookId,
+      bookTitle: tx.bookId ? (bookTitleMap.get(tx.bookId) ?? null) : null,
+      addonId: tx.addonId,
+      userId: tx.wallet.user.id,
+      userEmail: tx.wallet.user.email,
+      userName: tx.wallet.user.name,
+      createdAt: tx.createdAt.toISOString(),
+    }));
+
+    return {
+      ...buildPaginatedResponse(data, total, page, perPage),
+      summary: {
+        totalCreditsSpent,
+        totalCreditsAdded,
+        transactionCount: aggregation._count,
+      },
+    };
   }
 }

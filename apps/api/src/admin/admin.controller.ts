@@ -22,6 +22,7 @@ import {
   UpdateProductDto,
   CreatePriceDto,
   UpdateAppConfigDto,
+  CreditUsageQueryDto,
 } from './dto';
 
 @Controller('admin')
@@ -162,6 +163,13 @@ export class AdminController {
     @Param('priceId') priceId: string,
   ) {
     return this.adminService.deactivatePrice(id, priceId);
+  }
+
+  /* ── Credit Usage ─────────────────────────────────────────────────── */
+
+  @Get('credit-usage')
+  async getCreditUsage(@Query() query: CreditUsageQueryDto) {
+    return this.adminService.getCreditUsage(query);
   }
 
   /* ── App Config ───────────────────────────────────────────────────── */

@@ -52,7 +52,8 @@
     "adminPurchases": "Purchases",
     "adminProducts": "Products",
     "adminAnnouncement": "Announcement",
-    "adminPublications": "Publications"
+    "adminPublications": "Publications",
+    "adminCreditUsage": "Credit Usage"
   },
   "notifications": {
     "title": "Notifications",
@@ -912,7 +913,27 @@
     "audioFiles": "Audio Files",
     "noPublications": "No publication requests yet",
     "completeSuccess": "Publication marked as completed",
-    "statusUpdateSuccess": "Status updated successfully"
+    "statusUpdateSuccess": "Status updated successfully",
+    "creditUsage": "Credit Usage",
+    "creditUsageSubtitle": "View all credit transactions across all users",
+    "totalSpent": "Total Spent",
+    "totalAdded": "Total Added",
+    "totalTransactions": "Total Transactions",
+    "transactionType": "Transaction Type",
+    "allTypes": "All Types",
+    "dateFrom": "From",
+    "dateTo": "To",
+    "amount": "Amount",
+    "balanceAfter": "Balance",
+    "type_CREDIT_PURCHASE": "Credit Purchase",
+    "type_BOOK_GENERATION": "Book Generation",
+    "type_ADDON_PURCHASE": "Addon Purchase",
+    "type_REFUND": "Refund",
+    "type_BONUS": "Bonus",
+    "type_ADJUSTMENT": "Adjustment",
+    "type_SUBSCRIPTION_CREDIT": "Subscription Credit",
+    "noTransactions": "No transactions found",
+    "credits": "credits"
   },
   "publishingResult": {
     "title": "Publication Details",

@@ -3,6 +3,7 @@ export {
   AdminAddCreditsDto,
   AdminChangeRoleDto,
   AdminAssignPlanDto,
+  CreditUsageQueryDto,
 } from './admin-query.dto';
 export {
   UpdateProductDto,

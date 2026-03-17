@@ -233,6 +233,19 @@ export const adminApi = {
       )
       .then((r) => r.data),
 
+  // Credit Usage
+  getCreditUsage: (params?: {
+    page?: number;
+    perPage?: number;
+    search?: string;
+    type?: string;
+    dateFrom?: string;
+    dateTo?: string;
+  }) =>
+    apiClient
+      .get('/admin/credit-usage', { params })
+      .then((r) => r.data),
+
   // App Config
   getAppConfigs: () =>
     apiClient.get<AdminAppConfig[]>('/admin/config').then((r) => r.data),
