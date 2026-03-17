@@ -848,11 +848,16 @@ export class HooksService {
       case ProductKind.ADDON_AMAZON_PREMIUM: {
         // Create PublishingRequest
         const platform = (resultData?.platform as string) ?? 'amazon_kdp';
+        const publishingBook = await this.prisma.book.findUnique({
+          where: { id: dto.bookId },
+          select: { userId: true },
+        });
 
         await this.prisma.publishingRequest.create({
           data: {
             bookId: dto.bookId,
             addonId: dto.addonId,
+            userId: publishingBook!.userId,
             platform,
             status: PublishingStatus.READY,
             metadata: (resultData?.metadata ?? Prisma.DbNull) as Prisma.InputJsonValue,

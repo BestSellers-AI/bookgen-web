@@ -51,7 +51,8 @@
     "adminSubs": "Assinaturas",
     "adminPurchases": "Compras",
     "adminProducts": "Produtos",
-    "adminAnnouncement": "Anúncio"
+    "adminAnnouncement": "Anúncio",
+    "adminPublications": "Publicações"
   },
   "notifications": {
     "title": "Notificações",
@@ -711,7 +712,12 @@
     "confirmGenerate": "Gerar",
     "extrasTitle": "Turbine seu livro",
     "extrasSubtitle": "Upgrades opcionais para maximizar o alcance e impacto do seu livro.",
-    "viewExtras": "Ver opções"
+    "viewExtras": "Ver opções",
+    "publishingRequested": "Publicação Solicitada",
+    "publishingInProgress": "Publicação Em Andamento",
+    "publishingCompleted": "Publicado!",
+    "publishingMessage": "O editor responsável pela sua publicação entrará em contato para mais detalhes.",
+    "viewPublication": "Ver Publicação"
   },
   "addons": {
     "title": "Complementos",
@@ -887,7 +893,45 @@
     "annSave": "Salvar Anúncio",
     "annSaved": "Anúncio atualizado!",
     "annLoadError": "Falha ao carregar configuração do anúncio",
-    "annSaveError": "Falha ao salvar configuração do anúncio"
+    "annSaveError": "Falha ao salvar configuração do anúncio",
+    "publications": "Publicações",
+    "publicationsSubtitle": "Gerencie as solicitações de publicação",
+    "publicationDetail": "Detalhe da Publicação",
+    "addonType": "Tipo",
+    "updateStatus": "Atualizar Status",
+    "markCompleted": "Marcar como Publicado",
+    "publishedUrl": "URL de Publicação",
+    "amazonAsin": "ASIN da Amazon",
+    "kdpUrlLabel": "URL KDP",
+    "adminNotes": "Notas para o autor",
+    "downloadAssets": "Recursos para Download",
+    "covers": "Capas",
+    "illustrations": "Ilustrações",
+    "documents": "Documentos",
+    "audioFiles": "Arquivos de Áudio",
+    "noPublications": "Nenhuma solicitação de publicação ainda",
+    "completeSuccess": "Publicação marcada como concluída",
+    "statusUpdateSuccess": "Status atualizado com sucesso"
+  },
+  "publishingResult": {
+    "title": "Detalhes da Publicação",
+    "amazonUrl": "URL na Amazon",
+    "asin": "ASIN",
+    "kdpUrl": "Painel KDP",
+    "publishedOn": "Publicado em",
+    "notes": "Notas do editor",
+    "standard": "Publicação Standard",
+    "premium": "Publicação Premium",
+    "noDetails": "Os detalhes da publicação estarão disponíveis quando o processo for concluído."
+  },
+  "publishingStatus": {
+    "PREPARING": "Solicitada",
+    "REVIEW": "Em Revisão",
+    "READY": "Pronta",
+    "SUBMITTED": "Enviada",
+    "PUBLISHED": "Publicada",
+    "REJECTED": "Rejeitada",
+    "CANCELLED": "Cancelada"
   },
   "landingV2": {
     "nav": {

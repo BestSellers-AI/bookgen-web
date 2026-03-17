@@ -384,6 +384,52 @@ export interface SharedBookPublicView {
 }
 
 // ---------------------------------------------------------------------------
+// Publishing
+// ---------------------------------------------------------------------------
+export interface PublishingRequestSummary {
+  id: string;
+  bookId: string;
+  addonId: string;
+  translationId: string | null;
+  platform: string;
+  status: string;
+  publishedUrl: string | null;
+  amazonAsin: string | null;
+  kdpUrl: string | null;
+  publishedAt: string | null;
+  adminNotes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminPublishingDetail extends PublishingRequestSummary {
+  book: {
+    id: string;
+    title: string;
+    subtitle: string | null;
+    author: string;
+    status: string;
+    settings: Record<string, unknown> | null;
+    selectedCoverFileId: string | null;
+    files: Array<{ id: string; fileType: string; fileName: string; fileUrl: string; fileSize: number | null }>;
+    images: Array<{ id: string; imageUrl: string; caption: string | null; chapterId: string | null }>;
+    chapters: Array<{ id: string; sequence: number; title: string }>;
+    audiobooks: Array<{
+      id: string;
+      voiceName: string | null;
+      totalDuration: number | null;
+      fullAudioUrl: string | null;
+      translationId: string | null;
+      chapters: Array<{ id: string; sequence: number; title: string; audioUrl: string | null; durationSecs: number | null; sectionType: string | null }>;
+    }>;
+    translations: Array<{ id: string; targetLanguage: string; status: string; translatedTitle: string | null }>;
+  };
+  addon: { id: string; kind: string; status: string; creditsCost: number };
+  translation: { id: string; targetLanguage: string; translatedTitle: string | null } | null;
+  user: { id: string; email: string; name: string | null };
+}
+
+// ---------------------------------------------------------------------------
 // SSE
 // ---------------------------------------------------------------------------
 export interface GenerationProgress {

@@ -51,7 +51,8 @@
     "adminSubs": "Subscriptions",
     "adminPurchases": "Purchases",
     "adminProducts": "Products",
-    "adminAnnouncement": "Announcement"
+    "adminAnnouncement": "Announcement",
+    "adminPublications": "Publications"
   },
   "notifications": {
     "title": "Notifications",
@@ -711,7 +712,12 @@
     "confirmGenerate": "Generate",
     "extrasTitle": "Boost your book",
     "extrasSubtitle": "Optional upgrades to maximize your book's reach and impact.",
-    "viewExtras": "View options"
+    "viewExtras": "View options",
+    "publishingRequested": "Publication Requested",
+    "publishingInProgress": "Publication In Progress",
+    "publishingCompleted": "Published!",
+    "publishingMessage": "The editor responsible for your publication will contact you for more details.",
+    "viewPublication": "View Publication"
   },
   "addons": {
     "title": "Addons",
@@ -887,7 +893,45 @@
     "annSave": "Save Announcement",
     "annSaved": "Announcement updated!",
     "annLoadError": "Failed to load announcement config",
-    "annSaveError": "Failed to save announcement config"
+    "annSaveError": "Failed to save announcement config",
+    "publications": "Publications",
+    "publicationsSubtitle": "Manage book publication requests",
+    "publicationDetail": "Publication Detail",
+    "addonType": "Type",
+    "updateStatus": "Update Status",
+    "markCompleted": "Mark as Published",
+    "publishedUrl": "Published URL",
+    "amazonAsin": "Amazon ASIN",
+    "kdpUrlLabel": "KDP URL",
+    "adminNotes": "Notes for the author",
+    "downloadAssets": "Downloadable Assets",
+    "covers": "Covers",
+    "illustrations": "Illustrations",
+    "documents": "Documents",
+    "audioFiles": "Audio Files",
+    "noPublications": "No publication requests yet",
+    "completeSuccess": "Publication marked as completed",
+    "statusUpdateSuccess": "Status updated successfully"
+  },
+  "publishingResult": {
+    "title": "Publication Details",
+    "amazonUrl": "Amazon URL",
+    "asin": "ASIN",
+    "kdpUrl": "KDP Dashboard",
+    "publishedOn": "Published on",
+    "notes": "Notes from the editor",
+    "standard": "Standard Publication",
+    "premium": "Premium Publication",
+    "noDetails": "Publication details will be available once the process is complete."
+  },
+  "publishingStatus": {
+    "PREPARING": "Requested",
+    "REVIEW": "In Review",
+    "READY": "Ready",
+    "SUBMITTED": "Submitted",
+    "PUBLISHED": "Published",
+    "REJECTED": "Rejected",
+    "CANCELLED": "Cancelled"
   },
   "landingV2": {
     "nav": {

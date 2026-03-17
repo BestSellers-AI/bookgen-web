@@ -58,9 +58,11 @@ import { toast } from "sonner";
 import { ProductKind, AddonStatus, FileType, SUPPORTED_LANGUAGES } from "@bestsellers/shared";
 import type { BundleConfigPayload } from "@bestsellers/shared";
 import { useConfigStore } from "@/stores/config-store";
-import type { BookAddonSummary, BookDetail, BookImageSummary } from "@/lib/api/types";
+import type { BookAddonSummary, BookDetail, BookImageSummary, PublishingRequestSummary } from "@/lib/api/types";
+import { publishingApi } from "@/lib/api/publishing";
 import { PublishingInfoOverlay } from "./publishing-info-overlay";
 import { AudiobookViewer } from "./audiobook-viewer";
+import { PublishingResultSheet } from "./publishing-result-sheet";
 
 // ─── Types ───────────────────────────────────────────────────
 
@@ -291,6 +293,11 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
   // Audiobook viewer state
   const [audiobookViewerOpen, setAudiobookViewerOpen] = useState(false);
 
+  // Publishing state
+  const [publishingRequests, setPublishingRequests] = useState<PublishingRequestSummary[]>([]);
+  const [publishingResultSheetOpen, setPublishingResultSheetOpen] = useState(false);
+  const [publishingResultAddon, setPublishingResultAddon] = useState<{ publishing: PublishingRequestSummary; addonKind: string } | null>(null);
+
   // Cover gallery state
   const [coverGalleryOpen, setCoverGalleryOpen] = useState(false);
   const [expandedCover, setExpandedCover] = useState<{ id: string; url: string; name: string } | null>(null);
@@ -360,13 +367,23 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
     }
   }, [book.id, onRefetch]);
 
+  const fetchPublishingRequests = useCallback(async () => {
+    try {
+      const data = await publishingApi.listByBook(book.id);
+      setPublishingRequests(data);
+    } catch {
+      // silently fail
+    }
+  }, [book.id]);
+
   useEffect(() => {
     fetchAddons();
+    fetchPublishingRequests();
     walletApi
       .get()
       .then((w) => setBalance(w.balance))
       .catch(() => {});
-  }, [fetchAddons]);
+  }, [fetchAddons, fetchPublishingRequests]);
 
   // Poll addons every 5s while any are processing
   const hasProcessing = addons.some((a) => isAddonProcessing(a.status));
@@ -693,12 +710,21 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                     tCommon={tCommon}
                     onViewCoverTranslations={() => setCoverTranslationsSheetOpen(true)}
                     onViewAudiobook={() => setAudiobookViewerOpen(true)}
+                    onViewPublication={() => {
+                      const pubReq = publishingRequests.find((p) => existing && p.addonId === existing.id);
+                      if (pubReq) {
+                        setPublishingResultAddon({ publishing: pubReq, addonKind: config.kind });
+                        setPublishingResultSheetOpen(true);
+                      }
+                    }}
                     viewLabel={
                       config.kind === ProductKind.ADDON_COVER_TRANSLATION
                         ? tj("viewTranslatedCover")
                         : config.kind === ProductKind.ADDON_AUDIOBOOK
                           ? tj("viewAudiobook")
-                          : undefined
+                          : (config.kind === ProductKind.ADDON_AMAZON_STANDARD || config.kind === ProductKind.ADDON_AMAZON_PREMIUM)
+                            ? tj("viewPublication")
+                            : undefined
                     }
                     disabled={config.kind === ProductKind.ADDON_COVER_TRANSLATION && !book.selectedCoverFileId}
                     disabledMessage={t("coverRequired")}
@@ -976,6 +1002,51 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                                   </Button>
                                 </div>
                               );
+                            }
+
+                            // Amazon publishing step: show publishing-aware display
+                            if (step.id === "amazon") {
+                              const amazonAddon = addons.find(
+                                (a) =>
+                                  step.kinds.includes(a.kind as ProductKind) &&
+                                  a.status === AddonStatus.COMPLETED,
+                              );
+                              const pubReq = publishingRequests.find(
+                                (p) => amazonAddon && p.addonId === amazonAddon.id,
+                              );
+                              if (pubReq) {
+                                const isPubCompleted = pubReq.status === "PUBLISHED";
+                                return (
+                                  <div className="mt-2 space-y-2">
+                                    {isPubCompleted ? (
+                                      <p className="text-xs font-bold text-emerald-400">{tj("publishingCompleted")}</p>
+                                    ) : pubReq.status === "REVIEW" || pubReq.status === "SUBMITTED" ? (
+                                      <p className="text-xs font-bold text-amber-400">{tj("publishingInProgress")}</p>
+                                    ) : (
+                                      <p className="text-xs font-bold text-blue-400">{tj("publishingRequested")}</p>
+                                    )}
+                                    {!isPubCompleted && (
+                                      <p className="text-[11px] text-muted-foreground">{tj("publishingMessage")}</p>
+                                    )}
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="rounded-xl text-xs gap-1.5 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10"
+                                      onClick={() => {
+                                        setPublishingResultAddon({
+                                          publishing: pubReq,
+                                          addonKind: amazonAddon?.kind ?? "",
+                                        });
+                                        setPublishingResultSheetOpen(true);
+                                      }}
+                                    >
+                                      <BookCheck className="w-3.5 h-3.5" />
+                                      {tj("viewPublication")}
+                                    </Button>
+                                  </div>
+                                );
+                              }
+                              // No publishing request yet — fall through to generic handler
                             }
 
                             // Translation addons: open sheets
@@ -1450,6 +1521,13 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                       onViewTranslations={() => setTranslationsSheetOpen(true)}
                       onViewCoverTranslations={() => setCoverTranslationsSheetOpen(true)}
                       onViewAudiobook={() => setAudiobookViewerOpen(true)}
+                      onViewPublication={() => {
+                        const pubReq = publishingRequests.find((p) => existing && p.addonId === existing.id);
+                        if (pubReq) {
+                          setPublishingResultAddon({ publishing: pubReq, addonKind: config.kind });
+                          setPublishingResultSheetOpen(true);
+                        }
+                      }}
                       viewLabel={
                         config.kind === ProductKind.ADDON_TRANSLATION
                           ? tj("viewTranslations")
@@ -1457,7 +1535,9 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                             ? tj("viewTranslatedCovers")
                             : config.kind === ProductKind.ADDON_AUDIOBOOK
                               ? tj("viewAudiobook")
-                              : undefined
+                              : (config.kind === ProductKind.ADDON_AMAZON_STANDARD || config.kind === ProductKind.ADDON_AMAZON_PREMIUM)
+                                ? tj("viewPublication")
+                                : undefined
                       }
                       disabled={config.kind === ProductKind.ADDON_COVER_TRANSLATION && !book.selectedCoverFileId}
                       disabledMessage={t("coverRequired")}
@@ -2061,6 +2141,16 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
           />
         ) : null;
       })()}
+
+      {/* ─── Publishing Result Sheet ─── */}
+      {publishingResultAddon && (
+        <PublishingResultSheet
+          open={publishingResultSheetOpen}
+          onOpenChange={setPublishingResultSheetOpen}
+          publishing={publishingResultAddon.publishing}
+          addonKind={publishingResultAddon.addonKind}
+        />
+      )}
     </>
   );
 }
@@ -2232,6 +2322,7 @@ function ExtraAddonAction({
   onViewTranslations,
   onViewCoverTranslations,
   onViewAudiobook,
+  onViewPublication,
   viewLabel,
   disabled,
   disabledMessage,
@@ -2244,6 +2335,7 @@ function ExtraAddonAction({
   onViewTranslations?: () => void;
   onViewCoverTranslations?: () => void;
   onViewAudiobook?: () => void;
+  onViewPublication?: () => void;
   viewLabel?: string;
   disabled?: boolean;
   disabledMessage?: string;
@@ -2269,6 +2361,14 @@ function ExtraAddonAction({
       return (
         <Button variant="outline" size="sm" className="rounded-xl text-xs gap-1" onClick={onViewAudiobook}>
           <Headphones className="w-3 h-3" />
+          {viewLabel ?? tAddons("viewResult")}
+        </Button>
+      );
+    }
+    if ((config.kind === ProductKind.ADDON_AMAZON_STANDARD || config.kind === ProductKind.ADDON_AMAZON_PREMIUM) && onViewPublication) {
+      return (
+        <Button variant="outline" size="sm" className="rounded-xl text-xs gap-1" onClick={onViewPublication}>
+          <BookCheck className="w-3 h-3" />
           {viewLabel ?? tAddons("viewResult")}
         </Button>
       );

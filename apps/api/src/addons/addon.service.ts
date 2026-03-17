@@ -14,6 +14,8 @@ import {
   WalletTransactionType,
   FileType,
   ProductKind,
+  PublishingStatus,
+  NotificationType,
 } from '@prisma/client';
 import { ConfigDataService } from '../config-data/config-data.service';
 import { AppConfigService } from '../config/app-config.service';
@@ -152,6 +154,61 @@ export class AddonService {
         `Add-on: ${dto.kind}`,
         { bookId, addonId: addon.id },
       );
+    }
+
+    // Short-circuit for publishing addons — no generation dispatch needed
+    if (
+      dto.kind === 'ADDON_AMAZON_STANDARD' ||
+      dto.kind === 'ADDON_AMAZON_PREMIUM'
+    ) {
+      // Update addon to PROCESSING (manual admin workflow)
+      const processingAddon = await this.prisma.bookAddon.update({
+        where: { id: addon.id },
+        data: { status: AddonStatus.PROCESSING },
+      });
+
+      // Create the PublishingRequest
+      await this.prisma.publishingRequest.create({
+        data: {
+          bookId,
+          addonId: addon.id,
+          userId,
+          translationId: translationId || undefined,
+          platform:
+            dto.kind === 'ADDON_AMAZON_PREMIUM'
+              ? 'amazon_kdp_premium'
+              : 'amazon_kdp',
+          status: PublishingStatus.PREPARING,
+        },
+      });
+
+      // Notify the user
+      await this.prisma.notification.create({
+        data: {
+          userId,
+          type: NotificationType.PUBLISHING_UPDATE,
+          title: 'Publishing Request Created',
+          message: `Your ${dto.kind === 'ADDON_AMAZON_PREMIUM' ? 'Premium' : 'Standard'} Amazon publishing request has been submitted for review.`,
+          data: { bookId, addonId: addon.id },
+        },
+      });
+
+      this.logger.log(
+        `Publishing addon ${addon.id} (${dto.kind}) created for book ${bookId}`,
+      );
+
+      return {
+        id: processingAddon.id,
+        kind: processingAddon.kind as unknown as BookAddonSummary['kind'],
+        status: processingAddon.status as unknown as BookAddonSummary['status'],
+        translationId: processingAddon.translationId,
+        resultUrl: processingAddon.resultUrl,
+        resultData: processingAddon.resultData as Record<string, unknown> | null,
+        creditsCost: processingAddon.creditsCost,
+        error: processingAddon.error,
+        createdAt: processingAddon.createdAt.toISOString(),
+        updatedAt: processingAddon.updatedAt.toISOString(),
+      };
     }
 
     // Build addon-specific params

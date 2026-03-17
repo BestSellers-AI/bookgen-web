@@ -11,5 +11,6 @@ export { filesApi } from './files';
 export { adminApi } from './admin';
 export { configApi } from './config';
 export { translationsApi } from './translations';
+export { publishingApi } from './publishing';
 
 export type * from './types';
