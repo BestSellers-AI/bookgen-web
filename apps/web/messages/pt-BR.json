@@ -936,6 +936,7 @@
     "publishedDate": "Publicado",
     "fullAudiobook": "Audiobook Completo",
     "noAssets": "Nenhum recurso disponível",
+    "view": "Ver",
     "cancelPublishing": "Cancelar Publicação",
     "cancelPublishingDesc": "Cancela a solicitação de publicação e reembolsa os créditos ao usuário.",
     "cancelPublishingConfirm": "Tem certeza que deseja cancelar esta publicação? Os créditos serão reembolsados ao usuário.",
