@@ -1024,7 +1024,7 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                                 tAddons={t}
                                 tCommon={tCommon}
                                 label={tj("amazonStandard")}
-                                sublabel={`${getCreditsCost(ProductKind.ADDON_AMAZON_STANDARD)} ${tCommon("credits")}`}
+                                sublabel={t("requestForCredits", { cost: getCreditsCost(ProductKind.ADDON_AMAZON_STANDARD) })}
                               />
                               )}
                               {(!activePublishingKind || activePublishingKind === ProductKind.ADDON_AMAZON_PREMIUM) && (
@@ -1042,7 +1042,7 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                                 tAddons={t}
                                 tCommon={tCommon}
                                 label={tj("amazonPremium")}
-                                sublabel={`${getCreditsCost(ProductKind.ADDON_AMAZON_PREMIUM)} ${tCommon("credits")}`}
+                                sublabel={t("requestForCredits", { cost: getCreditsCost(ProductKind.ADDON_AMAZON_PREMIUM) })}
                                 premium
                               />
                               )}
@@ -2386,8 +2386,8 @@ function StepCTA({
     );
   }
 
-  const displayLabel = label ?? tAddons("request");
-  const displayCost = sublabel ?? `${config.cost} ${tCommon("credits")}`;
+  const displayLabel = label ?? tAddons("requestForCredits", { cost: config.cost });
+  const displayCost = sublabel;
 
   return (
     <div className="mt-3">
@@ -2432,9 +2432,11 @@ function StepCTA({
               <p className={`text-sm font-black ${premium ? "dark:text-amber-400 text-amber-950" : "text-foreground"}`}>
                 {displayLabel}
               </p>
-              <p className="text-[11px] text-muted-foreground font-medium">
-                {displayCost}
-              </p>
+              {displayCost && (
+                <p className="text-[11px] text-muted-foreground font-medium">
+                  {displayCost}
+                </p>
+              )}
             </div>
           </div>
           <div
@@ -2461,7 +2463,7 @@ function ExtraAddonAction({
   existing,
   onRequest,
   tAddons,
-  tCommon,
+  tCommon: _tCommon,
   onViewTranslations,
   onViewCoverTranslations,
   onViewAudiobook,
@@ -2582,7 +2584,7 @@ function ExtraAddonAction({
       className="rounded-xl text-xs font-bold"
       onClick={() => onRequest(config)}
     >
-      {config.cost} {tCommon("credits")}
+      {tAddons("requestForCredits", { cost: config.cost })}
     </Button>
   );
 }

@@ -727,6 +727,7 @@
     "publishingAwaiting": "Awaiting editor",
     "subtitle": "Enhance your book with additional features and services.",
     "request": "Request",
+    "requestForCredits": "Request for {cost} credits",
     "processing": "Processing...",
     "done": "Done",
     "retry": "Retry",
