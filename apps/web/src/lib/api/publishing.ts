@@ -33,4 +33,8 @@ export const publishingApi = {
     const { data } = await apiClient.delete(`/admin/publishing/${id}`);
     return data;
   },
+  dispatchWebhook: async (id: string, webhookUrl: string): Promise<{ message: string }> => {
+    const { data } = await apiClient.post(`/admin/publishing/${id}/dispatch-webhook`, { webhookUrl });
+    return data;
+  },
 };

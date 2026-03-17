@@ -79,6 +79,14 @@ export class AdminPublishingController {
     return this.publishingService.complete(id, dto);
   }
 
+  @Post(':id/dispatch-webhook')
+  async dispatchWebhook(
+    @Param('id') id: string,
+    @Body() body: { webhookUrl: string },
+  ) {
+    return this.publishingService.dispatchWebhook(id, body.webhookUrl);
+  }
+
   @Delete(':id')
   async cancel(@Param('id') id: string) {
     return this.publishingService.cancel(id);

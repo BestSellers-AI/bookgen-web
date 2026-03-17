@@ -244,6 +244,42 @@ export class PublishingService {
     return updated;
   }
 
+  async dispatchWebhook(id: string, webhookUrl: string) {
+    const detail = await this.getDetail(id);
+
+    const payload = {
+      publishingRequest: {
+        id: detail.id,
+        status: detail.status,
+        platform: detail.platform,
+        createdAt: detail.createdAt,
+      },
+      user: detail.user,
+      book: {
+        id: detail.book.id,
+        title: detail.book.title,
+        subtitle: (detail.book as Record<string, unknown>).subtitle,
+        author: (detail.book as Record<string, unknown>).author,
+        status: (detail.book as Record<string, unknown>).status,
+      },
+      addon: detail.addon,
+      translation: detail.translation,
+    };
+
+    const res = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      throw new BadRequestException(`Webhook failed with status ${res.status}`);
+    }
+
+    this.logger.log(`Webhook dispatched for publishing ${id} to ${webhookUrl}`);
+    return { message: 'Webhook dispatched successfully' };
+  }
+
   async cancel(id: string) {
     const request = await this.prisma.publishingRequest.findUnique({
       where: { id },

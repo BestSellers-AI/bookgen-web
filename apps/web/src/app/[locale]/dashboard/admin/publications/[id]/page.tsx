@@ -163,30 +163,7 @@ export default function AdminPublicationDetailPage() {
     if (!detail || !webhookUrl) return;
     setDispatching(true);
     try {
-      const payload = {
-        publishingRequest: {
-          id: detail.id,
-          status: detail.status,
-          platform: detail.platform,
-          createdAt: detail.createdAt,
-        },
-        user: detail.user,
-        book: {
-          id: detail.book?.id,
-          title: detail.book?.title,
-          subtitle: detail.book?.subtitle,
-          author: detail.book?.author,
-          status: detail.book?.status,
-        },
-        addon: detail.addon,
-        translation: detail.translation,
-      };
-      const res = await fetch(webhookUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await publishingApi.dispatchWebhook(id, webhookUrl);
       toast.success(t("webhookSuccess"));
     } catch {
       toast.error(t("webhookError"));
