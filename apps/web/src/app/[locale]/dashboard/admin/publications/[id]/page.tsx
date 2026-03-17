@@ -108,8 +108,8 @@ export default function AdminPublicationDetailPage() {
     if (!newStatus || newStatus === detail?.status) return;
     setUpdatingStatus(true);
     try {
-      const updated = await publishingApi.updateStatus(id, newStatus);
-      setDetail(updated);
+      await publishingApi.updateStatus(id, newStatus);
+      await fetchDetail();
       toast.success(t("statusUpdateSuccess"));
     } catch {
       toast.error(t("statusUpdateError"));
@@ -121,13 +121,13 @@ export default function AdminPublicationDetailPage() {
   const handleComplete = async () => {
     setCompleting(true);
     try {
-      const updated = await publishingApi.complete(id, {
+      await publishingApi.complete(id, {
         publishedUrl: publishedUrl || undefined,
         amazonAsin: amazonAsin || undefined,
         kdpUrl: kdpUrl || undefined,
         adminNotes: adminNotes || undefined,
       });
-      setDetail(updated);
+      await fetchDetail();
       setShowCompleteForm(false);
       toast.success(t("completeSuccess"));
     } catch {
