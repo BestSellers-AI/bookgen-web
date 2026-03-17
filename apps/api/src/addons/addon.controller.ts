@@ -36,8 +36,9 @@ export class AddonController {
     @CurrentUser('id') userId: string,
     @Param('bookId') bookId: string,
     @Param('bundleId') bundleId: string,
+    @Body() body: { params?: Record<string, unknown> },
   ) {
-    return this.addonService.requestBundle(userId, bookId, bundleId);
+    return this.addonService.requestBundle(userId, bookId, bundleId, body.params);
   }
 
   @Get()

@@ -510,16 +510,28 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
   const publishBundleAvailable = isBundleAvailable(BUNDLE_PUBLISH_PREMIUM);
   const globalLaunchBundleAvailable = isBundleAvailable(BUNDLE_GLOBAL_LAUNCH);
 
+  const [bundleLanguage, setBundleLanguage] = useState("");
+
+  const bundleNeedsLanguage = (bundle: BundleConfigPayload) =>
+    bundle.kinds.includes(ProductKind.ADDON_TRANSLATION as string) ||
+    bundle.kinds.includes(ProductKind.ADDON_COVER_TRANSLATION as string);
+
   const openBundleDialog = (bundle: BundleConfigPayload) => {
     setSelectedBundle(bundle);
+    setBundleLanguage("");
     setBundleDialogOpen(true);
   };
 
   const handleBundleRequest = async () => {
     if (!selectedBundle) return;
+    if (bundleNeedsLanguage(selectedBundle) && !bundleLanguage) return;
     setRequestingBundle(true);
     try {
-      await addonsApi.createBundle(book.id, selectedBundle.id);
+      const params: Record<string, unknown> = {};
+      if (bundleNeedsLanguage(selectedBundle) && bundleLanguage) {
+        params.targetLanguage = bundleLanguage;
+      }
+      await addonsApi.createBundle(book.id, selectedBundle.id, Object.keys(params).length > 0 ? params : undefined);
       toast.success(tj(`bundleSuccess_${selectedBundle.id}`));
       setBundleDialogOpen(false);
       fetchAddons();
@@ -2087,6 +2099,34 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                     : ""}
                 </p>
 
+                {selectedBundle && bundleNeedsLanguage(selectedBundle) && (
+                  (() => {
+                    const excludedLangs = new Set<string>();
+                    if (book.settings?.language) excludedLangs.add(book.settings.language);
+                    (book.translations ?? [])
+                      .filter((tr) => tr.status !== "ERROR")
+                      .forEach((tr) => excludedLangs.add(tr.targetLanguage));
+                    const availableLangs = SUPPORTED_LANGUAGES.filter((l) => !excludedLangs.has(l.code));
+                    return (
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">{t("selectLanguage")}</label>
+                        <Select value={bundleLanguage} onValueChange={setBundleLanguage}>
+                          <SelectTrigger className="rounded-xl">
+                            <SelectValue placeholder={t("selectLanguage")} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableLangs.map((lang) => (
+                              <SelectItem key={lang.code} value={lang.code}>
+                                {lang.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    );
+                  })()
+                )}
+
                 {balance !== null &&
                   selectedBundle &&
                   balance < selectedBundle.cost && (
@@ -2110,7 +2150,7 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
             ) : (
               <AlertDialogAction
                 onClick={handleBundleRequest}
-                disabled={requestingBundle}
+                disabled={requestingBundle || (!!selectedBundle && bundleNeedsLanguage(selectedBundle) && !bundleLanguage)}
                 className="bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600"
               >
                 {requestingBundle ? (

@@ -301,16 +301,27 @@ export class AddonService {
     userId: string,
     bookId: string,
     bundleId: string,
+    params?: Record<string, unknown>,
   ): Promise<BookAddonSummary[]> {
     const allBundles = await this.configDataService.getBundles();
     const bundle = allBundles[bundleId];
     if (!bundle) {
       throw new BadRequestException(`Unknown bundle: ${bundleId}`);
     }
+
+    const hasTranslation = bundle.kinds.includes(ProductKind.ADDON_TRANSLATION as string);
+    const hasCoverTranslation = bundle.kinds.includes(ProductKind.ADDON_COVER_TRANSLATION as string);
+    const targetLanguage = params?.targetLanguage as string | undefined;
+
+    // Validate: bundles with translation require a target language
+    if (hasTranslation && !targetLanguage) {
+      throw new BadRequestException('Target language is required for this bundle.');
+    }
+
     // Verify book ownership + status
     const book = await this.prisma.book.findFirst({
       where: { id: bookId, userId, deletedAt: null },
-      select: { id: true, status: true },
+      select: { id: true, status: true, selectedCoverFileId: true },
     });
 
     if (!book) {
@@ -321,6 +332,11 @@ export class AddonService {
       throw new BadRequestException(
         'Add-ons can only be requested for fully generated books',
       );
+    }
+
+    // Validate: bundles with cover translation require a selected cover
+    if (hasCoverTranslation && !book.selectedCoverFileId) {
+      throw new BadRequestException('Please select a cover before requesting this bundle.');
     }
 
     // Check that none of the bundle addons already exist (not cancelled/error)
@@ -341,14 +357,22 @@ export class AddonService {
 
     const bundleCost = bundle.cost;
 
-    // Create all addon records (PENDING)
+    const PUBLISHING_KINDS = new Set<string>([
+      ProductKind.ADDON_AMAZON_STANDARD,
+      ProductKind.ADDON_AMAZON_PREMIUM,
+    ]);
+
+    // Create all addon records
     const addonRecords = await Promise.all(
       bundle.kinds.map(async (kind) =>
         this.prisma.bookAddon.create({
           data: {
             bookId,
             kind: kind as ProductKind,
-            status: AddonStatus.PENDING,
+            // Publishing addons go straight to PROCESSING (manual workflow)
+            status: PUBLISHING_KINDS.has(kind as ProductKind)
+              ? AddonStatus.PROCESSING
+              : AddonStatus.PENDING,
             creditsCost: await this.configDataService.getCreditsCost(kind),
           },
         }),
@@ -364,17 +388,53 @@ export class AddonService {
       { bookId },
     );
 
-    // Dispatch each addon to processing engine
+    // Dispatch each addon — publishing addons are handled inline, others go to BullMQ
     const dispatched: typeof addonRecords = [];
     try {
       for (const addon of addonRecords) {
-        if (this.appConfig.useInternalGeneration) {
-          await this.generationService.addAddonJob(bookId, {
-            addonId: addon.id,
-            addonKind: addon.kind,
+        if (PUBLISHING_KINDS.has(addon.kind)) {
+          // Create PublishingRequest inline (no queue dispatch)
+          await this.prisma.publishingRequest.create({
+            data: {
+              bookId,
+              addonId: addon.id,
+              userId,
+              platform:
+                addon.kind === ProductKind.ADDON_AMAZON_PREMIUM
+                  ? 'amazon_kdp_premium'
+                  : 'amazon_kdp',
+              status: PublishingStatus.PREPARING,
+            },
+          });
+          await this.prisma.notification.create({
+            data: {
+              userId,
+              type: NotificationType.PUBLISHING_UPDATE,
+              title: 'Publishing Request Created',
+              message: `Your ${addon.kind === ProductKind.ADDON_AMAZON_PREMIUM ? 'Premium' : 'Standard'} Amazon publishing request has been submitted for review.`,
+              data: { bookId, addonId: addon.id },
+            },
           });
         } else {
-          await this.n8nClient.dispatchAddon(bookId, addon.id, addon.kind as string, {});
+          // Build dispatch params for translation addons
+          const dispatchParams: Record<string, unknown> = {};
+          if (
+            (addon.kind === ProductKind.ADDON_TRANSLATION ||
+              addon.kind === ProductKind.ADDON_COVER_TRANSLATION) &&
+            targetLanguage
+          ) {
+            dispatchParams.targetLanguage = targetLanguage;
+          }
+
+          if (this.appConfig.useInternalGeneration) {
+            await this.generationService.addAddonJob(bookId, {
+              addonId: addon.id,
+              addonKind: addon.kind,
+              params: Object.keys(dispatchParams).length > 0 ? dispatchParams : undefined,
+            });
+          } else {
+            await this.n8nClient.dispatchAddon(bookId, addon.id, addon.kind as string, dispatchParams);
+          }
         }
         dispatched.push(addon);
       }
@@ -400,14 +460,18 @@ export class AddonService {
       );
     }
 
-    // Update all to QUEUED
+    // Update non-publishing addons to QUEUED
     const updated = await Promise.all(
-      addonRecords.map((a) =>
-        this.prisma.bookAddon.update({
+      addonRecords.map((a) => {
+        if (PUBLISHING_KINDS.has(a.kind)) {
+          // Publishing addons already in PROCESSING, just return them
+          return Promise.resolve(a);
+        }
+        return this.prisma.bookAddon.update({
           where: { id: a.id },
           data: { status: AddonStatus.QUEUED },
-        }),
-      ),
+        });
+      }),
     );
 
     this.logger.log(
