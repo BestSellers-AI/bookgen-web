@@ -695,7 +695,7 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                     onViewAudiobook={() => setAudiobookViewerOpen(true)}
                     viewLabel={
                       config.kind === ProductKind.ADDON_COVER_TRANSLATION
-                        ? tj("viewTranslatedCovers")
+                        ? tj("viewTranslatedCover")
                         : config.kind === ProductKind.ADDON_AUDIOBOOK
                           ? tj("viewAudiobook")
                           : undefined
@@ -1553,7 +1553,12 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
             })()
           ) : (
             (() => {
-              const allTranslatedCovers = book.files.filter((f) => f.fileType === ("COVER_TRANSLATED" as string));
+              const allTranslatedCovers = book.files.filter((f) => {
+                if (f.fileType !== ("COVER_TRANSLATED" as string)) return false;
+                // In translation context, show only covers for this language
+                if (translationLang) return f.fileName.includes(`cover-translated-${translationLang}`);
+                return true;
+              });
               // Extract unique languages from cover filenames
               const coverLanguages = [...new Set(allTranslatedCovers.map((f) => {
                 const m = f.fileName.match(/cover-translated-([^.]+)\./);
@@ -1618,8 +1623,10 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                       </div>
                     )}
 
-                    {/* Generate another translated cover */}
+                    {/* Generate another translated cover (hide in translation context if cover already exists) */}
                     {(() => {
+                      // In translation context, don't show "add another" if a cover for this language already exists
+                      if (translationLang && allTranslatedCovers.length > 0) return null;
                       const hasCoverTransProcessing = addons.some(
                         (a) => a.kind === ProductKind.ADDON_COVER_TRANSLATION && isAddonProcessing(a.status),
                       );
