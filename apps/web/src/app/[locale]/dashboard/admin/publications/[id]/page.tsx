@@ -236,7 +236,14 @@ export default function AdminPublicationDetailPage() {
   const allIllustrations = bookImages;
   const selectedIllustrations = allIllustrations.filter((img) => img.chapterId !== null);
   const otherIllustrations = allIllustrations.filter((img) => img.chapterId === null);
-  const audiobooks = detail.book?.audiobooks ?? [];
+  // Filter audiobooks: only show the one matching the publication context
+  // If translationId exists, show only audiobooks for that translation
+  // If no translationId, show only audiobooks for the original book (no translationId)
+  const audiobooks = (detail.book?.audiobooks ?? []).filter((ab) =>
+    detail.translationId
+      ? ab.translationId === detail.translationId
+      : !ab.translationId,
+  );
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
