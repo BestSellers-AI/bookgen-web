@@ -266,14 +266,23 @@ export class PublishingService {
       translation: detail.translation,
     };
 
-    const res = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+    let res: Response;
+    try {
+      res = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown fetch error';
+      this.logger.error(`Webhook fetch failed for publishing ${id}: ${message}`);
+      throw new BadRequestException(`Webhook request failed: ${message}`);
+    }
 
     if (!res.ok) {
-      throw new BadRequestException(`Webhook failed with status ${res.status}`);
+      const body = await res.text().catch(() => '');
+      this.logger.error(`Webhook returned ${res.status} for publishing ${id}: ${body}`);
+      throw new BadRequestException(`Webhook failed with status ${res.status}: ${body}`);
     }
 
     this.logger.log(`Webhook dispatched for publishing ${id} to ${webhookUrl}`);
