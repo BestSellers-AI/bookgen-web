@@ -169,7 +169,7 @@ export default function AdminPublicationsPage() {
                     <td className="px-6 py-4">
                       <Button variant="outline" size="sm" className="rounded-xl text-xs" asChild>
                         <Link href={`/dashboard/admin/publications/${pub.id}`}>
-                          View
+                          {t("view")}
                         </Link>
                       </Button>
                     </td>
