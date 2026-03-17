@@ -139,18 +139,19 @@ The translated book page (`/dashboard/books/[id]/translations/[translationId]`) 
 function buildTranslatedBookDetail(book: BookDetail, translation: TranslationDetail): BookDetail {
   // Replaces: title, subtitle, introduction, conclusion, chapters, back matter
   // Keeps: author, images (chapter images from original), settings (overrides language)
-  // Cover: uses translated cover for same language if exists, else original
+  // Cover: uses translated cover for same language if exists, else null (no fallback to original)
+  // selectedCoverFileId: translated cover file ID or null
 }
 ```
 
 This virtual book is passed to the same `BookViewer` component with `isTranslation` flag:
 - **Shows**: header, stats, PDF viewer (KDP), downloads (PDF/DOCX), share, author
-- **Shows**: audiobook + publishing addons + cover translation (if no cover for this language)
-- **Hides**: AuthorJourney publishing stepper, cover/images addons, bundles
+- **Shows**: audiobook + publishing + cover translation addons (same behavior as original book)
+- **Hides**: AuthorJourney publishing stepper, cover generation, chapter images, book translation, bundles
 
 ### PDF/DOCX Generation
 - `downloadTranslatedBookPdf()` / `downloadTranslatedBookDocx()` use `toRenderableTranslatedBook()`
-- Maps translated chapters, uses translated cover if available
+- Maps translated chapters, uses translated cover if available, **no cover if none exists for that language**
 - Labels localized via `getBookLabels(translation.targetLanguage)`
 
 ---
@@ -198,8 +199,10 @@ Both `author-journey.tsx` and `addon-section.tsx` filter the language dropdown:
 
 Translated books can have their own addons:
 - `BookAddon.translationId` FK links addon to specific translation
-- **Allowed addons**: Audiobook, Amazon Standard, Amazon Premium, Cover Translation (if no cover for that language)
-- **Not shown**: Cover generation, Chapter images, Book translation (already translated)
+- **Allowed addons**: Audiobook, Amazon Standard, Amazon Premium, Cover Translation
+- **Not shown**: Cover generation, Chapter images, Book translation, bundles
+- Cover Translation addon behaves identically to the original book (gallery, regenerate, filter by language)
+- Cover Translation requested from translated book presets the language (shown as badge, no dropdown)
 - `params.translationId` passed in addon request (except for Cover Translation which is book-level)
 
 ---

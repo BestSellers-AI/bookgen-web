@@ -8,6 +8,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { HooksModule } from '../hooks/hooks.module';
 import { StorageModule } from '../storage/storage.module';
 import { TranslationsModule } from '../translations/translations.module';
+import { TtsModule } from '../tts/tts.module';
 import { GenerationService } from './generation.service';
 import { GenerationProcessor } from './processors/generation.processor';
 
@@ -38,6 +39,7 @@ import { GenerationProcessor } from './processors/generation.processor';
     HooksModule,
     StorageModule,
     TranslationsModule,
+    TtsModule,
   ],
   providers: [
     GenerationService,

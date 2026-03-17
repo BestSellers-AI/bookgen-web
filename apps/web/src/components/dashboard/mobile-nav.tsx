@@ -79,8 +79,7 @@ export function MobileNav() {
           <nav className="flex flex-col gap-2">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
-              const hasPlan = !!user?.planInfo?.hasSubscription;
-              const highlighted = "highlight" in item && item.highlight && !hasPlan;
+              const highlighted = "highlight" in item && item.highlight;
 
               if (highlighted && !isActive) {
                 return (

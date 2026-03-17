@@ -194,6 +194,7 @@ export interface BookAddonSummary {
   id: string;
   kind: ProductKind;
   status: AddonStatus;
+  translationId: string | null;
   resultUrl: string | null;
   resultData: Record<string, unknown> | null;
   creditsCost: number | null;
@@ -243,6 +244,15 @@ export interface SharedBookInfo {
   createdAt: string;
 }
 
+export interface AudiobookSummaryRef {
+  id: string;
+  voiceName: string | null;
+  status: AddonStatus;
+  totalDuration: number | null;
+  fullAudioUrl: string | null;
+  createdAt: string;
+}
+
 export interface BookDetail {
   id: string;
   title: string;
@@ -270,6 +280,7 @@ export interface BookDetail {
   addons: BookAddonSummary[];
   translations: BookTranslationSummary[];
   images: BookImageSummary[];
+  audiobooks: AudiobookSummaryRef[];
   share: SharedBookInfo | null;
   createdAt: string;
   updatedAt: string;

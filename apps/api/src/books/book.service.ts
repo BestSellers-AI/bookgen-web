@@ -220,6 +220,7 @@ export class BookService {
         id: a.id,
         kind: a.kind as unknown as BookDetail['addons'][number]['kind'],
         status: a.status as unknown as BookDetail['addons'][number]['status'],
+        translationId: a.translationId,
         resultUrl: a.resultUrl,
         resultData: a.resultData as Record<string, unknown> | null,
         creditsCost: a.creditsCost,
@@ -632,7 +633,7 @@ export class BookService {
       );
     }
 
-    // Enforce booksPerMonth limit
+    // Look up subscription for queue priority (booksPerMonth is informational only — credits are the real gate)
     const activeSubscription = await this.prisma.subscription.findFirst({
       where: {
         userId,
@@ -647,34 +648,6 @@ export class BookService {
     });
 
     const plan = activeSubscription?.plan as SubscriptionPlan | null;
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
-
-    const generatedThisMonth = await this.prisma.book.count({
-      where: {
-        userId,
-        status: { in: [BookStatus.QUEUED, BookStatus.GENERATING, BookStatus.GENERATED] },
-        generationStartedAt: { gte: startOfMonth },
-        deletedAt: null,
-      },
-    });
-
-    if (plan) {
-      const planConfig = await this.configDataService.getPlanConfig(plan);
-      if (planConfig && generatedThisMonth >= planConfig.booksPerMonth) {
-        throw new ForbiddenException(
-          `Monthly book generation limit reached (${planConfig.booksPerMonth}/month for ${planConfig.name})`,
-        );
-      }
-    } else {
-      const freeTier = await this.configDataService.getFreeTier();
-      if (generatedThisMonth >= freeTier.booksPerMonth) {
-        throw new ForbiddenException(
-          `Free tier book generation limit reached (${freeTier.booksPerMonth}/month)`,
-        );
-      }
-    }
 
     const originalStatus = book.status;
 

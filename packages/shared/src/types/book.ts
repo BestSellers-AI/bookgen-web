@@ -55,6 +55,7 @@ export interface BookAddonSummary {
   id: string;
   kind: ProductKind;
   status: AddonStatus;
+  translationId: string | null;
   resultUrl: string | null;
   resultData: Record<string, unknown> | null;
   creditsCost: number | null;
