@@ -677,7 +677,7 @@
     "bundleConfirm_BUNDLE_PUBLISH_PREMIUM": "El Paquete Publicación Premium incluye Portada, Ilustraciones de Capítulos y Publicación Premium en Amazon. Costo total: {cost} créditos (antes {originalCost} créditos). Tienes {balance} créditos.",
     "bundleSuccess_BUNDLE_PUBLISH_PREMIUM": "¡Paquete Premium activado! Los 3 complementos están siendo procesados.",
     "bundleTitle_BUNDLE_GLOBAL_LAUNCH": "Paquete Lanzamiento Global",
-    "bundleSubtitle_BUNDLE_GLOBAL_LAUNCH": "Traducción + Traducción Portada + Publicación (50% off)",
+    "bundleSubtitle_BUNDLE_GLOBAL_LAUNCH": "Segunda publicación — Traducción + Traducción Portada + Publicación (50% off)",
     "bundleCta_BUNDLE_GLOBAL_LAUNCH": "LANZAR GLOBALMENTE",
     "bundleConfirm_BUNDLE_GLOBAL_LAUNCH": "El Paquete Lanzamiento Global incluye Traducción del Libro, Traducción de Portada y Publicación en Amazon con 50% de descuento. Costo total: {cost} créditos (antes {originalCost} créditos). Tienes {balance} créditos.",
     "bundleSuccess_BUNDLE_GLOBAL_LAUNCH": "¡Paquete Lanzamiento Global activado! Los 3 complementos están siendo procesados.",
@@ -717,7 +717,8 @@
     "publishingInProgress": "Publicación En Progreso",
     "publishingCompleted": "¡Publicado!",
     "publishingMessage": "El editor responsable de su publicación se pondrá en contacto para más detalles.",
-    "viewPublication": "Ver Publicación"
+    "viewPublication": "Ver Publicación",
+    "bundleRequiresPublishing": "Debes solicitar una publicación del libro original antes de comprar este paquete."
   },
   "addons": {
     "title": "Complementos",

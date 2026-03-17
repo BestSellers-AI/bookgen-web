@@ -21,6 +21,7 @@ import {
   Plus,
   Clock,
   Eye,
+  Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -269,7 +270,7 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
     ProductKind.ADDON_AMAZON_STANDARD,
     ProductKind.ADDON_AMAZON_PREMIUM,
   ]);
-  const EXTRA_CONFIGS = translationId
+  const EXTRA_CONFIGS_UNFILTERED = translationId
     ? EXTRA_CONFIGS_ALL.filter((c) => TRANSLATION_ALLOWED_KINDS.has(c.kind))
     : EXTRA_CONFIGS_ALL.filter((c) => !STEPPER_KINDS.has(c.kind));
 
@@ -340,6 +341,24 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
   const [bundleDialogOpen, setBundleDialogOpen] = useState(false);
   const [selectedBundle, setSelectedBundle] = useState<BundleConfigPayload | null>(null);
   const [requestingBundle, setRequestingBundle] = useState(false);
+
+  // Hide the other publishing type when one is already requested (not ERROR/CANCELLED)
+  const activePublishingKind = addons.find(
+    (a) =>
+      (a.kind === ProductKind.ADDON_AMAZON_STANDARD || a.kind === ProductKind.ADDON_AMAZON_PREMIUM) &&
+      a.status !== AddonStatus.ERROR &&
+      a.status !== AddonStatus.CANCELLED &&
+      (translationId ? a.translationId === translationId : !a.translationId),
+  )?.kind as ProductKind | undefined;
+
+  const EXTRA_CONFIGS = activePublishingKind
+    ? EXTRA_CONFIGS_UNFILTERED.filter((c) => {
+        if (c.kind === ProductKind.ADDON_AMAZON_STANDARD || c.kind === ProductKind.ADDON_AMAZON_PREMIUM) {
+          return c.kind === activePublishingKind;
+        }
+        return true;
+      })
+    : EXTRA_CONFIGS_UNFILTERED;
 
   const prevAddonsRef = useRef<BookAddonSummary[]>(addons);
 
@@ -478,6 +497,15 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
       const existing = getExistingAddon(kind);
       return !existing || existing.status === AddonStatus.ERROR || existing.status === AddonStatus.CANCELLED;
     });
+
+  // Check if the original book (not translation) has an active publishing request
+  const hasOriginalBookPublishing = addons.some(
+    (a) =>
+      (a.kind === ProductKind.ADDON_AMAZON_STANDARD || a.kind === ProductKind.ADDON_AMAZON_PREMIUM) &&
+      a.status !== AddonStatus.ERROR &&
+      a.status !== AddonStatus.CANCELLED &&
+      !a.translationId,
+  );
 
   const publishBundleAvailable = isBundleAvailable(BUNDLE_PUBLISH_PREMIUM);
   const globalLaunchBundleAvailable = isBundleAvailable(BUNDLE_GLOBAL_LAUNCH);
@@ -921,6 +949,7 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                         {(step.status === "available" || step.status === "error") &&
                           step.id === "amazon" && (
                             <div className="mt-3 space-y-2">
+                              {(!activePublishingKind || activePublishingKind === ProductKind.ADDON_AMAZON_STANDARD) && (
                               <StepCTA
                                 config={ALL_ADDON_CONFIGS.find(
                                   (c) =>
@@ -937,6 +966,8 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                                 label={tj("amazonStandard")}
                                 sublabel={`${getCreditsCost(ProductKind.ADDON_AMAZON_STANDARD)} ${tCommon("credits")}`}
                               />
+                              )}
+                              {(!activePublishingKind || activePublishingKind === ProductKind.ADDON_AMAZON_PREMIUM) && (
                               <StepCTA
                                 config={ALL_ADDON_CONFIGS.find(
                                   (c) =>
@@ -954,6 +985,7 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                                 sublabel={`${getCreditsCost(ProductKind.ADDON_AMAZON_PREMIUM)} ${tCommon("credits")}`}
                                 premium
                               />
+                              )}
                               <button
                                 type="button"
                                 onClick={() => setPublishingOverlayOpen(true)}
@@ -1461,15 +1493,23 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
             {/* Global Launch Bundle */}
             {globalLaunchBundleAvailable && (
               <>
-                <BundleCard
-                  bundle={BUNDLE_GLOBAL_LAUNCH}
-                  onRequest={() => {
-                    setExtrasOpen(false);
-                    openBundleDialog(BUNDLE_GLOBAL_LAUNCH);
-                  }}
-                  tj={tj}
-                  tCommon={tCommon}
-                />
+                {hasOriginalBookPublishing ? (
+                  <BundleCard
+                    bundle={BUNDLE_GLOBAL_LAUNCH}
+                    onRequest={() => {
+                      setExtrasOpen(false);
+                      openBundleDialog(BUNDLE_GLOBAL_LAUNCH);
+                    }}
+                    tj={tj}
+                    tCommon={tCommon}
+                  />
+                ) : (
+                  <LockedBundleCard
+                    bundle={BUNDLE_GLOBAL_LAUNCH}
+                    tj={tj}
+                    tCommon={tCommon}
+                  />
+                )}
                 <div className="flex items-center gap-2 py-1">
                   <div className="flex-1 h-px bg-border" />
                   <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
@@ -2524,6 +2564,54 @@ function BundleCard({
         </div>
       </div>
     </button>
+  );
+}
+
+function LockedBundleCard({
+  bundle,
+  tj,
+  tCommon,
+}: {
+  bundle: BundleConfigPayload;
+  tj: ReturnType<typeof useTranslations>;
+  tCommon: ReturnType<typeof useTranslations>;
+}) {
+  const [showMessage, setShowMessage] = useState(false);
+
+  return (
+    <div>
+      {/* Card + lock wrapper */}
+      <div className="relative">
+        {/* Full BundleCard with opacity */}
+        <div className="opacity-50 pointer-events-none">
+          <BundleCard
+            bundle={bundle}
+            onRequest={() => {}}
+            tj={tj}
+            tCommon={tCommon}
+          />
+        </div>
+
+        {/* Lock overlay */}
+        <button
+          type="button"
+          onClick={() => setShowMessage((v) => !v)}
+          className="absolute inset-0 flex items-center justify-center rounded-2xl cursor-pointer"
+        >
+          <div className="w-14 h-14 rounded-full bg-background/80 backdrop-blur-sm border-2 border-amber-500/40 flex items-center justify-center shadow-xl">
+            <Lock className="w-6 h-6 text-amber-500" />
+          </div>
+        </button>
+      </div>
+
+      {/* Alert message on lock click — outside the relative container */}
+      {showMessage && (
+        <div className="mt-2 p-4 rounded-xl bg-amber-950/95 backdrop-blur-md border-2 border-amber-500/50 text-sm font-bold text-amber-300 shadow-2xl shadow-amber-500/20 animate-in fade-in duration-200 flex items-center gap-2.5">
+          <Lock className="w-4 h-4 shrink-0 text-amber-400" />
+          {tj("bundleRequiresPublishing")}
+        </div>
+      )}
+    </div>
   );
 }
 

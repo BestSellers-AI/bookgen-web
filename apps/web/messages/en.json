@@ -677,7 +677,7 @@
     "bundleConfirm_BUNDLE_PUBLISH_PREMIUM": "The Premium Publishing Bundle includes Cover, Chapter Illustrations, and Premium Amazon Publishing. Total cost: {cost} credits (originally {originalCost} credits). You have {balance} credits.",
     "bundleSuccess_BUNDLE_PUBLISH_PREMIUM": "Premium Publishing Bundle activated! All 3 addons are being processed.",
     "bundleTitle_BUNDLE_GLOBAL_LAUNCH": "Global Launch Bundle",
-    "bundleSubtitle_BUNDLE_GLOBAL_LAUNCH": "Translation + Cover Translation + Publishing (50% off)",
+    "bundleSubtitle_BUNDLE_GLOBAL_LAUNCH": "Second publication — Translation + Cover Translation + Publishing (50% off)",
     "bundleCta_BUNDLE_GLOBAL_LAUNCH": "LAUNCH GLOBALLY",
     "bundleConfirm_BUNDLE_GLOBAL_LAUNCH": "The Global Launch Bundle includes Book Translation, Cover Translation, and Amazon Publishing at 50% off. Total cost: {cost} credits (originally {originalCost} credits). You have {balance} credits.",
     "bundleSuccess_BUNDLE_GLOBAL_LAUNCH": "Global Launch Bundle activated! All 3 addons are being processed.",
@@ -717,7 +717,8 @@
     "publishingInProgress": "Publication In Progress",
     "publishingCompleted": "Published!",
     "publishingMessage": "The editor responsible for your publication will contact you for more details.",
-    "viewPublication": "View Publication"
+    "viewPublication": "View Publication",
+    "bundleRequiresPublishing": "You must request a publication for the original book before purchasing this bundle."
   },
   "addons": {
     "title": "Addons",
