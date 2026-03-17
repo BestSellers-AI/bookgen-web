@@ -1060,17 +1060,32 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                               );
                               if (pubReq) {
                                 const isPubCompleted = pubReq.status === "PUBLISHED";
+                                const isPubInProgress = pubReq.status === "REVIEW" || pubReq.status === "SUBMITTED";
                                 return (
-                                  <div className="mt-2 space-y-2">
+                                  <div className="mt-2 space-y-2.5">
                                     {isPubCompleted ? (
-                                      <p className="text-xs font-bold text-emerald-400">{tj("publishingCompleted")}</p>
-                                    ) : pubReq.status === "REVIEW" || pubReq.status === "SUBMITTED" ? (
-                                      <p className="text-xs font-bold text-amber-400">{tj("publishingInProgress")}</p>
+                                      <div className="flex items-center gap-2">
+                                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                                        <p className="text-xs font-bold text-emerald-400">{tj("publishingCompleted")}</p>
+                                      </div>
+                                    ) : isPubInProgress ? (
+                                      <div className="flex items-center gap-2">
+                                        <Clock className="w-4 h-4 text-amber-400 shrink-0" />
+                                        <p className="text-xs font-bold text-amber-400">{tj("publishingInProgress")}</p>
+                                      </div>
                                     ) : (
-                                      <p className="text-xs font-bold text-blue-400">{tj("publishingRequested")}</p>
+                                      <div className="flex items-center gap-2">
+                                        <Clock className="w-4 h-4 text-blue-400 shrink-0" />
+                                        <p className="text-xs font-bold text-blue-400">{tj("publishingRequested")}</p>
+                                      </div>
                                     )}
                                     {!isPubCompleted && (
-                                      <p className="text-[11px] text-muted-foreground">{tj("publishingMessage")}</p>
+                                      <p className="text-[11px] text-muted-foreground leading-relaxed">{tj("publishingMessage")}</p>
+                                    )}
+                                    {!isPubCompleted && pubReq.createdAt && (
+                                      <p className="text-[10px] text-muted-foreground/70">
+                                        {tj("publishingRequestedOn", { date: new Date(pubReq.createdAt).toLocaleDateString() })}
+                                      </p>
                                     )}
                                     <Button
                                       variant="outline"
@@ -2474,6 +2489,15 @@ function ExtraAddonAction({
   }
 
   if (existing && isAddonProcessing(existing.status)) {
+    // Publishing addons: show static status badge instead of spinner
+    if (config.kind === ProductKind.ADDON_AMAZON_STANDARD || config.kind === ProductKind.ADDON_AMAZON_PREMIUM) {
+      return (
+        <Badge className="bg-blue-500/10 text-blue-400 text-[9px]">
+          <Clock className="w-3 h-3 mr-1" />
+          {tAddons("publishingAwaiting")}
+        </Badge>
+      );
+    }
     return (
       <Badge className="bg-amber-500/10 dark:text-amber-400 text-amber-600 text-[9px] animate-pulse">
         <Loader2 className="w-3 h-3 mr-1 animate-spin" />

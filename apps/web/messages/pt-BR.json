@@ -719,10 +719,12 @@
     "publishingCompleted": "Publicado!",
     "publishingMessage": "O editor responsável pela sua publicação entrará em contato para mais detalhes.",
     "viewPublication": "Ver Publicação",
+    "publishingRequestedOn": "Solicitado em {date}",
     "bundleRequiresPublishing": "Você precisa solicitar uma publicação do livro original antes de comprar este pacote."
   },
   "addons": {
     "title": "Complementos",
+    "publishingAwaiting": "Aguardando editor",
     "subtitle": "Aprimore seu livro com recursos e serviços adicionais.",
     "request": "Solicitar",
     "processing": "Processando...",
