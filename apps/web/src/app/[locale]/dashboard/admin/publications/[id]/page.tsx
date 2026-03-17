@@ -130,7 +130,7 @@ export default function AdminPublicationDetailPage() {
     try {
       const bookDetail = await booksApi.getById(detail.bookId);
       const { downloadBookPdf } = await import("@/lib/book-template/download");
-      await downloadBookPdf(bookDetail, (detail.book.settings?.language as string) ?? "en");
+      await downloadBookPdf(bookDetail, (detail.book?.settings?.language as string) ?? "en");
     } catch {
       toast.error("Failed to generate PDF");
     } finally {
@@ -144,7 +144,7 @@ export default function AdminPublicationDetailPage() {
     try {
       const bookDetail = await booksApi.getById(detail.bookId);
       const { downloadBookDocx } = await import("@/lib/book-template/download");
-      await downloadBookDocx(bookDetail, (detail.book.settings?.language as string) ?? "en");
+      await downloadBookDocx(bookDetail, (detail.book?.settings?.language as string) ?? "en");
     } catch {
       toast.error("Failed to generate DOCX");
     } finally {
@@ -227,17 +227,17 @@ export default function AdminPublicationDetailPage() {
       <div className="glass rounded-[2rem] p-6 space-y-4">
         <div className="flex items-start justify-between flex-wrap gap-4">
           <div className="space-y-1">
-            <h3 className="text-lg font-bold">{detail.book.title}</h3>
-            {detail.book.subtitle && (
-              <p className="text-sm text-muted-foreground">{detail.book.subtitle}</p>
+            <h3 className="text-lg font-bold">{detail.book?.title}</h3>
+            {detail.book?.subtitle && (
+              <p className="text-sm text-muted-foreground">{detail.book?.subtitle}</p>
             )}
             <p className="text-sm text-muted-foreground">
-              {detail.book.author} &middot; {detail.user.email}
+              {detail.book?.author} &middot; {detail.user?.email}
             </p>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="text-xs font-bold">
-              {detail.addon.kind === "ADDON_AMAZON_PREMIUM" ? "Premium" : "Standard"}
+              {detail.addon?.kind === "ADDON_AMAZON_PREMIUM" ? "Premium" : "Standard"}
             </Badge>
             <Badge
               variant="secondary"
