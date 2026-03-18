@@ -868,19 +868,20 @@ export class HooksService {
         // Translation records are now created by processAddonTranslation in the processor.
         // The resultData contains the translationId for reference.
         const translationId = resultData?.translationId as string | undefined;
-        if (translationId) {
+        const siblingAddonIds = (resultData?.siblingAddonIds as string[]) ?? [];
+        if (translationId && siblingAddonIds.length > 0) {
           this.logger.log(`Translation ${translationId} already created by processor for book ${dto.bookId}`);
 
-          // Link sibling publishing & cover-translation addons from the same bundle
-          // (they were created without translationId because the translation didn't exist yet)
+          // Link sibling addons from the same bundle to this translation
+          // Only target addons whose IDs were passed from the bundle dispatch (not all addons on the book)
           const PUBLISHING_KINDS = [
             ProductKind.ADDON_AMAZON_STANDARD,
             ProductKind.ADDON_AMAZON_PREMIUM,
           ];
           const siblingAddons = await this.prisma.bookAddon.findMany({
             where: {
+              id: { in: siblingAddonIds },
               bookId: dto.bookId,
-              kind: { in: [...PUBLISHING_KINDS, ProductKind.ADDON_COVER_TRANSLATION] },
               translationId: null,
               status: { notIn: [AddonStatus.CANCELLED, AddonStatus.ERROR] },
             },
@@ -902,6 +903,8 @@ export class HooksService {
               this.logger.log(`Linked PublishingRequest for addon ${sibling.id} to translation ${translationId}`);
             }
           }
+        } else if (translationId) {
+          this.logger.log(`Translation ${translationId} created for book ${dto.bookId} (standalone, no siblings to link)`);
         }
         break;
       }

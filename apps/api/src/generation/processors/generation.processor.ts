@@ -1137,7 +1137,11 @@ export class GenerationProcessor extends WorkerHost {
       addonId,
       addonKind,
       status: 'success',
-      resultData: { targetLanguage, translationId: translation.id },
+      resultData: {
+        targetLanguage,
+        translationId: translation.id,
+        siblingAddonIds: (params?.siblingAddonIds as string[]) ?? [],
+      },
     });
 
     this.logger.log(`[translation] Translation completed for book ${bookId} → ${targetLanguage}`);

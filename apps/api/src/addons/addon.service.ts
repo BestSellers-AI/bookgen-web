@@ -530,6 +530,13 @@ export class AddonService {
             dispatchParams.targetLanguage = targetLanguage;
           }
 
+          // Pass sibling addon IDs so post-translation linking only affects bundle addons
+          if (addon.kind === ProductKind.ADDON_TRANSLATION) {
+            dispatchParams.siblingAddonIds = addonRecords
+              .filter((a) => a.id !== addon.id)
+              .map((a) => a.id);
+          }
+
           // Enrich with book context for addons that need it
           const CONTEXT_KINDS = new Set<string>([
             ProductKind.ADDON_COVER,
