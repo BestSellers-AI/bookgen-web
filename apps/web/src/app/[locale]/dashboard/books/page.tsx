@@ -271,6 +271,11 @@ export default function BooksListPage() {
                   >
                     {getStatusLabel(book.status)}
                   </Badge>
+                  {book.isPublished && (
+                    <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px] font-black uppercase tracking-widest h-6 px-3 rounded-full">
+                      {t("published")}
+                    </Badge>
+                  )}
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>

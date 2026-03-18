@@ -131,6 +131,7 @@ export interface BookListItem {
   wordCount: number;
   pageCount: number;
   addonKinds: string[];
+  isPublished: boolean;
   createdAt: string;
   updatedAt: string;
 }

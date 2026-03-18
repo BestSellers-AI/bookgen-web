@@ -106,6 +106,11 @@ export class BookService {
             select: { kind: true },
             distinct: ['kind'],
           },
+          publishingRequests: {
+            where: { status: 'PUBLISHED', translationId: null },
+            take: 1,
+            select: { id: true },
+          },
         },
       }),
       this.prisma.book.count({ where }),
@@ -124,6 +129,7 @@ export class BookService {
       wordCount: book.wordCount,
       pageCount: book.pageCount,
       addonKinds: book.addons.map((a) => a.kind as string),
+      isPublished: book.publishingRequests.length > 0,
       createdAt: book.createdAt.toISOString(),
       updatedAt: book.updatedAt.toISOString(),
     }));

@@ -1,6 +1,6 @@
 "use client";
 
-import { Book, ChevronRight, Clock, Palette, ImageIcon, Globe, Headphones, Package } from "lucide-react";
+import { Book, ChevronRight, Clock, Palette, ImageIcon, Globe, Headphones, Package, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
@@ -72,6 +72,12 @@ export function RecentBooksList({ books }: RecentBooksListProps) {
                 >
                   {tStatus.has(book.status) ? tStatus(book.status) : book.status}
                 </Badge>
+                {book.isPublished && (
+                  <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[9px] font-black uppercase tracking-widest px-2 rounded-md">
+                    <CheckCircle2 className="w-2.5 h-2.5 mr-0.5" />
+                    {t("published")}
+                  </Badge>
+                )}
                 <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
                   <Clock size={10} />
                   {new Date(book.createdAt).toLocaleDateString()}
