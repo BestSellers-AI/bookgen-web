@@ -90,7 +90,7 @@ function buildStyles(gutter: number) {
       marginBottom: 5,
     },
     tocLabel: {
-      fontSize: 10,
+      fontSize: FONT_SIZE_BODY,
     },
     sectionTitle: {
       fontFamily: FONT_HEADING,
@@ -142,6 +142,7 @@ function buildStyles(gutter: number) {
     },
     paragraph: {
       marginBottom: 8,
+      textAlign: 'justify',
     },
     coverPage: {
       backgroundColor: '#000',
