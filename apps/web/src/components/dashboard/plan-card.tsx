@@ -111,25 +111,37 @@ export function PlanCard({ user }: PlanCardProps) {
   if (isMaxPlan) {
     return (
       <>
-        <div className="glass rounded-[2rem] p-6">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-                <Crown className="w-5 h-5 text-amber-500" />
+        <div className="relative overflow-hidden rounded-[2rem] border-2 dark:border-gold-500/40 border-gold-600/40 bg-gradient-to-r dark:from-gold-500/[0.08] dark:via-amber-500/[0.04] dark:to-gold-500/[0.08] from-gold-600/[0.08] via-amber-600/[0.04] to-gold-600/[0.08] p-6 shadow-gold-md">
+          {/* Glow accents */}
+          <div className="absolute -top-16 -right-16 w-48 h-48 bg-gold-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative flex flex-col sm:flex-row items-center justify-between gap-5">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-gold-500/30 to-amber-500/20 border-2 dark:border-gold-500/40 border-gold-600/40 flex items-center justify-center shadow-lg dark:shadow-gold-500/10 shadow-gold-600/10">
+                <Crown className="w-6 h-6 dark:text-gold-400 text-gold-700" />
               </div>
               <div>
-                <p className="text-lg font-black text-foreground">{plan ? tPlan(plan) : tPlan("FREE")}</p>
-                <p className="text-xs text-muted-foreground">{t("planCard.maxPlanSubtitle")}</p>
+                <p className="text-xl font-black dark:text-gold-400 text-gold-700 font-playfair">{plan ? tPlan(plan) : tPlan("FREE")}</p>
+                <p className="text-sm dark:text-cream-400 text-navy-600">{t("planCard.maxPlanSubtitle")}</p>
               </div>
             </div>
-            <Button
-              variant="outline"
-              className="rounded-xl h-10 gap-2 shrink-0"
-              onClick={() => setPublishingOpen(true)}
-            >
-              <BookCheck className="w-4 h-4" />
-              {t("planCard.maxPlanCta")}
-            </Button>
+
+            <div className="relative rounded-xl p-[2px] overflow-hidden w-full sm:w-auto shrink-0">
+              <div
+                className="absolute top-1/2 left-1/2 w-[200%] aspect-square animate-border-spin"
+                style={{
+                  background: "conic-gradient(from 0deg, transparent 0%, transparent 60%, #f4eee6 75%, #ffffff 85%, #f4eee6 95%, transparent 100%)",
+                }}
+              />
+              <button
+                className="relative w-full sm:w-auto rounded-[calc(0.75rem-2px)] px-6 py-2.5 font-bold text-sm transition-all duration-200 active:scale-[0.98] bg-gold-500 hover:bg-gold-600 text-navy-900 shadow-gold-sm hover:shadow-gold-md flex items-center justify-center gap-2"
+                onClick={() => setPublishingOpen(true)}
+              >
+                <BookCheck className="w-4 h-4" />
+                {t("planCard.maxPlanCta")}
+              </button>
+            </div>
           </div>
         </div>
         <PublishingInfoOverlay
