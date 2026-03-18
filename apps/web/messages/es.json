@@ -530,6 +530,7 @@
     "noResultsDesc": "Intenta ajustar tu búsqueda o filtros.",
     "view": "Ver",
     "published": "Publicado",
+    "viewTranslations": "{count, plural, one {# traducción} other {# traducciones}}",
     "deleteBook": "Eliminar",
     "deleteConfirm": "¿Eliminar este libro?",
     "deleteConfirmDesc": "Esta acción no se puede deshacer. El libro y todo su contenido se eliminarán permanentemente.",

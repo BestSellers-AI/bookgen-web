@@ -111,6 +111,11 @@ export class BookService {
             take: 1,
             select: { id: true },
           },
+          translations: {
+            where: { status: { not: 'ERROR' } },
+            select: { id: true, targetLanguage: true, translatedTitle: true, status: true },
+            orderBy: { createdAt: 'asc' as const },
+          },
         },
       }),
       this.prisma.book.count({ where }),
@@ -130,6 +135,12 @@ export class BookService {
       pageCount: book.pageCount,
       addonKinds: book.addons.map((a) => a.kind as string),
       isPublished: book.publishingRequests.length > 0,
+      translations: book.translations.map((t) => ({
+        id: t.id,
+        targetLanguage: t.targetLanguage,
+        translatedTitle: t.translatedTitle,
+        status: t.status as string,
+      })),
       createdAt: book.createdAt.toISOString(),
       updatedAt: book.updatedAt.toISOString(),
     }));

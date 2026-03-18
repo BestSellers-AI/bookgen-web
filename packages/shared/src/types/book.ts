@@ -23,6 +23,7 @@ export interface BookListItem {
   pageCount: number | null;
   addonKinds: string[];
   isPublished: boolean;
+  translations: { id: string; targetLanguage: string; translatedTitle: string | null; status: string }[];
   createdAt: string;
   updatedAt: string;
 }

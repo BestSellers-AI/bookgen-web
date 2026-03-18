@@ -477,6 +477,7 @@
     "noResultsDesc": "Try adjusting your search or filters.",
     "view": "View",
     "published": "Published",
+    "viewTranslations": "{count, plural, one {# translation} other {# translations}}",
     "deleteBook": "Delete",
     "deleteConfirm": "Delete this book?",
     "deleteConfirmDesc": "This action cannot be undone. The book and all its content will be permanently deleted.",

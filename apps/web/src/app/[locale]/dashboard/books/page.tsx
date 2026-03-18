@@ -17,7 +17,9 @@ import {
   Globe,
   Headphones,
   Package,
+  ChevronDown,
 } from "lucide-react";
+import { SUPPORTED_LANGUAGES } from "@bestsellers/shared";
 import { booksApi, type BookQueryParams } from "@/lib/api/books";
 import type { BookListItem, PaginationMeta } from "@/lib/api/types";
 import { useRouter } from "@/i18n/navigation";
@@ -351,6 +353,9 @@ export default function BooksListPage() {
                     </div>
                   );
                 })()}
+                {book.translations?.length > 0 && (
+                  <TranslationsCollapsible bookId={book.id} translations={book.translations} t={t} />
+                )}
               </div>
             ))}
           </div>
@@ -370,6 +375,64 @@ export default function BooksListPage() {
         onConfirm={() => deleteId && handleDelete(deleteId)}
         destructive
       />
+    </div>
+  );
+}
+
+function TranslationsCollapsible({
+  bookId,
+  translations,
+  t,
+}: {
+  bookId: string;
+  translations: { id: string; targetLanguage: string; translatedTitle: string | null; status: string }[];
+  t: ReturnType<typeof useTranslations>;
+}) {
+  const [open, setOpen] = useState(false);
+  const router = useRouter();
+
+  const getLangName = (code: string) =>
+    SUPPORTED_LANGUAGES.find((l) => l.code === code)?.name ?? code;
+
+  return (
+    <div className="border-t border-border pt-2 mt-1">
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); setOpen(!open); }}
+        className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground hover:text-foreground transition-colors w-full"
+      >
+        <Globe className="w-3 h-3" />
+        {t("viewTranslations", { count: translations.length })}
+        <ChevronDown className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className="mt-2 space-y-1">
+          {translations.map((tr) => (
+            <button
+              key={tr.id}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                router.push(`/dashboard/books/${bookId}/translations/${tr.id}`);
+              }}
+              className="flex items-center justify-between w-full px-2.5 py-1.5 rounded-lg hover:bg-accent/50 transition-colors text-left"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-xs font-bold">{getLangName(tr.targetLanguage)}</span>
+                {tr.translatedTitle && (
+                  <span className="text-[11px] text-muted-foreground truncate">{tr.translatedTitle}</span>
+                )}
+              </div>
+              <Badge
+                variant="secondary"
+                className="text-[8px] font-bold shrink-0 ml-2"
+              >
+                {tr.status === "COMPLETED" ? "✓" : tr.status === "TRANSLATING" ? "..." : tr.status.toLowerCase()}
+              </Badge>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
