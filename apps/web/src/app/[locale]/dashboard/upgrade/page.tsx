@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import { PageHeader } from "@/components/ui/page-header";
 import { useSearchParams } from "next/navigation";
 import CreditCard from "@/components/landing/pricing/CreditCard";
+import PlanCalculator from "@/components/landing/pricing/PlanCalculator";
 import { buildCreditPacks, buildServices } from "@/lib/landing-pricing-data";
 import clsx from "clsx";
 
@@ -121,6 +122,7 @@ export default function UpgradePage() {
   const [annual, setAnnual] = useState(true);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [loadingSlug, setLoadingSlug] = useState<string | null>(null);
+  const [highlightedPlan, setHighlightedPlan] = useState<string | null>(null);
 
   const getPlanConfig = useConfigStore((s) => s.getPlanConfig);
   const getSubscriptionPlans = useConfigStore((s) => s.getSubscriptionPlans);
@@ -277,13 +279,18 @@ export default function UpgradePage() {
               </span>
             </div>
 
+            <PlanCalculator onRecommend={setHighlightedPlan} />
+
             {/* Plan Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
               {PLAN_ORDER.map((planKey, i) => {
                 const config = getPlanConfig(planKey);
                 if (!config) return null;
                 const isCurrent = currentPlan === planKey;
-                const isPopular = planKey === SubscriptionPlan.PROFISSIONAL;
+                // Map calculator recommendation IDs to plan enums
+                const calcIdMap: Record<string, string> = { autor: SubscriptionPlan.ASPIRANTE, profissional: SubscriptionPlan.PROFISSIONAL, bestseller: SubscriptionPlan.BESTSELLER };
+                const isHighlighted = highlightedPlan ? calcIdMap[highlightedPlan] === planKey : false;
+                const isPopular = isHighlighted || planKey === SubscriptionPlan.PROFISSIONAL;
                 const price = annual
                   ? config.annualMonthlyEquivalentCents
                   : config.monthlyPriceCents;
