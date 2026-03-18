@@ -960,9 +960,9 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                       </div>
 
                       {/* Content */}
-                      <div className={`flex-1 ${isLast ? "pb-0" : "pb-3"}`}>
-                        <div className="flex items-center justify-between gap-2 min-h-10">
-                          <div>
+                      <div className={`flex-1 min-w-0 ${isLast ? "pb-0" : "pb-3"}`}>
+                        <div className="min-h-10">
+                          <div className="flex items-start justify-between gap-2">
                             <p
                               className={`text-sm font-bold ${
                                 step.status === "completed"
@@ -974,39 +974,38 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                             >
                               {tj(`step_${step.id}`)}
                             </p>
-                            <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                              {tj(`stepDesc_${step.id}`)}
-                            </p>
-                            {step.kinds.length > 0 && (
-                              <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-bold text-primary/70">
-                                <Clock className="w-3 h-3" />
-                                {t(`time_${step.kinds[0]}`)}
-                              </span>
+                            {step.status === "completed" && (
+                              <CheckBadge />
                             )}
-                          </div>
-                          {step.status === "completed" && (
-                            <CheckBadge />
-                          )}
-                          {step.status === "processing" && (
-                            isPublishingStep ? (() => {
-                              const pAddon = addons.find((a) => step.kinds.includes(a.kind as ProductKind) && isAddonProcessing(a.status));
-                              return (
-                                <div className="flex items-center gap-1.5">
-                                  <Badge variant="secondary" className="text-[8px] font-bold shrink-0">
-                                    {pAddon?.kind === ProductKind.ADDON_AMAZON_PREMIUM ? tj("typePremium") : tj("typeStandard")}
-                                  </Badge>
-                                  <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-[9px] font-black uppercase tracking-widest shrink-0">
-                                    <UserCheck className="w-3 h-3 mr-1" />
-                                    {t("publishingAwaiting")}
-                                  </Badge>
-                                </div>
-                              );
-                            })() : (
+                            {step.status === "processing" && !isPublishingStep && (
                               <Badge className="bg-amber-500/10 dark:text-amber-400 text-amber-600 border-amber-500/20 text-[9px] font-black uppercase tracking-widest shrink-0 animate-pulse">
                                 {t("processing")}
                               </Badge>
-                            )
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                            {tj(`stepDesc_${step.id}`)}
+                          </p>
+                          {step.kinds.length > 0 && !isPublishingStep && (
+                            <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-bold text-primary/70">
+                              <Clock className="w-3 h-3" />
+                              {t(`time_${step.kinds[0]}`)}
+                            </span>
                           )}
+                          {isPublishingStep && (() => {
+                            const pAddon = addons.find((a) => step.kinds.includes(a.kind as ProductKind) && isAddonProcessing(a.status));
+                            return (
+                              <div className="flex items-center gap-1.5 flex-wrap mt-2">
+                                <Badge variant="secondary" className="text-[9px] font-bold">
+                                  {pAddon?.kind === ProductKind.ADDON_AMAZON_PREMIUM ? tj("typePremium") : tj("typeStandard")}
+                                </Badge>
+                                <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-[9px] font-black uppercase tracking-widest">
+                                  <UserCheck className="w-3 h-3 mr-1" />
+                                  {t("publishingAwaiting")}
+                                </Badge>
+                              </div>
+                            );
+                          })()}
                         </div>
 
                         {/* Publishing step: human-action message + upgrade */}
