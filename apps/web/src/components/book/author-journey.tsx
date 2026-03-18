@@ -1575,7 +1575,7 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
             {/* Global Launch Bundle */}
             {globalLaunchBundleAvailable && (
               <>
-                {hasOriginalBookPublishing ? (
+                {hasOriginalBookPublishing && book.selectedCoverFileId ? (
                   <BundleCard
                     bundle={BUNDLE_GLOBAL_LAUNCH}
                     onRequest={() => {
@@ -1590,6 +1590,7 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                     bundle={BUNDLE_GLOBAL_LAUNCH}
                     tj={tj}
                     tCommon={tCommon}
+                    message={!book.selectedCoverFileId ? t("coverRequired") : undefined}
                   />
                 )}
                 <div className="flex items-center gap-2 py-1">
@@ -2690,10 +2691,12 @@ function LockedBundleCard({
   bundle,
   tj,
   tCommon,
+  message,
 }: {
   bundle: BundleConfigPayload;
   tj: ReturnType<typeof useTranslations>;
   tCommon: ReturnType<typeof useTranslations>;
+  message?: string;
 }) {
   const [showMessage, setShowMessage] = useState(false);
 
@@ -2727,7 +2730,7 @@ function LockedBundleCard({
       {showMessage && (
         <div className="mt-2 p-4 rounded-xl bg-amber-950/95 backdrop-blur-md border-2 border-amber-500/50 text-sm font-bold text-amber-300 shadow-2xl shadow-amber-500/20 animate-in fade-in duration-200 flex items-center gap-2.5">
           <Lock className="w-4 h-4 shrink-0 text-amber-400" />
-          {tj("bundleRequiresPublishing")}
+          {message ?? tj("bundleRequiresPublishing")}
         </div>
       )}
     </div>
