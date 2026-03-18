@@ -145,11 +145,11 @@ WHERE ba.book_id = bt.book_id
 
 ## Decision
 
-Decided to **defer the full translationId linkage fix** (March 2026) because:
-1. The current behavior works for the common case (cover matched by language)
-2. New bundle-created cover translations are already correctly linked
-3. The main impact is cosmetic (missing icon in collapsible)
-4. Changing behavior mid-stream could confuse existing data
+Decided to **keep cover translation as a book-level addon** (March 2026) because:
+1. **Users can generate translated covers without translating the book.** A user may want a Spanish cover for marketing, social media, or international listings without paying for a full book translation. Linking to `translationId` would force a translation to exist first, breaking this use case.
+2. The current behavior works for the common case (cover matched by language in file name)
+3. New bundle-created cover translations are already correctly linked (the bundle guarantees a translation exists)
+4. The file-based inference workaround (below) solves the icon display issue without changing the data model
 
 ## Workaround: File-Based Inference for Collapsible Icons
 
