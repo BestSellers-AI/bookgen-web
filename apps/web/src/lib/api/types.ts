@@ -130,6 +130,7 @@ export interface BookListItem {
   coverUrl: string | null;
   wordCount: number;
   pageCount: number;
+  addonKinds: string[];
   createdAt: string;
   updatedAt: string;
 }

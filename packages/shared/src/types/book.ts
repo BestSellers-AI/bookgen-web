@@ -21,6 +21,7 @@ export interface BookListItem {
   coverUrl: string | null;
   wordCount: number | null;
   pageCount: number | null;
+  addonKinds: string[];
   createdAt: string;
   updatedAt: string;
 }

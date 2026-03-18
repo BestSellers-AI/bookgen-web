@@ -12,6 +12,11 @@ import {
   Trash2,
   Eye,
   Loader2,
+  Palette,
+  ImageIcon,
+  Globe,
+  Headphones,
+  Package,
 } from "lucide-react";
 import { booksApi, type BookQueryParams } from "@/lib/api/books";
 import type { BookListItem, PaginationMeta } from "@/lib/api/types";
@@ -320,6 +325,25 @@ export default function BooksListPage() {
                     {new Date(book.createdAt).toLocaleDateString()}
                   </span>
                 </div>
+                {book.addonKinds?.length > 0 && (
+                  <div className="flex items-center gap-1.5">
+                    {book.addonKinds.map((kind) => {
+                      const iconMap: Record<string, { icon: typeof Palette; color: string }> = {
+                        ADDON_COVER: { icon: Palette, color: "text-pink-400" },
+                        ADDON_IMAGES: { icon: ImageIcon, color: "text-indigo-400" },
+                        ADDON_TRANSLATION: { icon: Globe, color: "text-blue-400" },
+                        ADDON_COVER_TRANSLATION: { icon: Globe, color: "text-cyan-400" },
+                        ADDON_AUDIOBOOK: { icon: Headphones, color: "text-emerald-400" },
+                        ADDON_AMAZON_STANDARD: { icon: Package, color: "text-orange-400" },
+                        ADDON_AMAZON_PREMIUM: { icon: Package, color: "text-amber-400" },
+                      };
+                      const config = iconMap[kind];
+                      if (!config) return null;
+                      const Icon = config.icon;
+                      return <Icon key={kind} className={`w-3.5 h-3.5 ${config.color}`} />;
+                    })}
+                  </div>
+                )}
               </div>
             ))}
           </div>

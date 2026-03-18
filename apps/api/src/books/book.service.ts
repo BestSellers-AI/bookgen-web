@@ -101,6 +101,11 @@ export class BookService {
           selectedCoverFile: {
             select: { fileUrl: true },
           },
+          addons: {
+            where: { status: { notIn: ['CANCELLED', 'ERROR'] as any[] } },
+            select: { kind: true },
+            distinct: ['kind'],
+          },
         },
       }),
       this.prisma.book.count({ where }),
@@ -118,6 +123,7 @@ export class BookService {
       coverUrl: book.selectedCoverFile?.fileUrl ?? book.files[0]?.fileUrl ?? null,
       wordCount: book.wordCount,
       pageCount: book.pageCount,
+      addonKinds: book.addons.map((a) => a.kind as string),
       createdAt: book.createdAt.toISOString(),
       updatedAt: book.updatedAt.toISOString(),
     }));
