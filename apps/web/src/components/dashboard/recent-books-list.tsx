@@ -61,60 +61,58 @@ export function RecentBooksList({ books }: RecentBooksListProps) {
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold truncate group-hover:text-primary transition-colors">
-                {book.title}
-              </p>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge
-                  variant="secondary"
-                  className={`text-[9px] font-black uppercase tracking-widest px-2 rounded-md ${getStatusBadgeClass(book.status)}`}
-                >
-                  {tStatus.has(book.status) ? tStatus(book.status) : book.status}
-                </Badge>
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-semibold truncate group-hover:text-primary transition-colors">
+                  {book.title}
+                </p>
                 {(() => {
                   if (book.isPublished) {
                     return (
-                      <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[9px] font-black uppercase tracking-widest px-2 rounded-md">
+                      <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[8px] font-black uppercase tracking-widest px-1.5 py-0 rounded shrink-0">
                         <CheckCircle2 className="w-2.5 h-2.5 mr-0.5" />
                         {t("published")}
                       </Badge>
                     );
                   }
                   if (book.status === "GENERATED") {
-                    const kinds = new Set(book.addonKinds ?? []);
-                    let steps = 1;
-                    if (kinds.has("ADDON_COVER")) steps++;
-                    if (kinds.has("ADDON_IMAGES")) steps++;
-                    if (kinds.has("ADDON_AMAZON_STANDARD") || kinds.has("ADDON_AMAZON_PREMIUM")) steps++;
-                    if (steps < 4) {
+                    const k = new Set(book.addonKinds ?? []);
+                    let s = 1;
+                    if (k.has("ADDON_COVER")) s++;
+                    if (k.has("ADDON_IMAGES")) s++;
+                    if (k.has("ADDON_AMAZON_STANDARD") || k.has("ADDON_AMAZON_PREMIUM")) s++;
+                    if (s < 4) {
                       return (
-                        <Badge className="bg-gold-500/10 text-gold-500 border-gold-500/20 text-[9px] font-black px-2 rounded-md">
-                          {t("journeyStep", { current: steps })}
+                        <Badge className="bg-gold-500/10 text-gold-500 border-gold-500/20 text-[8px] font-black px-1.5 py-0 rounded shrink-0">
+                          {t("journeyStep", { current: s })}
                         </Badge>
                       );
                     }
                   }
                   return null;
                 })()}
-                <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+              </div>
+              <div className="flex items-center gap-2 mt-1">
+                <Badge
+                  variant="secondary"
+                  className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0 rounded ${getStatusBadgeClass(book.status)}`}
+                >
+                  {tStatus.has(book.status) ? tStatus(book.status) : book.status}
+                </Badge>
+                {(() => {
+                  const kinds = new Set(book.addonKinds ?? []);
+                  if (book.translations?.length > 0) kinds.add("ADDON_TRANSLATION");
+                  const items = ADDON_ICON_ORDER.filter((a) => kinds.has(a.kind));
+                  if (items.length === 0) return null;
+                  return items.map((a) => {
+                    const Icon = a.icon;
+                    return <Icon key={a.kind} className={`w-3 h-3 ${a.color}`} />;
+                  });
+                })()}
+                <span className="flex items-center gap-1 text-[10px] text-muted-foreground ml-auto shrink-0">
                   <Clock size={10} />
                   {new Date(book.createdAt).toLocaleDateString()}
                 </span>
               </div>
-              {(() => {
-                const kinds = new Set(book.addonKinds ?? []);
-                // Show translation icon if book has translations, even if addon is completed/gone
-                if (book.translations?.length > 0) kinds.add("ADDON_TRANSLATION");
-                if (kinds.size === 0) return null;
-                return (
-                  <div className="flex items-center gap-1.5 mt-1.5">
-                    {ADDON_ICON_ORDER.filter((a) => kinds.has(a.kind)).map((a) => {
-                      const Icon = a.icon;
-                      return <Icon key={a.kind} className={`w-3 h-3 ${a.color}`} />;
-                    })}
-                  </div>
-                );
-              })()}
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
           </Link>
