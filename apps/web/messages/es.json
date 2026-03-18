@@ -741,6 +741,8 @@
     "viewPublication": "Ver Publicación",
     "upgradeToPremium": "Upgrade a Premium",
     "upgradeToPremiumDesc": "por {cost} créditos",
+    "upgradeConfirmDesc": "Tu publicación será actualizada de Standard a Premium por {cost} créditos. ¿Continuar?",
+    "upgrading": "Actualizando...",
     "upgradeSuccess": "¡Publicación actualizada a Premium!",
     "upgradeError": "Error al hacer upgrade. Intenta de nuevo.",
     "publishingRequestedOn": "Solicitado el {date}",

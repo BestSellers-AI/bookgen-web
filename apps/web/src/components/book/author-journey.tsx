@@ -300,10 +300,12 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
   const [publishingResultSheetOpen, setPublishingResultSheetOpen] = useState(false);
   const [publishingResultAddon, setPublishingResultAddon] = useState<{ publishing: PublishingRequestSummary; addonKind: string } | null>(null);
   const [upgradingPublishing, setUpgradingPublishing] = useState(false);
+  const [upgradeConfirmAddonId, setUpgradeConfirmAddonId] = useState<string | null>(null);
 
   const upgradeCost = getCreditsCost("PUBLISHING_UPGRADE_PRICE");
 
   const handleUpgradePublishing = async (addonId: string) => {
+    setUpgradeConfirmAddonId(null);
     setUpgradingPublishing(true);
     try {
       await addonsApi.upgradePublishing(book.id, addonId);
@@ -788,7 +790,7 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                       variant="outline"
                       size="sm"
                       className="rounded-xl text-xs gap-1.5 border-amber-500/20 text-amber-400 hover:bg-amber-500/10"
-                      onClick={() => handleUpgradePublishing(existing.id)}
+                      onClick={() => setUpgradeConfirmAddonId(existing.id)}
                       disabled={upgradingPublishing}
                     >
                       <Crown className="w-3.5 h-3.5" />
@@ -1022,7 +1024,7 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                                   variant="outline"
                                   size="sm"
                                   className="rounded-xl text-xs gap-1.5 border-amber-500/20 text-amber-400 hover:bg-amber-500/10"
-                                  onClick={() => handleUpgradePublishing(processingAddon.id)}
+                                  onClick={() => setUpgradeConfirmAddonId(processingAddon.id)}
                                   disabled={upgradingPublishing}
                                 >
                                   <Crown className="w-3.5 h-3.5" />
@@ -1222,7 +1224,7 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                                           variant="outline"
                                           size="sm"
                                           className="rounded-xl text-xs gap-1.5 border-amber-500/20 text-amber-400 hover:bg-amber-500/10"
-                                          onClick={() => handleUpgradePublishing(amazonAddon.id)}
+                                          onClick={() => setUpgradeConfirmAddonId(amazonAddon.id)}
                                           disabled={upgradingPublishing}
                                         >
                                           <Crown className="w-3.5 h-3.5" />
@@ -2355,6 +2357,27 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
               }}
             >
               {tj("confirmGenerate")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ─── Upgrade Publishing Confirmation ─── */}
+      <AlertDialog open={!!upgradeConfirmAddonId} onOpenChange={(open) => !open && setUpgradeConfirmAddonId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{tj("upgradeToPremium")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {tj("upgradeConfirmDesc", { cost: upgradeCost })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={upgradingPublishing}
+              onClick={() => upgradeConfirmAddonId && handleUpgradePublishing(upgradeConfirmAddonId)}
+            >
+              {upgradingPublishing ? tj("upgrading") : tj("upgradeToPremium")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -741,6 +741,8 @@
     "viewPublication": "View Publication",
     "upgradeToPremium": "Upgrade to Premium",
     "upgradeToPremiumDesc": "for {cost} credits",
+    "upgradeConfirmDesc": "Your publication will be upgraded from Standard to Premium for {cost} credits. Continue?",
+    "upgrading": "Upgrading...",
     "upgradeSuccess": "Publication upgraded to Premium!",
     "upgradeError": "Failed to upgrade. Please try again.",
     "publishingRequestedOn": "Requested on {date}",
