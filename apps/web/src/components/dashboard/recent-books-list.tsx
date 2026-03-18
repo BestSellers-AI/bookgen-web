@@ -71,12 +71,31 @@ export function RecentBooksList({ books }: RecentBooksListProps) {
                 >
                   {tStatus.has(book.status) ? tStatus(book.status) : book.status}
                 </Badge>
-                {book.isPublished && (
-                  <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[9px] font-black uppercase tracking-widest px-2 rounded-md">
-                    <CheckCircle2 className="w-2.5 h-2.5 mr-0.5" />
-                    {t("published")}
-                  </Badge>
-                )}
+                {(() => {
+                  if (book.isPublished) {
+                    return (
+                      <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[9px] font-black uppercase tracking-widest px-2 rounded-md">
+                        <CheckCircle2 className="w-2.5 h-2.5 mr-0.5" />
+                        {t("published")}
+                      </Badge>
+                    );
+                  }
+                  if (book.status === "GENERATED") {
+                    const kinds = new Set(book.addonKinds ?? []);
+                    let steps = 1;
+                    if (kinds.has("ADDON_COVER")) steps++;
+                    if (kinds.has("ADDON_IMAGES")) steps++;
+                    if (kinds.has("ADDON_AMAZON_STANDARD") || kinds.has("ADDON_AMAZON_PREMIUM")) steps++;
+                    if (steps < 4) {
+                      return (
+                        <Badge variant="secondary" className="text-[9px] font-black px-2 rounded-md">
+                          {steps}/4
+                        </Badge>
+                      );
+                    }
+                  }
+                  return null;
+                })()}
                 <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
                   <Clock size={10} />
                   {new Date(book.createdAt).toLocaleDateString()}
