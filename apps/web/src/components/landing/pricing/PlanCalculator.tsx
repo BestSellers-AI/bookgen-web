@@ -22,7 +22,7 @@ export default function PlanCalculator({ onRecommend }: PlanCalculatorProps) {
   const recommendation = selected !== null ? CALCULATOR_OPTIONS[selected] : null
 
   return (
-    <div className="glass-card p-6 max-w-2xl mx-auto">
+    <div className="p-6 max-w-2xl mx-auto">
       <p className="text-center dark:text-cream-300 text-navy-800 text-sm font-medium mb-5">
         {t('calculatorQuestion')}
       </p>
@@ -63,13 +63,13 @@ export default function PlanCalculator({ onRecommend }: PlanCalculatorProps) {
                   const el = document.getElementById(`plan-${recommendation.recommendation}`)
                   el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
                 }}
-                className="btn-primary text-sm py-2 px-4"
+                className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 active:scale-[0.98] bg-gold-500 hover:bg-gold-600 text-navy-900 shadow-gold-sm hover:shadow-gold-md"
               >
                 {t('calculatorView', { plan: t(recommendation.recommendationLabelKey) })}
               </button>
               <button
                 onClick={() => { setSelected(null); onRecommend(null) }}
-                className="btn-secondary text-sm py-2 px-3"
+                className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-all duration-200 dark:border dark:border-white/15 border border-navy-900/15 dark:text-cream-200 text-navy-800 dark:bg-white/[0.04] bg-navy-900/[0.04] dark:hover:border-gold-500/40 hover:border-gold-600/40 dark:hover:text-gold-400 hover:text-gold-700 dark:hover:bg-white/[0.08] hover:bg-navy-900/[0.08]"
               >
                 {t('calculatorCompare')}
               </button>
