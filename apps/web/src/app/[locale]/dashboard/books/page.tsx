@@ -301,7 +301,7 @@ export default function BooksListPage() {
                 {/* Title + cover */}
                 <div className="flex items-start gap-3 pr-8">
                   {book.coverUrl && (
-                    <div className="w-12 h-16 rounded-lg overflow-hidden border border-border shrink-0">
+                    <div className="w-14 h-[4.5rem] rounded-lg overflow-hidden border border-border shrink-0">
                       <img src={book.coverUrl} alt="" className="w-full h-full object-cover" />
                     </div>
                   )}
