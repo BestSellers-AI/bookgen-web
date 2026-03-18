@@ -269,7 +269,7 @@ export default function BooksListPage() {
                 onClick={() => router.push(`/dashboard/books/${book.id}`)}
               >
                 {/* Menu */}
-                <div className="absolute top-4 right-4">
+                <div className="absolute top-3 right-3 z-10">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                       <Button
