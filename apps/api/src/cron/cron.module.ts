@@ -4,6 +4,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { AuthModule } from '../auth/auth.module';
 import { WalletModule } from '../wallet/wallet.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { EmailModule } from '../email/email.module';
 import { CronService } from './cron.service';
 
 @Module({
@@ -13,6 +14,7 @@ import { CronService } from './cron.service';
     AuthModule,
     WalletModule,
     NotificationsModule,
+    EmailModule,
   ],
   providers: [CronService],
 })

@@ -4,7 +4,10 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuthService } from '../auth/auth.service';
 import { CreditLedgerService } from '../wallet/credit-ledger.service';
 import { NotificationService } from '../notifications/notification.service';
-import { AddonStatus, BookStatus, NotificationType } from '@prisma/client';
+import { EmailService } from '../email/email.service';
+import { AppConfigService } from '../config/app-config.service';
+import { creditsExpiringEmail, monthlySummaryEmail } from '../email/email-templates';
+import { AddonStatus, BookStatus, NotificationType, WalletTransactionType } from '@prisma/client';
 
 /** Configurable thresholds (can be moved to ConfigDataService later) */
 const NOTIFICATION_RETENTION_DAYS = 90;
@@ -20,6 +23,8 @@ export class CronService {
     private readonly authService: AuthService,
     private readonly creditLedgerService: CreditLedgerService,
     private readonly notifications: NotificationService,
+    private readonly emailService: EmailService,
+    private readonly appConfig: AppConfigService,
   ) {}
 
   /* ------------------------------------------------------------------ */
@@ -224,5 +229,152 @@ export class CronService {
         `Cron: recoverStuckGenerations — recovered ${stuckAddons.length} stuck addons`,
       );
     }
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Credits Expiring Warning — daily at 06:00 UTC                      */
+  /* ------------------------------------------------------------------ */
+  @Cron('0 6 * * *', { name: 'creditsExpiringWarning', timeZone: 'UTC' })
+  async creditsExpiringWarning() {
+    this.logger.log('Cron: creditsExpiringWarning started');
+
+    const sevenDaysFromNow = new Date();
+    sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
+    const now = new Date();
+
+    // Find credit ledger entries expiring in the next 7 days with remaining > 0
+    const expiringEntries = await this.prisma.creditLedger.findMany({
+      where: {
+        expiresAt: { gte: now, lte: sevenDaysFromNow },
+        remaining: { gt: 0 },
+      },
+      select: { walletId: true, remaining: true, expiresAt: true },
+    });
+
+    if (expiringEntries.length === 0) {
+      this.logger.log('Cron: creditsExpiringWarning — no expiring credits found');
+      return;
+    }
+
+    // Group by walletId
+    const byWallet = new Map<string, { total: number; earliestExpiry: Date }>();
+    for (const entry of expiringEntries) {
+      const existing = byWallet.get(entry.walletId);
+      if (existing) {
+        existing.total += entry.remaining;
+        if (entry.expiresAt! < existing.earliestExpiry) {
+          existing.earliestExpiry = entry.expiresAt!;
+        }
+      } else {
+        byWallet.set(entry.walletId, { total: entry.remaining, earliestExpiry: entry.expiresAt! });
+      }
+    }
+
+    // Get user info for each wallet
+    const wallets = await this.prisma.wallet.findMany({
+      where: { id: { in: [...byWallet.keys()] } },
+      select: { id: true, userId: true },
+    });
+
+    let sent = 0;
+    for (const wallet of wallets) {
+      const info = byWallet.get(wallet.id);
+      if (!info) continue;
+
+      try {
+        const user = await this.prisma.user.findUnique({
+          where: { id: wallet.userId },
+          select: { email: true, name: true, locale: true },
+        });
+        if (!user) continue;
+
+        const email = creditsExpiringEmail({
+          userName: user.name ?? 'there',
+          credits: info.total,
+          expiryDate: info.earliestExpiry.toLocaleDateString(),
+          dashboardUrl: `${this.appConfig.frontendUrl}/dashboard`,
+          locale: user.locale,
+        });
+        this.emailService.send({ to: user.email, subject: email.subject, html: email.html });
+        sent++;
+      } catch (error) {
+        this.logger.error(`Failed to send expiring credits email for wallet ${wallet.id}: ${error}`);
+      }
+    }
+
+    this.logger.log(`Cron: creditsExpiringWarning completed — ${sent} emails sent`);
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Monthly Summary — 1st of each month at 08:00 UTC                   */
+  /* ------------------------------------------------------------------ */
+  @Cron('0 8 1 * *', { name: 'monthlySummary', timeZone: 'UTC' })
+  async sendMonthlySummary() {
+    this.logger.log('Cron: monthlySummary started');
+
+    // Calculate previous month range
+    const now = new Date();
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+    const monthName = startOfLastMonth.toLocaleString('en', { month: 'long', year: 'numeric' });
+
+    // Find users with any activity last month (books created or credits used)
+    const activeUsers = await this.prisma.user.findMany({
+      where: {
+        OR: [
+          { books: { some: { createdAt: { gte: startOfLastMonth, lte: endOfLastMonth }, deletedAt: null } } },
+          { wallet: { transactions: { some: { createdAt: { gte: startOfLastMonth, lte: endOfLastMonth } } } } },
+        ],
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        locale: true,
+        books: {
+          where: { createdAt: { gte: startOfLastMonth, lte: endOfLastMonth }, deletedAt: null },
+          select: { id: true },
+        },
+        wallet: {
+          select: {
+            balance: true,
+            transactions: {
+              where: {
+                createdAt: { gte: startOfLastMonth, lte: endOfLastMonth },
+                type: { in: [WalletTransactionType.BOOK_GENERATION, WalletTransactionType.ADDON_PURCHASE] },
+              },
+              select: { amount: true },
+            },
+          },
+        },
+      },
+    });
+
+    let sent = 0;
+    for (const user of activeUsers) {
+      try {
+        const booksCreated = user.books.length;
+        const creditsUsed = user.wallet?.transactions.reduce((sum, t) => sum + Math.abs(t.amount), 0) ?? 0;
+        const creditsRemaining = user.wallet?.balance ?? 0;
+
+        if (booksCreated === 0 && creditsUsed === 0) continue;
+
+        const email = monthlySummaryEmail({
+          userName: user.name ?? 'there',
+          month: monthName,
+          booksCreated,
+          creditsUsed,
+          creditsRemaining,
+          dashboardUrl: `${this.appConfig.frontendUrl}/dashboard`,
+          locale: user.locale,
+        });
+        this.emailService.send({ to: user.email, subject: email.subject, html: email.html });
+        sent++;
+      } catch (error) {
+        this.logger.error(`Failed to send monthly summary for user ${user.id}: ${error}`);
+      }
+    }
+
+    this.logger.log(`Cron: monthlySummary completed — ${sent} emails sent`);
   }
 }
