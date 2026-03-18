@@ -164,6 +164,16 @@ export class GenerationProcessor extends WorkerHost {
       }
     } catch (hookError) {
       this.logger.error(`Failed to handle final failure for book ${bookId}: ${hookError}`);
+
+      // Last-resort fallback: directly mark addon as ERROR in DB
+      if (job.name === 'addon' && job.data?.addonId) {
+        await this.prisma.bookAddon.updateMany({
+          where: { id: job.data.addonId, status: { notIn: ['COMPLETED', 'ERROR', 'CANCELLED'] } },
+          data: { status: 'ERROR', error: `Job failed: ${errorMessage}` },
+        }).catch((dbErr) => {
+          this.logger.error(`Last-resort addon status update also failed for ${job.data.addonId}: ${dbErr}`);
+        });
+      }
     }
   }
 
@@ -617,13 +627,17 @@ export class GenerationProcessor extends WorkerHost {
         `Addon ${addonKind} failed for book ${bookId}: ${error instanceof Error ? error.message : String(error)}`,
       );
 
-      await this.hooksService.processAddonResult({
-        bookId,
-        addonId,
-        addonKind,
-        status: 'error',
-        error: error instanceof Error ? error.message : 'Unknown addon error',
-      });
+      try {
+        await this.hooksService.processAddonResult({
+          bookId,
+          addonId,
+          addonKind,
+          status: 'error',
+          error: error instanceof Error ? error.message : 'Unknown addon error',
+        });
+      } catch (hookError) {
+        this.logger.error(`Failed to process addon error result for ${addonId}: ${hookError}`);
+      }
 
       throw error;
     }
