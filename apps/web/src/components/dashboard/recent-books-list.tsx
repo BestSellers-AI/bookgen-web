@@ -98,18 +98,25 @@ export function RecentBooksList({ books }: RecentBooksListProps) {
                 })()}
               </div>
               <div className="flex items-center gap-1.5 mt-1.5">
-                {(() => {
-                  const kinds = new Set(book.addonKinds ?? []);
-                  if (book.translations?.length > 0) kinds.add("ADDON_TRANSLATION");
-                  return ADDON_ICON_ORDER.filter((a) => kinds.has(a.kind)).map((a) => {
-                    const Icon = a.icon;
-                    return <Icon key={a.kind} className={`w-3 h-3 ${a.color}`} />;
-                  });
-                })()}
-                <span className="flex items-center gap-1 text-[10px] text-muted-foreground ml-auto shrink-0">
+                <span className="flex items-center gap-1 text-[10px] text-muted-foreground shrink-0">
                   <Clock size={10} />
                   {new Date(book.createdAt).toLocaleDateString()}
                 </span>
+                {(() => {
+                  const kinds = new Set(book.addonKinds ?? []);
+                  if (book.translations?.length > 0) kinds.add("ADDON_TRANSLATION");
+                  const items = ADDON_ICON_ORDER.filter((a) => kinds.has(a.kind));
+                  if (items.length === 0) return null;
+                  return (
+                    <>
+                      <span className="w-px h-3 bg-border" />
+                      {items.map((a) => {
+                        const Icon = a.icon;
+                        return <Icon key={a.kind} className={`w-3 h-3 ${a.color}`} />;
+                      })}
+                    </>
+                  );
+                })()}
               </div>
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
