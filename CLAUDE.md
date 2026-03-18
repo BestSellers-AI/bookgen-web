@@ -163,9 +163,19 @@ Display order in dashboard and "My Books" lists:
 | 1 | `ADDON_COVER` | `Palette` | pink-400 | AI cover (6 variations) |
 | 2 | `ADDON_IMAGES` | `ImageIcon` | indigo-400 | Chapter illustrations |
 | 3 | `ADDON_TRANSLATION` | `Globe` | blue-400 | Full book translation |
-| 4 | `ADDON_COVER_TRANSLATION` | `Globe` | cyan-400 | Cover translated to another language |
-| 5 | `ADDON_AMAZON_STANDARD` | `Package` | orange-400 | Standard Amazon publishing |
+| 4 | `ADDON_AMAZON_STANDARD` | `Package` | orange-400 | Standard Amazon publishing |
 | 6 | `ADDON_AMAZON_PREMIUM` | `Package` | amber-400 | Premium Amazon publishing |
-| 7 | `ADDON_AUDIOBOOK` | `Headphones` | emerald-400 | Audiobook generation |
+| 5 | `ADDON_AUDIOBOOK` | `Headphones` | emerald-400 | Audiobook generation |
 
-Used in: `recent-books-list.tsx`, `books/page.tsx` (via `ADDON_ICON_ORDER` array).
+**Translation-scoped icons** (shown in translations collapsible, order: cover → audiobook → publishing):
+
+| Addon Kind | Icon | Color | Meaning |
+|-----------|------|-------|---------|
+| `ADDON_COVER_TRANSLATION` | `Palette` | cyan-400 | Translated cover |
+| `ADDON_AUDIOBOOK` | `Headphones` | emerald-400 | Audiobook for translation |
+| `ADDON_AMAZON_STANDARD` | `Package` | orange-400 | Standard publishing |
+| `ADDON_AMAZON_PREMIUM` | `Package` | amber-400 | Premium publishing |
+
+Note: `ADDON_COVER_TRANSLATION` icons only appear in the translation collapsible, not on the original book card.
+
+Used in: `recent-books-list.tsx`, `books/page.tsx` (via `ADDON_ICON_ORDER` / `TRANSLATION_ADDON_ICONS`).

@@ -9,12 +9,11 @@ import { getStatusBadgeClass } from "@/lib/book-utils";
 import { EmptyState } from "@/components/ui/empty-state";
 import type { BookListItem } from "@/lib/api/types";
 
-// Display order: cover → images → translation → cover translation → publishing → audiobook
+// Display order for original book addons (cover translation belongs to translation context)
 const ADDON_ICON_ORDER: { kind: string; icon: typeof Palette; color: string }[] = [
   { kind: "ADDON_COVER", icon: Palette, color: "text-pink-400" },
   { kind: "ADDON_IMAGES", icon: ImageIcon, color: "text-indigo-400" },
   { kind: "ADDON_TRANSLATION", icon: Globe, color: "text-blue-400" },
-  { kind: "ADDON_COVER_TRANSLATION", icon: Globe, color: "text-cyan-400" },
   { kind: "ADDON_AMAZON_STANDARD", icon: Package, color: "text-orange-400" },
   { kind: "ADDON_AMAZON_PREMIUM", icon: Package, color: "text-amber-400" },
   { kind: "ADDON_AUDIOBOOK", icon: Headphones, color: "text-emerald-400" },
