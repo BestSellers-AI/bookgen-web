@@ -184,3 +184,25 @@ translations: book.translations.map((t) => {
 - **Query cost**: Slightly larger `files` query (includes `COVER_TRANSLATED` alongside `COVER_IMAGE`). Minimal impact since it's a simple filter.
 - **Accuracy**: If a cover file exists but the addon was cancelled/errored, the icon still shows. This is acceptable since the file represents a real, usable asset.
 - **When the full fix is applied**: This workaround becomes redundant but harmless (Set deduplication). It can be cleaned up at that point or left as a safety net.
+
+## Revisited: Retroactive Linking Between Cover Translation and Translation (March 2026)
+
+### Question
+
+After fixing the bundle sibling linking bug (where post-translation linking was stealing addons from other contexts), the question was raised: should we retroactively link a cover translation to a translation (or vice-versa) when one is created and the other already exists for the same language?
+
+For example: user buys a standalone cover translation for Spanish, then later buys a full Spanish translation — should we automatically link the cover translation addon to the new BookTranslation?
+
+### Analysis
+
+**Conclusion: not worth implementing.** Reasons:
+
+1. **Display already works without linkage** — The file-based inference (see workaround above) ensures the cover translation icon appears in the translations collapsible regardless of `translationId`. The file (`cover-translated-{lang}.png`) is the source of truth, not the addon record's `translationId`.
+
+2. **Ambiguity in intent** — If a user bought a cover translation standalone (before any book translation existed), it was intentional. Automatically linking it to a later translation assumes an association the user may not intend. The cover may have been for marketing, social media, or international listings — not necessarily tied to a full book translation.
+
+3. **Edge case risk with no real benefit** — The only scenario where missing linkage matters is having two translations in the same language (extremely unlikely). In that case, the cover would show in both via file matching — which is actually the correct behavior since there's only one cover per language anyway.
+
+4. **Added complexity for no functional gain** — Detecting "the other exists in the same language" and deciding whether to link introduces fragile logic (checking both directions: cover created → find translation, translation created → find cover, handling races, etc.) with zero user-visible improvement.
+
+5. **Bundle flow already handles it** — When both are purchased together in a bundle, the sibling linking (now scoped by `siblingAddonIds`) correctly associates them. The standalone path is the one that doesn't link, and that's by design.
