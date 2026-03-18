@@ -269,13 +269,13 @@ export default function BooksListPage() {
                 onClick={() => router.push(`/dashboard/books/${book.id}`)}
               >
                 {/* Menu */}
-                <div className="flex justify-end">
+                <div className="absolute top-4 right-4">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 md:opacity-0 md:group-hover:opacity-100 transition-opacity -mt-2 -mr-2"
+                        className="h-8 w-8 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
                       >
                         <MoreVertical className="h-4 w-4" />
                       </Button>
