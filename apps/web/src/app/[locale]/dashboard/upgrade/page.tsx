@@ -6,6 +6,10 @@ import {
   ArrowRight,
   Check,
   X,
+  Sparkles,
+  RefreshCw,
+  RotateCcw,
+  Rocket,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -107,6 +111,7 @@ export default function UpgradePage() {
   const t = useTranslations("upgrade");
   const tFeatures = useTranslations("landingV2.pricing");
   const tPlan = useTranslations("planNames");
+  const tBuy = useTranslations("buyCredits");
   const { user } = useAuth();
 
   const searchParams = useSearchParams();
@@ -118,6 +123,7 @@ export default function UpgradePage() {
   const [loadingSlug, setLoadingSlug] = useState<string | null>(null);
 
   const getPlanConfig = useConfigStore((s) => s.getPlanConfig);
+  const getSubscriptionPlans = useConfigStore((s) => s.getSubscriptionPlans);
   const configPacks = useConfigStore((s) => s.config?.creditPacks);
   const configCreditsCost = useConfigStore((s) => s.config?.creditsCost);
 
@@ -126,6 +132,11 @@ export default function UpgradePage() {
 
   const creditPacks = buildCreditPacks(configPacks);
   const services = buildServices(configCreditsCost);
+  const allPlans = getSubscriptionPlans();
+  const hasMaxPlan = currentPlan === "BESTSELLER";
+  const entryPlan = allPlans.length > 0
+    ? allPlans.reduce((a, b) => a.monthlyPriceCents < b.monthlyPriceCents ? a : b)
+    : null;
 
   // ─── Plans handlers ──────────────────────────────────────────────────────
 
@@ -606,8 +617,67 @@ export default function UpgradePage() {
               </div>
             </div>
 
+            {/* Pro Tip — upgrade CTA */}
+            {!hasMaxPlan && entryPlan && (
+              <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-orange-500/5 p-6 md:p-8">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                  <div className="space-y-4 flex-1">
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 shrink-0 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/30 flex items-center justify-center">
+                        <Sparkles className="w-5 h-5 text-amber-500" />
+                      </div>
+                      <p className="text-sm font-black uppercase tracking-wider text-amber-500">
+                        {tBuy("proTip")}
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-black dark:text-cream-200 text-navy-900 leading-tight">
+                        {tBuy("upgradeHeadline")}
+                      </h3>
+                      <p className="text-sm dark:text-cream-400 text-navy-600 leading-relaxed">
+                        {tBuy("upgradeDescription", {
+                          credits: entryPlan.monthlyCredits,
+                          price: (entryPlan.monthlyPriceCents / 100).toFixed(0),
+                        })}
+                      </p>
+                    </div>
+
+                    <ul className="flex flex-col sm:flex-row gap-2 sm:gap-5">
+                      {([
+                        { icon: RefreshCw, text: tBuy("upgradePerk1", { credits: entryPlan.monthlyCredits }) },
+                        { icon: RotateCcw, text: tBuy("upgradePerk2", { regens: entryPlan.freeRegensPerMonth }) },
+                        { icon: Rocket, text: tBuy("upgradePerk3") },
+                      ] as const).map((perk, i) => (
+                        <li key={i} className="flex items-center gap-2 text-sm dark:text-cream-400 text-navy-600">
+                          <perk.icon className="w-4 h-4 text-amber-500 shrink-0" />
+                          <span>{perk.text}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="relative rounded-xl p-[2px] overflow-hidden w-full md:w-auto shrink-0">
+                    <div
+                      className="absolute top-1/2 left-1/2 w-[200%] aspect-square animate-border-spin"
+                      style={{
+                        background: "conic-gradient(from 0deg, transparent 0%, transparent 60%, #f4eee6 75%, #ffffff 85%, #f4eee6 95%, transparent 100%)",
+                      }}
+                    />
+                    <button
+                      className="relative w-full md:w-auto rounded-[calc(0.75rem-2px)] px-8 py-3 font-bold text-sm transition-all duration-200 active:scale-[0.98] bg-gold-500 hover:bg-gold-600 text-navy-900 shadow-gold-sm hover:shadow-gold-md flex items-center justify-center gap-2"
+                      onClick={() => setActiveTab("plans")}
+                    >
+                      {tBuy("upgradeCta")}
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Switch to Plans CTA */}
-            {!hasSubscription && (
+            {!hasSubscription && hasMaxPlan && (
               <div className="dark:bg-white/[0.025] bg-navy-900/[0.025] border dark:border-white/[0.07] border-navy-900/[0.07] rounded-2xl p-6">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                   <div>
