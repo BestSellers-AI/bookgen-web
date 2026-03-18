@@ -735,6 +735,8 @@
     "publishingRequested": "Publication Requested",
     "publishingInProgress": "Publication In Progress",
     "publishingCompleted": "Published!",
+    "typeStandard": "Standard",
+    "typePremium": "Premium",
     "publishingMessage": "The editor responsible for your publication will contact you for more details.",
     "viewPublication": "View Publication",
     "upgradeToPremium": "Upgrade to Premium",

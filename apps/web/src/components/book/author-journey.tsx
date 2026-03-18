@@ -986,12 +986,20 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                             <CheckBadge />
                           )}
                           {step.status === "processing" && (
-                            isPublishingStep ? (
-                              <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-[9px] font-black uppercase tracking-widest shrink-0">
-                                <UserCheck className="w-3 h-3 mr-1" />
-                                {t("publishingAwaiting")}
-                              </Badge>
-                            ) : (
+                            isPublishingStep ? (() => {
+                              const pAddon = addons.find((a) => step.kinds.includes(a.kind as ProductKind) && isAddonProcessing(a.status));
+                              return (
+                                <div className="flex items-center gap-1.5">
+                                  <Badge variant="secondary" className="text-[8px] font-bold shrink-0">
+                                    {pAddon?.kind === ProductKind.ADDON_AMAZON_PREMIUM ? tj("typePremium") : tj("typeStandard")}
+                                  </Badge>
+                                  <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-[9px] font-black uppercase tracking-widest shrink-0">
+                                    <UserCheck className="w-3 h-3 mr-1" />
+                                    {t("publishingAwaiting")}
+                                  </Badge>
+                                </div>
+                              );
+                            })() : (
                               <Badge className="bg-amber-500/10 dark:text-amber-400 text-amber-600 border-amber-500/20 text-[9px] font-black uppercase tracking-widest shrink-0 animate-pulse">
                                 {t("processing")}
                               </Badge>
@@ -1164,22 +1172,27 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                                 const isPubInProgress = pubReq.status === "REVIEW" || pubReq.status === "SUBMITTED";
                                 return (
                                   <div className="mt-2 space-y-2.5">
-                                    {isPubCompleted ? (
-                                      <div className="flex items-center gap-2">
-                                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                                        <p className="text-xs font-bold text-emerald-400">{tj("publishingCompleted")}</p>
-                                      </div>
-                                    ) : isPubInProgress ? (
-                                      <div className="flex items-center gap-2">
-                                        <Clock className="w-4 h-4 text-amber-400 shrink-0" />
-                                        <p className="text-xs font-bold text-amber-400">{tj("publishingInProgress")}</p>
-                                      </div>
-                                    ) : (
-                                      <div className="flex items-center gap-2">
-                                        <Clock className="w-4 h-4 text-blue-400 shrink-0" />
-                                        <p className="text-xs font-bold text-blue-400">{tj("publishingRequested")}</p>
-                                      </div>
-                                    )}
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <Badge variant="secondary" className="text-[9px] font-bold">
+                                        {amazonAddon?.kind === ProductKind.ADDON_AMAZON_PREMIUM ? tj("typePremium") : tj("typeStandard")}
+                                      </Badge>
+                                      {isPubCompleted ? (
+                                        <div className="flex items-center gap-1.5">
+                                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                                          <p className="text-xs font-bold text-emerald-400">{tj("publishingCompleted")}</p>
+                                        </div>
+                                      ) : isPubInProgress ? (
+                                        <div className="flex items-center gap-1.5">
+                                          <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                                          <p className="text-xs font-bold text-amber-400">{tj("publishingInProgress")}</p>
+                                        </div>
+                                      ) : (
+                                        <div className="flex items-center gap-1.5">
+                                          <Clock className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                                          <p className="text-xs font-bold text-blue-400">{tj("publishingRequested")}</p>
+                                        </div>
+                                      )}
+                                    </div>
                                     {!isPubCompleted && (
                                       <p className="text-[11px] text-muted-foreground leading-relaxed">{tj("publishingMessage")}</p>
                                     )}
