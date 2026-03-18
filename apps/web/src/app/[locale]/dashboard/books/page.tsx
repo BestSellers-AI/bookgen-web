@@ -268,14 +268,32 @@ export default function BooksListPage() {
                 className="group glass rounded-[2rem] p-6 space-y-4 border border-border hover:border-primary/30 transition-all cursor-pointer relative"
                 onClick={() => router.push(`/dashboard/books/${book.id}`)}
               >
-                {/* Menu */}
-                <div className="absolute top-3 right-3 z-10">
+                {/* Cover */}
+                {book.coverUrl && (
+                  <div className="w-full h-40 rounded-xl overflow-hidden border border-border relative">
+                    <img src={book.coverUrl} alt="" className="absolute inset-0 w-full h-full object-cover blur-sm scale-110 opacity-40" />
+                    <img src={book.coverUrl} alt="" className="relative w-full h-full object-contain" />
+                  </div>
+                )}
+
+                {/* Title + Menu */}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
+                      {book.title}
+                    </h3>
+                    {book.subtitle && (
+                      <p className="text-sm text-muted-foreground line-clamp-1">
+                        {book.subtitle}
+                      </p>
+                    )}
+                  </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+                        className="h-8 w-8 shrink-0 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
                       >
                         <MoreVertical className="h-4 w-4" />
                       </Button>
@@ -296,26 +314,6 @@ export default function BooksListPage() {
                       )}
                     </DropdownMenuContent>
                   </DropdownMenu>
-                </div>
-
-                {/* Cover */}
-                {book.coverUrl && (
-                  <div className="w-full h-40 rounded-xl overflow-hidden border border-border relative">
-                    <img src={book.coverUrl} alt="" className="absolute inset-0 w-full h-full object-cover blur-sm scale-110 opacity-40" />
-                    <img src={book.coverUrl} alt="" className="relative w-full h-full object-contain" />
-                  </div>
-                )}
-
-                {/* Title */}
-                <div className="pr-8">
-                  <h3 className="text-lg font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
-                    {book.title}
-                  </h3>
-                  {book.subtitle && (
-                    <p className="text-sm text-muted-foreground line-clamp-1">
-                      {book.subtitle}
-                    </p>
-                  )}
                 </div>
 
                 {/* Badges */}
