@@ -2726,12 +2726,11 @@ function LockedBundleCard({
         <button
           type="button"
           onClick={() => setShowMessage((v) => !v)}
-          className="absolute inset-0 flex items-center justify-center rounded-2xl cursor-pointer"
-        >
-          <div className="w-14 h-14 rounded-full bg-background/80 backdrop-blur-sm border-2 border-amber-500/40 flex items-center justify-center shadow-xl">
-            <Lock className="w-6 h-6 text-amber-500" />
-          </div>
-        </button>
+          className="absolute inset-0 rounded-2xl cursor-pointer"
+        />
+        <div className="absolute top-3 right-3 w-10 h-10 rounded-full bg-background/90 backdrop-blur-sm border-2 border-amber-500/40 flex items-center justify-center shadow-xl pointer-events-none">
+          <Lock className="w-4.5 h-4.5 text-amber-500" />
+        </div>
       </div>
 
       {/* Alert message on lock click — outside the relative container */}
