@@ -97,21 +97,6 @@ export function BookViewer({ book, onRefetch, isTranslation, translationId }: Bo
           )}
         </div>
 
-        <div className="flex flex-wrap gap-8 py-6 border-y border-border">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-              <BookOpen size={20} />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xs font-black text-muted-foreground uppercase tracking-widest">
-                {t("stats")}
-              </span>
-              <span className="font-bold text-foreground text-sm">
-                {book.chapters.length} {t("chaptersCount")} · ~{book.wordCount.toLocaleString()} {t("words")} · ~{book.pageCount} {t("pages")}
-              </span>
-            </div>
-          </div>
-        </div>
       </header>
 
       {/* Author Journey — publishing track + extras */}
@@ -162,7 +147,7 @@ export function BookViewer({ book, onRefetch, isTranslation, translationId }: Bo
         ) : null}
       </div>
 
-      {/* Author + Downloads + Share */}
+      {/* Author + Stats + Downloads + Share */}
       <div className="space-y-5">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
@@ -173,6 +158,20 @@ export function BookViewer({ book, onRefetch, isTranslation, translationId }: Bo
               {t("author")}
             </span>
             <span className="font-bold text-foreground">{book.author}</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+            <BookOpen size={20} />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-xs font-black text-muted-foreground uppercase tracking-widest">
+              {t("stats")}
+            </span>
+            <span className="font-bold text-foreground text-sm">
+              {book.chapters.length} {t("chaptersCount")} · ~{book.wordCount.toLocaleString()} {t("words")} · ~{book.pageCount} {t("pages")}
+            </span>
           </div>
         </div>
 
