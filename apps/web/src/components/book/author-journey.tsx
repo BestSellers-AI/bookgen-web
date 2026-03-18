@@ -1270,11 +1270,17 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                   <p className="text-[10px] md:text-[11px] text-muted-foreground leading-relaxed">
                     {tj("extrasSubtitle")}
                   </p>
-                  <span className="text-xs text-primary font-bold inline-flex items-center gap-1 pt-1">
+                  {/* Mobile only */}
+                  <span className="text-xs text-primary font-bold inline-flex items-center gap-1 pt-1 md:hidden">
                     {tj("viewExtras")}
                     <ArrowRight className="w-3.5 h-3.5" />
                   </span>
                 </div>
+                {/* Desktop only — right-aligned */}
+                <span className="hidden md:flex items-center gap-1 text-xs text-primary font-bold shrink-0">
+                  {tj("viewExtras")}
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </span>
               </div>
             </button>
           </div>
