@@ -298,23 +298,23 @@ export default function BooksListPage() {
                   </DropdownMenu>
                 </div>
 
-                {/* Title + cover */}
-                <div className="flex items-start gap-3 pr-8">
-                  {book.coverUrl && (
-                    <div className="w-14 h-[4.5rem] rounded-lg overflow-hidden border border-border shrink-0">
-                      <img src={book.coverUrl} alt="" className="w-full h-full object-cover" />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
-                      {book.title}
-                    </h3>
-                    {book.subtitle && (
-                      <p className="text-sm text-muted-foreground line-clamp-1">
-                        {book.subtitle}
-                      </p>
-                    )}
+                {/* Cover */}
+                {book.coverUrl && (
+                  <div className="w-full h-32 rounded-xl overflow-hidden border border-border">
+                    <img src={book.coverUrl} alt="" className="w-full h-full object-cover" />
                   </div>
+                )}
+
+                {/* Title */}
+                <div className="pr-8">
+                  <h3 className="text-lg font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
+                    {book.title}
+                  </h3>
+                  {book.subtitle && (
+                    <p className="text-sm text-muted-foreground line-clamp-1">
+                      {book.subtitle}
+                    </p>
+                  )}
                 </div>
 
                 {/* Badges */}
