@@ -269,12 +269,18 @@ export default function BooksListPage() {
                 onClick={() => router.push(`/dashboard/books/${book.id}`)}
               >
                 {/* Cover */}
-                {book.coverUrl && (
-                  <div className="w-full h-40 rounded-xl overflow-hidden border border-border relative">
-                    <img src={book.coverUrl} alt="" className="absolute inset-0 w-full h-full object-cover blur-sm scale-110 opacity-40" />
-                    <img src={book.coverUrl} alt="" className="relative w-full h-full object-contain" />
-                  </div>
-                )}
+                <div className="w-full h-40 rounded-xl overflow-hidden border border-border relative">
+                  {book.coverUrl ? (
+                    <>
+                      <img src={book.coverUrl} alt="" className="absolute inset-0 w-full h-full object-cover blur-sm scale-110 opacity-40" />
+                      <img src={book.coverUrl} alt="" className="relative w-full h-full object-contain" />
+                    </>
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-accent/30">
+                      <Book className="w-10 h-10 text-muted-foreground/30" />
+                    </div>
+                  )}
+                </div>
 
                 {/* Title + Menu */}
                 <div className="flex items-start justify-between gap-2">
