@@ -406,10 +406,19 @@ export class AddonService {
       ProductKind.ADDON_AMAZON_PREMIUM,
     ]);
 
-    // Create all addon records
+    // Calculate proportional costs so refunds match the discounted bundle price
+    const individualCosts = await Promise.all(
+      bundle.kinds.map((kind) => this.configDataService.getCreditsCost(kind)),
+    );
+    const individualTotal = individualCosts.reduce((sum, c) => sum + (c ?? 0), 0);
+    const discountRatio = individualTotal > 0 ? bundleCost / individualTotal : 1;
+
+    // Create all addon records with proportional costs
     const addonRecords = await Promise.all(
-      bundle.kinds.map(async (kind) =>
-        this.prisma.bookAddon.create({
+      bundle.kinds.map(async (kind, i) => {
+        const fullCost = individualCosts[i] ?? 0;
+        const proportionalCost = Math.round(fullCost * discountRatio);
+        return this.prisma.bookAddon.create({
           data: {
             bookId,
             kind: kind as ProductKind,
@@ -417,10 +426,10 @@ export class AddonService {
             status: PUBLISHING_KINDS.has(kind as ProductKind)
               ? AddonStatus.PROCESSING
               : AddonStatus.PENDING,
-            creditsCost: await this.configDataService.getCreditsCost(kind),
+            creditsCost: proportionalCost,
           },
-        }),
-      ),
+        });
+      }),
     );
 
     // Debit bundle cost (throws 402 if insufficient)
