@@ -20,6 +20,8 @@ import {
 import { ConfigDataService } from '../config-data/config-data.service';
 import { AppConfigService } from '../config/app-config.service';
 import { GenerationService } from '../generation/generation.service';
+import { EmailService } from '../email/email.service';
+import { addonPurchaseEmail } from '../email/email-templates';
 import type { BookAddonSummary } from '@bestsellers/shared';
 import { RequestAddonDto } from './dto';
 
@@ -34,6 +36,7 @@ export class AddonService {
     private readonly configDataService: ConfigDataService,
     private readonly appConfig: AppConfigService,
     private readonly generationService: GenerationService,
+    private readonly emailService: EmailService,
   ) {}
 
   async request(
@@ -154,6 +157,22 @@ export class AddonService {
         `Add-on: ${dto.kind}`,
         { bookId, addonId: addon.id },
       );
+    }
+
+    // Send addon purchase email
+    const addonUser = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, name: true, locale: true },
+    });
+    if (addonUser && actualCost > 0) {
+      const email = addonPurchaseEmail({
+        userName: addonUser.name ?? 'there',
+        addonKind: dto.kind,
+        bookTitle: book.title,
+        bookUrl: `${this.appConfig.frontendUrl}/dashboard/books/${bookId}`,
+        locale: addonUser.locale,
+      });
+      this.emailService.send({ to: addonUser.email, subject: email.subject, html: email.html });
     }
 
     // Short-circuit for publishing addons — no generation dispatch needed

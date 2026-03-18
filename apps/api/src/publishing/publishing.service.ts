@@ -1,6 +1,9 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { WalletService } from '../wallet/wallet.service';
+import { EmailService } from '../email/email.service';
+import { AppConfigService } from '../config/app-config.service';
+import { publishingUpdateEmail, publishingCompleteEmail } from '../email/email-templates';
 import {
   PublishingStatus,
   NotificationType,
@@ -21,6 +24,8 @@ export class PublishingService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly walletService: WalletService,
+    private readonly emailService: EmailService,
+    private readonly appConfig: AppConfigService,
   ) {}
 
   /* ── User endpoints ─────────────────────────────────────────────── */
@@ -191,6 +196,26 @@ export class PublishingService {
       `Publishing request ${id} status updated to ${dto.status}`,
     );
 
+    // Send publishing status update email
+    const pubUser = await this.prisma.user.findUnique({
+      where: { id: request.userId },
+      select: { email: true, name: true, locale: true },
+    });
+    const pubBook = await this.prisma.book.findUnique({
+      where: { id: request.bookId },
+      select: { title: true },
+    });
+    if (pubUser) {
+      const email = publishingUpdateEmail({
+        userName: pubUser.name ?? 'there',
+        bookTitle: pubBook?.title ?? 'your book',
+        status: dto.status,
+        bookUrl: `${this.appConfig.frontendUrl}/dashboard/books/${request.bookId}`,
+        locale: pubUser.locale,
+      });
+      this.emailService.send({ to: pubUser.email, subject: email.subject, html: email.html });
+    }
+
     return updated;
   }
 
@@ -240,6 +265,26 @@ export class PublishingService {
     });
 
     this.logger.log(`Publishing request ${id} completed (published)`);
+
+    // Send publishing completed email
+    const completeUser = await this.prisma.user.findUnique({
+      where: { id: request.userId },
+      select: { email: true, name: true, locale: true },
+    });
+    const completeBook = await this.prisma.book.findUnique({
+      where: { id: request.bookId },
+      select: { title: true },
+    });
+    if (completeUser) {
+      const email = publishingCompleteEmail({
+        userName: completeUser.name ?? 'there',
+        bookTitle: completeBook?.title ?? 'your book',
+        publishedUrl: dto.publishedUrl,
+        bookUrl: `${this.appConfig.frontendUrl}/dashboard/books/${request.bookId}`,
+        locale: completeUser.locale,
+      });
+      this.emailService.send({ to: completeUser.email, subject: email.subject, html: email.html });
+    }
 
     return updated;
   }

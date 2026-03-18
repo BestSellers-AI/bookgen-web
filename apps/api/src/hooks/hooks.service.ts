@@ -19,7 +19,7 @@ import { TranslationService } from '../translations/translation.service';
 import { WalletService } from '../wallet/wallet.service';
 import { EmailService } from '../email/email.service';
 import { AppConfigService } from '../config/app-config.service';
-import { bookGeneratedEmail } from '../email/email-templates';
+import { bookGeneratedEmail, bookErrorEmail, addonCompleteEmail, refundEmail } from '../email/email-templates';
 import { countWords, estimatePageCount } from '../common/word-count';
 import {
   PreviewResultDto,
@@ -546,6 +546,21 @@ export class HooksService {
       message: dto.error,
       data: { bookId: dto.bookId, phase: dto.phase },
     });
+
+    // Send error email
+    const errorUser = await this.prisma.user.findUnique({
+      where: { id: book.userId },
+      select: { email: true, name: true, locale: true },
+    });
+    if (errorUser) {
+      const email = bookErrorEmail({
+        userName: errorUser.name ?? 'there',
+        bookTitle: book.title,
+        dashboardUrl: `${this.appConfig.frontendUrl}/dashboard`,
+        locale: errorUser.locale,
+      });
+      this.emailService.send({ to: errorUser.email, subject: email.subject, html: email.html });
+    }
   }
 
   /* ------------------------------------------------------------------ */
@@ -629,6 +644,26 @@ export class HooksService {
         error: dto.error,
       });
 
+      // Send refund email if credits were refunded
+      if (addon.creditsCost && addon.creditsCost > 0) {
+        const refundUser = await this.prisma.user.findUnique({
+          where: { id: addon.book.userId },
+          select: { email: true, name: true, locale: true },
+        });
+        if (refundUser) {
+          const wallet = await this.prisma.wallet.findUnique({ where: { userId: addon.book.userId }, select: { balance: true } });
+          const book = await this.prisma.book.findUnique({ where: { id: dto.bookId }, select: { title: true } });
+          const email = refundEmail({
+            userName: refundUser.name ?? 'there',
+            credits: addon.creditsCost,
+            reason: `${dto.addonKind} add-on failed for "${book?.title ?? 'your book'}"`,
+            balance: wallet?.balance ?? 0,
+            locale: refundUser.locale,
+          });
+          this.emailService.send({ to: refundUser.email, subject: email.subject, html: email.html });
+        }
+      }
+
       return;
     }
 
@@ -658,6 +693,23 @@ export class HooksService {
       addonId: dto.addonId,
       status: 'success',
     });
+
+    // Send addon completed email
+    const completeUser = await this.prisma.user.findUnique({
+      where: { id: addon.book.userId },
+      select: { email: true, name: true, locale: true },
+    });
+    if (completeUser) {
+      const book = await this.prisma.book.findUnique({ where: { id: dto.bookId }, select: { title: true } });
+      const email = addonCompleteEmail({
+        userName: completeUser.name ?? 'there',
+        addonKind: dto.addonKind,
+        bookTitle: book?.title ?? 'your book',
+        bookUrl: `${this.appConfig.frontendUrl}/dashboard/books/${dto.bookId}`,
+        locale: completeUser.locale,
+      });
+      this.emailService.send({ to: completeUser.email, subject: email.subject, html: email.html });
+    }
   }
 
   /* ------------------------------------------------------------------ */

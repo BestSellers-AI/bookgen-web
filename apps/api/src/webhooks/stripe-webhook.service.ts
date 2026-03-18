@@ -4,10 +4,13 @@ import * as crypto from 'crypto';
 import Stripe from 'stripe';
 import { CreditType, WalletTransactionType, NotificationType } from '@prisma/client';
 import { ConfigDataService } from '../config-data/config-data.service';
+import { AppConfigService } from '../config/app-config.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { WalletService } from '../wallet/wallet.service';
 import { CreditLedgerService } from '../wallet/credit-ledger.service';
 import { NotificationService } from '../notifications/notification.service';
+import { EmailService } from '../email/email.service';
+import { subscriptionEmail, subscriptionUpdateEmail, creditPurchaseEmail } from '../email/email-templates';
 import { UsersService } from '../users/users.service';
 import { AuthService } from '../auth/auth.service';
 
@@ -23,6 +26,8 @@ export class StripeWebhookService {
     private readonly configDataService: ConfigDataService,
     private readonly usersService: UsersService,
     private readonly authService: AuthService,
+    private readonly emailService: EmailService,
+    private readonly appConfig: AppConfigService,
   ) {}
 
   /**
@@ -272,6 +277,21 @@ export class StripeWebhookService {
           message: `${credits} credits have been added to your wallet from purchasing ${product.name}.`,
           data: { purchaseId: purchase.id, credits, productSlug: product.slug },
         });
+
+        // Send credit purchase email (fire-and-forget)
+        const packUser = await this.prisma.user.findUnique({ where: { id: userId }, select: { email: true, name: true, locale: true } });
+        if (packUser) {
+          const wallet = await this.prisma.wallet.findUnique({ where: { userId }, select: { balance: true } });
+          const cpEmail = creditPurchaseEmail({
+            userName: packUser.name ?? 'there',
+            credits,
+            packName: product.name,
+            balance: wallet?.balance ?? credits,
+            dashboardUrl: `${this.appConfig.frontendUrl}/dashboard`,
+            locale: packUser.locale,
+          });
+          this.emailService.send({ to: packUser.email, subject: cpEmail.subject, html: cpEmail.html });
+        }
         break;
       }
 
@@ -468,6 +488,19 @@ export class StripeWebhookService {
         credits: planConfig.monthlyCredits,
       },
     });
+
+    // Send renewal email (fire-and-forget)
+    const renewUser = await this.prisma.user.findUnique({ where: { id: subscription.userId }, select: { email: true, name: true, locale: true } });
+    if (renewUser) {
+      const renewEmail = subscriptionUpdateEmail({
+        userName: renewUser.name ?? 'there',
+        type: 'renew',
+        oldPlan: planConfig.name ?? subscription.plan,
+        settingsUrl: `${this.appConfig.frontendUrl}/dashboard/settings`,
+        locale: renewUser.locale,
+      });
+      this.emailService.send({ to: renewUser.email, subject: renewEmail.subject, html: renewEmail.html });
+    }
   }
 
   /**
@@ -564,6 +597,20 @@ export class StripeWebhookService {
     this.logger.log(
       `Created subscription for user ${user.id}, plan ${plan}`,
     );
+
+    // Send subscription welcome email (fire-and-forget)
+    const subUser = await this.prisma.user.findUnique({ where: { id: user.id }, select: { email: true, name: true, locale: true } });
+    if (subUser) {
+      const planConfig = await this.configDataService.getPlanConfig(plan);
+      const email = subscriptionEmail({
+        userName: subUser.name ?? 'there',
+        planName: planConfig?.name ?? plan,
+        credits: planConfig?.monthlyCredits ?? 0,
+        dashboardUrl: `${this.appConfig.frontendUrl}/dashboard`,
+        locale: subUser.locale,
+      });
+      this.emailService.send({ to: subUser.email, subject: email.subject, html: email.html });
+    }
   }
 
   /**
@@ -631,6 +678,21 @@ export class StripeWebhookService {
           'Your subscription will be cancelled at the end of the current billing period.',
         data: { subscriptionId: subscription.id },
       });
+
+      // Send cancellation email (fire-and-forget)
+      const cancelUser = await this.prisma.user.findUnique({ where: { id: subscription.userId }, select: { email: true, name: true, locale: true } });
+      if (cancelUser) {
+        const cancelPlanConfig = await this.configDataService.getPlanConfig(subscription.plan);
+        const email = subscriptionUpdateEmail({
+          userName: cancelUser.name ?? 'there',
+          type: 'cancel',
+          oldPlan: cancelPlanConfig?.name ?? subscription.plan,
+          endDate: new Date((stripeSubscription as unknown as Record<string, number>).current_period_end * 1000).toLocaleDateString(),
+          settingsUrl: `${this.appConfig.frontendUrl}/dashboard/settings`,
+          locale: cancelUser.locale,
+        });
+        this.emailService.send({ to: cancelUser.email, subject: email.subject, html: email.html });
+      }
     }
 
     this.logger.log(`Updated subscription ${subscription.id}`);

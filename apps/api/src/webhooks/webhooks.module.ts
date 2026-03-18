@@ -5,11 +5,12 @@ import { NotificationsModule } from '../notifications/notifications.module';
 import { StripeModule } from '../stripe/stripe.module';
 import { UsersModule } from '../users/users.module';
 import { AuthModule } from '../auth/auth.module';
+import { EmailModule } from '../email/email.module';
 import { WebhookController } from './webhook.controller';
 import { StripeWebhookService } from './stripe-webhook.service';
 
 @Module({
-  imports: [PrismaModule, WalletModule, NotificationsModule, StripeModule, UsersModule, AuthModule],
+  imports: [PrismaModule, WalletModule, NotificationsModule, StripeModule, UsersModule, AuthModule, EmailModule],
   controllers: [WebhookController],
   providers: [StripeWebhookService],
 })
