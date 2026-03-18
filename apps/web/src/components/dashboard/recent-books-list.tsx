@@ -9,15 +9,16 @@ import { getStatusBadgeClass } from "@/lib/book-utils";
 import { EmptyState } from "@/components/ui/empty-state";
 import type { BookListItem } from "@/lib/api/types";
 
-const ADDON_ICONS: Record<string, { icon: typeof Palette; color: string }> = {
-  ADDON_COVER: { icon: Palette, color: "text-pink-400" },
-  ADDON_IMAGES: { icon: ImageIcon, color: "text-indigo-400" },
-  ADDON_TRANSLATION: { icon: Globe, color: "text-blue-400" },
-  ADDON_COVER_TRANSLATION: { icon: Globe, color: "text-cyan-400" },
-  ADDON_AUDIOBOOK: { icon: Headphones, color: "text-emerald-400" },
-  ADDON_AMAZON_STANDARD: { icon: Package, color: "text-orange-400" },
-  ADDON_AMAZON_PREMIUM: { icon: Package, color: "text-amber-400" },
-};
+// Display order: cover → images → translation → cover translation → publishing → audiobook
+const ADDON_ICON_ORDER: { kind: string; icon: typeof Palette; color: string }[] = [
+  { kind: "ADDON_COVER", icon: Palette, color: "text-pink-400" },
+  { kind: "ADDON_IMAGES", icon: ImageIcon, color: "text-indigo-400" },
+  { kind: "ADDON_TRANSLATION", icon: Globe, color: "text-blue-400" },
+  { kind: "ADDON_COVER_TRANSLATION", icon: Globe, color: "text-cyan-400" },
+  { kind: "ADDON_AMAZON_STANDARD", icon: Package, color: "text-orange-400" },
+  { kind: "ADDON_AMAZON_PREMIUM", icon: Package, color: "text-amber-400" },
+  { kind: "ADDON_AUDIOBOOK", icon: Headphones, color: "text-emerald-400" },
+];
 
 interface RecentBooksListProps {
   books: BookListItem[];
@@ -78,11 +79,9 @@ export function RecentBooksList({ books }: RecentBooksListProps) {
               </div>
               {book.addonKinds?.length > 0 && (
                 <div className="flex items-center gap-1.5 mt-1.5">
-                  {book.addonKinds.map((kind) => {
-                    const config = ADDON_ICONS[kind];
-                    if (!config) return null;
-                    const Icon = config.icon;
-                    return <Icon key={kind} className={`w-3 h-3 ${config.color}`} />;
+                  {ADDON_ICON_ORDER.filter((a) => book.addonKinds.includes(a.kind)).map((a) => {
+                    const Icon = a.icon;
+                    return <Icon key={a.kind} className={`w-3 h-3 ${a.color}`} />;
                   })}
                 </div>
               )}

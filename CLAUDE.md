@@ -153,3 +153,19 @@ Barrel export from `src/index.ts`. Contains all domain enums (17), TypeScript ty
 - `apps/api/Dockerfile` — Multi-stage production build
 - `docker-compose.coolify.yml` — Production compose (API + DB + Redis)
 - `plan/CURRENT_STATUS.md` — Where we stopped / current progress
+
+### Addon Icon Reference (book listings)
+
+Display order in dashboard and "My Books" lists:
+
+| Order | Addon Kind | Icon (lucide) | Color | Meaning |
+|-------|-----------|---------------|-------|---------|
+| 1 | `ADDON_COVER` | `Palette` | pink-400 | AI cover (6 variations) |
+| 2 | `ADDON_IMAGES` | `ImageIcon` | indigo-400 | Chapter illustrations |
+| 3 | `ADDON_TRANSLATION` | `Globe` | blue-400 | Full book translation |
+| 4 | `ADDON_COVER_TRANSLATION` | `Globe` | cyan-400 | Cover translated to another language |
+| 5 | `ADDON_AMAZON_STANDARD` | `Package` | orange-400 | Standard Amazon publishing |
+| 6 | `ADDON_AMAZON_PREMIUM` | `Package` | amber-400 | Premium Amazon publishing |
+| 7 | `ADDON_AUDIOBOOK` | `Headphones` | emerald-400 | Audiobook generation |
+
+Used in: `recent-books-list.tsx`, `books/page.tsx` (via `ADDON_ICON_ORDER` array).
