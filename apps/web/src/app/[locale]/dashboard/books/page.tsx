@@ -291,7 +291,7 @@ export default function BooksListPage() {
                       if (kinds.has("ADDON_COVER")) steps++;
                       if (kinds.has("ADDON_IMAGES")) steps++;
                       if (kinds.has("ADDON_AMAZON_STANDARD") || kinds.has("ADDON_AMAZON_PREMIUM")) steps++;
-                      if (steps > 1 && steps < 4) {
+                      if (steps < 4) {
                         return (
                           <Badge variant="secondary" className="text-[10px] font-black h-6 px-3 rounded-full">
                             {steps}/4
