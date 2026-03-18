@@ -539,7 +539,7 @@
     "upgradeHeadline": "Por que comprar uma vez se você pode ter todo mês?",
     "upgradeDescription": "A partir de apenas ${price}/mês você recebe {credits} créditos que renovam automaticamente — além de vantagens exclusivas que pacotes avulsos não incluem:",
     "upgradePerk1": "{credits} créditos/mês auto-renováveis",
-    "upgradePerk2": "{regens} regenerações de capítulo grátis",
+    "upgradePerk2": "Desconto em todos os serviços extras",
     "upgradePerk3": "Fila prioritária + suporte premium",
     "upgradeCta": "Ver Planos"
   },

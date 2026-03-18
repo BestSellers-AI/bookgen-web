@@ -8,7 +8,7 @@ import {
   X,
   Sparkles,
   RefreshCw,
-  RotateCcw,
+  Percent,
   Rocket,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -677,7 +677,7 @@ export default function UpgradePage() {
                     <ul className="flex flex-col sm:flex-row gap-2 sm:gap-5">
                       {([
                         { icon: RefreshCw, text: tBuy("upgradePerk1", { credits: entryPlan.monthlyCredits }) },
-                        { icon: RotateCcw, text: tBuy("upgradePerk2", { regens: entryPlan.freeRegensPerMonth }) },
+                        { icon: Percent, text: tBuy("upgradePerk2") },
                         { icon: Rocket, text: tBuy("upgradePerk3") },
                       ] as const).map((perk, i) => (
                         <li key={i} className="flex items-center gap-2 text-sm dark:text-cream-400 text-navy-600">

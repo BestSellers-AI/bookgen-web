@@ -539,7 +539,7 @@
     "upgradeHeadline": "Why buy once when you can have it every month?",
     "upgradeDescription": "Starting at just ${price}/mo you get {credits} credits that renew automatically — plus exclusive perks that credit packs don't include:",
     "upgradePerk1": "{credits} credits/mo on auto-renew",
-    "upgradePerk2": "{regens} free chapter regenerations",
+    "upgradePerk2": "Discounts on all extra services",
     "upgradePerk3": "Priority queue + premium support",
     "upgradeCta": "See Plans"
   },

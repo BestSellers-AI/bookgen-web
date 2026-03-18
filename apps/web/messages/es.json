@@ -539,7 +539,7 @@
     "upgradeHeadline": "¿Por qué comprar una vez si puedes tenerlo cada mes?",
     "upgradeDescription": "Desde solo ${price}/mes recibes {credits} créditos que se renuevan automáticamente — más ventajas exclusivas que los paquetes sueltos no incluyen:",
     "upgradePerk1": "{credits} créditos/mes con auto-renovación",
-    "upgradePerk2": "{regens} regeneraciones de capítulo gratis",
+    "upgradePerk2": "Descuento en todos los servicios extras",
     "upgradePerk3": "Cola prioritaria + soporte premium",
     "upgradeCta": "Ver Planes"
   },
