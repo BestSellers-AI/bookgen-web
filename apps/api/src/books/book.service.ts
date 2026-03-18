@@ -102,7 +102,7 @@ export class BookService {
             select: { fileUrl: true },
           },
           addons: {
-            where: { status: { notIn: ['CANCELLED', 'ERROR'] as any[] } },
+            where: { status: { notIn: ['CANCELLED', 'ERROR'] as any[] }, translationId: null },
             select: { kind: true },
             distinct: ['kind'],
           },
