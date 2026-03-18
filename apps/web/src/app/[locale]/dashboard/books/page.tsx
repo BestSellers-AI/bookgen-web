@@ -354,7 +354,7 @@ export default function BooksListPage() {
                   );
                 })()}
                 {book.translations?.length > 0 && (
-                  <TranslationsCollapsible bookId={book.id} translations={book.translations} t={t} />
+                  <TranslationsCollapsible bookId={book.id} translations={book.translations} t={t} tStatus={tStatus} />
                 )}
               </div>
             ))}
@@ -379,14 +379,23 @@ export default function BooksListPage() {
   );
 }
 
+const TRANSLATION_ADDON_ICONS: { kind: string; icon: typeof Palette; color: string }[] = [
+  { kind: "ADDON_COVER_TRANSLATION", icon: Palette, color: "text-cyan-400" },
+  { kind: "ADDON_AMAZON_STANDARD", icon: Package, color: "text-orange-400" },
+  { kind: "ADDON_AMAZON_PREMIUM", icon: Package, color: "text-amber-400" },
+  { kind: "ADDON_AUDIOBOOK", icon: Headphones, color: "text-emerald-400" },
+];
+
 function TranslationsCollapsible({
   bookId,
   translations,
   t,
+  tStatus,
 }: {
   bookId: string;
-  translations: { id: string; targetLanguage: string; translatedTitle: string | null; status: string }[];
+  translations: { id: string; targetLanguage: string; translatedTitle: string | null; status: string; addonKinds: string[]; isPublished: boolean }[];
   t: ReturnType<typeof useTranslations>;
+  tStatus: ReturnType<typeof useTranslations>;
 }) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
@@ -415,7 +424,7 @@ function TranslationsCollapsible({
                 e.stopPropagation();
                 router.push(`/dashboard/books/${bookId}/translations/${tr.id}`);
               }}
-              className="flex items-center justify-between w-full px-2.5 py-1.5 rounded-lg hover:bg-accent/50 transition-colors text-left"
+              className="flex items-center justify-between w-full px-2.5 py-2 rounded-lg hover:bg-accent/50 transition-colors text-left"
             >
               <div className="flex items-center gap-2 min-w-0">
                 <span className="text-xs font-bold">{getLangName(tr.targetLanguage)}</span>
@@ -423,12 +432,23 @@ function TranslationsCollapsible({
                   <span className="text-[11px] text-muted-foreground truncate">{tr.translatedTitle}</span>
                 )}
               </div>
-              <Badge
-                variant="secondary"
-                className="text-[8px] font-bold shrink-0 ml-2"
-              >
-                {tr.status === "COMPLETED" ? "✓" : tr.status === "TRANSLATING" ? "..." : tr.status.toLowerCase()}
-              </Badge>
+              <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                {TRANSLATION_ADDON_ICONS.filter((a) => tr.addonKinds.includes(a.kind)).map((a) => {
+                  const Icon = a.icon;
+                  return <Icon key={a.kind} className={`w-3 h-3 ${a.color}`} />;
+                })}
+                {tr.isPublished && (
+                  <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[8px] font-black px-1.5 rounded-md">
+                    ✓
+                  </Badge>
+                )}
+                <Badge
+                  variant="secondary"
+                  className="text-[8px] font-bold"
+                >
+                  {tStatus.has(tr.status) ? tStatus(tr.status) : tr.status.toLowerCase()}
+                </Badge>
+              </div>
             </button>
           ))}
         </div>
