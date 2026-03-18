@@ -415,12 +415,12 @@ export default function CreateBookPage() {
                       />
                       <FormField
                         control={simpleForm.control}
-                        name="author"
+                        name="subtitle"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className={labelClass}>{t("authorName")}</FormLabel>
+                            <FormLabel className={labelClass}>{t("subtitle")}</FormLabel>
                             <FormControl>
-                              <Input placeholder={t("authorPlaceholder")} className={inputClass} {...field} />
+                              <Input placeholder={t("subtitlePlaceholder")} className={inputClass} {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -428,12 +428,12 @@ export default function CreateBookPage() {
                       />
                       <FormField
                         control={simpleForm.control}
-                        name="subtitle"
+                        name="author"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className={labelClass}>{t("subtitle")}</FormLabel>
+                            <FormLabel className={labelClass}>{t("authorName")}</FormLabel>
                             <FormControl>
-                              <Input placeholder={t("subtitlePlaceholder")} className={inputClass} {...field} />
+                              <Input placeholder={t("authorPlaceholder")} className={inputClass} {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
