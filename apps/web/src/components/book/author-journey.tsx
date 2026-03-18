@@ -2397,13 +2397,11 @@ function StepCTA({
         className={`w-full group relative overflow-hidden rounded-xl p-4 text-left transition-all active:scale-[0.97] ${
           premium
             ? "dark:bg-gradient-to-br dark:from-amber-500/25 dark:via-orange-500/15 dark:to-yellow-500/20 bg-gradient-to-b from-amber-300 via-yellow-500 to-amber-600 border-2 dark:border-amber-400/50 dark:hover:border-amber-400/80 border-amber-400/30 hover:border-amber-400/50 shadow-lg dark:shadow-amber-500/15 dark:hover:shadow-amber-500/30 shadow-amber-950/15 hover:shadow-amber-950/25"
-            : isNext
-              ? "bg-gradient-to-r from-primary/15 to-primary/5 border-2 border-primary/40 hover:border-primary/60 shadow-lg shadow-primary/10 hover:shadow-primary/20"
-              : "bg-accent/50 border-2 border-border hover:border-primary/30"
+            : "bg-gradient-to-r from-primary/15 to-primary/5 border-2 border-primary/40 hover:border-primary/60 shadow-lg shadow-primary/10 hover:shadow-primary/20"
         }`}
       >
         {/* Shimmer sweep */}
-        {(isNext || premium) && (
+        {!premium && (
           <div
             className={`absolute inset-0 animate-shimmer pointer-events-none ${
               premium
