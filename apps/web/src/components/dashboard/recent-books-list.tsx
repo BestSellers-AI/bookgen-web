@@ -83,14 +83,20 @@ export function RecentBooksList({ books }: RecentBooksListProps) {
                   {new Date(book.createdAt).toLocaleDateString()}
                 </span>
               </div>
-              {book.addonKinds?.length > 0 && (
-                <div className="flex items-center gap-1.5 mt-1.5">
-                  {ADDON_ICON_ORDER.filter((a) => book.addonKinds.includes(a.kind)).map((a) => {
-                    const Icon = a.icon;
-                    return <Icon key={a.kind} className={`w-3 h-3 ${a.color}`} />;
-                  })}
-                </div>
-              )}
+              {(() => {
+                const kinds = new Set(book.addonKinds ?? []);
+                // Show translation icon if book has translations, even if addon is completed/gone
+                if (book.translations?.length > 0) kinds.add("ADDON_TRANSLATION");
+                if (kinds.size === 0) return null;
+                return (
+                  <div className="flex items-center gap-1.5 mt-1.5">
+                    {ADDON_ICON_ORDER.filter((a) => kinds.has(a.kind)).map((a) => {
+                      const Icon = a.icon;
+                      return <Icon key={a.kind} className={`w-3 h-3 ${a.color}`} />;
+                    })}
+                  </div>
+                );
+              })()}
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
           </Link>
