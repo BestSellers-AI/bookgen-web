@@ -61,7 +61,7 @@ export default function DreamSection() {
   ]
 
   return (
-    <section className="relative py-20 md:py-28 overflow-hidden">
+    <section className="relative py-20 md:py-24 overflow-hidden">
       <div className="absolute inset-0 dark:bg-gradient-to-b dark:from-navy-900 dark:to-navy-950 bg-gradient-to-b from-cream-50 to-cream-100" />
       <div className="absolute inset-0 bg-grid dark:opacity-40 opacity-20" />
 
@@ -125,7 +125,7 @@ export default function DreamSection() {
         </motion.div>
       </div>
 
-      <div className="relative w-full overflow-hidden mb-14">
+      {/* <div className="relative w-full overflow-hidden mb-14">
         <div className="absolute left-0 top-0 bottom-0 w-24 z-10 dark:bg-gradient-to-r dark:from-navy-950 bg-gradient-to-r from-cream-100 to-transparent pointer-events-none" />
         <div className="absolute right-0 top-0 bottom-0 w-24 z-10 dark:bg-gradient-to-l dark:from-navy-950 bg-gradient-to-l from-cream-100 to-transparent pointer-events-none" />
 
@@ -138,7 +138,7 @@ export default function DreamSection() {
             <BookCard key={i} title={book.title} genre={book.genre} from={book.from} to={book.to} />
           ))}
         </motion.div>
-      </div>
+      </div> */}
 
       <div className="relative z-10 text-center">
         <p className="dark:text-cream-500 text-navy-600 text-sm mb-4">

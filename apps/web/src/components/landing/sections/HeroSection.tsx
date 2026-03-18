@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import Image from 'next/image'
 import { Link } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 
@@ -114,6 +115,37 @@ export default function HeroSection() {
           {t('trustLine')}
         </motion.p>
 
+        {/* capas */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.7, delay: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          className="mt-12 w-full max-w-5xl"
+        >
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((n, i) => (
+              <motion.div
+                key={n}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.9 + i * 0.07, ease: [0.22, 1, 0.36, 1] }}
+                className="relative aspect-[3/4.5] overflow-hidden rounded-xl dark:bg-navy-800/50 bg-cream-200/50 border dark:border-white/[0.07] border-navy-900/[0.07] hover:scale-[1.03] transition-transform duration-300"
+              >
+                <Image
+                  src={`/lp/hero/${n}.png`}
+                  alt={`AI generated book cover ${n}`}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 640px) 45vw, 22vw"
+                />
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* dados */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
