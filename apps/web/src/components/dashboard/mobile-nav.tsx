@@ -66,7 +66,11 @@ export function MobileNav() {
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20">
+          <Link
+            href="/dashboard/wallet"
+            onClick={() => setOpen(false)}
+            className="block p-4 rounded-2xl bg-primary/10 border border-primary/20 hover:bg-primary/15 transition-colors"
+          >
             <div className="flex items-center gap-2 mb-1">
               <WalletIcon className="w-3 h-3 text-primary" />
               <span className="text-[10px] font-bold text-primary uppercase tracking-widest">
@@ -74,7 +78,7 @@ export function MobileNav() {
               </span>
             </div>
             <div className="text-xl font-black">{walletDisplay}</div>
-          </div>
+          </Link>
 
           <nav className="flex flex-col gap-2">
             {navItems.map((item) => {
