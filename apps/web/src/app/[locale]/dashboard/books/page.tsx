@@ -18,6 +18,8 @@ import {
   Headphones,
   Package,
   ChevronDown,
+  CheckCircle2,
+  Clock,
 } from "lucide-react";
 import { SUPPORTED_LANGUAGES } from "@bestsellers/shared";
 import { booksApi, type BookQueryParams } from "@/lib/api/books";
@@ -442,12 +444,15 @@ function TranslationsCollapsible({
                     ✓
                   </Badge>
                 )}
-                <Badge
-                  variant="secondary"
-                  className="text-[8px] font-bold"
-                >
-                  {tStatus.has(tr.status) ? tStatus(tr.status) : tr.status.toLowerCase()}
-                </Badge>
+                {tr.status === "TRANSLATED" || tr.status === "COMPLETED" ? (
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                ) : tr.status === "TRANSLATING" ? (
+                  <Loader2 className="w-3.5 h-3.5 text-amber-400 animate-spin" />
+                ) : tr.status === "ERROR" ? (
+                  <span className="text-[9px] text-red-400 font-bold">!</span>
+                ) : (
+                  <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                )}
               </div>
             </button>
           ))}
