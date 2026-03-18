@@ -94,9 +94,8 @@ export class BookService {
             select: { id: true },
           },
           files: {
-            where: { fileType: FileType.COVER_IMAGE },
-            take: 1,
-            select: { fileUrl: true },
+            where: { fileType: { in: [FileType.COVER_IMAGE, FileType.COVER_TRANSLATED] } },
+            select: { fileUrl: true, fileType: true, fileName: true },
           },
           selectedCoverFile: {
             select: { fileUrl: true },
@@ -128,19 +127,27 @@ export class BookService {
       creationMode: book.creationMode as unknown as BookListItem['creationMode'],
       chaptersCount: book._count.chapters,
       completedChaptersCount: book.chapters.length,
-      coverUrl: book.selectedCoverFile?.fileUrl ?? book.files[0]?.fileUrl ?? null,
+      coverUrl: book.selectedCoverFile?.fileUrl ?? book.files.find((f) => f.fileType === FileType.COVER_IMAGE)?.fileUrl ?? null,
       wordCount: book.wordCount,
       pageCount: book.pageCount,
       addonKinds: [...new Set(book.addons.filter((a) => !a.translationId).map((a) => a.kind as string))],
       isPublished: book.publishingRequests.some((pr) => !pr.translationId),
-      translations: book.translations.map((t) => ({
-        id: t.id,
-        targetLanguage: t.targetLanguage,
-        translatedTitle: t.translatedTitle,
-        status: t.status as string,
-        addonKinds: [...new Set(book.addons.filter((a) => a.translationId === t.id).map((a) => a.kind as string))],
-        isPublished: book.publishingRequests.some((pr) => (pr as any).translationId === t.id),
-      })),
+      translations: book.translations.map((t) => {
+        const kinds = new Set(book.addons.filter((a) => a.translationId === t.id).map((a) => a.kind as string));
+        // Infer cover translation from file existence (covers may lack translationId — see ADDON_COVER_TRANSLATION_FUTURE_FIX.md)
+        const hasCoverFile = book.files.some(
+          (f) => f.fileType === FileType.COVER_TRANSLATED && f.fileName?.includes(`cover-translated-${t.targetLanguage}`),
+        );
+        if (hasCoverFile) kinds.add('ADDON_COVER_TRANSLATION');
+        return {
+          id: t.id,
+          targetLanguage: t.targetLanguage,
+          translatedTitle: t.translatedTitle,
+          status: t.status as string,
+          addonKinds: [...kinds],
+          isPublished: book.publishingRequests.some((pr) => (pr as any).translationId === t.id),
+        };
+      }),
       createdAt: book.createdAt.toISOString(),
       updatedAt: book.updatedAt.toISOString(),
     }));

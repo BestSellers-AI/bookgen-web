@@ -145,8 +145,42 @@ WHERE ba.book_id = bt.book_id
 
 ## Decision
 
-Decided to **defer this fix** (March 2026) because:
+Decided to **defer the full translationId linkage fix** (March 2026) because:
 1. The current behavior works for the common case (cover matched by language)
 2. New bundle-created cover translations are already correctly linked
 3. The main impact is cosmetic (missing icon in collapsible)
 4. Changing behavior mid-stream could confuse existing data
+
+## Workaround: File-Based Inference for Collapsible Icons
+
+### Problem
+The translations collapsible in "My Books" shows addon icons per translation by filtering `bookAddon.translationId === translation.id`. Since most `ADDON_COVER_TRANSLATION` records have `translationId: null` (created via individual request or legacy data), the cover translation icon (Palette cyan) never appears — even when a translated cover file exists.
+
+### Solution
+Instead of relying solely on `translationId` linkage, the book listing API **infers** cover translation presence from the actual `BookFile` records. Cover translated files follow a predictable naming pattern: `cover-translated-{targetLanguage}.png`.
+
+In `apps/api/src/books/book.service.ts`, when mapping translations for the list response:
+
+```typescript
+translations: book.translations.map((t) => {
+  const kinds = new Set(book.addons.filter((a) => a.translationId === t.id).map((a) => a.kind));
+
+  // Infer cover translation from file existence
+  const hasCoverFile = book.files.some(
+    (f) => f.fileType === 'COVER_TRANSLATED' && f.fileName?.includes(`cover-translated-${t.targetLanguage}`),
+  );
+  if (hasCoverFile) kinds.add('ADDON_COVER_TRANSLATION');
+
+  return { ...t, addonKinds: [...kinds] };
+}),
+```
+
+### Why this works
+- Cover translated files always follow the pattern `cover-translated-{lang}.png` (enforced by `processAddonCoverTranslation` in the generation processor and `processAddonSpecific` in the hooks service)
+- The file is the **source of truth** — if the file exists, the cover was translated, regardless of addon `translationId` linkage
+- This is additive: if the addon already has `translationId` (bundle-created), it appears via the normal filter AND the file check (Set deduplicates)
+
+### Trade-offs
+- **Query cost**: Slightly larger `files` query (includes `COVER_TRANSLATED` alongside `COVER_IMAGE`). Minimal impact since it's a simple filter.
+- **Accuracy**: If a cover file exists but the addon was cancelled/errored, the icon still shows. This is acceptable since the file represents a real, usable asset.
+- **When the full fix is applied**: This workaround becomes redundant but harmless (Set deduplication). It can be cleaned up at that point or left as a safety net.
