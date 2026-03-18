@@ -41,9 +41,15 @@ export function RecentBooksList({ books }: RecentBooksListProps) {
             href={`/dashboard/books/${book.id}`}
             className="flex items-center gap-4 px-6 py-4 hover:bg-accent/50 transition-colors group"
           >
-            <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-              <Book className="w-5 h-5 text-primary" />
-            </div>
+            {book.coverUrl ? (
+              <div className="w-10 h-14 rounded-lg overflow-hidden border border-border shrink-0">
+                <img src={book.coverUrl} alt="" className="w-full h-full object-cover" />
+              </div>
+            ) : (
+              <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+                <Book className="w-5 h-5 text-primary" />
+              </div>
+            )}
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold truncate group-hover:text-primary transition-colors">
                 {book.title}

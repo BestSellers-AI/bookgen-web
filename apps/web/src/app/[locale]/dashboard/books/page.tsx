@@ -295,6 +295,12 @@ export default function BooksListPage() {
                   </DropdownMenu>
                 </div>
 
+                {book.coverUrl && (
+                  <div className="w-full aspect-[3/4] max-h-48 rounded-xl overflow-hidden border border-border">
+                    <img src={book.coverUrl} alt="" className="w-full h-full object-cover" />
+                  </div>
+                )}
+
                 <div className="space-y-1">
                   <h3 className="text-lg font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
                     {book.title}
