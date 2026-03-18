@@ -1252,13 +1252,13 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
               onClick={() => setExtrasOpen(true)}
               className="w-full px-5 md:px-6 py-5 text-left hover:bg-primary/10 transition-colors"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0 mt-0.5">
                   <Sparkles className="w-5 h-5 text-primary" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm md:text-base font-black text-foreground truncate">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm md:text-base font-black text-foreground">
                       {tj("extrasTitle")}
                     </span>
                     {extrasCompleted > 0 && (
@@ -1267,13 +1267,13 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                       </Badge>
                     )}
                   </div>
-                  <span className="text-[10px] md:text-[11px] text-muted-foreground line-clamp-1">
+                  <span className="text-[10px] md:text-[11px] text-muted-foreground">
                     {tj("extrasSubtitle")}
                   </span>
-                </div>
-                <div className="flex items-center gap-1 shrink-0 text-primary">
-                  <span className="text-xs font-bold hidden md:inline">{tj("viewExtras")}</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <span className="text-xs text-primary font-bold flex items-center gap-1 mt-1.5">
+                    {tj("viewExtras")}
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </span>
                 </div>
               </div>
             </button>
