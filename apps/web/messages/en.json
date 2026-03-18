@@ -564,6 +564,10 @@
     "featureCommercial": "Commercial license",
     "featureEditor": "Full editor access",
     "featurePriority": "Priority support",
+    "tabPlans": "Plans",
+    "tabCredits": "Credits",
+    "viewPlans": "View Plans",
+    "purchaseError": "Failed to start checkout. Please try again.",
     "oneTimeTitle": "Just need a single book?",
     "oneTimeDesc": "Buy credits individually without a subscription.",
     "buyCreditsInstead": "Buy Credits"

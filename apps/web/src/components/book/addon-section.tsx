@@ -460,7 +460,7 @@ export function AddonSection({ book, onRefetch }: AddonSectionProps) {
             selectedAddon &&
             balance < selectedAddon.cost ? (
               <Button asChild>
-                <Link href="/dashboard/wallet/buy-credits">
+                <Link href="/dashboard/upgrade?tab=credits">
                   {t("buyCredits")}
                 </Link>
               </Button>

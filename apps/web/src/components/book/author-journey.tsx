@@ -2136,7 +2136,7 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
             selectedAddon &&
             balance < selectedAddon.cost ? (
               <Button asChild>
-                <Link href="/dashboard/wallet/buy-credits">
+                <Link href="/dashboard/upgrade?tab=credits">
                   {t("buyCredits")}
                 </Link>
               </Button>
@@ -2222,7 +2222,7 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
             selectedBundle &&
             balance < selectedBundle.cost ? (
               <Button asChild>
-                <Link href="/dashboard/wallet/buy-credits">
+                <Link href="/dashboard/upgrade?tab=credits">
                   {t("buyCredits")}
                 </Link>
               </Button>

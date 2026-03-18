@@ -52,7 +52,7 @@ export function CreditsCard({ wallet, user }: CreditsCardProps) {
         variant="outline"
         className="w-full rounded-xl h-10"
       >
-        <Link href="/dashboard/wallet">{t("buyCredits")}</Link>
+        <Link href="/dashboard/upgrade?tab=credits">{t("buyCredits")}</Link>
       </Button>
     </div>
   );

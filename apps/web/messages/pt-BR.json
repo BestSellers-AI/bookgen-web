@@ -564,6 +564,10 @@
     "featureCommercial": "Licença comercial",
     "featureEditor": "Acesso completo ao editor",
     "featurePriority": "Suporte prioritário",
+    "tabPlans": "Planos",
+    "tabCredits": "Créditos",
+    "viewPlans": "Ver Planos",
+    "purchaseError": "Falha ao iniciar checkout. Tente novamente.",
     "oneTimeTitle": "Precisa de apenas um livro?",
     "oneTimeDesc": "Compre créditos avulsos sem assinatura.",
     "buyCreditsInstead": "Comprar Créditos"

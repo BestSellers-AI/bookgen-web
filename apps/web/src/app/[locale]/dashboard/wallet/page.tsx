@@ -231,7 +231,7 @@ export default function WalletPage() {
 
         {/* Buy Credits CTA */}
         <Button asChild className="w-full h-12 rounded-xl font-bold gap-2">
-          <Link href="/dashboard/wallet/buy-credits">
+          <Link href="/dashboard/upgrade?tab=credits">
             <ShoppingCart className="w-4 h-4" />
             {t("buyCredits")}
           </Link>
