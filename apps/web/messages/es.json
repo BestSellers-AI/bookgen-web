@@ -737,6 +737,10 @@
     "publishingCompleted": "¡Publicado!",
     "publishingMessage": "El editor responsable de su publicación se pondrá en contacto para más detalles.",
     "viewPublication": "Ver Publicación",
+    "upgradeToPremium": "Upgrade a Premium",
+    "upgradeToPremiumDesc": "por {cost} créditos",
+    "upgradeSuccess": "¡Publicación actualizada a Premium!",
+    "upgradeError": "Error al hacer upgrade. Intenta de nuevo.",
     "publishingRequestedOn": "Solicitado el {date}",
     "bundleRequiresPublishing": "Debes solicitar una publicación del libro original antes de comprar este paquete."
   },

@@ -299,6 +299,29 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
   const [publishingRequests, setPublishingRequests] = useState<PublishingRequestSummary[]>([]);
   const [publishingResultSheetOpen, setPublishingResultSheetOpen] = useState(false);
   const [publishingResultAddon, setPublishingResultAddon] = useState<{ publishing: PublishingRequestSummary; addonKind: string } | null>(null);
+  const [upgradingPublishing, setUpgradingPublishing] = useState(false);
+
+  const upgradeCost = getCreditsCost("PUBLISHING_UPGRADE_PRICE");
+
+  const handleUpgradePublishing = async (addonId: string) => {
+    setUpgradingPublishing(true);
+    try {
+      await addonsApi.upgradePublishing(book.id, addonId);
+      toast.success(tj("upgradeSuccess"));
+      fetchAddons();
+      fetchWalletStore();
+      onRefetch();
+    } catch (err: unknown) {
+      const error = err as { response?: { status?: number } };
+      if (error?.response?.status === 402) {
+        toast.error(t("insufficientCredits"));
+      } else {
+        toast.error(tj("upgradeError"));
+      }
+    } finally {
+      setUpgradingPublishing(false);
+    }
+  };
 
   // Cover gallery state
   const [coverGalleryOpen, setCoverGalleryOpen] = useState(false);
@@ -759,7 +782,19 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                     )}
                   </div>
                 </div>
-                <div className="flex justify-end">
+                <div className="flex justify-end gap-2">
+                  {isPublishingAddonProcessing && existing && config.kind === ProductKind.ADDON_AMAZON_STANDARD && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-xl text-xs gap-1.5 border-amber-500/20 text-amber-400 hover:bg-amber-500/10"
+                      onClick={() => handleUpgradePublishing(existing.id)}
+                      disabled={upgradingPublishing}
+                    >
+                      <Crown className="w-3.5 h-3.5" />
+                      {tj("upgradeToPremium")}
+                    </Button>
+                  )}
                   <ExtraAddonAction
                     config={config}
                     existing={existing}
@@ -964,14 +999,32 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                           )}
                         </div>
 
-                        {/* Publishing step: human-action message */}
-                        {isPublishingStep && (
-                          <div className="mt-2 space-y-1.5">
-                            <p className="text-[11px] text-muted-foreground leading-relaxed">
-                              {tj("publishingMessage")}
-                            </p>
-                          </div>
-                        )}
+                        {/* Publishing step: human-action message + upgrade */}
+                        {isPublishingStep && (() => {
+                          const processingAddon = addons.find(
+                            (a) => step.kinds.includes(a.kind as ProductKind) && isAddonProcessing(a.status),
+                          );
+                          return (
+                            <div className="mt-2 space-y-2">
+                              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                                {tj("publishingMessage")}
+                              </p>
+                              {processingAddon?.kind === ProductKind.ADDON_AMAZON_STANDARD && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="rounded-xl text-xs gap-1.5 border-amber-500/20 text-amber-400 hover:bg-amber-500/10"
+                                  onClick={() => handleUpgradePublishing(processingAddon.id)}
+                                  disabled={upgradingPublishing}
+                                >
+                                  <Crown className="w-3.5 h-3.5" />
+                                  {tj("upgradeToPremium")}
+                                  <span className="text-[9px] text-muted-foreground">{tj("upgradeToPremiumDesc", { cost: upgradeCost })}</span>
+                                </Button>
+                              )}
+                            </div>
+                          );
+                        })()}
 
                         {/* ── CTA Buttons ── */}
                         {(step.status === "available" || step.status === "error") &&
@@ -1135,21 +1188,36 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                                         {tj("publishingRequestedOn", { date: new Date(pubReq.createdAt).toLocaleDateString() })}
                                       </p>
                                     )}
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="rounded-xl text-xs gap-1.5 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10"
-                                      onClick={() => {
-                                        setPublishingResultAddon({
-                                          publishing: pubReq,
-                                          addonKind: amazonAddon?.kind ?? "",
-                                        });
-                                        setPublishingResultSheetOpen(true);
-                                      }}
-                                    >
-                                      <BookCheck className="w-3.5 h-3.5" />
-                                      {tj("viewPublication")}
-                                    </Button>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="rounded-xl text-xs gap-1.5 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10"
+                                        onClick={() => {
+                                          setPublishingResultAddon({
+                                            publishing: pubReq,
+                                            addonKind: amazonAddon?.kind ?? "",
+                                          });
+                                          setPublishingResultSheetOpen(true);
+                                        }}
+                                      >
+                                        <BookCheck className="w-3.5 h-3.5" />
+                                        {tj("viewPublication")}
+                                      </Button>
+                                      {!isPubCompleted && amazonAddon?.kind === ProductKind.ADDON_AMAZON_STANDARD && (
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="rounded-xl text-xs gap-1.5 border-amber-500/20 text-amber-400 hover:bg-amber-500/10"
+                                          onClick={() => handleUpgradePublishing(amazonAddon.id)}
+                                          disabled={upgradingPublishing}
+                                        >
+                                          <Crown className="w-3.5 h-3.5" />
+                                          {tj("upgradeToPremium")}
+                                          <span className="text-[9px] text-muted-foreground">{tj("upgradeToPremiumDesc", { cost: upgradeCost })}</span>
+                                        </Button>
+                                      )}
+                                    </div>
                                   </div>
                                 );
                               }
