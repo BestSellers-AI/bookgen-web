@@ -1590,7 +1590,7 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                     bundle={BUNDLE_GLOBAL_LAUNCH}
                     tj={tj}
                     tCommon={tCommon}
-                    message={!book.selectedCoverFileId ? t("coverRequired") : undefined}
+                    message={!hasOriginalBookPublishing ? undefined : !book.selectedCoverFileId ? t("coverRequired") : undefined}
                   />
                 )}
                 <div className="flex items-center gap-2 py-1">
