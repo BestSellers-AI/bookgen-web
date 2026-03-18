@@ -28,7 +28,7 @@ import {
 import { PlanningEditor } from "./planning-editor";
 import { BookPdfViewerDynamic } from "./book-pdf-viewer-dynamic";
 import { toast } from "sonner";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import type { BookDetail, BookFileSummary } from "@/lib/api/types";
 
 interface PreviewViewerProps {
@@ -44,17 +44,18 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
   const [deleting, setDeleting] = useState(false);
   const [approvingStructure, setApprovingStructure] = useState(false);
   const [viewMode, setViewMode] = useState<"kdp" | "original">("kdp");
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [downloadingDocx, setDownloadingDocx] = useState(false);
   const t = useTranslations("book");
   const tStatus = useTranslations("statusLabels");
   const tErr = useTranslations("errors");
+  const locale = useLocale();
 
   const isStructureOnly = book.status === "PREVIEW";
   const isCompletePreview = book.status === "PREVIEW_COMPLETED" || book.status === "PREVIEW_APPROVED";
 
   const planning = book.planning;
   const previewPdf = book.files.find((f: BookFileSummary) => f.fileType === "PREVIEW_PDF");
-  const previewDocx = book.files.find((f: BookFileSummary) => f.fileType === "DOCX");
-  const previewEpub = book.files.find((f: BookFileSummary) => f.fileType === "EPUB");
   const hasPlanning = planning && planning.chapters && planning.chapters.length > 0;
 
   const handleApproveStructure = async () => {
@@ -89,6 +90,30 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
     } catch {
       toast.error(tErr("deleteFailed"));
       setDeleting(false);
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    setDownloadingPdf(true);
+    try {
+      const { downloadBookPdf } = await import("@/lib/book-template/download");
+      await downloadBookPdf(book, locale);
+    } catch {
+      toast.error(tErr("downloadFailed"));
+    } finally {
+      setDownloadingPdf(false);
+    }
+  };
+
+  const handleDownloadDocx = async () => {
+    setDownloadingDocx(true);
+    try {
+      const { downloadBookDocx } = await import("@/lib/book-template/download");
+      await downloadBookDocx(book, locale);
+    } catch {
+      toast.error(tErr("downloadFailed"));
+    } finally {
+      setDownloadingDocx(false);
     }
   };
 
@@ -139,42 +164,35 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
         {/* Actions */}
         <div className="flex flex-wrap gap-3">
           {/* Downloads — only for complete preview */}
-          {isCompletePreview && previewPdf && (
+          {isCompletePreview && (
             <Button
               variant="outline"
               className="rounded-xl border-primary/20 bg-primary/5 text-primary hover:bg-primary/10"
-              asChild
+              onClick={handleDownloadPdf}
+              disabled={downloadingPdf}
             >
-              <a href={previewPdf.fileUrl} target="_blank" rel="noopener noreferrer">
+              {downloadingPdf ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
                 <FileDown className="mr-2 h-4 w-4" />
-                {t("downloadPreviewPdf")}
-              </a>
+              )}
+              {t("downloadPreviewPdf")}
             </Button>
           )}
 
-          {isCompletePreview && previewDocx && (
+          {isCompletePreview && (
             <Button
               variant="outline"
               className="rounded-xl border-primary/20 bg-primary/5 text-primary hover:bg-primary/10"
-              asChild
+              onClick={handleDownloadDocx}
+              disabled={downloadingDocx}
             >
-              <a href={previewDocx.fileUrl} target="_blank" rel="noopener noreferrer">
+              {downloadingDocx ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
                 <FileDown className="mr-2 h-4 w-4" />
-                {t("downloadDocx")}
-              </a>
-            </Button>
-          )}
-
-          {isCompletePreview && previewEpub && (
-            <Button
-              variant="outline"
-              className="rounded-xl border-primary/20 bg-primary/5 text-primary hover:bg-primary/10"
-              asChild
-            >
-              <a href={previewEpub.fileUrl} target="_blank" rel="noopener noreferrer">
-                <FileDown className="mr-2 h-4 w-4" />
-                {t("downloadEpub")}
-              </a>
+              )}
+              {t("downloadDocx")}
             </Button>
           )}
 
