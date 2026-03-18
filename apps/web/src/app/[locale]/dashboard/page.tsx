@@ -22,7 +22,8 @@ export default function DashboardPage() {
   const t = useTranslations("dashboard");
   const setWalletStore = useWalletStore((s) => s.setWallet);
 
-  const [books, setBooks] = useState<BookListItem[]>([]);
+  const [allBooks, setAllBooks] = useState<BookListItem[]>([]);
+  const [recentBooks, setRecentBooks] = useState<BookListItem[]>([]);
   const [wallet, setWallet] = useState<WalletInfo | null>(null);
 
   const [loading, setLoading] = useState(true);
@@ -33,12 +34,14 @@ export default function DashboardPage() {
     setLoading(true);
     setError(false);
     try {
-      const [booksRes, walletRes] = await Promise.allSettled([
+      const [allBooksRes, recentBooksRes, walletRes] = await Promise.allSettled([
+        booksApi.list({ sortBy: "createdAt", sortOrder: "desc", perPage: 100 }),
         booksApi.list({ sortBy: "createdAt", sortOrder: "desc", perPage: 5 }),
         walletApi.get(),
       ]);
 
-      setBooks(booksRes.status === "fulfilled" ? booksRes.value.data : []);
+      setAllBooks(allBooksRes.status === "fulfilled" ? allBooksRes.value.data : []);
+      setRecentBooks(recentBooksRes.status === "fulfilled" ? recentBooksRes.value.data : []);
       const walletData = walletRes.status === "fulfilled" ? walletRes.value : null;
       setWallet(walletData);
       if (walletData) setWalletStore(walletData);
@@ -100,7 +103,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Summary Stats */}
-      <BooksSummaryCard books={books} />
+      <BooksSummaryCard books={allBooks} />
 
       {/* Upgrade Banner */}
       <PlanCard user={user} />
@@ -113,7 +116,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-1 gap-8">
         {/* Left Column */}
         <div className="lg:col-span-2 space-y-6">
-          <RecentBooksList books={books} />
+          <RecentBooksList books={recentBooks} />
         </div>
 
         {/* Right Column */}
