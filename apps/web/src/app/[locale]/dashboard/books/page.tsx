@@ -268,46 +268,14 @@ export default function BooksListPage() {
                 className="group glass rounded-[2rem] p-6 space-y-4 border border-border hover:border-primary/30 transition-all cursor-pointer relative"
                 onClick={() => router.push(`/dashboard/books/${book.id}`)}
               >
-                <div className="flex items-start justify-between">
-                  <Badge
-                    variant="secondary"
-                    className={`text-[10px] font-black uppercase tracking-widest h-6 px-3 rounded-full ${getStatusBadgeClass(book.status)}`}
-                  >
-                    {getStatusLabel(book.status)}
-                  </Badge>
-                  {(() => {
-                    if (book.isPublished) {
-                      return (
-                        <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px] font-black uppercase tracking-widest h-6 px-3 rounded-full">
-                          <CheckCircle2 className="w-3 h-3 mr-0.5" />
-                          {t("published")}
-                        </Badge>
-                      );
-                    }
-                    if (book.status === "GENERATED") {
-                      const kinds = new Set(book.addonKinds ?? []);
-                      // Journey: 1=book(always), 2=cover, 3=images, 4=amazon
-                      let steps = 1; // book is done
-                      if (kinds.has("ADDON_COVER")) steps++;
-                      if (kinds.has("ADDON_IMAGES")) steps++;
-                      if (kinds.has("ADDON_AMAZON_STANDARD") || kinds.has("ADDON_AMAZON_PREMIUM")) steps++;
-                      if (steps < 4) {
-                        return (
-                          <Badge className="bg-gold-500/10 text-gold-500 border-gold-500/20 text-[10px] font-black h-6 px-3 rounded-full">
-                            {t("journeyStep", { current: steps })}
-                          </Badge>
-                        );
-                      }
-                    }
-                    return null;
-                  })()}
-
+                {/* Menu */}
+                <div className="flex justify-end">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+                        className="h-8 w-8 md:opacity-0 md:group-hover:opacity-100 transition-opacity -mt-2 -mr-2"
                       >
                         <MoreVertical className="h-4 w-4" />
                       </Button>
@@ -330,13 +298,14 @@ export default function BooksListPage() {
                   </DropdownMenu>
                 </div>
 
+                {/* Title + cover */}
                 <div className="flex items-start gap-3">
                   {book.coverUrl && (
                     <div className="w-12 h-16 rounded-lg overflow-hidden border border-border shrink-0">
                       <img src={book.coverUrl} alt="" className="w-full h-full object-cover" />
                     </div>
                   )}
-                  <div className="flex-1 min-w-0 space-y-1">
+                  <div className="flex-1 min-w-0">
                     <h3 className="text-lg font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
                       {book.title}
                     </h3>
@@ -348,6 +317,42 @@ export default function BooksListPage() {
                   </div>
                 </div>
 
+                {/* Badges */}
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <Badge
+                    variant="secondary"
+                    className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${getStatusBadgeClass(book.status)}`}
+                  >
+                    {getStatusLabel(book.status)}
+                  </Badge>
+                  {(() => {
+                    if (book.isPublished) {
+                      return (
+                        <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded">
+                          <CheckCircle2 className="w-2.5 h-2.5 mr-0.5" />
+                          {t("published")}
+                        </Badge>
+                      );
+                    }
+                    if (book.status === "GENERATED") {
+                      const kinds = new Set(book.addonKinds ?? []);
+                      let steps = 1;
+                      if (kinds.has("ADDON_COVER")) steps++;
+                      if (kinds.has("ADDON_IMAGES")) steps++;
+                      if (kinds.has("ADDON_AMAZON_STANDARD") || kinds.has("ADDON_AMAZON_PREMIUM")) steps++;
+                      if (steps < 4) {
+                        return (
+                          <Badge className="bg-gold-500/10 text-gold-500 border-gold-500/20 text-[9px] font-black px-2 py-0.5 rounded">
+                            {t("journeyStep", { current: steps })}
+                          </Badge>
+                        );
+                      }
+                    }
+                    return null;
+                  })()}
+                </div>
+
+                {/* Date + Author */}
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span className="font-medium">{book.author}</span>
                   <span className="flex items-center gap-1">
@@ -355,7 +360,9 @@ export default function BooksListPage() {
                     {new Date(book.createdAt).toLocaleDateString()}
                   </span>
                 </div>
-                {book.addonKinds?.length > 0 && (() => {
+
+                {/* Addon icons */}
+                {(() => {
                   const ADDON_ICON_ORDER: { kind: string; icon: typeof Palette; color: string }[] = [
                     { kind: "ADDON_COVER", icon: Palette, color: "text-pink-400" },
                     { kind: "ADDON_IMAGES", icon: ImageIcon, color: "text-indigo-400" },
@@ -364,7 +371,7 @@ export default function BooksListPage() {
                     { kind: "ADDON_AMAZON_PREMIUM", icon: Package, color: "text-amber-400" },
                     { kind: "ADDON_AUDIOBOOK", icon: Headphones, color: "text-emerald-400" },
                   ];
-                  const items = ADDON_ICON_ORDER.filter((a) => book.addonKinds.includes(a.kind));
+                  const items = ADDON_ICON_ORDER.filter((a) => (book.addonKinds ?? []).includes(a.kind));
                   if (items.length === 0) return null;
                   return (
                     <div className="flex items-center gap-1.5">
