@@ -77,6 +77,16 @@ export class AddonController {
     return this.addonService.selectChapterImage(bookId, chapterId, imageId, userId);
   }
 
+  @Post(':id/upgrade-publishing')
+  @HttpCode(HttpStatus.OK)
+  async upgradePublishing(
+    @CurrentUser('id') userId: string,
+    @Param('bookId') bookId: string,
+    @Param('id') addonId: string,
+  ) {
+    return this.addonService.upgradePublishing(userId, bookId, addonId);
+  }
+
   @Delete(':id')
   async cancel(
     @CurrentUser('id') userId: string,

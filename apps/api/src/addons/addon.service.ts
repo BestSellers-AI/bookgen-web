@@ -682,6 +682,76 @@ export class AddonService {
     };
   }
 
+  async upgradePublishing(
+    userId: string,
+    bookId: string,
+    addonId: string,
+  ): Promise<BookAddonSummary> {
+    const book = await this.prisma.book.findFirst({
+      where: { id: bookId, userId, deletedAt: null },
+      select: { id: true },
+    });
+    if (!book) throw new NotFoundException('Book not found');
+
+    const addon = await this.prisma.bookAddon.findFirst({
+      where: { id: addonId, bookId },
+    });
+    if (!addon) throw new NotFoundException('Add-on not found');
+
+    if (addon.kind !== ProductKind.ADDON_AMAZON_STANDARD) {
+      throw new BadRequestException('Only Standard publishing can be upgraded to Premium');
+    }
+
+    const upgradeableStatuses: AddonStatus[] = [AddonStatus.PENDING, AddonStatus.QUEUED, AddonStatus.PROCESSING];
+    if (!upgradeableStatuses.includes(addon.status as AddonStatus)) {
+      throw new BadRequestException(`Cannot upgrade addon with status: ${addon.status}`);
+    }
+
+    // Calculate upgrade cost: configurable, fallback to Premium - Standard difference
+    const config = await this.configDataService.getConfig();
+    const upgradeCost = config.creditsCost['PUBLISHING_UPGRADE_PRICE']
+      ?? ((config.creditsCost[ProductKind.ADDON_AMAZON_PREMIUM] ?? 80) - (config.creditsCost[ProductKind.ADDON_AMAZON_STANDARD] ?? 40));
+
+    // Debit upgrade cost (throws 402 if insufficient)
+    await this.walletService.debitCredits(
+      userId,
+      upgradeCost,
+      WalletTransactionType.ADDON_PURCHASE,
+      'Publishing upgrade: Standard → Premium',
+      { bookId, addonId },
+    );
+
+    // Update addon kind
+    const updated = await this.prisma.bookAddon.update({
+      where: { id: addonId },
+      data: {
+        kind: ProductKind.ADDON_AMAZON_PREMIUM,
+        creditsCost: (addon.creditsCost ?? 0) + upgradeCost,
+      },
+    });
+
+    // Update PublishingRequest platform
+    await this.prisma.publishingRequest.updateMany({
+      where: { addonId },
+      data: { platform: 'amazon_kdp_premium' },
+    });
+
+    this.logger.log(`Publishing addon ${addonId} upgraded Standard → Premium for book ${bookId}`);
+
+    return {
+      id: updated.id,
+      kind: updated.kind as unknown as BookAddonSummary['kind'],
+      status: updated.status as unknown as BookAddonSummary['status'],
+      translationId: updated.translationId,
+      resultUrl: updated.resultUrl,
+      resultData: updated.resultData as Record<string, unknown> | null,
+      creditsCost: updated.creditsCost,
+      error: updated.error,
+      createdAt: updated.createdAt.toISOString(),
+      updatedAt: updated.updatedAt.toISOString(),
+    };
+  }
+
   async cancel(
     bookId: string,
     addonId: string,

@@ -89,6 +89,7 @@ const CREDIT_COST_KEYS = [
   { key: "ADDON_AMAZON_PREMIUM", icon: "⭐" },
   { key: "ADDON_IMAGES", icon: "🖼️" },
   { key: "ADDON_AUDIOBOOK", icon: "🎧" },
+  { key: "PUBLISHING_UPGRADE_PRICE", icon: "⬆️" },
 ] as const;
 
 // ---------------------------------------------------------------------------
@@ -174,7 +175,8 @@ export default function AdminProductsPage() {
 
   // Find CREDITS_COST config
   const creditsCostConfig = configs.find((c) => c.key === "CREDITS_COST");
-  const otherConfigs = configs.filter((c) => c.key !== "CREDITS_COST");
+  const bundlesConfig = configs.find((c) => c.key === "BUNDLES");
+  const otherConfigs = configs.filter((c) => c.key !== "CREDITS_COST" && c.key !== "BUNDLES");
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -260,6 +262,9 @@ export default function AdminProductsPage() {
             <div className="glass rounded-[2rem] p-10 text-center text-muted-foreground">
               {t("noCreditsCostConfig")}
             </div>
+          )}
+          {bundlesConfig && (
+            <BundleCostsForm config={bundlesConfig} onRefresh={fetchAll} t={t} />
           )}
         </TabsContent>
 
@@ -350,6 +355,121 @@ function CreditCostsForm({
                   className="h-8 w-24 font-mono text-sm"
                 />
                 <span className="text-xs text-muted-foreground">{t("creditsUnit")}</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ===========================================================================
+// BundleCostsForm — edit bundle credit prices
+// ===========================================================================
+function BundleCostsForm({
+  config,
+  onRefresh,
+  t,
+}: {
+  config: AdminAppConfig;
+  onRefresh: () => Promise<void>;
+  t: T;
+}) {
+  const bundles = config.value as Record<string, { id: string; kinds: string[]; originalCost: number; cost: number; discountPercent: number }>;
+  const [values, setValues] = useState<Record<string, { cost: number }>>(() => {
+    const v: Record<string, { cost: number }> = {};
+    for (const [key, bundle] of Object.entries(bundles)) {
+      v[key] = { cost: bundle.cost };
+    }
+    return v;
+  });
+  const [saving, setSaving] = useState(false);
+  const [dirty, setDirty] = useState(false);
+
+  const handleChange = (bundleKey: string, val: string) => {
+    const num = parseInt(val, 10);
+    setValues((prev) => ({ ...prev, [bundleKey]: { cost: isNaN(num) ? 0 : num } }));
+    setDirty(true);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const updated = { ...bundles };
+      for (const [key, v] of Object.entries(values)) {
+        if (updated[key]) {
+          updated[key] = {
+            ...updated[key],
+            cost: v.cost,
+            discountPercent: updated[key].originalCost > 0
+              ? Math.round((1 - v.cost / updated[key].originalCost) * 100)
+              : 0,
+          };
+        }
+      }
+      await adminApi.updateAppConfig("BUNDLES", updated);
+      toast.success(t("bundleCostsSaved"));
+      setDirty(false);
+      await onRefresh();
+    } catch {
+      toast.error(t("bundleCostsSaveFailed"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="glass rounded-[2rem] p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-base font-bold font-heading">{t("bundleCostsTitle")}</h3>
+          <p className="text-xs text-muted-foreground mt-1">{t("bundleCostsDesc")}</p>
+        </div>
+        <Button
+          size="sm"
+          onClick={handleSave}
+          disabled={saving || !dirty}
+          className="rounded-xl"
+        >
+          {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+          <Save className="w-4 h-4 mr-1" />
+          {t("save")}
+        </Button>
+      </div>
+
+      <div className="space-y-3">
+        {Object.entries(bundles).map(([key, bundle]) => (
+          <div key={key} className="flex items-center gap-4 p-3 rounded-xl border border-border bg-accent/10">
+            <span className="text-lg">📦</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold truncate">{key}</p>
+              <p className="text-xs text-muted-foreground">
+                {bundle.kinds.join(" + ")}
+              </p>
+            </div>
+            <div className="flex items-center gap-3 shrink-0">
+              <div className="text-center">
+                <Label className="text-[10px] text-muted-foreground">{t("bundleOriginalCost")}</Label>
+                <p className="text-sm font-mono font-bold text-muted-foreground">{bundle.originalCost}</p>
+              </div>
+              <div className="text-center">
+                <Label className="text-[10px] text-muted-foreground">{t("bundleCost")}</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  value={values[key]?.cost ?? bundle.cost}
+                  onChange={(e) => handleChange(key, e.target.value)}
+                  className="h-8 w-20 font-mono text-sm text-center"
+                />
+              </div>
+              <div className="text-center">
+                <Label className="text-[10px] text-muted-foreground">{t("bundleDiscount")}</Label>
+                <p className="text-sm font-mono font-bold text-emerald-400">
+                  {bundle.originalCost > 0
+                    ? `${Math.round((1 - (values[key]?.cost ?? bundle.cost) / bundle.originalCost) * 100)}%`
+                    : "0%"}
+                </p>
               </div>
             </div>
           </div>

@@ -101,6 +101,7 @@ export const CREDITS_COST: Record<string, number> = {
   [ProductKind.ADDON_AMAZON_PREMIUM]: 80,
   [ProductKind.ADDON_IMAGES]: 20,
   [ProductKind.ADDON_AUDIOBOOK]: 60,
+  PUBLISHING_UPGRADE_PRICE: 40,
 };
 
 /** Bundle type definition */

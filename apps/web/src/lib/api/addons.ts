@@ -33,6 +33,11 @@ export const addonsApi = {
       .post<BookAddonSummary[]>(`/books/${bookId}/addons/bundle/${bundleId}`, { params })
       .then((r) => r.data),
 
+  upgradePublishing: (bookId: string, addonId: string) =>
+    apiClient
+      .post<BookAddonSummary>(`/books/${bookId}/addons/${addonId}/upgrade-publishing`)
+      .then((r) => r.data),
+
   selectCover: (bookId: string, fileId: string) =>
     apiClient
       .patch<{ coverUrl: string }>(`/books/${bookId}/addons/cover/${fileId}`)
