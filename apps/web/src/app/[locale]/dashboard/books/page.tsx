@@ -295,21 +295,22 @@ export default function BooksListPage() {
                   </DropdownMenu>
                 </div>
 
-                {book.coverUrl && (
-                  <div className="w-full aspect-[3/4] max-h-48 rounded-xl overflow-hidden border border-border">
-                    <img src={book.coverUrl} alt="" className="w-full h-full object-cover" />
-                  </div>
-                )}
-
-                <div className="space-y-1">
-                  <h3 className="text-lg font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
-                    {book.title}
-                  </h3>
-                  {book.subtitle && (
-                    <p className="text-sm text-muted-foreground line-clamp-1">
-                      {book.subtitle}
-                    </p>
+                <div className="flex items-start gap-3">
+                  {book.coverUrl && (
+                    <div className="w-12 h-16 rounded-lg overflow-hidden border border-border shrink-0">
+                      <img src={book.coverUrl} alt="" className="w-full h-full object-cover" />
+                    </div>
                   )}
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <h3 className="text-lg font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
+                      {book.title}
+                    </h3>
+                    {book.subtitle && (
+                      <p className="text-sm text-muted-foreground line-clamp-1">
+                        {book.subtitle}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
