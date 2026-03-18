@@ -749,7 +749,7 @@
     "processing": "Processando...",
     "done": "Concluído",
     "retry": "Tentar novamente",
-    "coverRequired": "Gere uma capa para o livro original primeiro.",
+    "coverRequired": "Gere e selecione uma capa para o livro original primeiro.",
     "viewResult": "Ver Resultado",
     "requestConfirm": "Este complemento custa {cost} créditos. Você tem {balance} créditos.",
     "regenerateConfirm": "Regenere este audiobook gratuitamente. Escolha uma voz e confirme.",

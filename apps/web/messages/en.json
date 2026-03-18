@@ -749,7 +749,7 @@
     "processing": "Processing...",
     "done": "Done",
     "retry": "Retry",
-    "coverRequired": "Generate a cover for the original book first.",
+    "coverRequired": "Generate and select a cover for the original book first.",
     "viewResult": "View Result",
     "requestConfirm": "This addon costs {cost} credits. You have {balance} credits.",
     "regenerateConfirm": "Regenerate this audiobook for free. Choose a voice and confirm.",

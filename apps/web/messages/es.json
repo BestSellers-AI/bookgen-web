@@ -749,7 +749,7 @@
     "processing": "Procesando...",
     "done": "Hecho",
     "retry": "Reintentar",
-    "coverRequired": "Genera una portada para el libro original primero.",
+    "coverRequired": "Genera y selecciona una portada para el libro original primero.",
     "viewResult": "Ver Resultado",
     "requestConfirm": "Este complemento cuesta {cost} créditos. Tienes {balance} créditos.",
     "regenerateConfirm": "Regenera este audiolibro gratis. Elige una voz y confirma.",
