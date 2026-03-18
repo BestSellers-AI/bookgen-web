@@ -815,10 +815,41 @@ export class HooksService {
       case ProductKind.ADDON_TRANSLATION: {
         // Translation records are now created by processAddonTranslation in the processor.
         // The resultData contains the translationId for reference.
-        // If a translationId is provided, the translation was already created by the processor.
         const translationId = resultData?.translationId as string | undefined;
         if (translationId) {
           this.logger.log(`Translation ${translationId} already created by processor for book ${dto.bookId}`);
+
+          // Link sibling publishing & cover-translation addons from the same bundle
+          // (they were created without translationId because the translation didn't exist yet)
+          const PUBLISHING_KINDS = [
+            ProductKind.ADDON_AMAZON_STANDARD,
+            ProductKind.ADDON_AMAZON_PREMIUM,
+          ];
+          const siblingAddons = await this.prisma.bookAddon.findMany({
+            where: {
+              bookId: dto.bookId,
+              kind: { in: [...PUBLISHING_KINDS, ProductKind.ADDON_COVER_TRANSLATION] },
+              translationId: null,
+              status: { notIn: [AddonStatus.CANCELLED, AddonStatus.ERROR] },
+            },
+          });
+
+          for (const sibling of siblingAddons) {
+            await this.prisma.bookAddon.update({
+              where: { id: sibling.id },
+              data: { translationId },
+            });
+            this.logger.log(`Linked addon ${sibling.id} (${sibling.kind}) to translation ${translationId}`);
+
+            // Also link the PublishingRequest if it's a publishing addon
+            if (PUBLISHING_KINDS.includes(sibling.kind as typeof PUBLISHING_KINDS[number])) {
+              await this.prisma.publishingRequest.updateMany({
+                where: { addonId: sibling.id, translationId: null },
+                data: { translationId },
+              });
+              this.logger.log(`Linked PublishingRequest for addon ${sibling.id} to translation ${translationId}`);
+            }
+          }
         }
         break;
       }
