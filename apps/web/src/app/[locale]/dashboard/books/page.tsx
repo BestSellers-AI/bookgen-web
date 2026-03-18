@@ -381,9 +381,9 @@ export default function BooksListPage() {
 
 const TRANSLATION_ADDON_ICONS: { kind: string; icon: typeof Palette; color: string }[] = [
   { kind: "ADDON_COVER_TRANSLATION", icon: Palette, color: "text-cyan-400" },
+  { kind: "ADDON_AUDIOBOOK", icon: Headphones, color: "text-emerald-400" },
   { kind: "ADDON_AMAZON_STANDARD", icon: Package, color: "text-orange-400" },
   { kind: "ADDON_AMAZON_PREMIUM", icon: Package, color: "text-amber-400" },
-  { kind: "ADDON_AUDIOBOOK", icon: Headphones, color: "text-emerald-400" },
 ];
 
 function TranslationsCollapsible({
