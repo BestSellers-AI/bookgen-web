@@ -1246,26 +1246,33 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
           )}
 
           {/* Extras trigger */}
-          <div className="border-t border-primary/10">
+          <div className="border-t border-primary/10 bg-gradient-to-r from-primary/5 via-transparent to-primary/5">
             <button
               type="button"
               onClick={() => setExtrasOpen(true)}
-              className="w-full flex items-center justify-between gap-3 px-5 md:px-6 py-3.5 text-left hover:bg-primary/5 transition-colors"
+              className="w-full flex items-center justify-between gap-3 px-5 md:px-6 py-5 text-left hover:bg-primary/10 transition-colors"
             >
-              <div className="flex items-center gap-2.5">
-                <Sparkles className="w-4 h-4 text-primary" />
-                <span className="text-sm font-bold text-foreground">
-                  {tj("extrasTitle")}
-                </span>
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <span className="text-base font-black text-foreground block">
+                    {tj("extrasTitle")}
+                  </span>
+                  <span className="text-[11px] text-muted-foreground">
+                    {tj("extrasSubtitle")}
+                  </span>
+                </div>
                 {extrasCompleted > 0 && (
                   <Badge className="bg-primary/10 text-primary border-primary/20 text-[9px] font-black">
                     {extrasCompleted}/{EXTRA_CONFIGS.length}
                   </Badge>
                 )}
               </div>
-              <span className="text-xs text-primary font-bold flex items-center gap-1">
+              <span className="text-xs text-primary font-bold flex items-center gap-1 shrink-0">
                 {tj("viewExtras")}
-                <ArrowRight className="w-3 h-3" />
+                <ArrowRight className="w-3.5 h-3.5" />
               </span>
             </button>
           </div>
