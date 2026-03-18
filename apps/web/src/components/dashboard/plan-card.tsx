@@ -1,10 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { Crown, Zap, BookOpen, Star, ArrowRight, Sparkles, RefreshCw, Percent, Rocket, BookCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { PlanBadge } from "./plan-badge";
+import { PublishingInfoOverlay } from "@/components/book/publishing-info-overlay";
 import { useWalletStore } from "@/stores/wallet-store";
 import type { UserProfile } from "@/lib/api/types";
 
@@ -23,7 +26,9 @@ function getNextPlan(current: string | null): string | null {
 export function PlanCard({ user }: PlanCardProps) {
   const t = useTranslations("dashboard");
   const tPlan = useTranslations("planNames");
+  const router = useRouter();
   const balance = useWalletStore((s) => s.wallet?.balance ?? 0);
+  const [publishingOpen, setPublishingOpen] = useState(false);
 
   const plan = user?.planInfo?.plan ?? null;
   const hasSubscription = user?.planInfo?.hasSubscription ?? false;
@@ -105,30 +110,36 @@ export function PlanCard({ user }: PlanCardProps) {
   // ─── State 3: Max plan (BESTSELLER) → offer publishing ─────────────
   if (isMaxPlan) {
     return (
-      <div className="glass rounded-[2rem] p-6">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-              <Crown className="w-5 h-5 text-amber-500" />
+      <>
+        <div className="glass rounded-[2rem] p-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+                <Crown className="w-5 h-5 text-amber-500" />
+              </div>
+              <div>
+                <p className="text-lg font-black text-foreground">{plan ? tPlan(plan) : tPlan("FREE")}</p>
+                <p className="text-xs text-muted-foreground">{t("planCard.maxPlanSubtitle")}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-lg font-black text-foreground">{plan ? tPlan(plan) : tPlan("FREE")}</p>
-              <p className="text-xs text-muted-foreground">{t("planCard.maxPlanSubtitle")}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button asChild variant="outline" className="rounded-xl h-10 gap-2 shrink-0">
-              <Link href="/dashboard/books">
-                <BookCheck className="w-4 h-4" />
-                {t("planCard.maxPlanCta")}
-              </Link>
-            </Button>
-            <Button asChild variant="ghost" className="rounded-xl h-10 shrink-0">
-              <Link href="/dashboard/settings">{t("manage")}</Link>
+            <Button
+              variant="outline"
+              className="rounded-xl h-10 gap-2 shrink-0"
+              onClick={() => setPublishingOpen(true)}
+            >
+              <BookCheck className="w-4 h-4" />
+              {t("planCard.maxPlanCta")}
             </Button>
           </div>
         </div>
-      </div>
+        <PublishingInfoOverlay
+          open={publishingOpen}
+          onClose={() => {
+            setPublishingOpen(false);
+            router.push("/dashboard/books");
+          }}
+        />
+      </>
     );
   }
 
