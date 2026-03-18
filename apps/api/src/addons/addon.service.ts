@@ -235,15 +235,46 @@ export class AddonService {
     const dispatchParams: Record<string, unknown> = { ...(dto.params ?? {}) };
 
     // Enrich addon dispatch with book context
-    if (
-      dto.kind === 'ADDON_COVER' ||
-      dto.kind === 'ADDON_IMAGES' ||
-      dto.kind === 'ADDON_TRANSLATION' ||
-      dto.kind === 'ADDON_COVER_TRANSLATION'
-    ) {
+    const CONTEXT_KINDS = new Set([
+      'ADDON_COVER', 'ADDON_IMAGES', 'ADDON_TRANSLATION',
+      'ADDON_COVER_TRANSLATION', 'ADDON_AUDIOBOOK',
+    ]);
+    if (CONTEXT_KINDS.has(dto.kind)) {
+      let contextTitle = book.title;
+      let contextSubtitle = book.subtitle;
+      let contextChapters = book.chapters.map((ch) => ({
+        id: ch.id,
+        sequence: ch.sequence,
+        title: ch.title,
+      }));
+
+      // If this addon is for a translation, use translated data
+      if (translationId) {
+        const translation = await this.prisma.bookTranslation.findUnique({
+          where: { id: translationId },
+          include: {
+            chapters: {
+              orderBy: { sequence: 'asc' as const },
+              select: { chapterId: true, sequence: true, translatedTitle: true },
+            },
+          },
+        });
+        if (translation) {
+          if (translation.translatedTitle) contextTitle = translation.translatedTitle;
+          if (translation.translatedSubtitle) contextSubtitle = translation.translatedSubtitle;
+          if (translation.chapters.length > 0) {
+            contextChapters = translation.chapters.map((tc) => ({
+              id: tc.chapterId,
+              sequence: tc.sequence,
+              title: tc.translatedTitle || contextChapters.find((c) => c.id === tc.chapterId)?.title || '',
+            }));
+          }
+        }
+      }
+
       dispatchParams.bookContext = {
-        title: book.title,
-        subtitle: book.subtitle,
+        title: contextTitle,
+        subtitle: contextSubtitle,
         author: book.author,
         briefing: book.briefing,
         planning: book.planning,
@@ -256,11 +287,7 @@ export class AddonService {
         closure: book.closure,
         wordCount: book.wordCount,
         pageCount: book.pageCount,
-        chapters: book.chapters.map((ch) => ({
-          id: ch.id,
-          sequence: ch.sequence,
-          title: ch.title,
-        })),
+        chapters: contextChapters,
       };
     }
 
