@@ -558,6 +558,20 @@ export default function UpgradePage() {
                 </table>
               </div>
             </div>
+
+            {/* Buy credits one-off CTA */}
+            <div className="dark:bg-white/[0.015] bg-navy-900/[0.015] border dark:border-white/[0.05] border-navy-900/[0.05] rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <p className="text-sm dark:text-cream-500 text-navy-600">
+                {t("oneTimeTitle")}
+              </p>
+              <button
+                className="text-sm font-semibold dark:text-cream-300 text-navy-800 dark:hover:text-gold-400 hover:text-gold-700 transition-colors flex items-center gap-1.5 shrink-0"
+                onClick={() => setActiveTab("credits")}
+              >
+                {t("buyCreditsInstead")}
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </motion.div>
         ) : (
           <motion.div
