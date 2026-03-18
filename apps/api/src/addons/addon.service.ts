@@ -340,10 +340,32 @@ export class AddonService {
       throw new BadRequestException('Target language is required for this bundle.');
     }
 
-    // Verify book ownership + status
+    // Verify book ownership + status (include full context for addon dispatch)
     const book = await this.prisma.book.findFirst({
       where: { id: bookId, userId, deletedAt: null },
-      select: { id: true, status: true, selectedCoverFileId: true },
+      select: {
+        id: true,
+        status: true,
+        selectedCoverFileId: true,
+        title: true,
+        subtitle: true,
+        author: true,
+        briefing: true,
+        planning: true,
+        settings: true,
+        introduction: true,
+        conclusion: true,
+        finalConsiderations: true,
+        glossary: true,
+        appendix: true,
+        closure: true,
+        wordCount: true,
+        pageCount: true,
+        chapters: {
+          select: { id: true, sequence: true, title: true },
+          orderBy: { sequence: 'asc' as const },
+        },
+      },
     });
 
     if (!book) {
@@ -438,7 +460,7 @@ export class AddonService {
             },
           });
         } else {
-          // Build dispatch params for translation addons
+          // Build dispatch params with book context
           const dispatchParams: Record<string, unknown> = {};
           if (
             (addon.kind === ProductKind.ADDON_TRANSLATION ||
@@ -446,6 +468,37 @@ export class AddonService {
             targetLanguage
           ) {
             dispatchParams.targetLanguage = targetLanguage;
+          }
+
+          // Enrich with book context for addons that need it
+          const CONTEXT_KINDS = new Set<string>([
+            ProductKind.ADDON_COVER,
+            ProductKind.ADDON_IMAGES,
+            ProductKind.ADDON_TRANSLATION,
+            ProductKind.ADDON_COVER_TRANSLATION,
+          ]);
+          if (CONTEXT_KINDS.has(addon.kind)) {
+            dispatchParams.bookContext = {
+              title: book.title,
+              subtitle: book.subtitle,
+              author: book.author,
+              briefing: book.briefing,
+              planning: book.planning,
+              settings: book.settings,
+              introduction: book.introduction,
+              conclusion: book.conclusion,
+              finalConsiderations: book.finalConsiderations,
+              glossary: book.glossary,
+              appendix: book.appendix,
+              closure: book.closure,
+              wordCount: book.wordCount,
+              pageCount: book.pageCount,
+              chapters: book.chapters.map((ch) => ({
+                id: ch.id,
+                sequence: ch.sequence,
+                title: ch.title,
+              })),
+            };
           }
 
           if (this.appConfig.useInternalGeneration) {
