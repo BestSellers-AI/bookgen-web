@@ -179,3 +179,21 @@ Display order in dashboard and "My Books" lists:
 Note: `ADDON_COVER_TRANSLATION` icons only appear in the translation collapsible, not on the original book card.
 
 Used in: `recent-books-list.tsx`, `books/page.tsx` (via `ADDON_ICON_ORDER` / `TRANSLATION_ADDON_ICONS`).
+
+### Author Journey Progress Badge (book listings)
+
+Shown on book cards in both dashboard recent books and "My Books" page.
+
+| Condition | Badge | Style |
+|-----------|-------|-------|
+| Book is published (`isPublished: true`) | ✅ **Publicado** | Green (emerald) — overrides all |
+| Generated, no addons | **Step 1/4** | Gold (amber/gold) |
+| Generated + cover | **Step 2/4** | Gold |
+| Generated + cover + images | **Step 3/4** | Gold |
+| Generated + cover + images + publishing (not yet published) | **Step 4/4** | Gold |
+| Not generated (DRAFT, PREVIEW, etc.) | _(none)_ | — |
+
+Steps counted: Book (always 1) + ADDON_COVER (+1) + ADDON_IMAGES (+1) + ADDON_AMAZON_STANDARD or PREMIUM (+1).
+Published badge always takes priority regardless of step count.
+
+Used in: `recent-books-list.tsx`, `books/page.tsx`.

@@ -293,8 +293,8 @@ export default function BooksListPage() {
                       if (kinds.has("ADDON_AMAZON_STANDARD") || kinds.has("ADDON_AMAZON_PREMIUM")) steps++;
                       if (steps < 4) {
                         return (
-                          <Badge variant="secondary" className="text-[10px] font-black h-6 px-3 rounded-full">
-                            {steps}/4
+                          <Badge className="bg-gold-500/10 text-gold-500 border-gold-500/20 text-[10px] font-black h-6 px-3 rounded-full">
+                            Step {steps}/4
                           </Badge>
                         );
                       }

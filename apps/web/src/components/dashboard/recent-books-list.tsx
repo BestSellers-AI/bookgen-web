@@ -88,8 +88,8 @@ export function RecentBooksList({ books }: RecentBooksListProps) {
                     if (kinds.has("ADDON_AMAZON_STANDARD") || kinds.has("ADDON_AMAZON_PREMIUM")) steps++;
                     if (steps < 4) {
                       return (
-                        <Badge variant="secondary" className="text-[9px] font-black px-2 rounded-md">
-                          {steps}/4
+                        <Badge className="bg-gold-500/10 text-gold-500 border-gold-500/20 text-[9px] font-black px-2 rounded-md">
+                          Step {steps}/4
                         </Badge>
                       );
                     }
