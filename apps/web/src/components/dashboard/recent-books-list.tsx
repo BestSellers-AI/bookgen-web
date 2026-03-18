@@ -61,14 +61,20 @@ export function RecentBooksList({ books }: RecentBooksListProps) {
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-semibold truncate group-hover:text-primary transition-colors">
-                  {book.title}
-                </p>
+              <p className="text-sm font-semibold truncate group-hover:text-primary transition-colors">
+                {book.title}
+              </p>
+              <div className="flex items-center gap-1.5 mt-1">
+                <Badge
+                  variant="secondary"
+                  className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0 rounded ${getStatusBadgeClass(book.status)}`}
+                >
+                  {tStatus.has(book.status) ? tStatus(book.status) : book.status}
+                </Badge>
                 {(() => {
                   if (book.isPublished) {
                     return (
-                      <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[8px] font-black uppercase tracking-widest px-1.5 py-0 rounded shrink-0">
+                      <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[8px] font-black uppercase tracking-widest px-1.5 py-0 rounded">
                         <CheckCircle2 className="w-2.5 h-2.5 mr-0.5" />
                         {t("published")}
                       </Badge>
@@ -82,7 +88,7 @@ export function RecentBooksList({ books }: RecentBooksListProps) {
                     if (k.has("ADDON_AMAZON_STANDARD") || k.has("ADDON_AMAZON_PREMIUM")) s++;
                     if (s < 4) {
                       return (
-                        <Badge className="bg-gold-500/10 text-gold-500 border-gold-500/20 text-[8px] font-black px-1.5 py-0 rounded shrink-0">
+                        <Badge className="bg-gold-500/10 text-gold-500 border-gold-500/20 text-[8px] font-black px-1.5 py-0 rounded">
                           {t("journeyStep", { current: s })}
                         </Badge>
                       );
@@ -91,19 +97,11 @@ export function RecentBooksList({ books }: RecentBooksListProps) {
                   return null;
                 })()}
               </div>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge
-                  variant="secondary"
-                  className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0 rounded ${getStatusBadgeClass(book.status)}`}
-                >
-                  {tStatus.has(book.status) ? tStatus(book.status) : book.status}
-                </Badge>
+              <div className="flex items-center gap-1.5 mt-1.5">
                 {(() => {
                   const kinds = new Set(book.addonKinds ?? []);
                   if (book.translations?.length > 0) kinds.add("ADDON_TRANSLATION");
-                  const items = ADDON_ICON_ORDER.filter((a) => kinds.has(a.kind));
-                  if (items.length === 0) return null;
-                  return items.map((a) => {
+                  return ADDON_ICON_ORDER.filter((a) => kinds.has(a.kind)).map((a) => {
                     const Icon = a.icon;
                     return <Icon key={a.kind} className={`w-3 h-3 ${a.color}`} />;
                   });
