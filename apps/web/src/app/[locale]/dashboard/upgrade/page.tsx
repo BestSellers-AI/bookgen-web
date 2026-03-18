@@ -279,7 +279,9 @@ export default function UpgradePage() {
               </span>
             </div>
 
-            <PlanCalculator onRecommend={setHighlightedPlan} />
+            <div className="dark:bg-white/[0.025] bg-navy-900/[0.025] border dark:border-white/[0.07] border-navy-900/[0.07] rounded-2xl">
+              <PlanCalculator onRecommend={setHighlightedPlan} />
+            </div>
 
             {/* Plan Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
