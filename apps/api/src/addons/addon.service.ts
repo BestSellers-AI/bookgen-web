@@ -412,12 +412,17 @@ export class AddonService {
     );
     const individualTotal = individualCosts.reduce((sum, c) => sum + (c ?? 0), 0);
     const discountRatio = individualTotal > 0 ? bundleCost / individualTotal : 1;
+    const proportionalCosts = individualCosts.map((c) => Math.round((c ?? 0) * discountRatio));
+    // Fix rounding drift: adjust the largest item so the sum equals bundleCost exactly
+    const roundedSum = proportionalCosts.reduce((s, c) => s + c, 0);
+    if (roundedSum !== bundleCost && proportionalCosts.length > 0) {
+      const maxIdx = proportionalCosts.indexOf(Math.max(...proportionalCosts));
+      proportionalCosts[maxIdx] += bundleCost - roundedSum;
+    }
 
     // Create all addon records with proportional costs
     const addonRecords = await Promise.all(
       bundle.kinds.map(async (kind, i) => {
-        const fullCost = individualCosts[i] ?? 0;
-        const proportionalCost = Math.round(fullCost * discountRatio);
         return this.prisma.bookAddon.create({
           data: {
             bookId,
@@ -426,7 +431,7 @@ export class AddonService {
             status: PUBLISHING_KINDS.has(kind as ProductKind)
               ? AddonStatus.PROCESSING
               : AddonStatus.PENDING,
-            creditsCost: proportionalCost,
+            creditsCost: proportionalCosts[i],
           },
         });
       }),
