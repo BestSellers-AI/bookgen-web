@@ -142,10 +142,7 @@ export function PlanCard({ user }: PlanCardProps) {
               <Crown className="w-5 h-5 text-amber-500" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <p className="text-lg font-black text-foreground">{plan ? tPlan(plan) : tPlan("FREE")}</p>
-                <PlanBadge plan={plan} />
-              </div>
+              <p className="text-lg font-black text-foreground">{plan ? tPlan(plan) : tPlan("FREE")}</p>
               <p className="text-sm font-semibold text-primary">
                 {t("planCard.upgradeHook", { plan: tPlan(nextPlan!) })}
               </p>
