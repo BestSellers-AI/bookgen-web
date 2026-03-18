@@ -1250,30 +1250,32 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
             <button
               type="button"
               onClick={() => setExtrasOpen(true)}
-              className="w-full flex items-center justify-between gap-3 px-5 md:px-6 py-5 text-left hover:bg-primary/10 transition-colors"
+              className="w-full px-5 md:px-6 py-5 text-left hover:bg-primary/10 transition-colors"
             >
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
                   <Sparkles className="w-5 h-5 text-primary" />
                 </div>
-                <div>
-                  <span className="text-base font-black text-foreground block">
-                    {tj("extrasTitle")}
-                  </span>
-                  <span className="text-[11px] text-muted-foreground">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm md:text-base font-black text-foreground truncate">
+                      {tj("extrasTitle")}
+                    </span>
+                    {extrasCompleted > 0 && (
+                      <Badge className="bg-primary/10 text-primary border-primary/20 text-[9px] font-black shrink-0">
+                        {extrasCompleted}/{EXTRA_CONFIGS.length}
+                      </Badge>
+                    )}
+                  </div>
+                  <span className="text-[10px] md:text-[11px] text-muted-foreground line-clamp-1">
                     {tj("extrasSubtitle")}
                   </span>
                 </div>
-                {extrasCompleted > 0 && (
-                  <Badge className="bg-primary/10 text-primary border-primary/20 text-[9px] font-black">
-                    {extrasCompleted}/{EXTRA_CONFIGS.length}
-                  </Badge>
-                )}
+                <div className="flex items-center gap-1 shrink-0 text-primary">
+                  <span className="text-xs font-bold hidden md:inline">{tj("viewExtras")}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </div>
               </div>
-              <span className="text-xs text-primary font-bold flex items-center gap-1 shrink-0">
-                {tj("viewExtras")}
-                <ArrowRight className="w-3.5 h-3.5" />
-              </span>
             </button>
           </div>
         </div>
