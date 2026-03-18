@@ -300,8 +300,9 @@ export default function BooksListPage() {
 
                 {/* Cover */}
                 {book.coverUrl && (
-                  <div className="w-full h-40 rounded-xl overflow-hidden border border-border bg-accent/30">
-                    <img src={book.coverUrl} alt="" className="w-full h-full object-contain" />
+                  <div className="w-full h-40 rounded-xl overflow-hidden border border-border relative">
+                    <img src={book.coverUrl} alt="" className="absolute inset-0 w-full h-full object-cover blur-xl scale-110 opacity-40" />
+                    <img src={book.coverUrl} alt="" className="relative w-full h-full object-contain" />
                   </div>
                 )}
 
