@@ -275,12 +275,32 @@ export default function BooksListPage() {
                   >
                     {getStatusLabel(book.status)}
                   </Badge>
-                  {book.isPublished && (
-                    <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px] font-black uppercase tracking-widest h-6 px-3 rounded-full">
-                      <CheckCircle2 className="w-3 h-3 mr-0.5" />
-                      {t("published")}
-                    </Badge>
-                  )}
+                  {(() => {
+                    if (book.isPublished) {
+                      return (
+                        <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px] font-black uppercase tracking-widest h-6 px-3 rounded-full">
+                          <CheckCircle2 className="w-3 h-3 mr-0.5" />
+                          {t("published")}
+                        </Badge>
+                      );
+                    }
+                    if (book.status === "GENERATED") {
+                      const kinds = new Set(book.addonKinds ?? []);
+                      // Journey: 1=book(always), 2=cover, 3=images, 4=amazon
+                      let steps = 1; // book is done
+                      if (kinds.has("ADDON_COVER")) steps++;
+                      if (kinds.has("ADDON_IMAGES")) steps++;
+                      if (kinds.has("ADDON_AMAZON_STANDARD") || kinds.has("ADDON_AMAZON_PREMIUM")) steps++;
+                      if (steps > 1 && steps < 4) {
+                        return (
+                          <Badge variant="secondary" className="text-[10px] font-black h-6 px-3 rounded-full">
+                            {steps}/4
+                          </Badge>
+                        );
+                      }
+                    }
+                    return null;
+                  })()}
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
