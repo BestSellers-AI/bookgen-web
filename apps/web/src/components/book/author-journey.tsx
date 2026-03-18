@@ -705,9 +705,14 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
 
   // ── Compute track ──
 
+  // For the stepper (original book), only consider addons without translationId
+  const originalBookAddons = translationId
+    ? addons.filter((a) => a.translationId === translationId)
+    : addons.filter((a) => !a.translationId);
+
   const stepStatuses = PUBLISHING_STEPS.map((step) => ({
     ...step,
-    status: getStepStatus(step.kinds, addons),
+    status: getStepStatus(step.kinds, originalBookAddons),
   }));
 
   const completedSteps = stepStatuses.filter(
@@ -993,7 +998,7 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
                             </span>
                           )}
                           {isPublishingStep && (() => {
-                            const pAddon = addons.find((a) => step.kinds.includes(a.kind as ProductKind) && isAddonProcessing(a.status));
+                            const pAddon = originalBookAddons.find((a) => step.kinds.includes(a.kind as ProductKind) && isAddonProcessing(a.status));
                             return (
                               <div className="flex items-center gap-1.5 flex-wrap mt-2">
                                 <Badge variant="secondary" className="text-[9px] font-bold">
@@ -1010,7 +1015,7 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
 
                         {/* Publishing step: human-action message + upgrade */}
                         {isPublishingStep && (() => {
-                          const processingAddon = addons.find(
+                          const processingAddon = originalBookAddons.find(
                             (a) => step.kinds.includes(a.kind as ProductKind) && isAddonProcessing(a.status),
                           );
                           return (
@@ -1160,7 +1165,7 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
 
                             // Amazon publishing step: show publishing-aware display
                             if (step.id === "amazon") {
-                              const amazonAddon = addons.find(
+                              const amazonAddon = originalBookAddons.find(
                                 (a) =>
                                   step.kinds.includes(a.kind as ProductKind) &&
                                   a.status === AddonStatus.COMPLETED,
