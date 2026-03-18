@@ -291,7 +291,9 @@ export default function UpgradePage() {
                 const isCurrent = currentPlan === planKey;
                 // Map calculator recommendation IDs to plan enums
                 const calcIdMap: Record<string, string> = { autor: SubscriptionPlan.ASPIRANTE, profissional: SubscriptionPlan.PROFISSIONAL, bestseller: SubscriptionPlan.BESTSELLER };
+                const reversCalcIdMap: Record<string, string> = { [SubscriptionPlan.ASPIRANTE]: "autor", [SubscriptionPlan.PROFISSIONAL]: "profissional", [SubscriptionPlan.BESTSELLER]: "bestseller" };
                 const isHighlighted = highlightedPlan ? calcIdMap[highlightedPlan] === planKey : false;
+                const planDomId = `plan-${reversCalcIdMap[planKey] ?? planKey.toLowerCase()}`;
                 const isPopular = isHighlighted || planKey === SubscriptionPlan.PROFISSIONAL;
                 const price = annual
                   ? config.annualMonthlyEquivalentCents
@@ -310,6 +312,7 @@ export default function UpgradePage() {
                 return (
                   <motion.div
                     key={planKey}
+                    id={planDomId}
                     initial={{ opacity: 0, y: 24 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: i * 0.08 }}
