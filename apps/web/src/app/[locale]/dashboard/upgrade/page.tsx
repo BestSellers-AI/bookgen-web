@@ -560,12 +560,17 @@ export default function UpgradePage() {
             </div>
 
             {/* Buy credits one-off CTA */}
-            <div className="dark:bg-white/[0.015] bg-navy-900/[0.015] border dark:border-white/[0.05] border-navy-900/[0.05] rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-3">
-              <p className="text-sm dark:text-cream-500 text-navy-600">
-                {t("oneTimeTitle")}
-              </p>
+            <div className="dark:bg-white/[0.025] bg-navy-900/[0.025] border dark:border-white/[0.07] border-navy-900/[0.07] rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-bold dark:text-cream-200 text-navy-900">
+                  {t("oneTimeTitle")}
+                </p>
+                <p className="text-xs dark:text-cream-500 text-navy-600 mt-0.5">
+                  {t("oneTimeDesc")}
+                </p>
+              </div>
               <button
-                className="text-sm font-semibold dark:text-cream-300 text-navy-800 dark:hover:text-gold-400 hover:text-gold-700 transition-colors flex items-center gap-1.5 shrink-0"
+                className="text-sm font-bold dark:text-cream-200 text-navy-900 dark:hover:text-gold-400 hover:text-gold-700 transition-colors flex items-center gap-1.5 shrink-0 border dark:border-white/10 border-navy-900/10 dark:hover:border-gold-500/30 hover:border-gold-600/30 rounded-xl px-5 py-2.5"
                 onClick={() => setActiveTab("credits")}
               >
                 {t("buyCreditsInstead")}
