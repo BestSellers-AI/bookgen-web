@@ -277,6 +277,7 @@ export default function BooksListPage() {
                   </Badge>
                   {book.isPublished && (
                     <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px] font-black uppercase tracking-widest h-6 px-3 rounded-full">
+                      <CheckCircle2 className="w-3 h-3 mr-0.5" />
                       {t("published")}
                     </Badge>
                   )}
@@ -440,7 +441,8 @@ function TranslationsCollapsible({
                 })}
                 {tr.isPublished && (
                   <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[8px] font-black px-1.5 rounded-md">
-                    ✓
+                    <CheckCircle2 className="w-2.5 h-2.5 mr-0.5" />
+                    {t("published")}
                   </Badge>
                 )}
                 {tr.status === "TRANSLATED" || tr.status === "COMPLETED" ? (
