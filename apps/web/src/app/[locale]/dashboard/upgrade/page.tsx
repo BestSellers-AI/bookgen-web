@@ -502,56 +502,31 @@ export default function UpgradePage() {
               })}
             </div>
 
-            {/* Comparison Table — Why Subscribe */}
+            {/* Services Table */}
             <div className="pt-8">
               <div className="text-center mb-8">
                 <h3 className="font-playfair font-bold text-2xl md:text-3xl dark:text-cream-200 text-navy-900">
-                  {tFeatures("whySubscribeTitle")}
+                  {tFeatures("servicesTitle")}
                 </h3>
-                <p className="dark:text-cream-500 text-navy-600 text-sm mt-2">{tFeatures("whySubscribeSubtitle")}</p>
+                <p className="dark:text-cream-500 text-navy-600 text-sm mt-2">{tFeatures("servicesSubtitle")}</p>
               </div>
 
-              <div className="dark:bg-white/[0.025] bg-navy-900/[0.025] border dark:border-white/[0.07] border-navy-900/[0.07] rounded-2xl overflow-hidden max-w-2xl mx-auto">
+              <div className="dark:bg-white/[0.025] bg-navy-900/[0.025] border dark:border-white/[0.07] border-navy-900/[0.07] rounded-2xl overflow-hidden max-w-lg mx-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b dark:border-white/[0.06] border-navy-900/[0.06] dark:bg-white/[0.02] bg-navy-900/[0.02]">
-                      <th className="text-left py-3 px-5 dark:text-cream-500 text-navy-600 font-medium text-xs uppercase tracking-wider">{tFeatures("whySubColPlan")}</th>
-                      <th className="text-right py-3 px-5 dark:text-cream-500 text-navy-600 font-medium text-xs uppercase tracking-wider">{tFeatures("whySubColPerBook")}</th>
-                      <th className="text-right py-3 px-5 dark:text-cream-500 text-navy-600 font-medium text-xs uppercase tracking-wider hidden sm:table-cell">{tFeatures("whySubColSavings")}</th>
+                      <th className="text-left py-3 px-6 dark:text-cream-500 text-navy-600 font-medium text-xs uppercase tracking-wider">{tFeatures("servicesColName")}</th>
+                      <th className="text-right py-3 px-6 dark:text-cream-500 text-navy-600 font-medium text-xs uppercase tracking-wider">{tFeatures("servicesColCredits")}</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {comparisonRows.map((row) => (
+                    {services.map((service) => (
                       <tr
-                        key={row.label}
-                        className={clsx(
-                          "border-b dark:border-white/[0.04] border-navy-900/[0.04] last:border-0",
-                          row.highlight ? "dark:bg-gold-500/[0.06] bg-gold-600/[0.06]" : "dark:hover:bg-white/[0.02] hover:bg-navy-900/[0.02]",
-                        )}
+                        key={service.nameKey}
+                        className="border-b dark:border-white/[0.04] border-navy-900/[0.04] last:border-0 dark:hover:bg-white/[0.02] hover:bg-navy-900/[0.02] transition-colors"
                       >
-                        <td className={clsx(
-                          "py-3.5 px-5",
-                          row.highlight ? "dark:text-gold-400 text-gold-700 font-semibold" : "dark:text-cream-300 text-navy-800",
-                        )}>
-                          {row.label}
-                          {row.highlight && (
-                            <svg className="w-3.5 h-3.5 inline-block ml-1.5 mb-0.5" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                          )}
-                        </td>
-                        <td className={clsx(
-                          "py-3.5 px-5 text-right font-mono font-bold",
-                          row.highlight ? "dark:text-gold-400 text-gold-700 text-base" : "dark:text-cream-200 text-navy-900",
-                        )}>
-                          {row.price}
-                        </td>
-                        <td className={clsx(
-                          "py-3.5 px-5 text-right text-xs hidden sm:table-cell",
-                          row.highlight ? "dark:text-gold-400 text-gold-700 font-semibold" : "dark:text-cream-500 text-navy-600",
-                        )}>
-                          {row.savings}
-                        </td>
+                        <td className="py-3.5 px-6 dark:text-cream-300 text-navy-800">{tFeatures(service.nameKey)}</td>
+                        <td className="py-3.5 px-6 text-right font-mono dark:text-gold-400 text-gold-700 font-bold">{service.credits}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -559,24 +534,50 @@ export default function UpgradePage() {
               </div>
             </div>
 
-            {/* Buy credits one-off CTA */}
-            <div className="dark:bg-white/[0.025] bg-navy-900/[0.025] border dark:border-white/[0.07] border-navy-900/[0.07] rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div>
-                <p className="text-sm font-bold dark:text-cream-200 text-navy-900">
-                  {t("oneTimeTitle")}
-                </p>
-                <p className="text-xs dark:text-cream-500 text-navy-600 mt-0.5">
-                  {t("oneTimeDesc")}
-                </p>
+            {/* Pro Tip */}
+            {!hasMaxPlan && entryPlan && (
+              <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-orange-500/5 p-6 md:p-8">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 shrink-0 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/30 flex items-center justify-center">
+                      <Sparkles className="w-5 h-5 text-amber-500" />
+                    </div>
+                    <p className="text-sm font-black uppercase tracking-wider text-amber-500">
+                      {tBuy("proTip")}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-black dark:text-cream-200 text-navy-900 leading-tight">
+                      {tBuy("upgradeHeadline")}
+                    </h3>
+                    <p className="text-sm dark:text-cream-400 text-navy-600 leading-relaxed">
+                      {tBuy("upgradeDescription", {
+                        credits: entryPlan.monthlyCredits,
+                        price: (entryPlan.annualMonthlyEquivalentCents / 100).toFixed(0),
+                      })}
+                    </p>
+                  </div>
+
+                  <ul className="flex flex-col sm:flex-row gap-2 sm:gap-5">
+                    {([
+                      { icon: RefreshCw, text: tBuy("upgradePerk1", { credits: entryPlan.monthlyCredits }) },
+                      { icon: Percent, text: tBuy("upgradePerk2") },
+                      { icon: Rocket, text: tBuy("upgradePerk3") },
+                    ] as const).map((perk, i) => (
+                      <li key={i} className="flex items-center gap-2 text-sm dark:text-cream-400 text-navy-600">
+                        <perk.icon className="w-4 h-4 text-amber-500 shrink-0" />
+                        <span>{perk.text}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <p className="text-sm font-black text-amber-400 mt-8 text-center">
+                    {tBuy("creditsWorthMore")}
+                  </p>
+                </div>
               </div>
-              <button
-                className="text-sm font-bold dark:text-cream-200 text-navy-900 dark:hover:text-gold-400 hover:text-gold-700 transition-colors flex items-center gap-1.5 shrink-0 border dark:border-white/10 border-navy-900/10 dark:hover:border-gold-500/30 hover:border-gold-600/30 rounded-xl px-5 py-2.5"
-                onClick={() => setActiveTab("credits")}
-              >
-                {t("buyCreditsInstead")}
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
+            )}
           </motion.div>
         ) : (
           <motion.div
@@ -669,7 +670,7 @@ export default function UpgradePage() {
                       <p className="text-sm dark:text-cream-400 text-navy-600 leading-relaxed">
                         {tBuy("upgradeDescription", {
                           credits: entryPlan.monthlyCredits,
-                          price: (entryPlan.monthlyPriceCents / 100).toFixed(0),
+                          price: (entryPlan.annualMonthlyEquivalentCents / 100).toFixed(0),
                         })}
                       </p>
                     </div>

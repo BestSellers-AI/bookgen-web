@@ -314,11 +314,11 @@ export default function CreateBookPage() {
 
               <button
                 onClick={() => handleModeSelect("guided")}
-                className="group relative p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] bg-accent/50 border border-border hover:border-primary/50 transition-all text-left overflow-hidden"
+                className="group relative p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] bg-accent/50 border border-border hover:border-blue-500/50 transition-all text-left overflow-hidden"
               >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-[60px] -mr-16 -mt-16 group-hover:bg-primary/20 transition-colors" />
+                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-[60px] -mr-16 -mt-16 group-hover:bg-blue-500/20 transition-colors" />
                 <div className="relative space-y-4 md:space-y-6">
-                  <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-primary/20 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                  <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-blue-500/20 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
                     <Sparkles className="w-6 h-6 md:w-7 md:h-7" />
                   </div>
                   <div>

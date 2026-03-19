@@ -31,8 +31,8 @@ export function BooksSummaryCard({ books }: BooksSummaryCardProps) {
       label: t("totalBooks"),
       value: counts.total,
       icon: BookOpen,
-      color: "text-primary",
-      bg: "bg-primary/10 border-primary/20",
+      color: "text-amber-400",
+      bg: "bg-amber-500/10 border-amber-500/20",
       filter: "ALL",
     },
     {
@@ -47,8 +47,8 @@ export function BooksSummaryCard({ books }: BooksSummaryCardProps) {
       label: t("generating"),
       value: counts.generating,
       icon: Zap,
-      color: "text-orange-400",
-      bg: "bg-orange-500/10 border-orange-500/20",
+      color: "text-amber-400",
+      bg: "bg-amber-500/10 border-amber-500/20",
       filter: "GENERATING",
     },
     {

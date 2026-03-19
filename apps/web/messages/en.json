@@ -563,6 +563,7 @@
     "upgradePerk1": "{credits} credits/mo on auto-renew",
     "upgradePerk2": "Discounts on all extra services",
     "upgradePerk3": "Priority queue + premium support",
+    "creditsWorthMore": "💡 Your credits are worth up to 3x more with a plan!",
     "upgradeCta": "See Plans"
   },
   "upgrade": {
