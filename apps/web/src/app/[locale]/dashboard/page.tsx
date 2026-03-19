@@ -108,6 +108,7 @@ export default function DashboardPage() {
       {/* Upgrade Banner */}
       <PlanCard user={user} />
 
+
       {/* Quick Actions */}
       <QuickActions />
 

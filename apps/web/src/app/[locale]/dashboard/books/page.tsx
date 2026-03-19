@@ -172,7 +172,7 @@ export default function BooksListPage() {
               background: "conic-gradient(from 0deg, transparent 0%, transparent 60%, #f4eee6 75%, #ffffff 85%, #f4eee6 95%, transparent 100%)",
             }}
           />
-          <Button asChild className="relative w-full sm:w-auto rounded-[calc(0.75rem-2px)] font-bold gap-2 glow-primary">
+          <Button asChild className="relative w-full sm:w-auto rounded-[calc(0.75rem-2px)] font-bold gap-2 bg-blue-500 hover:bg-blue-500/90 text-white">
             <Link href="/dashboard/create">
               <PlusCircle className="w-4 h-4" />
               {t("createBook")}
@@ -250,7 +250,7 @@ export default function BooksListPage() {
           }
           action={
             !debouncedSearch && statusFilter === "ALL" ? (
-              <Button asChild className="rounded-xl font-bold gap-2">
+              <Button asChild className="rounded-xl font-bold gap-2 bg-blue-500 hover:bg-blue-500/90 text-white">
                 <Link href="/dashboard/create">
                   <PlusCircle className="w-4 h-4" />
                   {t("createBook")}

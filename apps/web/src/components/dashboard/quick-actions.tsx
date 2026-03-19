@@ -13,7 +13,7 @@ export function QuickActions() {
       label: t("createBook"),
       icon: PlusCircle,
       href: "/dashboard/create",
-      className: "bg-primary hover:bg-primary/90 text-white glow-primary",
+      className: "bg-blue-500 hover:bg-blue-500/90 text-white",
     },
     {
       label: t("buyCredits"),

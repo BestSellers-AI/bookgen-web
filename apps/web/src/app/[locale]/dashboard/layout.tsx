@@ -50,15 +50,15 @@ export default function DashboardLayout({
               <div
                 className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 rotate-45 ${
                   pathname === "/dashboard/books"
-                    ? "bg-orange-500 shadow-orange-500/40 shadow-lg"
-                    : "bg-orange-500/20 border border-orange-500/30"
+                    ? "bg-pink-500 shadow-pink-500/40 shadow-lg"
+                    : "bg-pink-500/20 border border-pink-500/30"
                 }`}
               >
                 <Library
                   className={`w-7 h-7 -rotate-45 ${
                     pathname === "/dashboard/books"
                       ? "text-white"
-                      : "text-orange-500"
+                      : "text-pink-500"
                   }`}
                 />
               </div>
@@ -68,15 +68,15 @@ export default function DashboardLayout({
               <div
                 className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 rotate-45 ${
                   pathname === "/dashboard/create"
-                    ? "bg-amber-500 shadow-amber-500/40 shadow-lg"
-                    : "bg-amber-500/20 border border-amber-500/30"
+                    ? "bg-blue-500 shadow-blue-500/40 shadow-lg"
+                    : "bg-blue-500/20 border border-blue-500/30"
                 }`}
               >
                 <Pencil
                   className={`w-7 h-7 -rotate-45 ${
                     pathname === "/dashboard/create"
                       ? "text-white"
-                      : "text-amber-500"
+                      : "text-blue-500"
                   }`}
                 />
               </div>
