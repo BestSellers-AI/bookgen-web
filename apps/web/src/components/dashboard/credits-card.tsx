@@ -49,10 +49,9 @@ export function CreditsCard({ wallet, user }: CreditsCardProps) {
 
       <Button
         asChild
-        variant="outline"
-        className="w-full rounded-xl h-10"
+        className="w-full rounded-xl h-10 bg-emerald-500 hover:bg-emerald-500/90 text-white font-bold"
       >
-        <Link href="/dashboard/upgrade?tab=credits">{t("buyCredits")}</Link>
+        <Link href="/dashboard/upgrade?tab=plans">{t("buyCredits")}</Link>
       </Button>
     </div>
   );

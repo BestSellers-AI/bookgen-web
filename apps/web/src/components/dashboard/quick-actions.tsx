@@ -18,7 +18,7 @@ export function QuickActions() {
     {
       label: t("buyCredits"),
       icon: Wallet,
-      href: "/dashboard/upgrade?tab=credits",
+      href: "/dashboard/upgrade?tab=plans",
       className: "bg-emerald-500 hover:bg-emerald-500/90 text-white",
     },
     {

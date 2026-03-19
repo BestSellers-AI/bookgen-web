@@ -124,7 +124,7 @@ export default function BookViewPage() {
     if (!book) return;
     try {
       await booksApi.delete(book.id);
-      router.back();
+      router.push("/dashboard/books");
     } catch {
       toast.error(tErr("deleteFailed"));
     }
@@ -144,7 +144,7 @@ export default function BookViewPage() {
         <p className="text-xl font-medium text-muted-foreground">
           {error || t("bookNotFound")}
         </p>
-        <Button onClick={() => router.back()} variant="outline">
+        <Button onClick={() => router.push("/dashboard/books")} variant="outline">
           {t("backToLibrary")}
         </Button>
       </div>
@@ -199,7 +199,7 @@ export default function BookViewPage() {
               variant="outline"
               size="lg"
               className="mt-4 rounded-xl"
-              onClick={() => router.back()}
+              onClick={() => router.push("/dashboard/books")}
             >
               {tCommon("goToDashboard")}
             </Button>
@@ -241,7 +241,7 @@ export default function BookViewPage() {
               variant="outline"
               size="lg"
               className="mt-4 rounded-xl"
-              onClick={() => router.back()}
+              onClick={() => router.push("/dashboard/books")}
             >
               {tCommon("goToDashboard")}
             </Button>
@@ -259,7 +259,7 @@ export default function BookViewPage() {
           <Button
             variant="ghost"
             className="group text-muted-foreground hover:text-primary transition-colors"
-            onClick={() => router.back()}
+            onClick={() => router.push("/dashboard/books")}
           >
             <ChevronLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
             {t("backToLibrary")}
@@ -291,7 +291,7 @@ export default function BookViewPage() {
           <Button
             variant="ghost"
             className="group text-muted-foreground hover:text-primary transition-colors"
-            onClick={() => router.back()}
+            onClick={() => router.push("/dashboard/books")}
           >
             <ChevronLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
             {t("backToLibrary")}
@@ -310,7 +310,7 @@ export default function BookViewPage() {
           <Button
             variant="ghost"
             className="group text-muted-foreground hover:text-primary transition-colors"
-            onClick={() => router.back()}
+            onClick={() => router.push("/dashboard/books")}
           >
             <ChevronLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
             {t("backToLibrary")}
@@ -369,7 +369,7 @@ export default function BookViewPage() {
 
   // CANCELLED — redirect
   if (status === "CANCELLED") {
-    router.back();
+    router.push("/dashboard/books");
     return null;
   }
 
@@ -377,7 +377,7 @@ export default function BookViewPage() {
   return (
     <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
       <p className="text-muted-foreground">{t("contentUnavailable")}</p>
-      <Button onClick={() => router.back()} variant="outline">
+      <Button onClick={() => router.push("/dashboard/books")} variant="outline">
         {t("backToLibrary")}
       </Button>
     </div>

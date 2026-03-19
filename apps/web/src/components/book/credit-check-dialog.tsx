@@ -101,7 +101,7 @@ export function CreditCheckDialog({
             </AlertDialogAction>
           ) : (
             <Button asChild>
-              <Link href="/dashboard/upgrade?tab=credits">{t("buyCreditsToGenerate")}</Link>
+              <Link href="/dashboard/upgrade?tab=plans">{t("buyCreditsToGenerate")}</Link>
             </Button>
           )}
         </AlertDialogFooter>

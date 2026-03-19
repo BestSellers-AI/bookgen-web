@@ -64,24 +64,6 @@ export default function DashboardLayout({
               </div>
             </Link>
 
-            <Link href="/dashboard/wallet">
-              <div
-                className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 rotate-45 ${
-                  pathname === "/dashboard/wallet"
-                    ? "bg-emerald-500 shadow-emerald-500/40 shadow-lg"
-                    : "bg-emerald-500/20 border border-emerald-500/30"
-                }`}
-              >
-                <DollarSign
-                  className={`w-8 h-8 -rotate-45 ${
-                    pathname === "/dashboard/wallet"
-                      ? "text-white"
-                      : "text-emerald-500"
-                  }`}
-                />
-              </div>
-            </Link>
-
             <Link href="/dashboard/create">
               <div
                 className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 rotate-45 ${
@@ -95,6 +77,24 @@ export default function DashboardLayout({
                     pathname === "/dashboard/create"
                       ? "text-white"
                       : "text-amber-500"
+                  }`}
+                />
+              </div>
+            </Link>
+
+            <Link href="/dashboard/wallet">
+              <div
+                className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 rotate-45 ${
+                  pathname === "/dashboard/wallet"
+                    ? "bg-emerald-500 shadow-emerald-500/40 shadow-lg"
+                    : "bg-emerald-500/20 border border-emerald-500/30"
+                }`}
+              >
+                <DollarSign
+                  className={`w-8 h-8 -rotate-45 ${
+                    pathname === "/dashboard/wallet"
+                      ? "text-white"
+                      : "text-emerald-500"
                   }`}
                 />
               </div>

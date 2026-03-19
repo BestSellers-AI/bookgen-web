@@ -215,6 +215,11 @@ function isAddonProcessing(status: string) {
   );
 }
 
+const PUBLISHING_KINDS = new Set<string>([
+  ProductKind.ADDON_AMAZON_STANDARD,
+  ProductKind.ADDON_AMAZON_PREMIUM,
+]);
+
 function getStepStatus(
   stepKinds: ProductKind[],
   addons: BookAddonSummary[],
@@ -225,6 +230,10 @@ function getStepStatus(
   );
   if (matching.length === 0) return "available";
   if (matching.some((a) => a.status === AddonStatus.COMPLETED))
+    return "completed";
+  // Publishing addons never reach COMPLETED — they stay in PROCESSING while admin handles the workflow.
+  // Any non-terminal status means the user already requested publishing, so treat as completed for step tracking.
+  if (matching.some((a) => PUBLISHING_KINDS.has(a.kind) && a.status !== AddonStatus.ERROR && a.status !== AddonStatus.CANCELLED))
     return "completed";
   if (matching.some((a) => a.status === AddonStatus.ERROR)) return "error";
   if (matching.some((a) => isAddonProcessing(a.status))) return "processing";
@@ -720,8 +729,16 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
   ).length;
   const totalSteps = stepStatuses.length;
   const remainingSteps = totalSteps - completedSteps;
-  const progressPercent = (completedSteps / totalSteps) * 100;
-  const allPublishingDone = completedSteps === totalSteps;
+  const allStepsCompleted = completedSteps === totalSteps;
+  const isPublished = publishingRequests.some(
+    (p) => !p.translationId && p.status === "PUBLISHED",
+  );
+  const progressPercent = isPublished
+    ? 100
+    : allStepsCompleted
+      ? 90
+      : (completedSteps / totalSteps) * 100;
+  const allPublishingDone = isPublished;
 
   const nextStep = stepStatuses.find(
     (s) => s.status === "available" || s.status === "error",
@@ -845,7 +862,7 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
       ) : (
       <div className="relative overflow-hidden rounded-2xl border-2 border-primary/30 bg-gradient-to-br from-primary/10 via-background to-amber-500/10">
         {/* Animated glow background */}
-        {!allPublishingDone && (
+        {!isPublished && (
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
             <div className="absolute -top-10 -right-10 w-72 h-72 bg-primary/20 rounded-full blur-[60px] animate-pulse" />
             <div className="absolute -bottom-10 -left-10 w-72 h-72 bg-amber-500/20 rounded-full blur-[60px] animate-pulse" style={{ animationDelay: "1s" }} />
@@ -861,9 +878,11 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
           >
             <div className="flex items-start gap-4">
               {/* Icon */}
-              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${allPublishingDone ? "bg-emerald-500/20 border-2 border-emerald-500/40 shadow-lg shadow-emerald-500/20" : "bg-primary/20 border-2 border-primary/40 shadow-lg shadow-primary/20 animate-pulse"}`}>
-                {allPublishingDone ? (
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${isPublished ? "bg-emerald-500/20 border-2 border-emerald-500/40 shadow-lg shadow-emerald-500/20" : allStepsCompleted ? "bg-amber-500/20 border-2 border-amber-500/40 shadow-lg shadow-amber-500/20" : "bg-primary/20 border-2 border-primary/40 shadow-lg shadow-primary/20 animate-pulse"}`}>
+                {isPublished ? (
                   <Crown className="w-6 h-6 text-emerald-400" />
+                ) : allStepsCompleted ? (
+                  <Clock className="w-6 h-6 text-amber-400" />
                 ) : (
                   <Rocket className="w-6 h-6 text-primary" />
                 )}
@@ -871,9 +890,13 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
 
               <div className="flex-1 min-w-0 space-y-2">
                 {/* Headline */}
-                {allPublishingDone ? (
+                {isPublished ? (
                   <h3 className="font-heading font-black text-base md:text-lg text-emerald-400">
                     {tj("headlineComplete")}
+                  </h3>
+                ) : allStepsCompleted ? (
+                  <h3 className="font-heading font-black text-base md:text-lg text-amber-400 leading-tight">
+                    {tj("headlinePublishing")}
                   </h3>
                 ) : (
                   <h3 className="font-heading font-black text-base md:text-lg text-foreground leading-tight">
@@ -883,7 +906,11 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
 
                 {/* Progress bar */}
                 <div className="flex items-center gap-3">
-                  <Progress value={progressPercent} className="h-3 flex-1" />
+                  <Progress
+                    value={progressPercent}
+                    className="h-3 flex-1"
+                    indicatorClassName={allStepsCompleted && !isPublished ? "relative after:absolute after:right-0 after:top-0 after:h-full after:w-3 after:animate-pulse after:bg-white/40 after:rounded-full after:blur-sm" : undefined}
+                  />
                   <span className="text-xs font-black text-primary tabular-nums shrink-0">
                     {completedSteps}/{totalSteps}
                   </span>
@@ -1384,12 +1411,16 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
           side="bottom"
           className="rounded-t-[2rem] max-h-[85vh] overflow-y-auto"
         >
-          <SheetHeader className="text-left pb-4">
-            <SheetTitle className="flex items-center gap-2">
-              <Palette className="w-5 h-5 text-pink-500" />
+          <SheetHeader className="text-center pb-4">
+            <SheetTitle className="flex items-center justify-center gap-2 text-xl">
+              <Palette className="w-6 h-6 text-pink-500" />
               {tj("coverGalleryTitle")}
             </SheetTitle>
-            <SheetDescription>{tj("coverGallerySubtitle")}</SheetDescription>
+            <div className="mx-auto mt-3 max-w-md rounded-xl bg-pink-500/10 border border-pink-500/20 px-4 py-3">
+              <SheetDescription className="text-sm font-medium text-pink-300">
+                {tj("coverGallerySubtitle")}
+              </SheetDescription>
+            </div>
           </SheetHeader>
 
           {/* Expanded view */}
@@ -1515,12 +1546,16 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
           side="bottom"
           className="rounded-t-[2rem] max-h-[85vh] overflow-y-auto"
         >
-          <SheetHeader className="text-left pb-4">
-            <SheetTitle className="flex items-center gap-2">
-              <ImageIcon className="w-5 h-5 text-indigo-500" />
+          <SheetHeader className="text-center pb-4">
+            <SheetTitle className="flex items-center justify-center gap-2 text-xl">
+              <ImageIcon className="w-6 h-6 text-indigo-500" />
               {tj("imageGalleryTitle")}
             </SheetTitle>
-            <SheetDescription>{tj("imageGallerySubtitle")}</SheetDescription>
+            <div className="mx-auto mt-3 max-w-md rounded-xl bg-indigo-500/10 border border-indigo-500/20 px-4 py-3">
+              <SheetDescription className="text-sm font-medium text-indigo-300">
+                {tj("imageGallerySubtitle")}
+              </SheetDescription>
+            </div>
           </SheetHeader>
 
           {/* Expanded view */}

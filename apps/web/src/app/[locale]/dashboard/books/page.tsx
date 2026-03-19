@@ -345,13 +345,11 @@ export default function BooksListPage() {
                       if (kinds.has("ADDON_COVER")) steps++;
                       if (kinds.has("ADDON_IMAGES")) steps++;
                       if (kinds.has("ADDON_AMAZON_STANDARD") || kinds.has("ADDON_AMAZON_PREMIUM")) steps++;
-                      if (steps < 4) {
-                        return (
-                          <Badge className="bg-gold-500/10 text-gold-500 border-gold-500/20 text-[9px] font-black px-2 py-0.5 rounded">
-                            {t("journeyStep", { current: steps })}
-                          </Badge>
-                        );
-                      }
+                      return (
+                        <Badge className="bg-gold-500/10 text-gold-500 border-gold-500/20 text-[9px] font-black px-2 py-0.5 rounded">
+                          {t("journeyStep", { current: steps })}
+                        </Badge>
+                      );
                     }
                     return null;
                   })()}

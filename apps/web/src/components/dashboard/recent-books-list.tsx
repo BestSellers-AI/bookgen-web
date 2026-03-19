@@ -86,13 +86,11 @@ export function RecentBooksList({ books }: RecentBooksListProps) {
                     if (k.has("ADDON_COVER")) s++;
                     if (k.has("ADDON_IMAGES")) s++;
                     if (k.has("ADDON_AMAZON_STANDARD") || k.has("ADDON_AMAZON_PREMIUM")) s++;
-                    if (s < 4) {
-                      return (
-                        <Badge className="bg-gold-500/10 text-gold-500 border-gold-500/20 text-[8px] font-black px-1.5 py-0 rounded">
-                          {t("journeyStep", { current: s })}
-                        </Badge>
-                      );
-                    }
+                    return (
+                      <Badge className="bg-gold-500/10 text-gold-500 border-gold-500/20 text-[8px] font-black px-1.5 py-0 rounded">
+                        {t("journeyStep", { current: s })}
+                      </Badge>
+                    );
                   }
                   return null;
                 })()}
