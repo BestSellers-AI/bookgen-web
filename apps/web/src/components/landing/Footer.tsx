@@ -1,6 +1,6 @@
 'use client'
 
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 
 const Logo = () => (
   <div className="flex items-center gap-2.5">
@@ -23,6 +23,13 @@ const Logo = () => (
 
 export default function Footer() {
   const t = useTranslations('landingV2.footer')
+  const locale = useLocale()
+
+  const contactEmail: Record<string, string> = {
+    'pt-BR': 'contato@bestsellers-ai.com',
+    en: 'contact@bestsellers-ai.com',
+    es: 'contacto@bestsellers-ai.com',
+  }
 
   const links: Record<string, { label: string; href: string; openChat?: boolean }[]> = {
     [t('colProduct')]: [
@@ -37,7 +44,7 @@ export default function Footer() {
     ],
     [t('colContact')]: [
       { label: t('linkSupport'), href: '#', openChat: true },
-      { label: t('linkContactUs'), href: '#', openChat: true },
+      { label: t('linkContactUs'), href: `mailto:${contactEmail[locale] ?? contactEmail.en}` },
     ],
   }
 
