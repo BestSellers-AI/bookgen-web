@@ -95,7 +95,7 @@
     "layoutTitle": "Autoria de Nova Geração",
     "layoutSubtitle": "Transforme suas ideias em livros best-sellers.",
     "layoutDescription": "Nosso assistente avançado de IA ajuda você a estruturar, pesquisar e escrever seu livro inteiro em minutos, não meses.",
-    "layoutSocialProof": "Mais de 10.000 criadores já se juntaram",
+    "layoutSocialProof": "Mais de 100.000 criadores já se juntaram",
     "loginTitle": "Bem-vindo de volta",
     "loginSubtitle": "Insira seus dados para entrar",
     "email": "Endereço de Email",
@@ -1609,8 +1609,9 @@
     "learnMore": "Veja o que está incluído",
     "hero": {
       "badge": "Vagas Limitadas",
-      "title": "Seu Livro Já Está Escrito!",
-      "subtitle": "Não deixe seu manuscrito juntando poeira. Vamos publicá-lo profissionalmente na Amazon e disponibilizá-lo para milhões de leitores no mundo todo.",
+      "title": "Autores KDP faturam R$ 319 milhões por mês.",
+      "titleHighlight": "E o seu livro?",
+      "subtitle": "Nossa equipe cuida de tudo: formatação profissional, ISBN, ficha catalográfica e publicação na Amazon KDP. Seu livro disponível para milhões de leitores no mundo todo.",
       "urgency": "Junte-se a 2.500+ autores que já estão vendendo na Amazon"
     },
     "statsBar": {

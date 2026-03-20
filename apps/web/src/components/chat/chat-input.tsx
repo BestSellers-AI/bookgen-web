@@ -94,7 +94,7 @@ export function ChatInput({
             placeholder={placeholder}
             disabled={disabled}
             rows={3}
-            className="flex-1 resize-none text-base rounded-xl"
+            className="flex-1 resize-none text-base rounded-xl border-border/80"
           />
         ) : (
           <Input
@@ -105,7 +105,7 @@ export function ChatInput({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             disabled={disabled}
-            className="flex-1 text-base h-11 rounded-xl"
+            className="flex-1 text-base h-11 rounded-xl border-border/80"
           />
         )}
         <Button

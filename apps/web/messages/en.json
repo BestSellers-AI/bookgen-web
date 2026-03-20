@@ -95,7 +95,7 @@
     "layoutTitle": "Next-Gen Authorship",
     "layoutSubtitle": "Transform your ideas into best-selling books.",
     "layoutDescription": "Our advanced AI assistant helps you structure, research, and write your entire book in minutes, not months.",
-    "layoutSocialProof": "Joined by 10,000+ creators",
+    "layoutSocialProof": "Joined by 100,000+ creators",
     "loginTitle": "Welcome back",
     "loginSubtitle": "Enter your details to sign in",
     "email": "Email Address",
@@ -1609,8 +1609,9 @@
     "learnMore": "See what's included",
     "hero": {
       "badge": "Limited Availability",
-      "title": "Your Book Is Already Written!",
-      "subtitle": "Don't let your manuscript collect dust. We'll publish it professionally on Amazon and make it available to millions of readers worldwide.",
+      "title": "KDP authors earn $65 million per month.",
+      "titleHighlight": "What about your book?",
+      "subtitle": "Our team handles everything: professional formatting, ISBN, catalog listing, and Amazon KDP publishing. Your book available to millions of readers worldwide.",
       "urgency": "Join 2,500+ authors who are already selling on Amazon"
     },
     "statsBar": {

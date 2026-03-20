@@ -15,6 +15,7 @@ import {
   Rocket,
   ArrowRight,
 } from "lucide-react";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import {
   Accordion,
@@ -74,6 +75,8 @@ export function PublishingInfoOverlay({
             </div>
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-heading font-black tracking-tight leading-tight">
               {t("hero.title")}
+              <br />
+              <span className="text-amber-500">{t("hero.titleHighlight")}</span>
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mt-4 leading-relaxed">
               {t("hero.subtitle")}
@@ -276,6 +279,27 @@ export function PublishingInfoOverlay({
               {t("testimonials.subtitle")}
             </p>
           </div>
+
+          {/* Customer Photos */}
+          <div className="max-w-4xl mx-auto glass rounded-3xl p-4 sm:p-6 border border-border">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+              {['/lp/amazon/1.jpeg', '/lp/amazon/2.jpeg', '/lp/amazon/3.jpeg', '/lp/amazon/4.jpeg'].map((src, i) => (
+                <div
+                  key={src}
+                  className="relative aspect-[3/4] rounded-xl overflow-hidden border border-border/50"
+                >
+                  <Image
+                    src={src}
+                    alt={`Amazon KDP ${i + 1}`}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 50vw, 25vw"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {Array.from({ length: TESTIMONIAL_COUNT }, (_, i) => (
               <div

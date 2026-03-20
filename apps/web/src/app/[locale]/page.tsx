@@ -17,9 +17,9 @@ export default function Home() {
     <main className="landing min-h-screen overflow-x-hidden">
       <Navbar />
       <HeroSection />
+      <HowItWorksSection />
       <DreamSection />
       <AiCoversSection />
-      <HowItWorksSection />
       <FreeSamplesSection />
       <ValueAnchorSection />
       <AmazonKdpSection />
