@@ -97,7 +97,7 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
     setDownloadingPdf(true);
     try {
       const { downloadBookPdf } = await import("@/lib/book-template/download");
-      await downloadBookPdf(book, locale);
+      await downloadBookPdf(book, locale, '_Preview');
     } catch {
       toast.error(tErr("downloadFailed"));
     } finally {
@@ -109,7 +109,7 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
     setDownloadingDocx(true);
     try {
       const { downloadBookDocx } = await import("@/lib/book-template/download");
-      await downloadBookDocx(book, locale);
+      await downloadBookDocx(book, locale, '_Preview');
     } catch {
       toast.error(tErr("downloadFailed"));
     } finally {
@@ -192,7 +192,7 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
               ) : (
                 <FileDown className="mr-2 h-4 w-4" />
               )}
-              {t("downloadDocx")}
+              {t("downloadEditable")}
             </Button>
           )}
 
