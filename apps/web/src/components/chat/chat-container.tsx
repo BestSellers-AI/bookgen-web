@@ -16,6 +16,38 @@ import { MessageBubble } from './message-bubble';
 import { ChatInput } from './chat-input';
 import { TypingIndicator } from './typing-indicator';
 
+// Chat image paths per locale (extensions vary by locale)
+const CHAT_IMAGES: Record<string, Record<string, string>> = {
+  en: {
+    img01: '/chat/en/img01.jpg',
+    img02: '/chat/en/img02.jpg',
+    img03: '/chat/en/img03.jpg',
+    img04: '/chat/en/img04.jpg',
+    'ai-text01': '/chat/en/ai-text01.png',
+    'ai-text02': '/chat/en/ai-text02.png',
+  },
+  es: {
+    img01: '/chat/es/img01.png',
+    img02: '/chat/es/img02.png',
+    img03: '/chat/es/img03.png',
+    img04: '/chat/es/img04.png',
+    'ai-text01': '/chat/es/ai-text01.png',
+    'ai-text02': '/chat/es/ai-text02.png',
+  },
+  'pt-BR': {
+    img01: '/chat/pt-br/img01.jpeg',
+    img02: '/chat/pt-br/img02.jpeg',
+    img03: '/chat/pt-br/img03.jpeg',
+    img04: '/chat/pt-br/img04.jpeg',
+    'ai-text01': '/chat/pt-br/ai-text01.jpeg',
+    'ai-text02': '/chat/pt-br/ai-text02.jpeg',
+  },
+};
+
+function getChatImage(locale: string, name: string): string {
+  return CHAT_IMAGES[locale]?.[name] ?? CHAT_IMAGES['en'][name];
+}
+
 export function ChatContainer() {
   const t = useTranslations('chat');
   const tCommon = useTranslations('common');
@@ -173,10 +205,10 @@ export function ChatContainer() {
     await showTypingThenMessage(t('pitchVideos1', { name: userName }), 'text', 800);
     await showTypingThenMessage(t('pitchVideos2'), 'text', 1000);
     // YouTube screenshots
-    await showTypingThenMessage('', 'image', 600, { imageUrl: '/chat/img01.png' });
-    await showTypingThenMessage('', 'image', 400, { imageUrl: '/chat/img02.png' });
-    await showTypingThenMessage('', 'image', 400, { imageUrl: '/chat/img03.png' });
-    await showTypingThenMessage('', 'image', 400, { imageUrl: '/chat/img04.png' });
+    await showTypingThenMessage('', 'image', 600, { imageUrl: getChatImage(locale, 'img01') });
+    await showTypingThenMessage('', 'image', 400, { imageUrl: getChatImage(locale, 'img02') });
+    await showTypingThenMessage('', 'image', 400, { imageUrl: getChatImage(locale, 'img03') });
+    await showTypingThenMessage('', 'image', 400, { imageUrl: getChatImage(locale, 'img04') });
     // Question
     await showTypingThenMessage(t('pitchVideos3'), 'text', 1000);
     await showTypingThenMessage(t('pitchVideos4'), 'text', 800);
@@ -215,11 +247,11 @@ export function ChatContainer() {
     await showTypingThenMessage(t('pitchSolution7'), 'text', 1000);
     // GPT comparison image
     await showTypingThenMessage(t('pitchCompare1'), 'text', 1000);
-    await showTypingThenMessage('', 'image', 600, { imageUrl: '/chat/ai-text01.jpeg' });
+    await showTypingThenMessage('', 'image', 600, { imageUrl: getChatImage(locale, 'ai-text01') });
     await showTypingThenMessage(t('pitchCompare2'), 'text', 1000);
     // Our AI image
     await showTypingThenMessage(t('pitchCompare3'), 'text', 1000);
-    await showTypingThenMessage('', 'image', 600, { imageUrl: '/chat/ai-text02.jpeg' });
+    await showTypingThenMessage('', 'image', 600, { imageUrl: getChatImage(locale, 'ai-text02') });
     await showTypingThenMessage(t('pitchCompare4'), 'text', 1000);
     // CTA
     await showTypingThenMessage(t('pitchCta'), 'text', 800);
