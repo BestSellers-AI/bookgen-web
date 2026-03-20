@@ -89,7 +89,7 @@ export default function AdminPublicationsPage() {
         <TabsList>
           <TabsTrigger value="all">{t("filterAll")}</TabsTrigger>
           <TabsTrigger value="requested">{t("filterRequested")}</TabsTrigger>
-          <TabsTrigger value="in_progress">{t("filterInProgress")}</TabsTrigger>
+          {/* <TabsTrigger value="in_progress">{t("filterInProgress")}</TabsTrigger> */}
           <TabsTrigger value="completed">{t("filterCompleted")}</TabsTrigger>
         </TabsList>
       </Tabs>

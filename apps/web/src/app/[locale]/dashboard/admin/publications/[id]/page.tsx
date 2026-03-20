@@ -337,6 +337,7 @@ export default function AdminPublicationDetailPage() {
       {/* ─── Status Update ─── */}
       {detail.status !== "PUBLISHED" && detail.status !== "CANCELLED" && (
         <div className="glass rounded-[2rem] p-6 space-y-4">
+          {/* Status select — hidden for now
           <h3 className="text-sm font-bold">{t("updateStatus")}</h3>
           <div className="flex items-center gap-3">
             <Select value={newStatus} onValueChange={setNewStatus}>
@@ -361,6 +362,7 @@ export default function AdminPublicationDetailPage() {
               {t("updateStatus")}
             </Button>
           </div>
+          */}
 
           {/* Add to spreadsheet */}
           <div className="border-t border-border pt-4">
