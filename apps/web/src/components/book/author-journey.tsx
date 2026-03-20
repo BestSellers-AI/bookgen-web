@@ -529,11 +529,24 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
   };
 
   // Bundle availability helpers
-  const isBundleAvailable = (bundle: BundleConfigPayload) =>
-    bundle.kinds.every((kind) => {
+  // For Global Launch bundles, publishing addons target the translation (not the original book),
+  // so we skip the conflict check for publishing kinds — they won't clash with original book publishing.
+  const PUBLISHING_ADDON_KINDS = new Set<string>([
+    ProductKind.ADDON_AMAZON_STANDARD,
+    ProductKind.ADDON_AMAZON_PREMIUM,
+  ]);
+  const isBundleAvailable = (bundle: BundleConfigPayload) => {
+    const isGlobalLaunch = bundle.kinds.includes(ProductKind.ADDON_TRANSLATION as string);
+    return bundle.kinds.every((kind) => {
+      // Global Launch bundle: publishing addon will be linked to the translation after it completes,
+      // so it should not conflict with existing publishing on the original book.
+      if (isGlobalLaunch && PUBLISHING_ADDON_KINDS.has(kind) && !translationId) {
+        return true;
+      }
       const existing = getExistingAddon(kind);
       return !existing || existing.status === AddonStatus.ERROR || existing.status === AddonStatus.CANCELLED;
     });
+  };
 
   // Check if the original book (not translation) has an active publishing request
   const hasOriginalBookPublishing = addons.some(
