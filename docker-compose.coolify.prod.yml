@@ -1,19 +1,4 @@
 services:
-  postgres:
-    image: postgres:16-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-bestsellers}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bestsellers}
-      POSTGRES_DB: ${POSTGRES_DB:-bestsellers}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bestsellers} -d ${POSTGRES_DB:-bestsellers}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   redis:
     image: redis:7-alpine
     restart: unless-stopped
@@ -32,14 +17,12 @@ services:
       dockerfile: apps/api/Dockerfile
     restart: unless-stopped
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_healthy
     environment:
       NODE_ENV: production
       API_PORT: "3001"
-      DATABASE_URL: "postgresql://${POSTGRES_USER:-bestsellers}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-bestsellers}?schema=public"
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL (Neon)}
       REDIS_URL: "redis://:${REDIS_PASSWORD}@redis:6379"
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?Set JWT_REFRESH_SECRET}
@@ -47,6 +30,7 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-}
       N8N_WEBHOOK_BASE_URL: ${N8N_WEBHOOK_BASE_URL:-}
       N8N_WEBHOOK_PREVIEW: ${N8N_WEBHOOK_PREVIEW:-/preview}
       N8N_WEBHOOK_GENERATION: ${N8N_WEBHOOK_GENERATION:-/generate-book}
@@ -70,10 +54,9 @@ services:
       LLM_MODEL_IMAGE: ${LLM_MODEL_IMAGE:-google/gemini-3.1-flash-image-preview}
       LLM_MAX_RETRIES: ${LLM_MAX_RETRIES:-3}
       LLM_TIMEOUT_MS: ${LLM_TIMEOUT_MS:-120000}
-      USE_INTERNAL_GENERATION: ${USE_INTERNAL_GENERATION:-false}
+      USE_INTERNAL_GENERATION: ${USE_INTERNAL_GENERATION:-true}
       GENERATION_CONCURRENCY: ${GENERATION_CONCURRENCY:-2}
       GENERATION_JOB_TIMEOUT_MS: ${GENERATION_JOB_TIMEOUT_MS:-2700000}
-      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-}
     ports:
       - "${API_PORT:-3001}:3001"
     healthcheck:
@@ -84,5 +67,4 @@ services:
       start_period: 30s
 
 volumes:
-  postgres_data:
   redis_data:
