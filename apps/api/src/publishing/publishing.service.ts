@@ -83,6 +83,7 @@ export class PublishingService {
       where.OR = [
         { book: { title: { contains: search, mode: 'insensitive' } } },
         { user: { email: { contains: search, mode: 'insensitive' } } },
+        { user: { phoneNumber: { contains: search, mode: 'insensitive' } } },
       ];
     }
 

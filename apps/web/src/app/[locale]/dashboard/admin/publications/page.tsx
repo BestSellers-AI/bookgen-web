@@ -99,7 +99,7 @@ export default function AdminPublicationsPage() {
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder={t("searchBooks")}
+          placeholder={t("searchPublications")}
           className="pl-10 rounded-xl"
         />
       </div>

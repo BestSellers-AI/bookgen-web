@@ -872,6 +872,7 @@
     "joined": "Registro",
     "booksTitle": "Todos los Libros",
     "searchBooks": "Buscar por título o autor...",
+    "searchPublications": "Buscar por título, email o teléfono...",
     "bookTitle": "Título",
     "author": "Autor",
     "status": "Estado",

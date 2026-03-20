@@ -872,6 +872,7 @@
     "joined": "Cadastro",
     "booksTitle": "Todos os Livros",
     "searchBooks": "Buscar por título ou autor...",
+    "searchPublications": "Buscar por título, email ou telefone...",
     "bookTitle": "Título",
     "author": "Autor",
     "status": "Status",
