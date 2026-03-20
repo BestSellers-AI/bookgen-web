@@ -155,7 +155,7 @@ async function main() {
     },
   });
   await upsertPrices(pack100.id, [
-    { currency: 'usd', amount: 990, stripePriceId: 'price_1T9cTv9UYPL3yWYTGZlVwqUb' },
+    { currency: 'usd', amount: 2000, stripePriceId: 'price_1TCsiJ9UYPL3yWYTgBotLEK6' },
   ]);
 
   const pack300 = await prisma.product.upsert({
@@ -171,7 +171,7 @@ async function main() {
     },
   });
   await upsertPrices(pack300.id, [
-    { currency: 'usd', amount: 2490, stripePriceId: 'price_1T9cTw9UYPL3yWYTI2JXSIt6' },
+    { currency: 'usd', amount: 6000, stripePriceId: 'price_1TCsiK9UYPL3yWYTsxydFo04' },
   ]);
 
   const pack500 = await prisma.product.upsert({
@@ -187,7 +187,7 @@ async function main() {
     },
   });
   await upsertPrices(pack500.id, [
-    { currency: 'usd', amount: 3490, stripePriceId: 'price_1T9cTw9UYPL3yWYThkXcbvBf' },
+    { currency: 'usd', amount: 10000, stripePriceId: 'price_1TCsiL9UYPL3yWYTgO40km13' },
   ]);
 
   // ============================================
@@ -195,7 +195,7 @@ async function main() {
   // ============================================
   const aspiringWork = await prisma.product.upsert({
     where: { slug: 'aspiring-work' },
-    update: { name: 'Aspiring Work', creditsAmount: 100 },
+    update: { name: 'Aspiring Work', creditsAmount: 100, metadata: {} },
     create: {
       name: 'Aspiring Work',
       slug: 'aspiring-work',
@@ -211,13 +211,14 @@ async function main() {
 
   const completeWork = await prisma.product.upsert({
     where: { slug: 'complete-work' },
-    update: { name: 'Complete Work', creditsAmount: 400 },
+    update: { name: 'Complete Work', creditsAmount: 400, metadata: { fullPriceCents: 7700 } },
     create: {
       name: 'Complete Work',
       slug: 'complete-work',
       kind: 'CREDIT_PACK',
       description: 'Full creative toolkit — 400 credits for books, covers, and more',
       creditsAmount: 400,
+      metadata: { fullPriceCents: 7700 },
       sortOrder: 24,
     },
   });
@@ -227,13 +228,14 @@ async function main() {
 
   const bestsellerPack = await prisma.product.upsert({
     where: { slug: 'bestseller' },
-    update: { name: 'BestSeller', creditsAmount: 1500 },
+    update: { name: 'BestSeller', creditsAmount: 1500, metadata: { fullPriceCents: 27600 } },
     create: {
       name: 'BestSeller',
       slug: 'bestseller',
       kind: 'CREDIT_PACK',
       description: 'Maximum value — 1500 credits for the complete publishing experience',
       creditsAmount: 1500,
+      metadata: { fullPriceCents: 27600 },
       sortOrder: 25,
     },
   });
@@ -263,13 +265,13 @@ async function main() {
   // Addons
   // ============================================
   const addons = [
-    { name: 'Custom Cover', slug: 'addon-cover', kind: 'ADDON_COVER' as const, credits: 30, sort: 40 },
-    { name: 'Translation', slug: 'addon-translation', kind: 'ADDON_TRANSLATION' as const, credits: 50, sort: 41 },
-    { name: 'Cover Translation', slug: 'addon-cover-translation', kind: 'ADDON_COVER_TRANSLATION' as const, credits: 20, sort: 42 },
-    { name: 'Amazon Standard', slug: 'addon-amazon-standard', kind: 'ADDON_AMAZON_STANDARD' as const, credits: 40, sort: 43 },
-    { name: 'Amazon Premium', slug: 'addon-amazon-premium', kind: 'ADDON_AMAZON_PREMIUM' as const, credits: 80, sort: 44 },
-    { name: 'Chapter Images', slug: 'addon-images', kind: 'ADDON_IMAGES' as const, credits: 20, sort: 45 },
-    { name: 'Audiobook', slug: 'addon-audiobook', kind: 'ADDON_AUDIOBOOK' as const, credits: 60, sort: 46 },
+    { name: 'Custom Cover', slug: 'addon-cover', kind: 'ADDON_COVER' as const, credits: 150, sort: 40 },
+    { name: 'Translation', slug: 'addon-translation', kind: 'ADDON_TRANSLATION' as const, credits: 100, sort: 41 },
+    { name: 'Cover Translation', slug: 'addon-cover-translation', kind: 'ADDON_COVER_TRANSLATION' as const, credits: 100, sort: 42 },
+    { name: 'Amazon Standard', slug: 'addon-amazon-standard', kind: 'ADDON_AMAZON_STANDARD' as const, credits: 700, sort: 43 },
+    { name: 'Amazon Premium', slug: 'addon-amazon-premium', kind: 'ADDON_AMAZON_PREMIUM' as const, credits: 1000, sort: 44 },
+    { name: 'Chapter Images', slug: 'addon-images', kind: 'ADDON_IMAGES' as const, credits: 150, sort: 45 },
+    { name: 'Audiobook', slug: 'addon-audiobook', kind: 'ADDON_AUDIOBOOK' as const, credits: 150, sort: 46 },
   ];
 
   for (const addon of addons) {
@@ -390,13 +392,13 @@ async function main() {
       value: {
         BOOK_GENERATION: 100,
         CHAPTER_REGENERATION: 10,
-        ADDON_COVER: 30,
-        ADDON_TRANSLATION: 50,
-        ADDON_COVER_TRANSLATION: 20,
-        ADDON_AMAZON_STANDARD: 40,
-        ADDON_AMAZON_PREMIUM: 80,
-        ADDON_IMAGES: 20,
-        ADDON_AUDIOBOOK: 60,
+        ADDON_COVER: 150,
+        ADDON_TRANSLATION: 100,
+        ADDON_COVER_TRANSLATION: 100,
+        ADDON_AMAZON_STANDARD: 700,
+        ADDON_AMAZON_PREMIUM: 1000,
+        ADDON_IMAGES: 150,
+        ADDON_AUDIOBOOK: 150,
       },
     },
     {
@@ -417,16 +419,16 @@ async function main() {
         BUNDLE_PUBLISH_PREMIUM: {
           id: 'BUNDLE_PUBLISH_PREMIUM',
           kinds: ['ADDON_COVER', 'ADDON_IMAGES', 'ADDON_AMAZON_PREMIUM'],
-          originalCost: 130,
-          cost: 110,
-          discountPercent: 15,
+          originalCost: 1300,
+          cost: 1100,
+          discountPercent: 15.4,
         },
         BUNDLE_GLOBAL_LAUNCH: {
           id: 'BUNDLE_GLOBAL_LAUNCH',
-          kinds: ['ADDON_TRANSLATION', 'ADDON_COVER_TRANSLATION', 'ADDON_AMAZON_STANDARD'],
-          originalCost: 110,
-          cost: 90,
-          discountPercent: 18,
+          kinds: ['ADDON_TRANSLATION', 'ADDON_COVER_TRANSLATION', 'ADDON_AMAZON_PREMIUM'],
+          originalCost: 1200,
+          cost: 700,
+          discountPercent: 41.7,
         },
       },
     },

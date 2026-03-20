@@ -83,25 +83,25 @@ export const FREE_TIER = {
 };
 
 export const CREDIT_PACKS = [
-  { name: '100 Credits', slug: 'pack-100', credits: 100, priceCents: 990 },
-  { name: '300 Credits', slug: 'pack-300', credits: 300, priceCents: 2490 },
-  { name: '500 Credits', slug: 'pack-500', credits: 500, priceCents: 3490 },
-  { name: 'Aspiring Work', slug: 'aspiring-work', credits: 100, priceCents: 1900 },
-  { name: 'Complete Work', slug: 'complete-work', credits: 400, priceCents: 6900 },
-  { name: 'BestSeller', slug: 'bestseller', credits: 1500, priceCents: 24900 },
+  { name: '100 Credits', slug: 'pack-100', credits: 100, priceCents: 2000 },
+  { name: '300 Credits', slug: 'pack-300', credits: 300, priceCents: 6000 },
+  { name: '500 Credits', slug: 'pack-500', credits: 500, priceCents: 10000 },
+  { name: 'Aspiring Work', slug: 'aspiring-work', credits: 100, priceCents: 1900, fullPriceCents: 1900 },
+  { name: 'Complete Work', slug: 'complete-work', credits: 400, priceCents: 6900, fullPriceCents: 7700 },
+  { name: 'BestSeller', slug: 'bestseller', credits: 1500, priceCents: 24900, fullPriceCents: 27600 },
 ] as const;
 
 export const CREDITS_COST: Record<string, number> = {
   BOOK_GENERATION: 100,
   CHAPTER_REGENERATION: 10,
-  [ProductKind.ADDON_COVER]: 30,
-  [ProductKind.ADDON_TRANSLATION]: 50,
-  [ProductKind.ADDON_COVER_TRANSLATION]: 20,
-  [ProductKind.ADDON_AMAZON_STANDARD]: 40,
-  [ProductKind.ADDON_AMAZON_PREMIUM]: 80,
-  [ProductKind.ADDON_IMAGES]: 20,
-  [ProductKind.ADDON_AUDIOBOOK]: 60,
-  PUBLISHING_UPGRADE_PRICE: 40,
+  [ProductKind.ADDON_COVER]: 150,
+  [ProductKind.ADDON_TRANSLATION]: 100,
+  [ProductKind.ADDON_COVER_TRANSLATION]: 100,
+  [ProductKind.ADDON_AMAZON_STANDARD]: 700,
+  [ProductKind.ADDON_AMAZON_PREMIUM]: 1000,
+  [ProductKind.ADDON_IMAGES]: 150,
+  [ProductKind.ADDON_AUDIOBOOK]: 150,
+  PUBLISHING_UPGRADE_PRICE: 300,
 };
 
 /** Bundle type definition */
@@ -113,7 +113,7 @@ export interface BundleConfig {
   discountPercent: number;
 }
 
-/** Premium Publishing Bundle — Cover + Images + Amazon Premium with 15% off */
+/** Premium Publishing Bundle — Cover + Images + Amazon Premium with ~15% off */
 export const BUNDLE_PUBLISH_PREMIUM: BundleConfig = {
   id: 'BUNDLE_PUBLISH_PREMIUM',
   kinds: [
@@ -121,26 +121,26 @@ export const BUNDLE_PUBLISH_PREMIUM: BundleConfig = {
     ProductKind.ADDON_IMAGES,
     ProductKind.ADDON_AMAZON_PREMIUM,
   ],
-  /** Sum of individual costs: 30 + 20 + 80 = 130 */
-  originalCost: 130,
-  /** 15% discount applied: Math.round(130 * 0.85) = 110 */
-  cost: 110,
-  discountPercent: 15,
+  /** Sum of individual costs: 150 + 150 + 1000 = 1300 */
+  originalCost: 1300,
+  /** ~15.4% discount applied */
+  cost: 1100,
+  discountPercent: 15.4,
 };
 
-/** Global Launch Bundle — Translation + Cover Translation + Amazon Standard (publishing 50% off) */
+/** Global Launch Bundle — Translation + Cover Translation + Amazon Premium (publishing 50% off) */
 export const BUNDLE_GLOBAL_LAUNCH: BundleConfig = {
   id: 'BUNDLE_GLOBAL_LAUNCH',
   kinds: [
     ProductKind.ADDON_TRANSLATION,
     ProductKind.ADDON_COVER_TRANSLATION,
-    ProductKind.ADDON_AMAZON_STANDARD,
+    ProductKind.ADDON_AMAZON_PREMIUM,
   ],
-  /** Sum of individual costs: 50 + 20 + 40 = 110 */
-  originalCost: 110,
-  /** Publishing at 50% off: 50 + 20 + 20 = 90 */
-  cost: 90,
-  discountPercent: 18,
+  /** Sum of individual costs: 100 + 100 + 1000 = 1200 */
+  originalCost: 1200,
+  /** Publishing at 50% off: 100 + 100 + 500 = 700 */
+  cost: 700,
+  discountPercent: 41.7,
 };
 
 /** All bundles indexed by ID */

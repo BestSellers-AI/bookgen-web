@@ -143,12 +143,16 @@ export class ConfigDataService implements OnModuleInit {
       // Build credit packs
       const creditPacks: CreditPackConfig[] = products
         .filter((p) => p.kind === 'CREDIT_PACK')
-        .map((p) => ({
-          name: p.name,
-          slug: p.slug,
-          credits: p.creditsAmount ?? 0,
-          priceCents: p.prices[0]?.amount ?? 0,
-        }));
+        .map((p) => {
+          const meta = (p.metadata ?? {}) as Record<string, any>;
+          return {
+            name: p.name,
+            slug: p.slug,
+            credits: p.creditsAmount ?? 0,
+            priceCents: p.prices[0]?.amount ?? 0,
+            ...(meta.fullPriceCents ? { fullPriceCents: meta.fullPriceCents } : {}),
+          };
+        });
 
       // Credits cost from AppConfig, with fallback to shared constants
       const dbCreditsCost = (configMap.get('CREDITS_COST') ?? {}) as Record<

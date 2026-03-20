@@ -30,6 +30,7 @@ export interface CreditPack {
   nameKey: string
   credits: number
   price: number
+  fullPrice?: number // anchor price for strikethrough display
   popular: boolean
   labelKey: string
   useCases: { emoji: string; textKey: string }[]
@@ -306,13 +307,13 @@ const PURE_CREDIT_PACK_UI: CreditPackUiData[] = [
 ]
 
 // Fallback values for credit packs
-const CREDIT_PACK_FALLBACKS: Record<string, { credits: number; price: number }> = {
+const CREDIT_PACK_FALLBACKS: Record<string, { credits: number; price: number; fullPrice?: number }> = {
   'aspiring-work': { credits: 100, price: 19 },
-  'complete-work': { credits: 400, price: 69 },
-  'bestseller': { credits: 1500, price: 249 },
-  'pack-100': { credits: 100, price: 9.90 },
-  'pack-300': { credits: 300, price: 24.90 },
-  'pack-500': { credits: 500, price: 34.90 },
+  'complete-work': { credits: 400, price: 69, fullPrice: 77 },
+  'bestseller': { credits: 1500, price: 249, fullPrice: 276 },
+  'pack-100': { credits: 100, price: 20 },
+  'pack-300': { credits: 300, price: 60 },
+  'pack-500': { credits: 500, price: 100 },
 }
 
 function buildFromUiData(uiData: CreditPackUiData[], configPacks?: CreditPackConfig[]): CreditPack[] {
@@ -320,12 +321,18 @@ function buildFromUiData(uiData: CreditPackUiData[], configPacks?: CreditPackCon
     const config = configPacks?.find((p) => p.slug === ui.slug)
     const fallback = CREDIT_PACK_FALLBACKS[ui.slug]
 
+    const price = config ? config.priceCents / 100 : (fallback?.price ?? 0)
+    const fullPrice = config?.fullPriceCents
+      ? config.fullPriceCents / 100
+      : fallback?.fullPrice
+
     return {
       id: ui.slug,
       slug: ui.slug,
       nameKey: ui.nameKey,
       credits: config?.credits ?? fallback?.credits ?? 100,
-      price: config ? config.priceCents / 100 : (fallback?.price ?? 0),
+      price,
+      fullPrice: fullPrice && fullPrice > price ? fullPrice : undefined,
       popular: ui.popular,
       labelKey: ui.labelKey,
       ctaKey: ui.ctaKey,
@@ -353,12 +360,12 @@ export function buildPureCreditPacks(configPacks?: CreditPackConfig[]): CreditPa
 
 export const SERVICES: Service[] = [
   { nameKey: 'serviceBook', costKey: 'BOOK_GENERATION', credits: 100 },
-  { nameKey: 'serviceCover', costKey: 'ADDON_COVER', credits: 30 },
-  { nameKey: 'serviceTranslation', costKey: 'ADDON_TRANSLATION', credits: 50 },
-  { nameKey: 'serviceCoverTranslation', costKey: 'ADDON_COVER_TRANSLATION', credits: 20 },
-  { nameKey: 'serviceImagePack', costKey: 'ADDON_IMAGES', credits: 20 },
-  { nameKey: 'servicePublishStandard', costKey: 'ADDON_AMAZON_STANDARD', credits: 40 },
-  { nameKey: 'servicePublishPremium', costKey: 'ADDON_AMAZON_PREMIUM', credits: 80 },
+  { nameKey: 'serviceCover', costKey: 'ADDON_COVER', credits: 150 },
+  { nameKey: 'serviceTranslation', costKey: 'ADDON_TRANSLATION', credits: 100 },
+  { nameKey: 'serviceCoverTranslation', costKey: 'ADDON_COVER_TRANSLATION', credits: 100 },
+  { nameKey: 'serviceImagePack', costKey: 'ADDON_IMAGES', credits: 150 },
+  { nameKey: 'servicePublishStandard', costKey: 'ADDON_AMAZON_STANDARD', credits: 700 },
+  { nameKey: 'servicePublishPremium', costKey: 'ADDON_AMAZON_PREMIUM', credits: 1000 },
 ]
 
 /**

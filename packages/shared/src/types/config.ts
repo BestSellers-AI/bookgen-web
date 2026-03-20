@@ -51,6 +51,7 @@ export interface CreditPackConfig {
   slug: string;
   credits: number;
   priceCents: number;
+  fullPriceCents?: number;
 }
 
 export interface FreeTierConfig {
