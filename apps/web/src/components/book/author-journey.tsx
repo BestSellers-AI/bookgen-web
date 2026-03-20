@@ -51,6 +51,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { addonsApi } from "@/lib/api/addons";
 import { walletApi } from "@/lib/api/wallet";
@@ -291,7 +292,8 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
   const [addons, setAddons] = useState<BookAddonSummary[]>(book.addons ?? []);
   const [balance, setBalance] = useState<number | null>(null);
   const [expanded, setExpanded] = useState(true);
-  const [extrasOpen, setExtrasOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const [extrasOpen, setExtrasOpen] = useState(searchParams.get("extras") === "open");
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedAddon, setSelectedAddon] = useState<AddonConfig | null>(null);

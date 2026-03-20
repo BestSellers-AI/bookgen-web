@@ -20,6 +20,8 @@ import {
   ChevronDown,
   CheckCircle2,
   Clock,
+  Rocket,
+  ArrowRight,
 } from "lucide-react";
 import { SUPPORTED_LANGUAGES } from "@bestsellers/shared";
 import { booksApi, type BookQueryParams } from "@/lib/api/books";
@@ -385,9 +387,11 @@ export default function BooksListPage() {
                     </div>
                   );
                 })()}
-                {book.translations?.length > 0 && (
+                {book.translations?.length > 0 ? (
                   <TranslationsCollapsible bookId={book.id} translations={book.translations} t={t} tStatus={tStatus} />
-                )}
+                ) : book.status === "GENERATED" || book.isPublished ? (
+                  <JourneyMessage book={book} t={t} />
+                ) : null}
               </div>
             ))}
           </div>
@@ -407,6 +411,59 @@ export default function BooksListPage() {
         onConfirm={() => deleteId && handleDelete(deleteId)}
         destructive
       />
+    </div>
+  );
+}
+
+function JourneyMessage({
+  book,
+  t,
+}: {
+  book: BookListItem;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  const router = useRouter();
+  const kinds = new Set(book.addonKinds ?? []);
+  let steps = 1;
+  if (kinds.has("ADDON_COVER")) steps++;
+  if (kinds.has("ADDON_IMAGES")) steps++;
+  if (kinds.has("ADDON_AMAZON_STANDARD") || kinds.has("ADDON_AMAZON_PREMIUM")) steps++;
+
+  const isGlobal = steps === 4 || book.isPublished;
+  const msgKey = book.isPublished
+    ? "journeyMsgPublished"
+    : (`journeyMsg${steps}` as "journeyMsg1");
+
+  const STEP_COLORS = [
+    "", // unused index 0
+    "from-amber-500/10 to-transparent border-amber-500/20 text-amber-400",
+    "from-pink-500/10 to-transparent border-pink-500/20 text-pink-400",
+    "from-indigo-500/10 to-transparent border-indigo-500/20 text-indigo-400",
+    "from-emerald-500/10 to-transparent border-emerald-500/20 text-emerald-400",
+  ];
+  const colorClass = book.isPublished ? STEP_COLORS[4] : STEP_COLORS[steps];
+
+  return (
+    <div className="mt-2">
+      {isGlobal ? (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            router.push(`/dashboard/books/${book.id}?extras=open`);
+          }}
+          className={`flex items-center gap-2.5 w-full px-3 py-2 rounded-xl bg-gradient-to-r ${colorClass} border transition-all hover:scale-[1.02] active:scale-[0.98]`}
+        >
+          <Rocket className="w-3.5 h-3.5 shrink-0" />
+          <span className="text-[11px] font-bold truncate">{t(msgKey)}</span>
+          <ArrowRight className="w-3 h-3 shrink-0 ml-auto opacity-60" />
+        </button>
+      ) : (
+        <div className={`flex items-center gap-2.5 px-3 py-2 rounded-xl bg-gradient-to-r ${colorClass} border`}>
+          <Rocket className="w-3.5 h-3.5 shrink-0" />
+          <span className="text-[11px] font-bold truncate">{t(msgKey)}</span>
+        </div>
+      )}
     </div>
   );
 }

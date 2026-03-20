@@ -365,8 +365,20 @@ function CreditCostsForm({
 }
 
 // ===========================================================================
-// BundleCostsForm — edit bundle credit prices
+// BundleCostsForm — edit bundle credit prices, kinds, and original cost
 // ===========================================================================
+const BUNDLE_ADDON_OPTIONS = [
+  { kind: "ADDON_COVER", icon: "🎨" },
+  { kind: "ADDON_IMAGES", icon: "🖼️" },
+  { kind: "ADDON_TRANSLATION", icon: "🌍" },
+  { kind: "ADDON_COVER_TRANSLATION", icon: "🖼️" },
+  { kind: "ADDON_AMAZON_STANDARD", icon: "📦" },
+  { kind: "ADDON_AMAZON_PREMIUM", icon: "⭐" },
+  { kind: "ADDON_AUDIOBOOK", icon: "🎧" },
+] as const;
+
+type BundleValue = { id: string; kinds: string[]; originalCost: number; cost: number; discountPercent: number };
+
 function BundleCostsForm({
   config,
   onRefresh,
@@ -376,39 +388,42 @@ function BundleCostsForm({
   onRefresh: () => Promise<void>;
   t: T;
 }) {
-  const bundles = config.value as Record<string, { id: string; kinds: string[]; originalCost: number; cost: number; discountPercent: number }>;
-  const [values, setValues] = useState<Record<string, { cost: number }>>(() => {
-    const v: Record<string, { cost: number }> = {};
-    for (const [key, bundle] of Object.entries(bundles)) {
-      v[key] = { cost: bundle.cost };
-    }
-    return v;
-  });
+  const initial = config.value as Record<string, BundleValue>;
+  const [values, setValues] = useState<Record<string, BundleValue>>(() =>
+    JSON.parse(JSON.stringify(initial)),
+  );
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
 
-  const handleChange = (bundleKey: string, val: string) => {
-    const num = parseInt(val, 10);
-    setValues((prev) => ({ ...prev, [bundleKey]: { cost: isNaN(num) ? 0 : num } }));
+  const update = (key: string, patch: Partial<BundleValue>) => {
+    setValues((prev) => ({
+      ...prev,
+      [key]: { ...prev[key], ...patch },
+    }));
     setDirty(true);
+  };
+
+  const toggleKind = (bundleKey: string, kind: string) => {
+    const current = values[bundleKey].kinds;
+    const next = current.includes(kind)
+      ? current.filter((k) => k !== kind)
+      : [...current, kind];
+    update(bundleKey, { kinds: next });
   };
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      const updated = { ...bundles };
+      const payload: Record<string, BundleValue> = {};
       for (const [key, v] of Object.entries(values)) {
-        if (updated[key]) {
-          updated[key] = {
-            ...updated[key],
-            cost: v.cost,
-            discountPercent: updated[key].originalCost > 0
-              ? Math.round((1 - v.cost / updated[key].originalCost) * 100)
-              : 0,
-          };
-        }
+        payload[key] = {
+          ...v,
+          discountPercent: v.originalCost > 0
+            ? Math.round((1 - v.cost / v.originalCost) * 100 * 10) / 10
+            : 0,
+        };
       }
-      await adminApi.updateAppConfig("BUNDLES", updated);
+      await adminApi.updateAppConfig("BUNDLES", payload);
       toast.success(t("bundleCostsSaved"));
       setDirty(false);
       await onRefresh();
@@ -438,36 +453,60 @@ function BundleCostsForm({
         </Button>
       </div>
 
-      <div className="space-y-3">
-        {Object.entries(bundles).map(([key, bundle]) => (
-          <div key={key} className="flex items-center gap-4 p-3 rounded-xl border border-border bg-accent/10">
-            <span className="text-lg">📦</span>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold truncate">{key}</p>
-              <p className="text-xs text-muted-foreground">
-                {bundle.kinds.join(" + ")}
-              </p>
+      <div className="space-y-4">
+        {Object.entries(values).map(([key, bundle]) => (
+          <div key={key} className="p-4 rounded-xl border border-border bg-accent/10 space-y-3">
+            <p className="text-sm font-bold">📦 {key}</p>
+
+            {/* Kinds checkboxes */}
+            <div className="flex flex-wrap gap-2">
+              {BUNDLE_ADDON_OPTIONS.map((opt) => {
+                const active = bundle.kinds.includes(opt.kind);
+                return (
+                  <button
+                    key={opt.kind}
+                    type="button"
+                    onClick={() => toggleKind(key, opt.kind)}
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-colors ${
+                      active
+                        ? "bg-primary/10 border-primary/30 text-primary"
+                        : "bg-accent/30 border-border text-muted-foreground hover:border-primary/20"
+                    }`}
+                  >
+                    <span>{opt.icon}</span>
+                    {kindLabel(opt.kind)}
+                  </button>
+                );
+              })}
             </div>
-            <div className="flex items-center gap-3 shrink-0">
-              <div className="text-center">
+
+            {/* Costs row */}
+            <div className="flex items-center gap-4 flex-wrap">
+              <div>
                 <Label className="text-[10px] text-muted-foreground">{t("bundleOriginalCost")}</Label>
-                <p className="text-sm font-mono font-bold text-muted-foreground">{bundle.originalCost}</p>
+                <Input
+                  type="number"
+                  min="0"
+                  value={bundle.originalCost}
+                  onChange={(e) => update(key, { originalCost: parseInt(e.target.value, 10) || 0 })}
+                  className="h-8 w-24 font-mono text-sm text-center mt-0.5"
+                />
               </div>
-              <div className="text-center">
+              <div>
                 <Label className="text-[10px] text-muted-foreground">{t("bundleCost")}</Label>
                 <Input
                   type="number"
                   min="0"
-                  value={values[key]?.cost ?? bundle.cost}
-                  onChange={(e) => handleChange(key, e.target.value)}
-                  className="h-8 w-20 font-mono text-sm text-center"
+                  value={bundle.cost}
+                  onChange={(e) => update(key, { cost: parseInt(e.target.value, 10) || 0 })}
+                  className="h-8 w-24 font-mono text-sm text-center mt-0.5"
                 />
               </div>
-              <div className="text-center">
+              <div>
                 <Label className="text-[10px] text-muted-foreground">{t("bundleDiscount")}</Label>
-                <p className="text-sm font-mono font-bold text-emerald-400">
+                <p className="text-sm font-mono font-bold text-emerald-400 mt-1.5">
                   {bundle.originalCost > 0
-                    ? `${Math.round((1 - (values[key]?.cost ?? bundle.cost) / bundle.originalCost) * 100)}%`
+                    ? `${Math.round((1 - bundle.cost / bundle.originalCost) * 100)}%`
                     : "0%"}
                 </p>
               </div>
