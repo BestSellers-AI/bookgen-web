@@ -30,8 +30,9 @@ export class PublishingQueryDto {
   search?: string;
 
   @IsOptional()
-  @IsEnum(PublishingStatus)
-  status?: PublishingStatus;
+  @IsString()
+  @MaxLength(200)
+  status?: string;
 }
 
 export class UpdatePublishingStatusDto {
