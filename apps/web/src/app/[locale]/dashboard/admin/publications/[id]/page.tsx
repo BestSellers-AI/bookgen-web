@@ -364,7 +364,7 @@ export default function AdminPublicationDetailPage() {
           </div>
           */}
 
-          {/* Add to spreadsheet */}
+          {/* Add to spreadsheet — hidden, webhook now dispatched automatically on creation
           <div className="border-t border-border pt-4">
             {showWebhook ? (
               <div className="space-y-3">
@@ -417,6 +417,7 @@ export default function AdminPublicationDetailPage() {
               </Button>
             )}
           </div>
+          */}
 
           <div className="border-t border-border pt-4">
             {showCompleteForm ? (

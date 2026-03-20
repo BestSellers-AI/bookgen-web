@@ -188,7 +188,7 @@ export class AddonService {
         });
 
         // Create the PublishingRequest
-        await this.prisma.publishingRequest.create({
+        const pubRequest = await this.prisma.publishingRequest.create({
           data: {
             bookId,
             addonId: addon.id,
@@ -201,6 +201,9 @@ export class AddonService {
             status: PublishingStatus.PREPARING,
           },
         });
+
+        // Dispatch webhook (fire-and-forget)
+        this.dispatchPublishingWebhook(pubRequest.id).catch(() => {});
 
         // Notify the user
         await this.prisma.notification.create({
@@ -498,7 +501,7 @@ export class AddonService {
       for (const addon of addonRecords) {
         if (PUBLISHING_KINDS.has(addon.kind)) {
           // Create PublishingRequest inline (no queue dispatch)
-          await this.prisma.publishingRequest.create({
+          const bundlePubRequest = await this.prisma.publishingRequest.create({
             data: {
               bookId,
               addonId: addon.id,
@@ -510,6 +513,8 @@ export class AddonService {
               status: PublishingStatus.PREPARING,
             },
           });
+          // Dispatch webhook (fire-and-forget)
+          this.dispatchPublishingWebhook(bundlePubRequest.id).catch(() => {});
           await this.prisma.notification.create({
             data: {
               userId,
@@ -906,5 +911,60 @@ export class AddonService {
     );
 
     return { imageUrl: image.imageUrl };
+  }
+
+  /**
+   * Fire-and-forget webhook dispatch for new publishing requests.
+   * Reads PUBLISHING_WEBHOOK_URL from AppConfig table. Silently logs on failure.
+   */
+  private async dispatchPublishingWebhook(publishingRequestId: string): Promise<void> {
+    try {
+      const config = await this.prisma.appConfig.findUnique({
+        where: { key: 'PUBLISHING_WEBHOOK_URL' },
+      });
+      const raw = config?.value as Record<string, unknown> | null;
+      const webhookUrl = typeof raw?.url === 'string' ? raw.url : null;
+      if (!webhookUrl) return;
+
+      const request = await this.prisma.publishingRequest.findUnique({
+        where: { id: publishingRequestId },
+        include: {
+          book: { select: { id: true, title: true, subtitle: true, author: true, status: true } },
+          user: { select: { id: true, email: true, name: true, phoneNumber: true } },
+          addon: { select: { id: true, kind: true, status: true, creditsCost: true } },
+          translation: { select: { id: true, targetLanguage: true, translatedTitle: true } },
+        },
+      });
+      if (!request) return;
+
+      const payload = {
+        publishingRequest: {
+          id: request.id,
+          status: request.status,
+          platform: request.platform,
+          createdAt: request.createdAt,
+        },
+        user: request.user,
+        book: request.book,
+        addon: request.addon,
+        translation: request.translation,
+      };
+
+      const res = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const body = await res.text().catch(() => '');
+        this.logger.warn(`Publishing webhook returned ${res.status} for ${publishingRequestId}: ${body}`);
+      } else {
+        this.logger.log(`Publishing webhook dispatched for ${publishingRequestId}`);
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      this.logger.warn(`Publishing webhook failed for ${publishingRequestId}: ${message}`);
+    }
   }
 }

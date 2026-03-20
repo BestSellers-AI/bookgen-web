@@ -1,16 +1,25 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Search, BookCheck } from "lucide-react";
+import { Search, BookCheck, Settings2, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Pagination } from "@/components/ui/pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { publishingApi } from "@/lib/api/publishing";
+import { adminApi } from "@/lib/api/admin";
 import { useDebounce } from "@/hooks/use-debounce";
+import { toast } from "sonner";
 import type { PaginationMeta, AdminPublishingDetail } from "@/lib/api/types";
 import { PageHeader } from "@/components/ui/page-header";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -26,6 +35,7 @@ const STATUS_FILTER_MAP: Record<StatusFilter, string | undefined> = {
 
 export default function AdminPublicationsPage() {
   const t = useTranslations("admin");
+  const tCommon = useTranslations("common");
   const tStatus = useTranslations("publishingStatus");
   const [publications, setPublications] = useState<AdminPublishingDetail[]>([]);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
@@ -34,6 +44,12 @@ export default function AdminPublicationsPage() {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const debouncedSearch = useDebounce(search, 300);
+
+  // Webhook settings dialog
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [webhookUrl, setWebhookUrl] = useState("");
+  const [webhookLoading, setWebhookLoading] = useState(false);
+  const [savingWebhook, setSavingWebhook] = useState(false);
 
   const fetchPublications = useCallback(async () => {
     setLoading(true);
@@ -61,6 +77,32 @@ export default function AdminPublicationsPage() {
     setPage(1);
   }, [debouncedSearch, statusFilter]);
 
+  const loadWebhookUrl = async () => {
+    setWebhookLoading(true);
+    try {
+      const configs = await adminApi.getAppConfigs();
+      const found = configs.find((c) => c.key === "PUBLISHING_WEBHOOK_URL");
+      setWebhookUrl(found?.value?.url ?? "");
+    } catch {
+      // ignore
+    } finally {
+      setWebhookLoading(false);
+    }
+  };
+
+  const handleSaveWebhook = async () => {
+    setSavingWebhook(true);
+    try {
+      await adminApi.updateAppConfig("PUBLISHING_WEBHOOK_URL", { url: webhookUrl });
+      toast.success(t("webhookUrlSaved"));
+      setSettingsOpen(false);
+    } catch {
+      toast.error(t("webhookUrlError"));
+    } finally {
+      setSavingWebhook(false);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "PUBLISHED":
@@ -83,7 +125,63 @@ export default function AdminPublicationsPage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      <PageHeader title={t("publications")} subtitle={t("publicationsSubtitle")} />
+      <div className="flex items-center justify-between">
+        <PageHeader title={t("publications")} subtitle={t("publicationsSubtitle")} />
+        <Dialog
+          open={settingsOpen}
+          onOpenChange={(open) => {
+            setSettingsOpen(open);
+            if (open) loadWebhookUrl();
+          }}
+        >
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm" className="rounded-xl gap-2">
+              <Settings2 className="w-4 h-4" />
+              {t("publishingSettings")}
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>{t("publishingSettings")}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 pt-2">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">{t("webhookUrlLabel")}</label>
+                <p className="text-xs text-muted-foreground">{t("webhookUrlDesc")}</p>
+                {webhookLoading ? (
+                  <Skeleton className="h-10 rounded-xl" />
+                ) : (
+                  <Input
+                    value={webhookUrl}
+                    onChange={(e) => setWebhookUrl(e.target.value)}
+                    placeholder="https://..."
+                    className="rounded-xl font-mono text-xs"
+                  />
+                )}
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-xl"
+                  onClick={() => setSettingsOpen(false)}
+                >
+                  {tCommon("cancel")}
+                </Button>
+                <Button
+                  size="sm"
+                  className="rounded-xl"
+                  onClick={handleSaveWebhook}
+                  disabled={savingWebhook || webhookLoading}
+                >
+                  {savingWebhook && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                  {tCommon("save")}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
 
       <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
         <TabsList>
