@@ -29,6 +29,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@react-oauth/google": "^0.13.4",
     "@react-pdf/renderer": "^4.3.2",
+    "@vercel/speed-insights": "^2.0.0",
     "axios": "^1.13.6",
     "docx": "^9.6.1",
     "file-saver": "^2.0.5",

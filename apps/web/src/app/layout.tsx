@@ -3,6 +3,7 @@ import Script from "next/script";
 import { Inter, Outfit, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const clarityId = process.env.NEXT_PUBLIC_CLARITY_ID;
 const fbPixelId = process.env.NEXT_PUBLIC_FB_PIXEL_ID;
@@ -33,6 +34,7 @@ export default function RootLayout({
     <html suppressHydrationWarning>
       <body className={cn(inter.variable, outfit.variable, playfair.variable, "antialiased")}>
         {children}
+        <SpeedInsights />
         {clarityId && (
           <Script id="microsoft-clarity" strategy="afterInteractive">
             {`(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,"clarity","script","${clarityId}");`}
