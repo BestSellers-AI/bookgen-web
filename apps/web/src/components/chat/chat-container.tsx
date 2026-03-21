@@ -7,6 +7,7 @@ import { useChatStore } from '@/stores/chat-store';
 import { useAuthStore } from '@/stores/auth-store';
 import { authApi } from '@/lib/api/auth';
 import { tokenStorage } from '@/lib/api-client';
+import { getTrackingData } from '@/lib/tracking';
 import { booksApi } from '@/lib/api/books';
 import { BookCreationMode } from '@bestsellers/shared';
 import { Loader2, Sparkles } from 'lucide-react';
@@ -446,7 +447,9 @@ export function ChatContainer() {
     try {
       // 1. Create account
       const password = crypto.randomUUID().slice(0, 16);
+      const tracking = getTrackingData();
       const authResult = await authApi.register({
+        ...tracking,
         email: state.userEmail,
         password,
         name: state.userName,

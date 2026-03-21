@@ -142,6 +142,8 @@ export class AdminService {
       name: user.name,
       avatarUrl: user.avatarUrl,
       role: user.role as unknown as AdminUserDetail['role'],
+      phoneNumber: user.phoneNumber,
+      locale: user.locale,
       stripeCustomerId: user.stripeCustomerId,
       onboardingCompleted: user.onboardingCompleted,
       emailVerified: user.emailVerified?.toISOString() ?? null,
@@ -157,6 +159,14 @@ export class AdminService {
           }
         : null,
       booksCount: user._count.books,
+      source: user.source,
+      visitorId: user.visitorId,
+      referrer: user.referrer,
+      utmSource: user.utmSource,
+      utmMedium: user.utmMedium,
+      utmCampaign: user.utmCampaign,
+      utmContent: user.utmContent,
+      utmTerm: user.utmTerm,
       createdAt: user.createdAt.toISOString(),
       updatedAt: user.updatedAt.toISOString(),
     };

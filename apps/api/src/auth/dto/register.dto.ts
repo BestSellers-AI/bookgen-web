@@ -26,6 +26,41 @@ export class RegisterDto {
 
   @IsOptional()
   @IsString()
-  @IsIn(['chat', 'guest'])
+  @MaxLength(50)
   source?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  visitorId?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  referrer?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  utmSource?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  utmMedium?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  utmCampaign?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  utmContent?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  utmTerm?: string;
 }

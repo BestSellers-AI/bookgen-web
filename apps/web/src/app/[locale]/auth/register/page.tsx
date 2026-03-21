@@ -49,7 +49,7 @@ export default function RegisterPage() {
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
-      await signup({ name: data.name, email: data.email, password: data.password, locale, phoneNumber: data.phoneNumber || undefined });
+      await signup({ name: data.name, email: data.email, password: data.password, locale, phoneNumber: data.phoneNumber || undefined, source: 'register' });
     } catch (err: any) {
       form.setError("root", {
         message: err.message || tErr("signupFailed"),

@@ -10,6 +10,7 @@ import { Toaster } from 'sonner';
 import { AnnouncementBar } from '@/components/announcement-bar/announcement-bar';
 import { ChatwootWidget } from '@/components/dashboard/chatwoot-widget';
 import { FbPixelInit } from '@/components/fb-pixel-init';
+import { ClarityIdentify } from '@/components/clarity-identify';
 
 export default async function LocaleLayout({
   children,
@@ -37,6 +38,7 @@ export default async function LocaleLayout({
         <AuthBootstrap />
         <ConfigInitializer />
         <FbPixelInit />
+        <ClarityIdentify />
         <LocaleSync />
         <AnnouncementBar />
         {children}

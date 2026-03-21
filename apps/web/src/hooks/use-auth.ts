@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import { authApi, type LoginInput, type RegisterInput, type UpdateProfileInput } from '@/lib/api/auth';
 import { tokenStorage } from '@/lib/api-client';
 import { useRouter } from '@/i18n/navigation';
+import { getTrackingData } from '@/lib/tracking';
 
 export function useAuth() {
   const { user, isAuthenticated, isLoading, setAuth, setUser, clearAuth } =
@@ -23,7 +24,8 @@ export function useAuth() {
 
   const signup = useCallback(
     async (data: RegisterInput) => {
-      const res = await authApi.register(data);
+      const tracking = getTrackingData();
+      const res = await authApi.register({ ...tracking, ...data });
       tokenStorage.setTokens(res.tokens.accessToken, res.tokens.refreshToken);
       setAuth(res.user, res.tokens.accessToken, res.tokens.refreshToken);
       router.push('/dashboard');
@@ -33,7 +35,8 @@ export function useAuth() {
 
   const loginWithGoogle = useCallback(
     async (credential: string) => {
-      const res = await authApi.google(credential);
+      const tracking = getTrackingData();
+      const res = await authApi.google({ idToken: credential, ...tracking });
       tokenStorage.setTokens(res.tokens.accessToken, res.tokens.refreshToken);
       setAuth(res.user, res.tokens.accessToken, res.tokens.refreshToken);
       router.push('/dashboard');

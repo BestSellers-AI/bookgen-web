@@ -63,6 +63,14 @@ export class AuthService {
       passwordHash,
       locale: dto.locale,
       phoneNumber: dto.phoneNumber,
+      source: dto.source,
+      visitorId: dto.visitorId,
+      referrer: dto.referrer,
+      utmSource: dto.utmSource,
+      utmMedium: dto.utmMedium,
+      utmCampaign: dto.utmCampaign,
+      utmContent: dto.utmContent,
+      utmTerm: dto.utmTerm,
     });
 
     const tokens = await this.generateTokens(user.id);
@@ -146,6 +154,14 @@ export class AuthService {
         emailVerified: new Date(),
         provider: 'google',
         providerAccountId: googleId,
+        source: 'google',
+        visitorId: dto.visitorId,
+        referrer: dto.referrer,
+        utmSource: dto.utmSource,
+        utmMedium: dto.utmMedium,
+        utmCampaign: dto.utmCampaign,
+        utmContent: dto.utmContent,
+        utmTerm: dto.utmTerm,
       });
     } else {
       // Check if Google account is already linked

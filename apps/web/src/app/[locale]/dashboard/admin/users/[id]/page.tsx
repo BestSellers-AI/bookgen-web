@@ -12,6 +12,9 @@ import {
   BookOpen,
   Loader2,
   Plus,
+  Globe,
+  MousePointer,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -167,6 +170,10 @@ export default function AdminUserDetailPage() {
               <span className="text-muted-foreground">{t("email")}</span>
               <span className="font-medium">{user.email}</span>
             </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Phone</span>
+              <span className="font-medium">{user.phoneNumber || "—"}</span>
+            </div>
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">{t("role")}</span>
               <Badge
@@ -174,7 +181,9 @@ export default function AdminUserDetailPage() {
                 className={`text-[9px] font-black uppercase ${
                   user.role === "ADMIN"
                     ? "bg-red-500/10 text-red-400"
-                    : "bg-muted text-muted-foreground"
+                    : user.role === "EDITOR"
+                      ? "bg-amber-500/10 text-amber-400"
+                      : "bg-muted text-muted-foreground"
                 }`}
               >
                 {user.role}
@@ -183,6 +192,35 @@ export default function AdminUserDetailPage() {
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">{t("plan")}</span>
               <PlanBadge plan={user.subscription?.plan ?? null} />
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-muted-foreground">Locale</span>
+              <span className="font-medium">{user.locale || "—"}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-muted-foreground">Email Verified</span>
+              {user.emailVerified ? (
+                <Badge variant="secondary" className="text-[9px] font-black bg-emerald-500/10 text-emerald-400">
+                  {new Date(user.emailVerified).toLocaleDateString()}
+                </Badge>
+              ) : (
+                <Badge variant="secondary" className="text-[9px] font-black bg-amber-500/10 text-amber-400">
+                  No
+                </Badge>
+              )}
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-muted-foreground">Onboarding</span>
+              <Badge
+                variant="secondary"
+                className={`text-[9px] font-black ${
+                  user.onboardingCompleted
+                    ? "bg-emerald-500/10 text-emerald-400"
+                    : "bg-muted text-muted-foreground"
+                }`}
+              >
+                {user.onboardingCompleted ? "Completed" : "Pending"}
+              </Badge>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">{t("joined")}</span>
@@ -194,6 +232,12 @@ export default function AdminUserDetailPage() {
               <span className="text-muted-foreground">{t("books")}</span>
               <span className="font-mono font-bold">{user.booksCount}</span>
             </div>
+            {user.stripeCustomerId && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Stripe ID</span>
+                <span className="font-mono text-xs">{user.stripeCustomerId}</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -332,6 +376,68 @@ export default function AdminUserDetailPage() {
                   : "—"}
               </p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tracking & Attribution */}
+      {(user.source || user.visitorId || user.utmSource) && (
+        <div className="glass rounded-[2rem] p-6 space-y-4">
+          <h2 className="text-lg font-bold font-heading flex items-center gap-2">
+            <MousePointer className="w-5 h-5 text-primary" />
+            Tracking & Attribution
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+            {user.source && (
+              <div>
+                <p className="text-muted-foreground text-[10px] uppercase tracking-wider font-bold">Source</p>
+                <Badge variant="secondary" className="text-[9px] font-black uppercase mt-1">
+                  {user.source}
+                </Badge>
+              </div>
+            )}
+            {user.visitorId && (
+              <div>
+                <p className="text-muted-foreground text-[10px] uppercase tracking-wider font-bold">Visitor ID</p>
+                <p className="font-mono text-xs mt-1 truncate">{user.visitorId}</p>
+              </div>
+            )}
+            {user.referrer && (
+              <div className="col-span-2 md:col-span-1">
+                <p className="text-muted-foreground text-[10px] uppercase tracking-wider font-bold">Referrer</p>
+                <p className="text-xs mt-1 truncate">{user.referrer}</p>
+              </div>
+            )}
+            {user.utmSource && (
+              <div>
+                <p className="text-muted-foreground text-[10px] uppercase tracking-wider font-bold">utm_source</p>
+                <p className="font-medium text-xs mt-1">{user.utmSource}</p>
+              </div>
+            )}
+            {user.utmMedium && (
+              <div>
+                <p className="text-muted-foreground text-[10px] uppercase tracking-wider font-bold">utm_medium</p>
+                <p className="font-medium text-xs mt-1">{user.utmMedium}</p>
+              </div>
+            )}
+            {user.utmCampaign && (
+              <div>
+                <p className="text-muted-foreground text-[10px] uppercase tracking-wider font-bold">utm_campaign</p>
+                <p className="font-medium text-xs mt-1">{user.utmCampaign}</p>
+              </div>
+            )}
+            {user.utmContent && (
+              <div>
+                <p className="text-muted-foreground text-[10px] uppercase tracking-wider font-bold">utm_content</p>
+                <p className="font-medium text-xs mt-1">{user.utmContent}</p>
+              </div>
+            )}
+            {user.utmTerm && (
+              <div>
+                <p className="text-muted-foreground text-[10px] uppercase tracking-wider font-bold">utm_term</p>
+                <p className="font-medium text-xs mt-1">{user.utmTerm}</p>
+              </div>
+            )}
           </div>
         </div>
       )}

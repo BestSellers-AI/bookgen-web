@@ -55,6 +55,14 @@ export class UsersService {
     phoneNumber?: string;
     provider?: string;
     providerAccountId?: string;
+    source?: string;
+    visitorId?: string;
+    referrer?: string;
+    utmSource?: string;
+    utmMedium?: string;
+    utmCampaign?: string;
+    utmContent?: string;
+    utmTerm?: string;
   }): Promise<User> {
     return this.prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
@@ -66,6 +74,14 @@ export class UsersService {
           emailVerified: data.emailVerified ?? null,
           locale: data.locale ?? 'en',
           phoneNumber: data.phoneNumber ?? null,
+          source: data.source ?? null,
+          visitorId: data.visitorId ?? null,
+          referrer: data.referrer ?? null,
+          utmSource: data.utmSource ?? null,
+          utmMedium: data.utmMedium ?? null,
+          utmCampaign: data.utmCampaign ?? null,
+          utmContent: data.utmContent ?? null,
+          utmTerm: data.utmTerm ?? null,
         },
       });
 

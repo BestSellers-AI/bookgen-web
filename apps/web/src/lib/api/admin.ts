@@ -34,6 +34,8 @@ export interface AdminUserDetail {
   email: string;
   avatarUrl: string | null;
   role: UserRole;
+  phoneNumber: string | null;
+  locale: string;
   stripeCustomerId: string | null;
   onboardingCompleted: boolean;
   emailVerified: string | null;
@@ -49,6 +51,14 @@ export interface AdminUserDetail {
     cancelAtPeriodEnd: boolean;
   } | null;
   booksCount: number;
+  source: string | null;
+  visitorId: string | null;
+  referrer: string | null;
+  utmSource: string | null;
+  utmMedium: string | null;
+  utmCampaign: string | null;
+  utmContent: string | null;
+  utmTerm: string | null;
   createdAt: string;
   updatedAt: string;
 }
