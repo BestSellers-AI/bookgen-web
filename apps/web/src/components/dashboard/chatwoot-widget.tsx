@@ -13,6 +13,7 @@ const CHATWOOT_TOKENS: Record<string, string> = {
 };
 
 const HIDDEN_ROUTES = ["/chat"];
+const HIDDEN_EXACT_ROUTES = ["/"];
 
 declare global {
   interface Window {
@@ -50,7 +51,7 @@ export function ChatwootWidget() {
   const { user } = useAuth();
   const loadedTokenRef = useRef<string | null>(null);
 
-  const isHidden = HIDDEN_ROUTES.some((route) => pathname.startsWith(route));
+  const isHidden = HIDDEN_ROUTES.some((route) => pathname.startsWith(route)) || HIDDEN_EXACT_ROUTES.includes(pathname);
   const websiteToken = CHATWOOT_TOKENS[locale] ?? CHATWOOT_TOKENS.en;
 
   // Load / reload widget
