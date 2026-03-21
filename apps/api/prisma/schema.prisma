@@ -188,6 +188,11 @@ model User {
   utmCampaign         String?   @map("utm_campaign")
   utmContent          String?   @map("utm_content")
   utmTerm             String?   @map("utm_term")
+  timezone            String?
+  deviceType          String?   @map("device_type")
+  browserLanguage     String?   @map("browser_language")
+  geoCountry          String?   @map("geo_country")
+  geoCity             String?   @map("geo_city")
   deletedAt           DateTime? @map("deleted_at")
   createdAt           DateTime  @default(now()) @map("created_at")
   updatedAt           DateTime  @updatedAt @map("updated_at")

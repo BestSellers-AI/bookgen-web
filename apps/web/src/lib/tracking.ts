@@ -1,6 +1,6 @@
 /**
  * Read tracking data from cookies set by middleware.
- * Used during registration to associate UTMs + visitor ID with the user.
+ * Used during registration to associate UTMs + visitor/device info with the user.
  */
 
 function getCookie(name: string): string | null {
@@ -37,10 +37,43 @@ export function getUtmParams(): {
   }
 }
 
+export function getDeviceInfo(): {
+  deviceType?: string;
+  browserLanguage?: string;
+  geoCountry?: string;
+  geoCity?: string;
+} {
+  const raw = getCookie('bs_device');
+  if (!raw) return {};
+
+  try {
+    const parsed = JSON.parse(raw);
+    return {
+      deviceType: parsed.deviceType ?? undefined,
+      browserLanguage: parsed.browserLanguage ?? undefined,
+      geoCountry: parsed.geoCountry ?? undefined,
+      geoCity: parsed.geoCity ?? undefined,
+    };
+  } catch {
+    return {};
+  }
+}
+
+function getTimezone(): string | undefined {
+  if (typeof Intl === 'undefined') return undefined;
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+  } catch {
+    return undefined;
+  }
+}
+
 export function getTrackingData() {
   return {
     visitorId: getVisitorId(),
     referrer: typeof document !== 'undefined' ? document.referrer || undefined : undefined,
+    timezone: getTimezone(),
     ...getUtmParams(),
+    ...getDeviceInfo(),
   };
 }

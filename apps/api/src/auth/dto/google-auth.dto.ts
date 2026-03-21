@@ -38,4 +38,29 @@ export class GoogleAuthDto {
   @IsString()
   @MaxLength(200)
   utmTerm?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  timezone?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  deviceType?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  browserLanguage?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
+  geoCountry?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  geoCity?: string;
 }

@@ -167,6 +167,11 @@ export class AdminService {
       utmCampaign: user.utmCampaign,
       utmContent: user.utmContent,
       utmTerm: user.utmTerm,
+      timezone: user.timezone,
+      deviceType: user.deviceType,
+      browserLanguage: user.browserLanguage,
+      geoCountry: user.geoCountry,
+      geoCity: user.geoCity,
       createdAt: user.createdAt.toISOString(),
       updatedAt: user.updatedAt.toISOString(),
     };

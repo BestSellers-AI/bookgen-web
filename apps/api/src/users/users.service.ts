@@ -63,6 +63,11 @@ export class UsersService {
     utmCampaign?: string;
     utmContent?: string;
     utmTerm?: string;
+    timezone?: string;
+    deviceType?: string;
+    browserLanguage?: string;
+    geoCountry?: string;
+    geoCity?: string;
   }): Promise<User> {
     return this.prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
@@ -82,6 +87,11 @@ export class UsersService {
           utmCampaign: data.utmCampaign ?? null,
           utmContent: data.utmContent ?? null,
           utmTerm: data.utmTerm ?? null,
+          timezone: data.timezone ?? null,
+          deviceType: data.deviceType ?? null,
+          browserLanguage: data.browserLanguage ?? null,
+          geoCountry: data.geoCountry ?? null,
+          geoCity: data.geoCity ?? null,
         },
       });
 

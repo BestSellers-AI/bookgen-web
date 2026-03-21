@@ -50,6 +50,11 @@ export interface AdminUserDetail {
   utmCampaign: string | null;
   utmContent: string | null;
   utmTerm: string | null;
+  timezone: string | null;
+  deviceType: string | null;
+  browserLanguage: string | null;
+  geoCountry: string | null;
+  geoCity: string | null;
   createdAt: string;
   updatedAt: string;
 }

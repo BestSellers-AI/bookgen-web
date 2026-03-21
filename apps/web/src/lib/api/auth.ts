@@ -15,6 +15,11 @@ export interface RegisterInput {
   utmCampaign?: string;
   utmContent?: string;
   utmTerm?: string;
+  timezone?: string;
+  deviceType?: string;
+  browserLanguage?: string;
+  geoCountry?: string;
+  geoCity?: string;
 }
 
 export interface LoginInput {
@@ -41,7 +46,7 @@ export const authApi = {
   login: (data: LoginInput) =>
     apiClient.post<AuthResponse>('/auth/login', data).then((r) => r.data),
 
-  google: (data: { idToken: string; visitorId?: string; referrer?: string; utmSource?: string; utmMedium?: string; utmCampaign?: string; utmContent?: string; utmTerm?: string }) =>
+  google: (data: { idToken: string; visitorId?: string; referrer?: string; utmSource?: string; utmMedium?: string; utmCampaign?: string; utmContent?: string; utmTerm?: string; timezone?: string; deviceType?: string; browserLanguage?: string; geoCountry?: string; geoCity?: string }) =>
     apiClient.post<AuthResponse>('/auth/google', data).then((r) => r.data),
 
   refresh: (refreshToken: string) =>

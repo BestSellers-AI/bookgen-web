@@ -71,6 +71,11 @@ export class AuthService {
       utmCampaign: dto.utmCampaign,
       utmContent: dto.utmContent,
       utmTerm: dto.utmTerm,
+      timezone: dto.timezone,
+      deviceType: dto.deviceType,
+      browserLanguage: dto.browserLanguage,
+      geoCountry: dto.geoCountry,
+      geoCity: dto.geoCity,
     });
 
     const tokens = await this.generateTokens(user.id);
@@ -162,6 +167,11 @@ export class AuthService {
         utmCampaign: dto.utmCampaign,
         utmContent: dto.utmContent,
         utmTerm: dto.utmTerm,
+        timezone: dto.timezone,
+        deviceType: dto.deviceType,
+        browserLanguage: dto.browserLanguage,
+        geoCountry: dto.geoCountry,
+        geoCity: dto.geoCity,
       });
     } else {
       // Check if Google account is already linked

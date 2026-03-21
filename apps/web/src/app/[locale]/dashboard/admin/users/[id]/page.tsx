@@ -381,7 +381,7 @@ export default function AdminUserDetailPage() {
       )}
 
       {/* Tracking & Attribution */}
-      {(user.source || user.visitorId || user.utmSource) && (
+      {(user.source || user.visitorId || user.utmSource || user.deviceType || user.timezone) && (
         <div className="glass rounded-[2rem] p-6 space-y-4">
           <h2 className="text-lg font-bold font-heading flex items-center gap-2">
             <MousePointer className="w-5 h-5 text-primary" />
@@ -406,6 +406,34 @@ export default function AdminUserDetailPage() {
               <div className="col-span-2 md:col-span-1">
                 <p className="text-muted-foreground text-[10px] uppercase tracking-wider font-bold">Referrer</p>
                 <p className="text-xs mt-1 truncate">{user.referrer}</p>
+              </div>
+            )}
+            {user.deviceType && (
+              <div>
+                <p className="text-muted-foreground text-[10px] uppercase tracking-wider font-bold">Device</p>
+                <Badge variant="secondary" className="text-[9px] font-black uppercase mt-1">
+                  {user.deviceType}
+                </Badge>
+              </div>
+            )}
+            {user.timezone && (
+              <div>
+                <p className="text-muted-foreground text-[10px] uppercase tracking-wider font-bold">Timezone</p>
+                <p className="font-medium text-xs mt-1">{user.timezone}</p>
+              </div>
+            )}
+            {user.browserLanguage && (
+              <div>
+                <p className="text-muted-foreground text-[10px] uppercase tracking-wider font-bold">Browser Language</p>
+                <p className="font-medium text-xs mt-1">{user.browserLanguage}</p>
+              </div>
+            )}
+            {(user.geoCountry || user.geoCity) && (
+              <div>
+                <p className="text-muted-foreground text-[10px] uppercase tracking-wider font-bold">Location</p>
+                <p className="font-medium text-xs mt-1">
+                  {[user.geoCity, user.geoCountry].filter(Boolean).join(", ")}
+                </p>
               </div>
             )}
             {user.utmSource && (
