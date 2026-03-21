@@ -37,12 +37,6 @@ function TypingText({ text, delay = 0 }: { text: string; delay?: number }) {
   )
 }
 
-const fadeUp = (delay = 0) => ({
-  initial: { opacity: 0, y: 28 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.65, delay, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
-})
-
 export default function HeroSection() {
   const t = useTranslations('landingV2.hero')
 
@@ -62,7 +56,7 @@ export default function HeroSection() {
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] dark:bg-gold-500/5 bg-gold-500/3 blur-[120px] rounded-full pointer-events-none" />
 
       <div className="section-container relative z-10 flex flex-col items-center text-center pt-6 pb-16 md:pt-10 md:pb-24">
-        <m.div {...fadeUp(0.1)}>
+        <div>
           <span className="section-badge mb-6">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
@@ -70,10 +64,9 @@ export default function HeroSection() {
             </span>
             {t('badge')}
           </span>
-        </m.div>
+        </div>
 
-        <m.h1
-          {...fadeUp(0.2)}
+        <h1
           className="font-playfair font-bold text-5xl sm:text-6xl md:text-7xl lg:text-8xl leading-[1.05] tracking-tight max-w-5xl"
         >
           {t('headlinePre')}{' '}
@@ -82,19 +75,17 @@ export default function HeroSection() {
           </span>
           <br />
           <span className="dark:text-cream-200 text-navy-900">{t('headlinePost')}</span>
-        </m.h1>
+        </h1>
 
-        <m.p
-          {...fadeUp(0.3)}
+        <p
           className="mt-6 text-lg md:text-xl dark:text-cream-400 text-navy-700 max-w-2xl leading-relaxed"
         >
           {t('subtitle1')}
           <br className="hidden sm:block" />
           {t('subtitle2')}
-        </m.p>
+        </p>
 
-        <m.div
-          {...fadeUp(0.4)}
+        <div
           className="mt-10 flex flex-col sm:flex-row items-center gap-4"
         >
           <Link href="/auth/register" className="btn-primary text-base px-8 py-3.5 glow-gold">
@@ -109,18 +100,18 @@ export default function HeroSection() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </a>
-        </m.div>
+        </div>
 
-        <m.p {...fadeUp(0.5)} className="mt-5 text-xs dark:text-cream-500 text-navy-600">
+        <p className="mt-5 text-xs dark:text-cream-500 text-navy-600">
           {t('trustLine')}
-        </m.p>
+        </p>
 
         {/* capas */}
         <m.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-60px' }}
-          transition={{ duration: 0.7, delay: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
           className="mt-12 w-full max-w-5xl"
         >
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
@@ -130,7 +121,7 @@ export default function HeroSection() {
                 initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.9 + i * 0.07, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.5, delay: 0.4 + i * 0.07, ease: [0.22, 1, 0.36, 1] }}
                 className="relative aspect-[3/4.5] overflow-hidden rounded-xl dark:bg-navy-800/50 bg-cream-200/50 border dark:border-white/[0.07] border-navy-900/[0.07] hover:scale-[1.03] transition-transform duration-300"
               >
                 <Image
@@ -148,8 +139,9 @@ export default function HeroSection() {
         {/* dados */}
         <m.div
           initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.65, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.65, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
           className="mt-12 w-full max-w-3xl"
         >
           <div className="glass-card px-6 py-6 grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-0 md:divide-x dark:divide-white/[0.07] divide-navy-900/[0.07]">
@@ -167,8 +159,9 @@ export default function HeroSection() {
 
       <m.div
         initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.4 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ delay: 0.5 }}
         className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
       >
         <div className="w-px h-10 bg-gradient-to-b dark:from-gold-500/30 from-gold-600/30 to-transparent" />
