@@ -70,6 +70,8 @@ export class CheckoutService {
           userId,
           productSlug: product.slug,
           productId: product.id,
+          ...(dto.fbp && { fbp: dto.fbp }),
+          ...(dto.fbc && { fbc: dto.fbc }),
         },
         subscriptionMetadata,
       });
@@ -116,6 +118,8 @@ export class CheckoutService {
           productSlug: product.slug,
           productId: product.id,
           guestEmail: dto.email,
+          ...(dto.fbp && { fbp: dto.fbp }),
+          ...(dto.fbc && { fbc: dto.fbc }),
         },
         subscriptionMetadata,
       });
@@ -142,6 +146,9 @@ export class CheckoutService {
     return {
       status: session.status,
       paymentStatus: session.payment_status,
+      amountTotal: session.amount_total,
+      currency: session.currency,
+      productName: session.metadata?.productSlug ?? null,
     };
   }
 

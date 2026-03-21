@@ -13,6 +13,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { checkoutApi } from '@/lib/api/checkout'
 import { toast } from 'sonner'
 import clsx from 'clsx'
+import { trackInitiateCheckout, generateEventId, getFbCookies } from '@/lib/fb-pixel'
 
 type PricingTab = 'plans' | 'credits'
 type BillingPeriod = 'annual' | 'monthly'
@@ -52,7 +53,21 @@ export default function PricingSection() {
   const handleAuthenticatedBuy = async (slug: string, billingInterval?: 'monthly' | 'annual') => {
     setLoadingSlug(slug)
     try {
-      const res = await checkoutApi.createSession({ productSlug: slug, billingInterval })
+      const plan = plans.find((p) => planSlugMap[p.id] === slug)
+      const pack = creditPacks.find((p) => p.slug === slug)
+      trackInitiateCheckout({
+        content_name: plan?.nameKey ?? pack?.nameKey ?? slug,
+        content_category: plan ? 'subscription' : 'credit_pack',
+        content_ids: [slug],
+        value: plan
+          ? (billingInterval === 'annual' ? plan.annualMonthlyPrice : plan.monthlyPrice) / 100
+          : pack ? pack.price / 100 : 0,
+        currency: 'USD',
+        num_items: 1,
+      }, generateEventId())
+
+      const { fbp, fbc } = getFbCookies()
+      const res = await checkoutApi.createSession({ productSlug: slug, billingInterval, fbp, fbc })
       window.location.href = res.url
     } catch {
       toast.error(t('purchaseError'))
@@ -64,10 +79,13 @@ export default function PricingSection() {
     if (!pendingSlug) return
     setLoadingSlug(pendingSlug)
     try {
+      const { fbp, fbc } = getFbCookies()
       const res = await checkoutApi.createGuestSession({
         productSlug: pendingSlug,
         email,
         billingInterval: pendingBillingInterval,
+        fbp,
+        fbc,
       })
       window.location.href = res.url
     } catch {

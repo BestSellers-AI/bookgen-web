@@ -1,3 +1,4 @@
+import { FbViewContent } from '@/components/fb-view-content'
 import Navbar from '@/components/landing/Navbar'
 import HeroSection from '@/components/landing/sections/HeroSection'
 import AiCoversSection from '@/components/landing/sections/AiCoversSection'
@@ -15,6 +16,7 @@ import Footer from '@/components/landing/Footer'
 export default function Home() {
   return (
     <main className="landing min-h-screen overflow-x-hidden">
+      <FbViewContent contentName="Landing Page" contentCategory="landing" />
       <Navbar />
       <HeroSection />
       <HowItWorksSection />

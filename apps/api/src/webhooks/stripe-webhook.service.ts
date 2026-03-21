@@ -13,6 +13,7 @@ import { EmailService } from '../email/email.service';
 import { subscriptionEmail, subscriptionUpdateEmail, creditPurchaseEmail } from '../email/email-templates';
 import { UsersService } from '../users/users.service';
 import { AuthService } from '../auth/auth.service';
+import { FacebookCapiService } from '../facebook/facebook-capi.service';
 
 @Injectable()
 export class StripeWebhookService {
@@ -28,6 +29,7 @@ export class StripeWebhookService {
     private readonly authService: AuthService,
     private readonly emailService: EmailService,
     private readonly appConfig: AppConfigService,
+    private readonly facebookCapiService: FacebookCapiService,
   ) {}
 
   /**
@@ -305,6 +307,34 @@ export class StripeWebhookService {
       default:
         this.logger.warn(`Unhandled product kind: ${product.kind}`);
     }
+
+    // Fire Facebook CAPI Purchase event (fire-and-forget)
+    const purchaseUser = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, name: true },
+    });
+    this.facebookCapiService.sendEvent({
+      event_name: 'Purchase',
+      event_id: session.id, // matches browser-side event_id for deduplication
+      event_source_url: `${this.appConfig.frontendUrl}/checkout/success`,
+      user_data: {
+        em: purchaseUser?.email,
+        fn: purchaseUser?.name?.split(' ')[0],
+        ln: purchaseUser?.name?.split(' ').slice(1).join(' ') || undefined,
+        external_id: userId,
+        fbp: metadata.fbp || undefined,
+        fbc: metadata.fbc || undefined,
+      },
+      custom_data: {
+        value: totalAmount / 100,
+        currency: (session.currency ?? 'usd').toUpperCase(),
+        content_ids: [product.id],
+        content_name: product.name,
+        content_type: 'product',
+        content_category: product.kind,
+        num_items: 1,
+      },
+    });
   }
 
   /**

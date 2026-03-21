@@ -8,6 +8,7 @@ import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { useWalletStore } from "@/stores/wallet-store";
 import { checkoutApi } from "@/lib/api/checkout";
+import { trackPurchase } from "@/lib/fb-pixel";
 
 type SessionState = "loading" | "success" | "error";
 
@@ -31,6 +32,19 @@ export default function CheckoutSuccessPage() {
         if (status === "paid" || status === "complete") {
           setState("success");
           fetchWallet();
+
+          // Fire browser-side Purchase event (deduplicates with CAPI via session_id)
+          const amount = typeof res.amountTotal === 'number' ? res.amountTotal : 0;
+          const curr = typeof res.currency === 'string' ? res.currency : 'usd';
+          trackPurchase(
+            {
+              content_name: typeof res.productName === 'string' ? res.productName : "Purchase",
+              content_type: "product",
+              value: amount / 100,
+              currency: curr.toUpperCase(),
+            },
+            sessionId, // same event_id used server-side
+          );
         } else {
           setState("error");
         }

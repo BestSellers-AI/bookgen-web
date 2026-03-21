@@ -10,4 +10,12 @@ export class CreateGuestCheckoutSessionDto {
   @IsOptional()
   @IsIn(['monthly', 'annual'])
   billingInterval?: 'monthly' | 'annual';
+
+  @IsOptional()
+  @IsString()
+  fbp?: string;
+
+  @IsOptional()
+  @IsString()
+  fbc?: string;
 }

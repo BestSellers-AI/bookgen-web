@@ -9,6 +9,7 @@ import { LocaleSync } from '@/components/locale-sync';
 import { Toaster } from 'sonner';
 import { AnnouncementBar } from '@/components/announcement-bar/announcement-bar';
 import { ChatwootWidget } from '@/components/dashboard/chatwoot-widget';
+import { FbPixelInit } from '@/components/fb-pixel-init';
 
 export default async function LocaleLayout({
   children,
@@ -35,6 +36,7 @@ export default async function LocaleLayout({
       >
         <AuthBootstrap />
         <ConfigInitializer />
+        <FbPixelInit />
         <LocaleSync />
         <AnnouncementBar />
         {children}

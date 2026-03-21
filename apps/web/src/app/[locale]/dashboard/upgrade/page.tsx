@@ -21,6 +21,8 @@ import { SubscriptionPlan } from "@bestsellers/shared";
 import { useConfigStore } from "@/stores/config-store";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/ui/page-header";
+import { FbViewContent } from "@/components/fb-view-content";
+import { trackInitiateCheckout, generateEventId, getFbCookies } from "@/lib/fb-pixel";
 import { useSearchParams } from "next/navigation";
 import CreditCard from "@/components/landing/pricing/CreditCard";
 import PlanCalculator from "@/components/landing/pricing/PlanCalculator";
@@ -149,9 +151,26 @@ export default function UpgradePage() {
       const interval = annual ? "annual" : "monthly";
 
       if (!hasSubscription) {
+        const config = getPlanConfig(planKey);
+        const price = annual
+          ? (config?.annualMonthlyEquivalentCents ?? 0)
+          : (config?.monthlyPriceCents ?? 0);
+
+        trackInitiateCheckout({
+          content_name: `Plan ${planKey}`,
+          content_category: 'subscription',
+          content_ids: [slug],
+          value: price / 100,
+          currency: 'USD',
+          num_items: 1,
+        }, generateEventId());
+
+        const { fbp, fbc } = getFbCookies();
         const res = await checkoutApi.createSession({
           productSlug: slug,
           billingInterval: interval,
+          fbp,
+          fbc,
         });
         window.location.href = res.url;
       } else {
@@ -184,7 +203,18 @@ export default function UpgradePage() {
   const handleBuyCredits = async (slug: string) => {
     setLoadingSlug(slug);
     try {
-      const res = await checkoutApi.createSession({ productSlug: slug });
+      const pack = creditPacks.find((p) => p.slug === slug);
+      trackInitiateCheckout({
+        content_name: pack?.nameKey ?? slug,
+        content_category: 'credit_pack',
+        content_ids: [slug],
+        value: pack ? pack.price / 100 : 0,
+        currency: 'USD',
+        num_items: 1,
+      }, generateEventId());
+
+      const { fbp, fbc } = getFbCookies();
+      const res = await checkoutApi.createSession({ productSlug: slug, fbp, fbc });
       window.location.href = res.url;
     } catch {
       toast.error(t("purchaseError"));
@@ -203,6 +233,7 @@ export default function UpgradePage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
+      <FbViewContent contentName="Pricing" contentCategory="pricing" />
       <PageHeader title={t("title")} subtitle={t("subtitle")} />
 
       {/* Tab Toggle */}

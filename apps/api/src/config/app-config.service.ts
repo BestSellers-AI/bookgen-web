@@ -163,4 +163,17 @@ export class AppConfigService {
   get n8nCallbackBaseUrl(): string {
     return this.configService.get('N8N_CALLBACK_BASE_URL');
   }
+
+  // Facebook
+  get facebookPixelId(): string {
+    return this.configService.get('FACEBOOK_PIXEL_ID');
+  }
+
+  get facebookCapiAccessToken(): string {
+    return this.configService.get('FACEBOOK_CAPI_ACCESS_TOKEN');
+  }
+
+  get facebookTestEventCode(): string {
+    return this.configService.get('FACEBOOK_TEST_EVENT_CODE');
+  }
 }

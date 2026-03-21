@@ -4,12 +4,16 @@ import type { CheckoutSessionResponse } from './types';
 export interface CreateCheckoutSessionInput {
   productSlug: string;
   billingInterval?: 'monthly' | 'annual';
+  fbp?: string;
+  fbc?: string;
 }
 
 export interface CreateGuestCheckoutSessionInput {
   productSlug: string;
   email: string;
   billingInterval?: 'monthly' | 'annual';
+  fbp?: string;
+  fbc?: string;
 }
 
 export const checkoutApi = {

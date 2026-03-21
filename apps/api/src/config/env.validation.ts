@@ -55,6 +55,11 @@ const envSchema = z.object({
   GENERATION_CONCURRENCY: z.coerce.number().default(2),
   GENERATION_JOB_TIMEOUT_MS: z.coerce.number().default(2_700_000),
 
+  // Facebook
+  FACEBOOK_PIXEL_ID: z.string().default(''),
+  FACEBOOK_CAPI_ACCESS_TOKEN: z.string().default(''),
+  FACEBOOK_TEST_EVENT_CODE: z.string().default(''),
+
   // App
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   API_PORT: z.coerce.number().default(3001),
