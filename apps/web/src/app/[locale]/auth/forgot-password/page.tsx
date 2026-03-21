@@ -15,7 +15,7 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { Loader2, ChevronLeft, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Link, useRouter } from "@/i18n/navigation";

@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import * as m from 'motion/react-m'
 import { Link } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 
@@ -19,7 +19,7 @@ export default function FooterCTASection() {
       <div className="absolute top-0 left-0 right-0 h-px dark:bg-gradient-to-r dark:from-transparent dark:via-gold-500/30 dark:to-transparent bg-gradient-to-r from-transparent via-gold-600/30 to-transparent" />
 
       <div className="section-container relative">
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -61,7 +61,7 @@ export default function FooterCTASection() {
               </span>
             ))}
           </div>
-        </motion.div>
+        </m.div>
       </div>
     </section>
   )

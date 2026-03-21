@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import * as m from 'motion/react-m'
 import { useTranslations } from 'next-intl'
 
 const bookColors = [
@@ -66,7 +66,7 @@ export default function DreamSection() {
       <div className="absolute inset-0 bg-grid dark:opacity-40 opacity-20" />
 
       <div className="section-container relative z-10">
-        <motion.div {...fadeUp(0)} className="text-center mb-14">
+        <m.div {...fadeUp(0)} className="text-center mb-14">
           <h2 className="font-playfair font-bold text-3xl sm:text-4xl md:text-5xl leading-[1.1] max-w-3xl mx-auto">
             {t('headline1')}{' '}
             <span className="italic text-gradient-gold">{t('headlineHighlight')}</span>
@@ -76,9 +76,9 @@ export default function DreamSection() {
           <p className="mt-5 dark:text-cream-400 text-navy-700 text-lg max-w-xl mx-auto leading-relaxed">
             {t('subtitle')}
           </p>
-        </motion.div>
+        </m.div>
 
-        <motion.div
+        <m.div
           {...fadeUp(0.1)}
           className="grid md:grid-cols-2 gap-4 max-w-3xl mx-auto mb-14"
         >
@@ -104,9 +104,9 @@ export default function DreamSection() {
               </div>
             </div>
           </div>
-        </motion.div>
+        </m.div>
 
-        <motion.div {...fadeUp(0.2)} className="flex items-center justify-center gap-0 mb-16 overflow-x-auto pb-2">
+        <m.div {...fadeUp(0.2)} className="flex items-center justify-center gap-0 mb-16 overflow-x-auto pb-2">
           {steps.map((step, i) => (
             <div key={step.label} className="flex items-center">
               <div className="flex flex-col items-center gap-2 px-4 sm:px-6">
@@ -122,14 +122,14 @@ export default function DreamSection() {
               )}
             </div>
           ))}
-        </motion.div>
+        </m.div>
       </div>
 
       {/* <div className="relative w-full overflow-hidden mb-14">
         <div className="absolute left-0 top-0 bottom-0 w-24 z-10 dark:bg-gradient-to-r dark:from-navy-950 bg-gradient-to-r from-cream-100 to-transparent pointer-events-none" />
         <div className="absolute right-0 top-0 bottom-0 w-24 z-10 dark:bg-gradient-to-l dark:from-navy-950 bg-gradient-to-l from-cream-100 to-transparent pointer-events-none" />
 
-        <motion.div
+        <m.div
           className="flex"
           animate={{ x: ['0%', '-50%'] }}
           transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
@@ -137,7 +137,7 @@ export default function DreamSection() {
           {allBooks.map((book, i) => (
             <BookCard key={i} title={book.title} genre={book.genre} from={book.from} to={book.to} />
           ))}
-        </motion.div>
+        </m.div>
       </div> */}
 
       <div className="relative z-10 text-center">

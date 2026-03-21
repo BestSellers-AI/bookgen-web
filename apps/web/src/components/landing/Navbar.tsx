@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import * as m from 'motion/react-m'
+import { AnimatePresence } from 'motion/react'
 import { Link } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
@@ -84,7 +85,7 @@ export default function Navbar() {
 
       <AnimatePresence>
         {mobileOpen && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
@@ -114,7 +115,7 @@ export default function Navbar() {
                 </Link>
               </div>
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </header>

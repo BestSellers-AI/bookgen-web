@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import * as m from 'motion/react-m'
 import { useTranslations } from 'next-intl'
 import type { Plan, PlanFeature } from '@/lib/landing-pricing-data'
 import clsx from 'clsx'
@@ -64,7 +64,7 @@ export default function PlanCard({ plan, billing, isHighlighted, savingsBadge, o
   const isPopular = plan.popular
 
   return (
-    <motion.div
+    <m.div
       layout
       animate={isHighlighted ? { scale: 1.02 } : { scale: 1 }}
       transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
@@ -165,6 +165,6 @@ export default function PlanCard({ plan, billing, isHighlighted, savingsBadge, o
           </button>
         </div>
       </div>
-    </motion.div>
+    </m.div>
   )
 }

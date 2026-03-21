@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import * as m from 'motion/react-m'
 import Image from 'next/image'
 import { Link } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
@@ -62,7 +62,7 @@ export default function HeroSection() {
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] dark:bg-gold-500/5 bg-gold-500/3 blur-[120px] rounded-full pointer-events-none" />
 
       <div className="section-container relative z-10 flex flex-col items-center text-center pt-6 pb-16 md:pt-10 md:pb-24">
-        <motion.div {...fadeUp(0.1)}>
+        <m.div {...fadeUp(0.1)}>
           <span className="section-badge mb-6">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
@@ -70,9 +70,9 @@ export default function HeroSection() {
             </span>
             {t('badge')}
           </span>
-        </motion.div>
+        </m.div>
 
-        <motion.h1
+        <m.h1
           {...fadeUp(0.2)}
           className="font-playfair font-bold text-5xl sm:text-6xl md:text-7xl lg:text-8xl leading-[1.05] tracking-tight max-w-5xl"
         >
@@ -82,18 +82,18 @@ export default function HeroSection() {
           </span>
           <br />
           <span className="dark:text-cream-200 text-navy-900">{t('headlinePost')}</span>
-        </motion.h1>
+        </m.h1>
 
-        <motion.p
+        <m.p
           {...fadeUp(0.3)}
           className="mt-6 text-lg md:text-xl dark:text-cream-400 text-navy-700 max-w-2xl leading-relaxed"
         >
           {t('subtitle1')}
           <br className="hidden sm:block" />
           {t('subtitle2')}
-        </motion.p>
+        </m.p>
 
-        <motion.div
+        <m.div
           {...fadeUp(0.4)}
           className="mt-10 flex flex-col sm:flex-row items-center gap-4"
         >
@@ -109,14 +109,14 @@ export default function HeroSection() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </a>
-        </motion.div>
+        </m.div>
 
-        <motion.p {...fadeUp(0.5)} className="mt-5 text-xs dark:text-cream-500 text-navy-600">
+        <m.p {...fadeUp(0.5)} className="mt-5 text-xs dark:text-cream-500 text-navy-600">
           {t('trustLine')}
-        </motion.p>
+        </m.p>
 
         {/* capas */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-60px' }}
@@ -125,7 +125,7 @@ export default function HeroSection() {
         >
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((n, i) => (
-              <motion.div
+              <m.div
                 key={n}
                 initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -140,13 +140,13 @@ export default function HeroSection() {
                   className="object-cover"
                   sizes="(max-width: 640px) 45vw, 22vw"
                 />
-              </motion.div>
+              </m.div>
             ))}
           </div>
-        </motion.div>
+        </m.div>
 
         {/* dados */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.65, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
@@ -162,17 +162,17 @@ export default function HeroSection() {
               </div>
             ))}
           </div>
-        </motion.div>
+        </m.div>
       </div>
 
-      <motion.div
+      <m.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.4 }}
         className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
       >
         <div className="w-px h-10 bg-gradient-to-b dark:from-gold-500/30 from-gold-600/30 to-transparent" />
-      </motion.div>
+      </m.div>
     </section>
   )
 }

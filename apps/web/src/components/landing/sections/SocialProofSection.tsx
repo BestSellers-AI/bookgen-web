@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import * as m from 'motion/react-m'
 import { useTranslations } from 'next-intl'
 
 export default function SocialProofSection() {
@@ -24,7 +24,7 @@ export default function SocialProofSection() {
       <div className="absolute inset-0 dark:bg-gradient-to-b dark:from-navy-950/50 dark:to-navy-900 bg-gradient-to-b from-cream-100/50 to-cream-50 pointer-events-none" />
 
       <div className="section-container relative">
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -41,11 +41,11 @@ export default function SocialProofSection() {
               )}
             </span>
           ))}
-        </motion.div>
+        </m.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {testimonials.map((testimonial, i) => (
-            <motion.div
+            <m.div
               key={testimonial.name}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -74,7 +74,7 @@ export default function SocialProofSection() {
                   <p className="dark:text-cream-500 text-navy-600 text-xs">{testimonial.role}</p>
                 </div>
               </div>
-            </motion.div>
+            </m.div>
           ))}
         </div>
       </div>

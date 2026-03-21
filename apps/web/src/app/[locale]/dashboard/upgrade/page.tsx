@@ -11,7 +11,7 @@ import {
   Percent,
   Rocket,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/use-auth";

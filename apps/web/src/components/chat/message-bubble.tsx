@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { useChatStore, type ChatMessage } from '@/stores/chat-store';
 
 interface MessageBubbleProps {

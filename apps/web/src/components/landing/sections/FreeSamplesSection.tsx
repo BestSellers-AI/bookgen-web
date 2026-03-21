@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import * as m from 'motion/react-m'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 
@@ -22,7 +22,7 @@ export default function FreeSamplesSection() {
       <div className="absolute inset-0 bg-grid dark:opacity-30 opacity-15" />
 
       <div className="section-container relative">
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-60px' }}
@@ -37,11 +37,11 @@ export default function FreeSamplesSection() {
           <p className="dark:text-cream-400 text-navy-700 mt-4 text-lg max-w-xl mx-auto">
             {t('description')}
           </p>
-        </motion.div>
+        </m.div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {books.map((book, i) => (
-            <motion.div
+            <m.div
               key={book.title}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -77,7 +77,7 @@ export default function FreeSamplesSection() {
                 </svg>
                 {t('downloadPdf')}
               </a>
-            </motion.div>
+            </m.div>
           ))}
         </div>
       </div>

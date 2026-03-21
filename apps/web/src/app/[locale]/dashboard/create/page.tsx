@@ -38,7 +38,7 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { useTranslations, useLocale } from "next-intl";
 import {
   BOOK_TONES,

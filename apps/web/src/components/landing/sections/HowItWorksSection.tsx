@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import * as m from 'motion/react-m'
 import { useTranslations } from 'next-intl'
 
 const stepIcons = [
@@ -26,7 +26,7 @@ export default function HowItWorksSection() {
       <div className="absolute inset-0 bg-grid dark:opacity-30 opacity-15" />
 
       <div className="section-container relative">
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-60px' }}
@@ -42,12 +42,12 @@ export default function HowItWorksSection() {
           <p className="dark:text-cream-400 text-navy-700 mt-4 text-lg max-w-xl mx-auto">
             {t('subtitle')}
           </p>
-        </motion.div>
+        </m.div>
 
         {/* Desktop Timeline */}
         <div className="hidden lg:block relative">
           <div className="absolute top-[52px] left-[12.5%] right-[12.5%] h-px dark:bg-white/[0.06] bg-navy-900/[0.06]">
-            <motion.div
+            <m.div
               initial={{ scaleX: 0 }}
               whileInView={{ scaleX: 1 }}
               viewport={{ once: true, margin: '-60px' }}
@@ -59,7 +59,7 @@ export default function HowItWorksSection() {
 
           <div className="grid grid-cols-4 gap-6">
             {steps.map((step, i) => (
-              <motion.div
+              <m.div
                 key={step.number}
                 initial={{ opacity: 0, y: 36 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -89,7 +89,7 @@ export default function HowItWorksSection() {
                     {step.time}
                   </div>
                 </div>
-              </motion.div>
+              </m.div>
             ))}
           </div>
         </div>
@@ -97,7 +97,7 @@ export default function HowItWorksSection() {
         {/* Mobile Stepper */}
         <div className="lg:hidden flex flex-col gap-0">
           {steps.map((step, i) => (
-            <motion.div
+            <m.div
               key={step.number}
               initial={{ opacity: 0, x: -24 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -129,12 +129,12 @@ export default function HowItWorksSection() {
                   {step.time}
                 </div>
               </div>
-            </motion.div>
+            </m.div>
           ))}
         </div>
 
         {/* Callouts */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -164,9 +164,9 @@ export default function HowItWorksSection() {
               <p className="dark:text-cream-500 text-navy-600 text-xs mt-0.5">{t('callout3Label')}</p>
             </div>
           </div>
-        </motion.div>
+        </m.div>
 
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -179,7 +179,7 @@ export default function HowItWorksSection() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
           </a>
-        </motion.div>
+        </m.div>
       </div>
     </section>
   )

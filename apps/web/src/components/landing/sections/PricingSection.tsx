@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import * as m from 'motion/react-m'
+import { AnimatePresence } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import PlanCard from '@/components/landing/pricing/PlanCard'
 import CreditCard from '@/components/landing/pricing/CreditCard'
@@ -119,7 +120,7 @@ export default function PricingSection() {
       <div className="absolute top-0 left-0 right-0 h-px dark:bg-gradient-to-r dark:from-transparent dark:via-gold-500/20 dark:to-transparent bg-gradient-to-r from-transparent via-gold-600/20 to-transparent" />
 
       <div className="section-container relative">
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -134,7 +135,7 @@ export default function PricingSection() {
           <p className="dark:text-cream-400 text-navy-700 mt-4 text-lg max-w-2xl mx-auto">
             {t('subtitle')}
           </p>
-        </motion.div>
+        </m.div>
 
         {/* Tab Toggle */}
         <div className="flex justify-center mb-8">
@@ -158,7 +159,7 @@ export default function PricingSection() {
 
         <AnimatePresence mode="wait">
           {activeTab === 'plans' ? (
-            <motion.div
+            <m.div
               key="plans"
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -179,7 +180,7 @@ export default function PricingSection() {
                   className="relative w-14 h-7 dark:bg-navy-700 bg-cream-300 rounded-full border dark:border-white/10 border-navy-900/10 transition-colors dark:hover:border-white/20 hover:border-navy-900/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-400"
                   aria-label="Toggle billing period"
                 >
-                  <motion.div
+                  <m.div
                     animate={{ x: billing === 'annual' ? 28 : 2 }}
                     transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                     className="absolute top-0.5 w-6 h-6 bg-gold-500 rounded-full shadow-gold-sm"
@@ -201,7 +202,7 @@ export default function PricingSection() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
                 {plans.map((plan, i) => (
-                  <motion.div
+                  <m.div
                     key={plan.id}
                     id={`plan-${plan.id}`}
                     initial={{ opacity: 0, y: 24 }}
@@ -217,7 +218,7 @@ export default function PricingSection() {
                       onBuy={() => handleBuy(planSlugMap[plan.id], billing)}
                       loading={loadingSlug === planSlugMap[plan.id]}
                     />
-                  </motion.div>
+                  </m.div>
                 ))}
               </div>
 
@@ -238,7 +239,7 @@ export default function PricingSection() {
 
               {/* Why Subscribe */}
               <div className="mt-20">
-                <motion.div
+                <m.div
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
@@ -249,7 +250,7 @@ export default function PricingSection() {
                     {t('whySubscribeTitle')}
                   </h3>
                   <p className="dark:text-cream-500 text-navy-600 text-sm mt-2">{t('whySubscribeSubtitle')}</p>
-                </motion.div>
+                </m.div>
 
                 <div className="glass-card overflow-hidden max-w-2xl mx-auto">
                   <table className="w-full text-sm">
@@ -298,9 +299,9 @@ export default function PricingSection() {
                   </table>
                 </div>
               </div>
-            </motion.div>
+            </m.div>
           ) : (
-            <motion.div
+            <m.div
               key="credits"
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -325,7 +326,7 @@ export default function PricingSection() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {creditPacks.map((pack, i) => (
-                  <motion.div
+                  <m.div
                     key={pack.id}
                     initial={{ opacity: 0, y: 24 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -337,7 +338,7 @@ export default function PricingSection() {
                       onBuy={() => handleBuy(pack.slug)}
                       loading={loadingSlug === pack.slug}
                     />
-                  </motion.div>
+                  </m.div>
                 ))}
               </div>
 
@@ -372,7 +373,7 @@ export default function PricingSection() {
                   </table>
                 </div>
               </div>
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
       </div>

@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import * as m from 'motion/react-m'
+import { AnimatePresence } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { FAQ_COUNT } from '@/lib/landing-pricing-data'
 import clsx from 'clsx'
@@ -44,7 +45,7 @@ function FAQItem({ question, answer, isOpen, onToggle }: {
 
       <AnimatePresence initial={false}>
         {isOpen && (
-          <motion.div
+          <m.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -54,7 +55,7 @@ function FAQItem({ question, answer, isOpen, onToggle }: {
             <p className="pb-5 text-sm dark:text-cream-400 text-navy-700 leading-relaxed pr-10">
               {answer}
             </p>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>
@@ -76,7 +77,7 @@ export default function FAQSection() {
 
       <div className="section-container relative">
         <div className="max-w-3xl mx-auto">
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -94,9 +95,9 @@ export default function FAQSection() {
                 {t('contactLink')}
               </a>
             </p>
-          </motion.div>
+          </m.div>
 
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -112,7 +113,7 @@ export default function FAQSection() {
                 onToggle={() => setOpenIndex(openIndex === i ? null : i)}
               />
             ))}
-          </motion.div>
+          </m.div>
         </div>
       </div>
     </section>

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { User, Mail, Lock, ShieldCheck, CheckCircle2, Loader2, Wallet as WalletIcon } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { walletApi } from '@/lib/api/wallet';

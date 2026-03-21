@@ -2,7 +2,7 @@
 
 import React, { useEffect } from "react";
 import { Library, Pencil, DollarSign } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useAuth } from "@/hooks/use-auth";
 import { useNotifications } from "@/hooks/use-notifications";

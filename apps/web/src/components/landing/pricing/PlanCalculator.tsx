@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import * as m from 'motion/react-m'
+import { AnimatePresence } from 'motion/react'
 import { useTranslations } from 'next-intl'
 import { CALCULATOR_OPTIONS } from '@/lib/landing-pricing-data'
 import clsx from 'clsx'
@@ -46,7 +47,7 @@ export default function PlanCalculator({ onRecommend }: PlanCalculatorProps) {
 
       <AnimatePresence mode="wait">
         {recommendation && (
-          <motion.div
+          <m.div
             key={recommendation.recommendation}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -74,7 +75,7 @@ export default function PlanCalculator({ onRecommend }: PlanCalculatorProps) {
                 {t('calculatorCompare')}
               </button>
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>

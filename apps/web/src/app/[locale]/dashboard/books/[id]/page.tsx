@@ -20,7 +20,7 @@ import { PreviewViewer } from "@/components/book/preview-viewer";
 import { CreditCheckDialog } from "@/components/book/credit-check-dialog";
 import { GenerationProgress } from "@/components/book/generation-progress";
 import { BookViewer } from "@/components/book/book-viewer";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 

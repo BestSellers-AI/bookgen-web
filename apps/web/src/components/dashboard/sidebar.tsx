@@ -9,7 +9,7 @@ import { Link, usePathname } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/use-auth";
 import { useWalletStore } from "@/stores/wallet-store";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { PlanBadge } from "./plan-badge";
 
 export function Sidebar() {

@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import * as m from 'motion/react-m'
 import { Link } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 import clsx from 'clsx'
@@ -37,7 +37,7 @@ export default function ValueAnchorSection() {
       <div className="absolute inset-0 bg-grid dark:opacity-30 opacity-15" />
 
       <div className="section-container relative z-10">
-        <motion.div {...fadeUp(0)} className="text-center mb-14">
+        <m.div {...fadeUp(0)} className="text-center mb-14">
           <span className="section-badge mb-4">{t('badge')}</span>
           <h2 className="font-playfair font-bold text-3xl sm:text-4xl md:text-5xl leading-[1.1] max-w-3xl mx-auto">
             {t('headline1')}{' '}
@@ -48,9 +48,9 @@ export default function ValueAnchorSection() {
           <p className="mt-5 dark:text-cream-400 text-navy-700 text-lg max-w-xl mx-auto leading-relaxed">
             {t('subtitle')}
           </p>
-        </motion.div>
+        </m.div>
 
-        <motion.div {...fadeUp(0.1)} className="max-w-4xl mx-auto mb-16 overflow-x-auto">
+        <m.div {...fadeUp(0.1)} className="max-w-4xl mx-auto mb-16 overflow-x-auto">
           <table className="w-full min-w-[580px]">
             <thead>
               <tr>
@@ -95,9 +95,9 @@ export default function ValueAnchorSection() {
               ))}
             </tbody>
           </table>
-        </motion.div>
+        </m.div>
 
-        <motion.div
+        <m.div
           {...fadeUp(0.2)}
           className="max-w-3xl mx-auto glass-card p-6 sm:p-8 dark:border-gold-500/15 border-gold-600/15 dark:bg-gold-500/[0.03] bg-gold-600/[0.03]"
         >
@@ -127,9 +127,9 @@ export default function ValueAnchorSection() {
               ))}
             </div>
           </div>
-        </motion.div>
+        </m.div>
 
-        <motion.div {...fadeUp(0.3)} className="text-center mt-12">
+        <m.div {...fadeUp(0.3)} className="text-center mt-12">
           <Link href="/auth/register" className="btn-primary text-base px-8 py-3.5 glow-gold">
             {t('cta')}
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -137,7 +137,7 @@ export default function ValueAnchorSection() {
             </svg>
           </Link>
           <p className="mt-3 dark:text-cream-600 text-navy-500 text-xs">{t('ctaSub')}</p>
-        </motion.div>
+        </m.div>
       </div>
     </section>
   )
