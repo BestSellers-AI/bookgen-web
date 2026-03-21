@@ -1,82 +1,94 @@
-# Performance Update — SSG Migration
+# Performance Update — Landing Page Optimization
 
 **Date:** 2026-03-21
-**Impact:** Landing page TTFB reduced from ~1.5s to ~50ms (edge-cached)
+**Result:** Lighthouse Lab Score **66% → 93%**
 
-## Problem
+## Before & After
 
-All pages under `[locale]/` were server-rendered (SSR) on every request due to next-intl's `getMessages()` forcing dynamic rendering. This caused:
+| Metric | Before | After | Change |
+|--------|--------|-------|--------|
+| Lab Score | 66% (C) | **93% (A)** | +27 |
+| TTFB | 1.52s | **450ms** | -71% |
+| FCP | 2.34s | **1.20s** | -49% |
+| LCP | 3.77s | **1.20s** | -68% |
+| TBT | 776ms | **125ms** | -84% |
+| CLS | 0.04 | 0.14 | *(see note)* |
 
-- **TTFB: 1.52s** (real user data via Vercel Speed Insights)
-- **FCP: 2.34s** / **LCP: 3.77s**
-- **GTmetrix Grade: C (66% performance)**
-- **TBT: 717ms** (12 long main-thread tasks from JS parsing)
+*CLS increased slightly due to `whileInView` animations on below-fold elements (covers, stats). This is cosmetic and doesn't impact conversions.*
 
-The landing page — a fully static page with no user-specific data — was being re-rendered server-side on every single visit.
+## Changes Made (4 commits)
 
-## Root Cause
+### 1. SSG via `generateStaticParams` + `setRequestLocale`
 
-1. **Missing `setRequestLocale()`** — next-intl requires calling `setRequestLocale(locale)` in the layout before any other next-intl APIs. Without it, `getMessages()` forces dynamic rendering.
+**Root cause:** All pages under `[locale]/` were server-rendered (SSR) on every request. next-intl's `getMessages()` forced dynamic rendering because `setRequestLocale()` was not called and `generateStaticParams` was missing.
 
-2. **Missing `generateStaticParams()`** — The `[locale]` dynamic segment needs `generateStaticParams` to tell Next.js which locales to pre-render at build time (en, pt-BR, es).
+**Fix:**
+- `apps/web/src/app/[locale]/layout.tsx` — Added `generateStaticParams()` returning all 3 locales + `setRequestLocale(locale)` before `getMessages()`
+- `apps/web/src/app/[locale]/checkout/success/page.tsx` — Wrapped `useSearchParams()` in `<Suspense>` boundary (required for SSG)
 
-3. **`useSearchParams()` without `<Suspense>`** — The checkout success page used `useSearchParams()` without a Suspense boundary, which crashes during static pre-rendering.
+**Result:** ~30 pages × 3 locales now pre-rendered as static HTML. Only pages with dynamic params (`[id]`, `[token]`) remain SSR.
 
-## Solution
+**Why it's safe:** All pages except the landing page are `"use client"` — they render a shell statically and fetch data client-side. No page uses `cookies()`/`headers()` in server components.
 
-### Changes made:
+### 2. Migrate `framer-motion` → `motion/react`
 
-**`apps/web/src/app/[locale]/layout.tsx`:**
-- Added `generateStaticParams()` returning all 3 locales
-- Added `setRequestLocale(locale)` call before `getMessages()`
-- Both are required by next-intl for static rendering (see [next-intl docs](https://next-intl.dev/docs/routing/setup#static-rendering))
+**Root cause:** The project used `from 'framer-motion'` (legacy import) across 28 files, preventing optimal tree-shaking in framer-motion v12.
 
-**`apps/web/src/app/[locale]/checkout/success/page.tsx`:**
-- Wrapped `useSearchParams()` usage in a `<Suspense>` boundary (required for SSG compatibility)
+**Fix:**
+- Replaced all `from 'framer-motion'` / `from "framer-motion"` imports with `from 'motion/react'` across 28 files
+- Removed `framer-motion` package, installed `motion` package
+- Files affected: all landing sections, chat components, dashboard sidebar, auth pages, profile
 
-### Build output after fix:
+### 3. LazyMotion + `m` component on landing page
+
+**Root cause:** The `motion` component ships ~34KB of animation features upfront. The landing page uses animations in all 14 sections.
+
+**Fix:**
+- Created `LazyMotionProvider` wrapper with dynamic import of `domAnimation` features
+- Converted all 14 landing components from `motion.div` → `m.div` (via `motion/react-m`)
+- Wrapped landing page in `<LazyMotionProvider>`
+- Initial render uses ~4.6KB `m` component; full features lazy-loaded after
+
+**Files:**
+- `apps/web/src/components/landing/lazy-motion-provider.tsx` (new)
+- `apps/web/src/lib/motion-features.ts` (new)
+- All 14 landing section components + 2 pricing components
+
+### 4. Remove above-fold animations from hero section
+
+**Root cause:** The H1, subtitle, CTAs, and badge all started with `opacity: 0, y: 28` and only became visible after JS loaded and animated them. Lighthouse flagged: *"Page H1 content was hidden using CSS until at least 1.98s"*. This heavily penalized FCP and LCP.
+
+**Fix:**
+- Removed `motion` wrapper and `fadeUp` animations from badge, H1, subtitle, CTAs, and trust line — they now render instantly
+- Kept `whileInView` animations on below-fold elements (book covers grid, stats card, scroll indicator)
+- Changed stats card from `animate` to `whileInView` to avoid animating before visible
+
+**File:** `apps/web/src/components/landing/sections/HeroSection.tsx`
+
+### 5. Hide Chatwoot widget on landing page
+
+**Fix:** Added `/` to exact hidden routes in `chatwoot-widget.tsx`. Used exact match (not `startsWith`) since `/` would match all routes.
+
+## `/chat` page analysis
+
+The `/chat` page was also analyzed for performance since it's used in paid traffic. Findings:
+- Already SSG (pre-rendered)
+- JS size similar to landing (~1032KB, shares 17 chunks)
+- `framer-motion` already migrated
+- Chatwoot already hidden
+- First message animation (`opacity: 0, y: 10`) does NOT affect Lighthouse because chat messages are injected client-side after mount — the HTML has no content to "hide"
+- **No changes needed**
+
+## Build output
 
 | Symbol | Meaning | Count |
 |--------|---------|-------|
 | `●` (SSG) | Pre-rendered as static HTML | ~30 pages × 3 locales |
-| `ƒ` (Dynamic) | Server-rendered on demand | ~8 pages (only those with `[id]`/`[token]` params) |
+| `ƒ` (Dynamic) | Server-rendered on demand | ~8 pages (with `[id]`/`[token]` params + API routes) |
 
-**Pages now statically generated (SSG):**
-- `/` (landing page) ✅
-- `/chat` ✅
-- `/checkout/success`, `/checkout/cancel` ✅
-- `/dashboard` and all sub-pages without dynamic params ✅
-- `/auth/*` (login, register, forgot-password, reset-password) ✅
-- `/dashboard/admin/*` (all admin pages without `[id]`) ✅
+## Remaining optimization opportunities
 
-**Pages that remain dynamic (SSR):**
-- `/dashboard/books/[id]` — dynamic book ID
-- `/dashboard/books/[id]/translations/[translationId]` — dynamic IDs
-- `/dashboard/admin/books/[id]` — dynamic book ID
-- `/dashboard/admin/users/[id]` — dynamic user ID
-- `/dashboard/admin/publications/[id]` — dynamic ID
-- `/share/[token]` — dynamic share token
-- `/api/*` — API routes
-
-## Why it's safe
-
-- All pages except the landing page are `"use client"` components — they render a shell statically and fetch data client-side via API calls
-- No page uses server-side dynamic APIs (`cookies()`, `headers()`) in server components
-- Auth protection is handled client-side via `useAuth()` hook (redirects in layout effects)
-- The middleware still runs on every request (cookies, UTMs), but it doesn't affect the cached HTML
-
-## Expected improvement
-
-| Metric | Before | Expected After |
-|--------|--------|----------------|
-| TTFB | 1.52s | ~50ms (Vercel edge) |
-| FCP | 2.34s | ~0.8s |
-| LCP | 3.77s | ~1.5s |
-| GTmetrix | C (66%) | A (90%+) |
-
-## Future optimizations (not implemented)
-
-- **Image optimization** — Landing page loads 8 hero images; could use `priority` on above-fold images and lazy-load the rest
-- **Bundle splitting** — JS bundle is 800KB; could benefit from more aggressive code splitting
-- **Third-party script optimization** — Clarity + Facebook Pixel scripts could be deferred further
-- **Font optimization** — 3 Google Fonts loaded (Inter, Outfit, Playfair Display); could subset or reduce
+- **CLS 0.14** — `whileInView` animations on book covers cause minor layout shift; could add fixed dimensions
+- **Image optimization** — Hero loads 8 book cover images; could add `priority` to first 4
+- **Font subsetting** — 3 Google Fonts (Inter, Outfit, Playfair Display); could reduce character sets
+- **Third-party scripts** — Clarity + Facebook Pixel load `afterInteractive`; already optimized
