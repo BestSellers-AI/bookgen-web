@@ -30,7 +30,7 @@ import {
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { publishingApi } from "@/lib/api/publishing";
-import { booksApi } from "@/lib/api/books";
+import { adminApi } from "@/lib/api/admin";
 import { toast } from "sonner";
 import type { AdminPublishingDetail } from "@/lib/api/types";
 import { PageHeader } from "@/components/ui/page-header";
@@ -141,7 +141,7 @@ export default function AdminPublicationDetailPage() {
     if (!detail) return;
     setGeneratingPdf(true);
     try {
-      const bookDetail = await booksApi.getById(detail.bookId);
+      const { user: _u, ...bookDetail } = await adminApi.getBook(detail.bookId);
       const { downloadBookPdf } = await import("@/lib/book-template/download");
       await downloadBookPdf(bookDetail, (detail.book?.settings?.language as string) ?? "en");
     } catch {
@@ -155,7 +155,7 @@ export default function AdminPublicationDetailPage() {
     if (!detail) return;
     setGeneratingDocx(true);
     try {
-      const bookDetail = await booksApi.getById(detail.bookId);
+      const { user: _u, ...bookDetail } = await adminApi.getBook(detail.bookId);
       const { downloadBookDocx } = await import("@/lib/book-template/download");
       await downloadBookDocx(bookDetail, (detail.book?.settings?.language as string) ?? "en");
     } catch {

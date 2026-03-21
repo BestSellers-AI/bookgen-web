@@ -104,6 +104,7 @@ export class AdminController {
   }
 
   @Get('books/:id')
+  @Roles('ADMIN', 'EDITOR')
   async getBookById(@Param('id') id: string) {
     return this.adminService.getBookById(id);
   }

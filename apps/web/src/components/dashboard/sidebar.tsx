@@ -122,6 +122,34 @@ export function Sidebar() {
             })}
           </>
         )}
+        {/* Editor Section */}
+        {user?.role === UserRole.EDITOR && (
+          <>
+            <div className="my-2 border-t border-border" />
+            {[
+              { label: t("adminPublications") || "Publications", icon: BookCheck, href: "/dashboard/admin/publications" },
+            ].map((item) => {
+              const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+              return (
+                <Button
+                  key={item.href}
+                  variant="ghost"
+                  className={`group justify-start gap-3 h-10 px-4 rounded-2xl transition-all duration-300 text-xs ${
+                    isActive
+                      ? "bg-red-500/10 text-red-400 hover:bg-red-500/15"
+                      : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                  }`}
+                  asChild
+                >
+                  <Link href={item.href}>
+                    <item.icon className={`w-4 h-4 ${isActive ? "text-red-400" : ""}`} />
+                    <span className="font-medium">{item.label}</span>
+                  </Link>
+                </Button>
+              );
+            })}
+          </>
+        )}
       </nav>
 
       <div className="mt-4 flex flex-col gap-3 shrink-0">

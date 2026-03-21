@@ -216,6 +216,7 @@ export default function AdminUserDetailPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={UserRole.USER}>USER</SelectItem>
+                <SelectItem value={UserRole.EDITOR}>EDITOR</SelectItem>
                 <SelectItem value={UserRole.ADMIN}>ADMIN</SelectItem>
               </SelectContent>
             </Select>

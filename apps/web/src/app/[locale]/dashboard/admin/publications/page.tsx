@@ -23,6 +23,8 @@ import { toast } from "sonner";
 import type { PaginationMeta, AdminPublishingDetail } from "@/lib/api/types";
 import { PageHeader } from "@/components/ui/page-header";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/hooks/use-auth";
+import { UserRole } from "@bestsellers/shared";
 
 type StatusFilter = "all" | "requested" | "in_progress" | "completed";
 
@@ -34,6 +36,8 @@ const STATUS_FILTER_MAP: Record<StatusFilter, string | undefined> = {
 };
 
 export default function AdminPublicationsPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === UserRole.ADMIN;
   const t = useTranslations("admin");
   const tCommon = useTranslations("common");
   const tStatus = useTranslations("publishingStatus");
@@ -127,60 +131,62 @@ export default function AdminPublicationsPage() {
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <PageHeader title={t("publications")} subtitle={t("publicationsSubtitle")} />
-        <Dialog
-          open={settingsOpen}
-          onOpenChange={(open) => {
-            setSettingsOpen(open);
-            if (open) loadWebhookUrl();
-          }}
-        >
-          <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="rounded-xl gap-2">
-              <Settings2 className="w-4 h-4" />
-              {t("publishingSettings")}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-lg">
-            <DialogHeader>
-              <DialogTitle>{t("publishingSettings")}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 pt-2">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">{t("webhookUrlLabel")}</label>
-                <p className="text-xs text-muted-foreground">{t("webhookUrlDesc")}</p>
-                {webhookLoading ? (
-                  <Skeleton className="h-10 rounded-xl" />
-                ) : (
-                  <Input
-                    value={webhookUrl}
-                    onChange={(e) => setWebhookUrl(e.target.value)}
-                    placeholder="https://..."
-                    className="rounded-xl font-mono text-xs"
-                  />
-                )}
+        {isAdmin && (
+          <Dialog
+            open={settingsOpen}
+            onOpenChange={(open) => {
+              setSettingsOpen(open);
+              if (open) loadWebhookUrl();
+            }}
+          >
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="rounded-xl gap-2">
+                <Settings2 className="w-4 h-4" />
+                {t("publishingSettings")}
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-lg">
+              <DialogHeader>
+                <DialogTitle>{t("publishingSettings")}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">{t("webhookUrlLabel")}</label>
+                  <p className="text-xs text-muted-foreground">{t("webhookUrlDesc")}</p>
+                  {webhookLoading ? (
+                    <Skeleton className="h-10 rounded-xl" />
+                  ) : (
+                    <Input
+                      value={webhookUrl}
+                      onChange={(e) => setWebhookUrl(e.target.value)}
+                      placeholder="https://..."
+                      className="rounded-xl font-mono text-xs"
+                    />
+                  )}
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-xl"
+                    onClick={() => setSettingsOpen(false)}
+                  >
+                    {tCommon("cancel")}
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="rounded-xl"
+                    onClick={handleSaveWebhook}
+                    disabled={savingWebhook || webhookLoading}
+                  >
+                    {savingWebhook && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                    {tCommon("save")}
+                  </Button>
+                </div>
               </div>
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="rounded-xl"
-                  onClick={() => setSettingsOpen(false)}
-                >
-                  {tCommon("cancel")}
-                </Button>
-                <Button
-                  size="sm"
-                  className="rounded-xl"
-                  onClick={handleSaveWebhook}
-                  disabled={savingWebhook || webhookLoading}
-                >
-                  {savingWebhook && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
-                  {tCommon("save")}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>

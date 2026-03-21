@@ -33,6 +33,7 @@ export enum CreditType {
 export enum UserRole {
   USER = 'USER',
   ADMIN = 'ADMIN',
+  EDITOR = 'EDITOR',
 }
 
 export enum BookStatus {

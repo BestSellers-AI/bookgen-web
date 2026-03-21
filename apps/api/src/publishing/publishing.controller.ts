@@ -49,7 +49,7 @@ export class PublishingController {
 
 @Controller('admin/publishing')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('ADMIN')
+@Roles('ADMIN', 'EDITOR')
 export class AdminPublishingController {
   constructor(private readonly publishingService: PublishingService) {}
 

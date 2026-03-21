@@ -14,12 +14,12 @@ export default function AdminLayout({
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && user && user.role !== UserRole.ADMIN) {
+    if (!isLoading && user && user.role !== UserRole.ADMIN && user.role !== UserRole.EDITOR) {
       router.push("/dashboard");
     }
   }, [user, isLoading, router]);
 
-  if (isLoading || !user || user.role !== UserRole.ADMIN) {
+  if (isLoading || !user || (user.role !== UserRole.ADMIN && user.role !== UserRole.EDITOR)) {
     return null;
   }
 
