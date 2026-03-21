@@ -15,6 +15,7 @@ import {
   PurchaseStatus,
   CreditType,
   WalletTransactionType,
+  ChapterStatus,
 } from '@prisma/client';
 import { paginate, buildPaginatedResponse } from '../common/utils/paginate';
 import type {
@@ -401,6 +402,7 @@ export class AdminService {
         ...paginate(page, perPage),
         include: {
           user: { select: { email: true } },
+          _count: { select: { translations: true } },
         },
       }),
       this.prisma.book.count({ where }),
@@ -415,6 +417,7 @@ export class AdminService {
       userEmail: b.user.email,
       wordCount: b.wordCount,
       pageCount: b.pageCount,
+      translationsCount: b._count.translations,
       createdAt: b.createdAt.toISOString(),
     }));
 
@@ -426,11 +429,14 @@ export class AdminService {
       where: { id, deletedAt: null },
       include: {
         chapters: { orderBy: { sequence: 'asc' } },
-        files: true,
+        files: { orderBy: { createdAt: 'asc' } },
         addons: true,
-        translations: true,
+        selectedCoverFile: { select: { fileUrl: true } },
+        translations: {
+          include: { _count: { select: { chapters: true } } },
+        },
         audiobooks: true,
-        images: { orderBy: { position: 'asc' } },
+        images: { orderBy: [{ position: 'asc' }, { createdAt: 'desc' }] },
         sharedBooks: { where: { isActive: true }, take: 1 },
         user: { select: { email: true, name: true } },
       },
@@ -440,7 +446,160 @@ export class AdminService {
       throw new NotFoundException('Book not found');
     }
 
-    return book;
+    const share = book.sharedBooks[0] ?? null;
+
+    return {
+      id: book.id,
+      title: book.title,
+      subtitle: book.subtitle,
+      author: book.author,
+      briefing: book.briefing,
+      status: book.status,
+      creationMode: book.creationMode,
+      planning: book.planning,
+      settings: book.settings,
+      introduction: book.introduction,
+      conclusion: book.conclusion,
+      finalConsiderations: book.finalConsiderations,
+      glossary: book.glossary,
+      resourcesReferences: book.resourcesReferences,
+      appendix: book.appendix,
+      closure: book.closure,
+      coverUrl: book.selectedCoverFile?.fileUrl ?? null,
+      selectedCoverFileId: book.selectedCoverFileId,
+      wordCount: book.wordCount,
+      pageCount: book.pageCount,
+      chaptersCount: book.chapters.length,
+      completedChaptersCount: book.chapters.filter(
+        (ch) => ch.status === ChapterStatus.GENERATED,
+      ).length,
+      generationStartedAt: book.generationStartedAt?.toISOString() ?? null,
+      generationCompletedAt:
+        book.generationCompletedAt?.toISOString() ?? null,
+      generationError: book.generationError,
+      chapters: book.chapters.map((ch) => ({
+        id: ch.id,
+        sequence: ch.sequence,
+        title: ch.title,
+        status: ch.status,
+        wordCount: ch.wordCount,
+        isEdited: ch.isEdited,
+        content: ch.content,
+        editedContent: ch.editedContent,
+        topics: ch.topics,
+        contextSummary: ch.contextSummary,
+        selectedImageId: ch.selectedImageId,
+      })),
+      files: book.files.map((f) => ({
+        id: f.id,
+        fileType: f.fileType,
+        fileName: f.fileName,
+        fileUrl: f.fileUrl,
+        fileSizeBytes: f.fileSizeBytes,
+        createdAt: f.createdAt.toISOString(),
+      })),
+      addons: book.addons.map((a) => ({
+        id: a.id,
+        kind: a.kind,
+        status: a.status,
+        translationId: a.translationId,
+        resultUrl: a.resultUrl,
+        resultData: a.resultData as Record<string, unknown> | null,
+        creditsCost: a.creditsCost,
+        error: a.error,
+        createdAt: a.createdAt.toISOString(),
+        updatedAt: a.updatedAt.toISOString(),
+      })),
+      translations: book.translations.map((t) => ({
+        id: t.id,
+        targetLanguage: t.targetLanguage,
+        status: t.status,
+        translatedTitle: t.translatedTitle,
+        translatedSubtitle: t.translatedSubtitle,
+        totalChapters: t.totalChapters,
+        completedChapters: t.completedChapters,
+        createdAt: t.createdAt.toISOString(),
+      })),
+      audiobooks: book.audiobooks.map((ab) => ({
+        id: ab.id,
+        voiceName: ab.voiceName,
+        status: ab.status,
+        totalDuration: ab.totalDuration,
+        fullAudioUrl: ab.fullAudioUrl,
+        createdAt: ab.createdAt.toISOString(),
+      })),
+      images: book.images.map((img) => ({
+        id: img.id,
+        chapterId: img.chapterId,
+        prompt: img.prompt,
+        imageUrl: img.imageUrl,
+        caption: img.caption,
+        position: img.position,
+        createdAt: img.createdAt.toISOString(),
+      })),
+      share: share
+        ? {
+            id: share.id,
+            shareToken: share.shareToken,
+            isActive: share.isActive,
+            viewCount: share.viewCount,
+            expiresAt: share.expiresAt?.toISOString() ?? null,
+            shareUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/share/${share.shareToken}`,
+            createdAt: share.createdAt.toISOString(),
+          }
+        : null,
+      user: book.user,
+      createdAt: book.createdAt.toISOString(),
+      updatedAt: book.updatedAt.toISOString(),
+    };
+  }
+
+  async getBookTranslation(bookId: string, translationId: string) {
+    const book = await this.prisma.book.findFirst({
+      where: { id: bookId, deletedAt: null },
+      select: { id: true },
+    });
+
+    if (!book) {
+      throw new NotFoundException('Book not found');
+    }
+
+    const translation = await this.prisma.bookTranslation.findFirst({
+      where: { id: translationId, bookId },
+      include: {
+        chapters: { orderBy: { sequence: 'asc' } },
+      },
+    });
+
+    if (!translation) {
+      throw new NotFoundException('Translation not found');
+    }
+
+    return {
+      id: translation.id,
+      targetLanguage: translation.targetLanguage,
+      status: translation.status,
+      translatedTitle: translation.translatedTitle,
+      translatedSubtitle: translation.translatedSubtitle,
+      translatedIntroduction: translation.translatedIntroduction,
+      translatedConclusion: translation.translatedConclusion,
+      translatedFinalConsiderations: translation.translatedFinalConsiderations,
+      translatedGlossary: translation.translatedGlossary,
+      translatedAppendix: translation.translatedAppendix,
+      translatedClosure: translation.translatedClosure,
+      totalChapters: translation.totalChapters,
+      completedChapters: translation.completedChapters,
+      createdAt: translation.createdAt.toISOString(),
+      chapters: translation.chapters.map((ch) => ({
+        id: ch.id,
+        chapterId: ch.chapterId,
+        sequence: ch.sequence,
+        translatedTitle: ch.translatedTitle,
+        translatedContent: ch.translatedContent,
+        status: ch.status,
+        createdAt: ch.createdAt.toISOString(),
+      })),
+    };
   }
 
   /* ------------------------------------------------------------------ */

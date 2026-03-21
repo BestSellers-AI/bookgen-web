@@ -108,6 +108,14 @@ export class AdminController {
     return this.adminService.getBookById(id);
   }
 
+  @Get('books/:bookId/translations/:translationId')
+  async getBookTranslation(
+    @Param('bookId') bookId: string,
+    @Param('translationId') translationId: string,
+  ) {
+    return this.adminService.getBookTranslation(bookId, translationId);
+  }
+
   /* ── Subscriptions ───────────────────────────────────────────────── */
 
   @Get('subscriptions')

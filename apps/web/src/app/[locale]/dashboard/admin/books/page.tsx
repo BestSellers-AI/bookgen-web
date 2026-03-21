@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Search } from "lucide-react";
+import { Search, Globe } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Pagination } from "@/components/ui/pagination";
@@ -85,6 +85,9 @@ export default function AdminBooksPage() {
                     {t("status")}
                   </th>
                   <th className="px-6 py-4 font-bold text-muted-foreground">
+                    <Globe className="w-4 h-4 inline" />
+                  </th>
+                  <th className="px-6 py-4 font-bold text-muted-foreground">
                     {t("user")}
                   </th>
                   <th className="px-6 py-4 font-bold text-muted-foreground">
@@ -100,7 +103,7 @@ export default function AdminBooksPage() {
                   >
                     <td className="px-6 py-4 font-medium">
                       <Link
-                        href={`/dashboard/books/${book.id}`}
+                        href={`/dashboard/admin/books/${book.id}`}
                         className="hover:text-primary transition-colors"
                       >
                         {book.title}
@@ -116,6 +119,15 @@ export default function AdminBooksPage() {
                       >
                         {tStatus.has(book.status) ? tStatus(book.status) : book.status}
                       </Badge>
+                    </td>
+                    <td className="px-6 py-4 text-center text-muted-foreground text-xs">
+                      {book.translationsCount > 0 ? (
+                        <Badge variant="secondary" className="text-[9px] font-bold bg-blue-500/10 text-blue-400 border-blue-500/20">
+                          {book.translationsCount}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground/40">—</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-muted-foreground text-xs">
                       {book.userEmail}

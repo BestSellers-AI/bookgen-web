@@ -53,6 +53,7 @@ export interface AdminBookSummary {
   userEmail: string;
   wordCount: number | null;
   pageCount: number | null;
+  translationsCount: number;
   createdAt: string;
 }
 

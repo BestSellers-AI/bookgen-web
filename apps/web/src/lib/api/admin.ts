@@ -1,5 +1,5 @@
 import { apiClient } from '../api-client';
-import type { PaginatedResponse } from './types';
+import type { PaginatedResponse, BookDetail, TranslationDetail } from './types';
 import type { UserRole, SubscriptionPlan } from '@bestsellers/shared';
 
 // ---------------------------------------------------------------------------
@@ -62,6 +62,7 @@ export interface AdminBookSummary {
   userEmail: string;
   wordCount: number | null;
   pageCount: number | null;
+  translationsCount: number;
   createdAt: string;
 }
 
@@ -178,6 +179,16 @@ export const adminApi = {
   listBooks: (params?: AdminListParams) =>
     apiClient
       .get<PaginatedResponse<AdminBookSummary>>('/admin/books', { params })
+      .then((r) => r.data),
+
+  getBook: (id: string) =>
+    apiClient
+      .get<BookDetail & { user: { email: string; name: string | null } }>(`/admin/books/${id}`)
+      .then((r) => r.data),
+
+  getBookTranslation: (bookId: string, translationId: string) =>
+    apiClient
+      .get<TranslationDetail>(`/admin/books/${bookId}/translations/${translationId}`)
       .then((r) => r.data),
 
   listSubscriptions: (params?: AdminListParams) =>
