@@ -133,7 +133,8 @@ export default function AdminBooksPage() {
                       {book.userEmail}
                     </td>
                     <td className="px-6 py-4 text-muted-foreground text-xs">
-                      {new Date(book.createdAt).toLocaleDateString()}
+                      {new Date(book.createdAt).toLocaleDateString()}{" "}
+                      {new Date(book.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </td>
                   </tr>
                 ))}

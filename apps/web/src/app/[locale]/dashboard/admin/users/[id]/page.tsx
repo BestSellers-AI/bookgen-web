@@ -228,7 +228,8 @@ export default function AdminUserDetailPage() {
             <div className="flex justify-between">
               <span className="text-muted-foreground">{t("joined")}</span>
               <span className="font-medium text-xs">
-                {new Date(user.createdAt).toLocaleDateString()}
+                {new Date(user.createdAt).toLocaleDateString()}{" "}
+                {new Date(user.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
               </span>
             </div>
             <div className="flex justify-between">

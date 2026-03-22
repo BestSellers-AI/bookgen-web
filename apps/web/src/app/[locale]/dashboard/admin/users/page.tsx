@@ -128,7 +128,8 @@ export default function AdminUsersPage() {
                     <td className="px-6 py-4 font-mono">{user.booksCount}</td>
                     <td className="px-6 py-4 font-mono">{user.balance}</td>
                     <td className="px-6 py-4 text-muted-foreground text-xs">
-                      {new Date(user.createdAt).toLocaleDateString()}
+                      {new Date(user.createdAt).toLocaleDateString()}{" "}
+                      {new Date(user.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </td>
                     <td className="px-6 py-4">
                       <Link
