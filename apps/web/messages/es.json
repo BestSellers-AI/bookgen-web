@@ -1033,7 +1033,8 @@
     "piGuest": "Visitante",
     "piPlan": "Plan",
     "piCredits": "Créditos",
-    "piPending": "Pendiente"
+    "piPending": "Pendiente",
+    "piRecoverySent": "Recuperación enviada a las"
   },
   "publishingResult": {
     "title": "Detalles de la Publicación",

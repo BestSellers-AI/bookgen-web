@@ -522,7 +522,9 @@ export default function AdminUserDetailPage() {
                   {pi.converted ? (
                     <p className="text-[10px] text-emerald-400 font-bold">{t("piConverted") || "Converted"}</p>
                   ) : pi.recoveryEmailSentAt ? (
-                    <p className="text-[10px] text-blue-400">{t("piRecovery") || "Recovery"} sent</p>
+                    <p className="text-[10px] text-blue-400">
+                      {t("piRecoverySent")} {new Date(pi.recoveryEmailSentAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </p>
                   ) : (
                     <p className="text-[10px] text-amber-400">{t("piAbandoned") || "Abandoned"}</p>
                   )}

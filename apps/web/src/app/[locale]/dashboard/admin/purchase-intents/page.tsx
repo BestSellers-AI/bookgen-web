@@ -200,7 +200,8 @@ export default function AdminPurchaseIntentsPage() {
                         <div className="flex items-center gap-1.5">
                           <Mail className="w-3.5 h-3.5 text-blue-400" />
                           <span className="text-[10px] text-muted-foreground">
-                            {new Date(intent.recoveryEmailSentAt).toLocaleDateString()}
+                            {new Date(intent.recoveryEmailSentAt).toLocaleDateString()}{" "}
+                            {new Date(intent.recoveryEmailSentAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                           </span>
                         </div>
                       ) : intent.converted ? (
