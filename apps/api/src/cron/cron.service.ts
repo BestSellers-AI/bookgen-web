@@ -587,7 +587,11 @@ export class CronService {
       };
 
       if (seq === 1) {
-        where.generationCompletedAt = { lte: new Date(now - minAge) };
+        // Use generationCompletedAt if available, fallback to updatedAt
+        where.OR = [
+          { generationCompletedAt: { lte: new Date(now - minAge) } },
+          { generationCompletedAt: null, updatedAt: { lte: new Date(now - minAge) } },
+        ];
       } else {
         where.lastUpsellEmailAt = { lte: lastEmailCutoff };
       }
