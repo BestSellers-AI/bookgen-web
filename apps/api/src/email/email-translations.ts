@@ -85,6 +85,13 @@ export interface EmailTranslations {
   monthlySummaryCreditsUsed: (credits: number) => string;
   monthlySummaryCreditsRemaining: (credits: number) => string;
   monthlySummaryButton: string;
+  // Purchase recovery
+  recoverySubscriptionSubject: string;
+  recoverySubscriptionBody: (planName: string) => string;
+  recoveryCreditSubject: string;
+  recoveryCreditBody: (packName: string) => string;
+  recoveryButton: string;
+  recoveryExpiry: string;
   // Addon names
   addonName: (kind: string) => string;
 }
@@ -177,6 +184,13 @@ const translations: Record<string, EmailTranslations> = {
     monthlySummaryCreditsUsed: (credits) => `⚡ <strong>${credits}</strong> credits used`,
     monthlySummaryCreditsRemaining: (credits) => `💰 <strong>${credits}</strong> credits remaining`,
     monthlySummaryButton: 'Go to Dashboard',
+    // Purchase recovery
+    recoverySubscriptionSubject: 'Still thinking about your plan? — BestSellers AI',
+    recoverySubscriptionBody: (planName) => `You were about to subscribe to the <strong>${planName}</strong> plan but didn't finish. Your plan is still waiting for you — pick up where you left off and start creating professional books today.`,
+    recoveryCreditSubject: 'Your credits are waiting — BestSellers AI',
+    recoveryCreditBody: (packName) => `You were about to purchase the <strong>${packName}</strong> credit pack but didn't finish. Complete your purchase now and start creating.`,
+    recoveryButton: 'Complete My Purchase',
+    recoveryExpiry: 'This link will take you back to our pricing page.',
     // Addon names
     addonName: (kind) => ({
       ADDON_COVER: 'AI Cover',
@@ -260,6 +274,12 @@ const translations: Record<string, EmailTranslations> = {
     monthlySummaryCreditsUsed: (credits) => `⚡ <strong>${credits}</strong> créditos usados`,
     monthlySummaryCreditsRemaining: (credits) => `💰 <strong>${credits}</strong> créditos restantes`,
     monthlySummaryButton: 'Ir para o Painel',
+    recoverySubscriptionSubject: 'Ainda pensando no seu plano? — BestSellers AI',
+    recoverySubscriptionBody: (planName) => `Você estava prestes a assinar o plano <strong>${planName}</strong> mas não finalizou. Seu plano ainda está esperando — continue de onde parou e comece a criar livros profissionais hoje.`,
+    recoveryCreditSubject: 'Seus créditos estão esperando — BestSellers AI',
+    recoveryCreditBody: (packName) => `Você estava prestes a comprar o pacote <strong>${packName}</strong> mas não finalizou. Complete sua compra agora e comece a criar.`,
+    recoveryButton: 'Completar Minha Compra',
+    recoveryExpiry: 'Este link vai te levar de volta à nossa página de preços.',
     addonName: (kind) => ({
       ADDON_COVER: 'Capa com IA',
       ADDON_IMAGES: 'Ilustrações dos Capítulos',
@@ -342,6 +362,12 @@ const translations: Record<string, EmailTranslations> = {
     monthlySummaryCreditsUsed: (credits) => `⚡ <strong>${credits}</strong> créditos usados`,
     monthlySummaryCreditsRemaining: (credits) => `💰 <strong>${credits}</strong> créditos restantes`,
     monthlySummaryButton: 'Ir al Panel',
+    recoverySubscriptionSubject: '¿Aún pensando en tu plan? — BestSellers AI',
+    recoverySubscriptionBody: (planName) => `Estabas a punto de suscribirte al plan <strong>${planName}</strong> pero no terminaste. Tu plan te sigue esperando — retoma donde lo dejaste y empieza a crear libros profesionales hoy.`,
+    recoveryCreditSubject: 'Tus créditos te esperan — BestSellers AI',
+    recoveryCreditBody: (packName) => `Estabas a punto de comprar el paquete <strong>${packName}</strong> pero no terminaste. Completa tu compra ahora y empieza a crear.`,
+    recoveryButton: 'Completar Mi Compra',
+    recoveryExpiry: 'Este enlace te llevará de vuelta a nuestra página de precios.',
     addonName: (kind) => ({
       ADDON_COVER: 'Portada con IA',
       ADDON_IMAGES: 'Ilustraciones de Capítulos',

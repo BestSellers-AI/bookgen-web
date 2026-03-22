@@ -68,7 +68,7 @@ export default function PricingSection() {
       }, generateEventId())
 
       const { fbp, fbc } = getFbCookies()
-      const res = await checkoutApi.createSession({ productSlug: slug, billingInterval, fbp, fbc })
+      const res = await checkoutApi.createSession({ productSlug: slug, billingInterval, source: 'landing', fbp, fbc })
       window.location.href = res.url
     } catch {
       toast.error(t('purchaseError'))
@@ -98,6 +98,7 @@ export default function PricingSection() {
         productSlug: pendingSlug,
         email,
         billingInterval: pendingBillingInterval,
+        source: 'landing',
         fbp,
         fbc,
       })

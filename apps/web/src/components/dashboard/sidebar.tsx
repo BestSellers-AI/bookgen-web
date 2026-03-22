@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, Library, Pencil, Wallet as WalletIcon, User, LogOut, ShieldCheck, Users, CreditCard, Package, Settings2, Megaphone, Crown, BookCheck, Receipt } from "lucide-react";
+import { BookOpen, Library, Pencil, Wallet as WalletIcon, User, LogOut, ShieldCheck, Users, CreditCard, Package, Settings2, Megaphone, Crown, BookCheck, Receipt, ShoppingCart } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 import { UserRole } from "@bestsellers/shared";
 import { Button } from "@/components/ui/button";
@@ -98,6 +98,7 @@ export function Sidebar() {
               { label: t("adminPurchases") || "Purchases", icon: Package, href: "/dashboard/admin/purchases" },
               { label: t("adminProducts") || "Products", icon: Settings2, href: "/dashboard/admin/products" },
               { label: t("adminPublications") || "Publications", icon: BookCheck, href: "/dashboard/admin/publications" },
+              { label: t("adminPurchaseIntents") || "Purchase Intents", icon: ShoppingCart, href: "/dashboard/admin/purchase-intents" },
               { label: t("adminCreditUsage") || "Credit Usage", icon: Receipt, href: "/dashboard/admin/credit-usage" },
               { label: t("adminAnnouncement") || "Announcement", icon: Megaphone, href: "/dashboard/admin/announcement" },
             ].map((item) => {

@@ -23,6 +23,7 @@ import {
   CreatePriceDto,
   UpdateAppConfigDto,
   CreditUsageQueryDto,
+  PurchaseIntentQueryDto,
 } from './dto';
 
 @Controller('admin')
@@ -195,5 +196,17 @@ export class AdminController {
     @CurrentUser('id') userId: string,
   ) {
     return this.adminService.updateAppConfig(key, dto.value, userId);
+  }
+
+  /* ── Purchase Intents ──────────────────────────────────────────────── */
+
+  @Get('purchase-intents')
+  async listPurchaseIntents(@Query() query: PurchaseIntentQueryDto) {
+    return this.adminService.listPurchaseIntents(query);
+  }
+
+  @Get('purchase-intents/stats')
+  async getPurchaseIntentStats() {
+    return this.adminService.getPurchaseIntentStats();
   }
 }

@@ -9,6 +9,10 @@ export class CreateCheckoutSessionDto {
   billingInterval?: 'monthly' | 'annual';
 
   @IsOptional()
+  @IsIn(['landing', 'dashboard'])
+  source?: 'landing' | 'dashboard';
+
+  @IsOptional()
   @IsString()
   fbp?: string;
 

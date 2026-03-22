@@ -342,3 +342,32 @@ export function monthlySummaryEmail(params: {
   `, locale);
   return { subject: t.monthlySummarySubject(params.month), html };
 }
+
+// ─── 16. Purchase Recovery ──────────────────────────────────────────────────
+
+export function purchaseRecoveryEmail(params: {
+  userName: string;
+  type: 'subscription' | 'credit_pack';
+  productName: string;
+  pricingUrl: string;
+  locale?: string;
+}) {
+  const locale = params.locale ?? 'en';
+  const t = getTranslations(locale);
+  const isSubscription = params.type === 'subscription';
+  const body = isSubscription
+    ? t.recoverySubscriptionBody(params.productName)
+    : t.recoveryCreditBody(params.productName);
+  const subject = isSubscription
+    ? t.recoverySubscriptionSubject
+    : t.recoveryCreditSubject;
+
+  const html = baseLayout(`
+    ${heading(t.greeting(params.userName))}
+    ${text(body)}
+    ${btn(params.pricingUrl, t.recoveryButton)}
+    ${text(`<span style="font-size:13px;color:#71717A;">${t.recoveryExpiry}</span>`)}
+  `, locale);
+
+  return { subject, html };
+}

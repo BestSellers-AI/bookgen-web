@@ -169,6 +169,7 @@ export default function UpgradePage() {
         const res = await checkoutApi.createSession({
           productSlug: slug,
           billingInterval: interval,
+          source: 'dashboard',
           fbp,
           fbc,
         });
@@ -214,7 +215,7 @@ export default function UpgradePage() {
       }, generateEventId());
 
       const { fbp, fbc } = getFbCookies();
-      const res = await checkoutApi.createSession({ productSlug: slug, fbp, fbc });
+      const res = await checkoutApi.createSession({ productSlug: slug, source: 'dashboard', fbp, fbc });
       window.location.href = res.url;
     } catch {
       toast.error(t("purchaseError"));

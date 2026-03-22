@@ -6,7 +6,7 @@ import { CreditLedgerService } from '../wallet/credit-ledger.service';
 import { NotificationService } from '../notifications/notification.service';
 import { EmailService } from '../email/email.service';
 import { AppConfigService } from '../config/app-config.service';
-import { creditsExpiringEmail, monthlySummaryEmail } from '../email/email-templates';
+import { creditsExpiringEmail, monthlySummaryEmail, purchaseRecoveryEmail } from '../email/email-templates';
 import { AddonStatus, BookStatus, NotificationType, WalletTransactionType } from '@prisma/client';
 
 /** Configurable thresholds (can be moved to ConfigDataService later) */
@@ -376,5 +376,76 @@ export class CronService {
     }
 
     this.logger.log(`Cron: monthlySummary completed — ${sent} emails sent`);
+  }
+
+  // ─── Purchase Abandonment Recovery ─────────────────────────────────────────
+  // Runs every hour. Finds intents created 30min–24h ago that weren't converted
+  // and haven't received a recovery email yet.
+
+  @Cron('0 * * * *') // every hour
+  async purchaseAbandonmentRecovery() {
+    this.logger.log('Cron: purchaseAbandonmentRecovery starting');
+
+    const now = new Date();
+    const thirtyMinAgo = new Date(now.getTime() - 30 * 60 * 1000);
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+    const abandonedIntents = await this.prisma.purchaseIntent.findMany({
+      where: {
+        converted: false,
+        recoveryEmailSentAt: null,
+        createdAt: {
+          gte: twentyFourHoursAgo,
+          lte: thirtyMinAgo,
+        },
+      },
+      include: {
+        user: { select: { id: true, email: true, name: true, locale: true } },
+      },
+      take: 100,
+    });
+
+    if (abandonedIntents.length === 0) {
+      this.logger.log('Cron: purchaseAbandonmentRecovery — no abandoned intents found');
+      return;
+    }
+
+    let sent = 0;
+    for (const intent of abandonedIntents) {
+      try {
+        const recipientEmail = intent.user?.email ?? intent.email;
+        if (!recipientEmail) continue;
+
+        const locale = intent.user?.locale ?? 'en';
+        const pricingUrl = intent.type === 'subscription'
+          ? `${this.appConfig.frontendUrl}/dashboard/upgrade`
+          : `${this.appConfig.frontendUrl}/dashboard/upgrade?tab=credits`;
+
+        const email = purchaseRecoveryEmail({
+          userName: intent.user?.name ?? 'there',
+          type: intent.type as 'subscription' | 'credit_pack',
+          productName: intent.productSlug,
+          pricingUrl,
+          locale,
+        });
+
+        this.emailService.send({
+          to: recipientEmail,
+          subject: email.subject,
+          html: email.html,
+        });
+
+        await this.prisma.purchaseIntent.update({
+          where: { id: intent.id },
+          data: { recoveryEmailSentAt: new Date() },
+        });
+
+        sent++;
+      } catch (error) {
+        this.logger.error(`Failed to send recovery email for intent ${intent.id}: ${error}`);
+      }
+    }
+
+    this.logger.log(`Cron: purchaseAbandonmentRecovery completed — ${sent} emails sent`);
   }
 }

@@ -308,6 +308,12 @@ export class StripeWebhookService {
         this.logger.warn(`Unhandled product kind: ${product.kind}`);
     }
 
+    // Mark purchase intent as converted
+    await this.prisma.purchaseIntent.updateMany({
+      where: { stripeSessionId: session.id, converted: false },
+      data: { converted: true, convertedAt: new Date() },
+    });
+
     // Fire Facebook CAPI Purchase event (fire-and-forget)
     const purchaseUser = await this.prisma.user.findUnique({
       where: { id: userId },

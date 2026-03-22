@@ -76,6 +76,18 @@ export class CheckoutService {
         subscriptionMetadata,
       });
 
+    // Track purchase intent
+    await this.prisma.purchaseIntent.create({
+      data: {
+        userId,
+        type: mode === 'subscription' ? 'subscription' : 'credit_pack',
+        productSlug: product.slug,
+        billingInterval: dto.billingInterval,
+        source: dto.source ?? 'dashboard',
+        stripeSessionId: sessionId,
+      },
+    });
+
     this.logger.log(`Checkout session ${sessionId} created for user ${userId}`);
 
     return { url: sessionUrl, sessionId };
@@ -123,6 +135,18 @@ export class CheckoutService {
         },
         subscriptionMetadata,
       });
+
+    // Track purchase intent (guest)
+    await this.prisma.purchaseIntent.create({
+      data: {
+        email: dto.email,
+        type: mode === 'subscription' ? 'subscription' : 'credit_pack',
+        productSlug: product.slug,
+        billingInterval: dto.billingInterval,
+        source: dto.source ?? 'landing',
+        stripeSessionId: sessionId,
+      },
+    });
 
     this.logger.log(`Guest checkout session ${sessionId} created for ${dto.email}`);
 

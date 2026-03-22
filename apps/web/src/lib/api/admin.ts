@@ -153,6 +153,30 @@ export interface AdminAppConfig {
   updatedBy: string | null;
 }
 
+export interface AdminPurchaseIntent {
+  id: string;
+  userId: string | null;
+  email: string | null;
+  userName: string | null;
+  type: string;
+  productSlug: string;
+  billingInterval: string | null;
+  source: string;
+  converted: boolean;
+  convertedAt: string | null;
+  recoveryEmailSentAt: string | null;
+  createdAt: string;
+}
+
+export interface AdminPurchaseIntentStats {
+  total: number;
+  converted: number;
+  abandoned: number;
+  conversionRate: number;
+  last24h: number;
+  last7d: number;
+}
+
 // ---------------------------------------------------------------------------
 // API
 // ---------------------------------------------------------------------------
@@ -279,5 +303,16 @@ export const adminApi = {
   updateAppConfig: (key: string, value: Record<string, any>) =>
     apiClient
       .put<AdminAppConfig>(`/admin/config/${key}`, { value })
+      .then((r) => r.data),
+
+  // Purchase Intents
+  listPurchaseIntents: (params?: { page?: number; perPage?: number; search?: string; type?: string; converted?: string }) =>
+    apiClient
+      .get<PaginatedResponse<AdminPurchaseIntent>>('/admin/purchase-intents', { params })
+      .then((r) => r.data),
+
+  getPurchaseIntentStats: () =>
+    apiClient
+      .get<AdminPurchaseIntentStats>('/admin/purchase-intents/stats')
       .then((r) => r.data),
 };

@@ -206,8 +206,30 @@ model User {
   notifications      Notification[]
   monthlyUsages      MonthlyUsage[]
   publishingRequests PublishingRequest[]
+  purchaseIntents    PurchaseIntent[]
 
   @@map("users")
+}
+
+model PurchaseIntent {
+  id                  String    @id @default(cuid())
+  userId              String?   @map("user_id")
+  email               String?
+  type                String    // 'subscription' | 'credit_pack'
+  productSlug         String    @map("product_slug")
+  billingInterval     String?   @map("billing_interval")
+  source              String    // 'landing' | 'dashboard'
+  stripeSessionId     String?   @unique @map("stripe_session_id")
+  converted           Boolean   @default(false)
+  convertedAt         DateTime? @map("converted_at")
+  recoveryEmailSentAt DateTime? @map("recovery_email_sent_at")
+  createdAt           DateTime  @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([converted, recoveryEmailSentAt, createdAt])
+  @@map("purchase_intents")
 }
 
 model Account {

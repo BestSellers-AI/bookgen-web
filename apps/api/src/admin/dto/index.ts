@@ -4,6 +4,7 @@ export {
   AdminChangeRoleDto,
   AdminAssignPlanDto,
   CreditUsageQueryDto,
+  PurchaseIntentQueryDto,
 } from './admin-query.dto';
 export {
   UpdateProductDto,

@@ -35,6 +35,7 @@ import {
   UpdateProductDto,
   CreatePriceDto,
   CreditUsageQueryDto,
+  PurchaseIntentQueryDto,
 } from './dto';
 import { StripeService } from '../stripe/stripe.service';
 import { ConfigDataService } from '../config-data/config-data.service';
@@ -1035,6 +1036,86 @@ export class AdminService {
         totalCreditsAdded,
         transactionCount: aggregation._count,
       },
+    };
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Purchase Intents                                                    */
+  /* ------------------------------------------------------------------ */
+
+  async listPurchaseIntents(query: PurchaseIntentQueryDto) {
+    const { page = 1, perPage = 20, search, type, converted } = query;
+
+    const where: Record<string, unknown> = {};
+
+    if (type) {
+      where.type = type;
+    }
+
+    if (converted === 'true') {
+      where.converted = true;
+    } else if (converted === 'false') {
+      where.converted = false;
+    }
+
+    if (search) {
+      where.OR = [
+        { productSlug: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+        { user: { email: { contains: search, mode: 'insensitive' } } },
+      ];
+    }
+
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.purchaseIntent.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        ...paginate(page, perPage),
+        include: {
+          user: { select: { id: true, email: true, name: true } },
+        },
+      }),
+      this.prisma.purchaseIntent.count({ where }),
+    ]);
+
+    const data = items.map((item) => ({
+      id: item.id,
+      userId: item.userId,
+      email: item.user?.email ?? item.email ?? null,
+      userName: item.user?.name ?? null,
+      type: item.type,
+      productSlug: item.productSlug,
+      billingInterval: item.billingInterval,
+      source: item.source,
+      converted: item.converted,
+      convertedAt: item.convertedAt?.toISOString() ?? null,
+      recoveryEmailSentAt: item.recoveryEmailSentAt?.toISOString() ?? null,
+      createdAt: item.createdAt.toISOString(),
+    }));
+
+    return buildPaginatedResponse(data, total, page, perPage);
+  }
+
+  async getPurchaseIntentStats() {
+    const now = new Date();
+    const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const last7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    const [total, converted, abandoned, last24hCount, last7dCount] = await Promise.all([
+      this.prisma.purchaseIntent.count(),
+      this.prisma.purchaseIntent.count({ where: { converted: true } }),
+      this.prisma.purchaseIntent.count({ where: { converted: false } }),
+      this.prisma.purchaseIntent.count({ where: { createdAt: { gte: last24h } } }),
+      this.prisma.purchaseIntent.count({ where: { createdAt: { gte: last7d } } }),
+    ]);
+
+    return {
+      total,
+      converted,
+      abandoned,
+      conversionRate: total > 0 ? Math.round((converted / total) * 100) : 0,
+      last24h: last24hCount,
+      last7d: last7dCount,
     };
   }
 }

@@ -73,3 +73,13 @@ export class CreditUsageQueryDto {
   @IsString()
   dateTo?: string;
 }
+
+export class PurchaseIntentQueryDto extends AdminPaginationDto {
+  @IsOptional()
+  @IsString()
+  type?: string; // 'subscription' | 'credit_pack'
+
+  @IsOptional()
+  @IsString()
+  converted?: string; // 'true' | 'false'
+}
