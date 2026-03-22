@@ -625,12 +625,14 @@ export class StripeWebhookService {
         stripeSubscriptionId: stripeSubscription.id,
         stripeCustomerId,
         stripePriceId,
-        currentPeriodStart: new Date(
-          (stripeSubscription as unknown as Record<string, number>).current_period_start * 1000,
-        ),
-        currentPeriodEnd: new Date(
-          (stripeSubscription as unknown as Record<string, number>).current_period_end * 1000,
-        ),
+        currentPeriodStart: (() => {
+          const ts = (stripeSubscription as unknown as Record<string, unknown>).current_period_start;
+          return typeof ts === 'number' ? new Date(ts * 1000) : new Date();
+        })(),
+        currentPeriodEnd: (() => {
+          const ts = (stripeSubscription as unknown as Record<string, unknown>).current_period_end;
+          return typeof ts === 'number' ? new Date(ts * 1000) : new Date();
+        })(),
         cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
         trialEnd: stripeSubscription.trial_end
           ? new Date(stripeSubscription.trial_end * 1000)
@@ -700,12 +702,14 @@ export class StripeWebhookService {
         cancelledAt: stripeSubscription.canceled_at
           ? new Date(stripeSubscription.canceled_at * 1000)
           : null,
-        currentPeriodStart: new Date(
-          (stripeSubscription as unknown as Record<string, number>).current_period_start * 1000,
-        ),
-        currentPeriodEnd: new Date(
-          (stripeSubscription as unknown as Record<string, number>).current_period_end * 1000,
-        ),
+        currentPeriodStart: (() => {
+          const ts = (stripeSubscription as unknown as Record<string, unknown>).current_period_start;
+          return typeof ts === 'number' ? new Date(ts * 1000) : undefined;
+        })(),
+        currentPeriodEnd: (() => {
+          const ts = (stripeSubscription as unknown as Record<string, unknown>).current_period_end;
+          return typeof ts === 'number' ? new Date(ts * 1000) : undefined;
+        })(),
       },
     });
 
