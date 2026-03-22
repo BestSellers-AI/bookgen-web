@@ -650,11 +650,26 @@ export class BookService {
   async createGenerationIntent(bookId: string, userId: string): Promise<{ intentId: string }> {
     const book = await this.prisma.book.findFirst({
       where: { id: bookId, userId, deletedAt: null },
-      select: { id: true, title: true, status: true },
+      select: { id: true },
     });
 
     if (!book) {
       throw new NotFoundException('Book not found');
+    }
+
+    // Avoid duplicates: reuse existing unconverted intent for this book
+    const existing = await this.prisma.purchaseIntent.findFirst({
+      where: {
+        type: 'book_generation',
+        productSlug: bookId,
+        userId,
+        converted: false,
+      },
+      select: { id: true },
+    });
+
+    if (existing) {
+      return { intentId: existing.id };
     }
 
     const intent = await this.prisma.purchaseIntent.create({
