@@ -80,6 +80,19 @@ export default function PricingSection() {
     if (!pendingSlug) return
     setLoadingSlug(pendingSlug)
     try {
+      const plan = plans.find((p) => planSlugMap[p.id] === pendingSlug)
+      const pack = creditPacks.find((p) => p.slug === pendingSlug)
+      trackInitiateCheckout({
+        content_name: plan?.nameKey ?? pack?.nameKey ?? pendingSlug,
+        content_category: plan ? 'subscription' : 'credit_pack',
+        content_ids: [pendingSlug],
+        value: plan
+          ? (pendingBillingInterval === 'annual' ? plan.annualMonthlyPrice : plan.monthlyPrice) / 100
+          : pack ? pack.price / 100 : 0,
+        currency: 'USD',
+        num_items: 1,
+      }, generateEventId())
+
       const { fbp, fbc } = getFbCookies()
       const res = await checkoutApi.createGuestSession({
         productSlug: pendingSlug,

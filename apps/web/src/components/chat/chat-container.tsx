@@ -8,7 +8,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import { authApi } from '@/lib/api/auth';
 import { tokenStorage } from '@/lib/api-client';
 import { getTrackingData } from '@/lib/tracking';
-import { trackLead, generateEventId } from '@/lib/fb-pixel';
+import { trackLead, trackViewContent, generateEventId } from '@/lib/fb-pixel';
 import { booksApi } from '@/lib/api/books';
 import { BookCreationMode } from '@bestsellers/shared';
 import { Loader2, Sparkles } from 'lucide-react';
@@ -325,6 +325,7 @@ export function ChatContainer() {
   }
 
   async function transitionToCollectEmail() {
+    trackViewContent({ content_name: 'Chat Registration', content_category: 'chat_registration' });
     await showTypingThenMessage(t('collectEmailPrompt'), 'text', 600);
     store.setStep('collect_email');
   }
