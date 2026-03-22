@@ -102,7 +102,7 @@ export default function HeroSection() {
                 className="relative aspect-[3/4.5] overflow-hidden rounded-xl dark:bg-navy-800/50 bg-cream-200/50 border dark:border-white/[0.07] border-navy-900/[0.07] hover:scale-[1.03] transition-transform duration-300"
               >
                 <Image
-                  src={`/lp/hero/${n}.png`}
+                  src={`/lp/hero/${n}.jpg`}
                   alt={`AI generated book cover ${n}`}
                   fill
                   className="object-cover"
