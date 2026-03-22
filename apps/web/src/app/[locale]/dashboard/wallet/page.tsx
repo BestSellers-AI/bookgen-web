@@ -242,7 +242,7 @@ export default function WalletPage() {
       <div className="glass rounded-[2rem] p-8 space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <h2 className="text-xl font-bold font-heading">{t("transactionHistory")}</h2>
-          <Select value={typeFilter} onValueChange={handleTypeChange}>
+          { /*<Select value={typeFilter} onValueChange={handleTypeChange}>
             <SelectTrigger className="w-48 rounded-xl">
               <SelectValue placeholder={t("filterAll")} />
             </SelectTrigger>
@@ -267,7 +267,7 @@ export default function WalletPage() {
                 {t("typeBonus")}
               </SelectItem>
             </SelectContent>
-          </Select>
+          </Select> */}
         </div>
 
         {txLoading ? (
