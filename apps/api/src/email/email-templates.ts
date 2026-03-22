@@ -371,3 +371,31 @@ export function purchaseRecoveryEmail(params: {
 
   return { subject, html };
 }
+
+// ─── 17. Book Recovery ──────────────────────────────────────────────────────
+
+export function bookRecoveryEmail(params: {
+  userName: string;
+  bookTitle: string;
+  bookUrl: string;
+  status: 'PREVIEW' | 'PREVIEW_COMPLETED';
+  locale?: string;
+}) {
+  const locale = params.locale ?? 'en';
+  const t = getTranslations(locale);
+  const isPreview = params.status === 'PREVIEW';
+  const body = isPreview
+    ? t.bookRecoveryPreviewBody(params.bookTitle)
+    : t.bookRecoveryPreviewCompletedBody(params.bookTitle);
+  const subject = isPreview
+    ? t.bookRecoveryPreviewSubject(params.bookTitle)
+    : t.bookRecoveryPreviewCompletedSubject(params.bookTitle);
+
+  const html = baseLayout(`
+    ${heading(t.greeting(params.userName))}
+    ${text(body)}
+    ${btn(params.bookUrl, t.bookRecoveryButton)}
+  `, locale);
+
+  return { subject, html };
+}

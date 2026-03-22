@@ -6,8 +6,8 @@ import { CreditLedgerService } from '../wallet/credit-ledger.service';
 import { NotificationService } from '../notifications/notification.service';
 import { EmailService } from '../email/email.service';
 import { AppConfigService } from '../config/app-config.service';
-import { creditsExpiringEmail, monthlySummaryEmail, purchaseRecoveryEmail } from '../email/email-templates';
-import { AddonStatus, BookStatus, NotificationType, WalletTransactionType } from '@prisma/client';
+import { creditsExpiringEmail, monthlySummaryEmail, purchaseRecoveryEmail, bookRecoveryEmail } from '../email/email-templates';
+import { AddonStatus, BookStatus, NotificationType, WalletTransactionType, type Prisma } from '@prisma/client';
 
 /** Configurable thresholds (can be moved to ConfigDataService later) */
 const NOTIFICATION_RETENTION_DAYS = 90;
@@ -457,5 +457,68 @@ export class CronService {
     }
 
     this.logger.log(`Cron: purchaseAbandonmentRecovery completed — ${sent} emails sent`);
+  }
+
+  // ─── Book Abandonment Recovery ─────────────────────────────────────────────
+  // Runs daily at 09:00 UTC. Finds books in PREVIEW or PREVIEW_COMPLETED
+  // status for 24h+ that haven't received a recovery email yet.
+
+  @Cron('0 9 * * *') // daily at 09:00 UTC
+  async bookAbandonmentRecovery() {
+    this.logger.log('Cron: bookAbandonmentRecovery starting');
+
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    const abandonedBooks = await this.prisma.book.findMany({
+      where: {
+        status: { in: [BookStatus.PREVIEW, BookStatus.PREVIEW_COMPLETED] },
+        recoveryEmailSentAt: null,
+        deletedAt: null,
+        updatedAt: { lte: twentyFourHoursAgo },
+      },
+      include: {
+        user: { select: { id: true, email: true, name: true, locale: true } },
+      },
+      take: 100,
+    });
+
+    if (abandonedBooks.length === 0) {
+      this.logger.log('Cron: bookAbandonmentRecovery — no abandoned books found');
+      return;
+    }
+
+    let sent = 0;
+    for (const book of abandonedBooks) {
+      try {
+        if (!book.user?.email) continue;
+
+        const bookUrl = `${this.appConfig.frontendUrl}/dashboard/books/${book.id}`;
+
+        const email = bookRecoveryEmail({
+          userName: book.user.name ?? 'there',
+          bookTitle: book.title,
+          bookUrl,
+          status: book.status as 'PREVIEW' | 'PREVIEW_COMPLETED',
+          locale: book.user.locale,
+        });
+
+        this.emailService.send({
+          to: book.user.email,
+          subject: email.subject,
+          html: email.html,
+        });
+
+        await this.prisma.book.update({
+          where: { id: book.id },
+          data: { recoveryEmailSentAt: new Date() },
+        });
+
+        sent++;
+      } catch (error) {
+        this.logger.error(`Failed to send book recovery email for book ${book.id}: ${error}`);
+      }
+    }
+
+    this.logger.log(`Cron: bookAbandonmentRecovery completed — ${sent} emails sent`);
   }
 }
