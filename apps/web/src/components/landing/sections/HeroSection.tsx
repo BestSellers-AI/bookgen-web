@@ -1,41 +1,18 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import * as m from 'motion/react-m'
 import Image from 'next/image'
 import { Link } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 
-function TypingText({ text, delay = 0 }: { text: string; delay?: number }) {
-  const [displayed, setDisplayed] = useState('')
-  const [started, setStarted] = useState(false)
-
-  useEffect(() => {
-    const timeout = setTimeout(() => setStarted(true), delay)
-    return () => clearTimeout(timeout)
-  }, [delay])
-
-  useEffect(() => {
-    if (!started) return
-    if (displayed.length >= text.length) return
-
-    const timeout = setTimeout(() => {
-      setDisplayed(text.slice(0, displayed.length + 1))
-    }, 80)
-    return () => clearTimeout(timeout)
-  }, [started, displayed, text])
-
-  return (
-    <>
-      {displayed}
-      <span
-        className={`inline-block w-[3px] h-[0.8em] bg-gold-500 ml-0.5 align-baseline ${
-          displayed.length >= text.length ? 'animate-blink' : ''
-        }`}
-      />
-    </>
-  )
-}
+// TypingText animation removed for performance — kept for reference
+// function TypingText({ text, delay = 0 }: { text: string; delay?: number }) {
+//   const [displayed, setDisplayed] = useState('')
+//   const [started, setStarted] = useState(false)
+//   useEffect(() => { ... }, [delay])
+//   useEffect(() => { ... }, [started, displayed, text])
+//   return <>{displayed}<span className="..." /></>
+// }
 
 export default function HeroSection() {
   const t = useTranslations('landingV2.hero')
@@ -71,7 +48,7 @@ export default function HeroSection() {
         >
           {t('headlinePre')}{' '}
           <span className="italic text-gradient-gold">
-            <TypingText text={t('headlineHighlight')} delay={600} />
+            {t('headlineHighlight')}
           </span>
           <br />
           <span className="dark:text-cream-200 text-navy-900">{t('headlinePost')}</span>
@@ -106,12 +83,12 @@ export default function HeroSection() {
           {t('trustLine')}
         </p>
 
-        {/* capas */}
+        {/* capas — lazy loaded, only render when scrolled into view */}
         <m.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-60px' }}
-          transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
           className="mt-12 w-full max-w-5xl"
         >
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
@@ -121,7 +98,7 @@ export default function HeroSection() {
                 initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.4 + i * 0.07, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.5, delay: 0.15 + i * 0.05, ease: [0.22, 1, 0.36, 1] }}
                 className="relative aspect-[3/4.5] overflow-hidden rounded-xl dark:bg-navy-800/50 bg-cream-200/50 border dark:border-white/[0.07] border-navy-900/[0.07] hover:scale-[1.03] transition-transform duration-300"
               >
                 <Image
@@ -130,6 +107,7 @@ export default function HeroSection() {
                   fill
                   className="object-cover"
                   sizes="(max-width: 640px) 45vw, 22vw"
+                  loading="lazy"
                 />
               </m.div>
             ))}
@@ -141,7 +119,7 @@ export default function HeroSection() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.65, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.65, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
           className="mt-12 w-full max-w-3xl"
         >
           <div className="glass-card px-6 py-6 grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-0 md:divide-x dark:divide-white/[0.07] divide-navy-900/[0.07]">
