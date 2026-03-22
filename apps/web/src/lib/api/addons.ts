@@ -8,6 +8,11 @@ export interface RequestAddonInput {
 }
 
 export const addonsApi = {
+  createIntent: (bookId: string, kind?: string, bundleId?: string) =>
+    apiClient
+      .post<{ intentId: string }>(`/books/${bookId}/addons/intent`, { kind, bundleId })
+      .then((r) => r.data),
+
   create: (bookId: string, data: RequestAddonInput) =>
     apiClient
       .post<BookAddonSummary>(`/books/${bookId}/addons`, data)

@@ -167,16 +167,41 @@ export default function AdminPurchaseIntentsPage() {
                             ? "bg-purple-500/10 text-purple-400"
                             : intent.type === "book_generation"
                               ? "bg-emerald-500/10 text-emerald-400"
-                              : "bg-blue-500/10 text-blue-400"
+                              : intent.type === "addon_purchase"
+                                ? "bg-orange-500/10 text-orange-400"
+                                : "bg-blue-500/10 text-blue-400"
                         }`}
                       >
-                        {intent.type === "subscription" ? t("piPlan") : intent.type === "book_generation" ? t("piGeneration") : t("piCredits")}
+                        {intent.type === "subscription" ? t("piPlan") : intent.type === "book_generation" ? t("piGeneration") : intent.type === "addon_purchase" ? t("piAddon") : t("piCredits")}
                       </Badge>
                     </td>
-                    <td className="px-6 py-4 text-xs font-mono text-muted-foreground">
-                      {intent.productSlug}
-                      {intent.billingInterval && (
-                        <span className="ml-1 text-muted-foreground/60">({intent.billingInterval})</span>
+                    <td className="px-6 py-4 text-xs font-mono">
+                      {intent.type === "book_generation" ? (
+                        <Link
+                          href={`/dashboard/admin/books/${intent.productSlug}`}
+                          className="text-muted-foreground hover:text-primary transition-colors"
+                        >
+                          {intent.productSlug.slice(0, 12)}...
+                        </Link>
+                      ) : intent.type === "addon_purchase" && intent.productSlug.includes(":") ? (
+                        <div>
+                          <Link
+                            href={`/dashboard/admin/books/${intent.productSlug.split(":")[0]}`}
+                            className="text-muted-foreground hover:text-primary transition-colors"
+                          >
+                            {intent.productSlug.split(":")[0].slice(0, 10)}...
+                          </Link>
+                          <span className="text-muted-foreground/60 ml-1">
+                            {intent.productSlug.split(":")[1]}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">
+                          {intent.productSlug}
+                          {intent.billingInterval && (
+                            <span className="ml-1 text-muted-foreground/60">({intent.billingInterval})</span>
+                          )}
+                        </span>
                       )}
                     </td>
                     <td className="px-6 py-4">
@@ -206,7 +231,7 @@ export default function AdminPurchaseIntentsPage() {
                             {new Date(intent.recoveryEmailSentAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                           </span>
                         </div>
-                      ) : intent.converted || intent.type === "book_generation" ? (
+                      ) : intent.converted || intent.type === "book_generation" || intent.type === "addon_purchase" ? (
                         <span className="text-[10px] text-muted-foreground">—</span>
                       ) : (
                         <span className="text-[10px] text-amber-400">{t("piPending")}</span>

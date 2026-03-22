@@ -313,6 +313,13 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
   const [upgradingPublishing, setUpgradingPublishing] = useState(false);
   const [upgradeConfirmAddonId, setUpgradeConfirmAddonId] = useState<string | null>(null);
 
+  // Track upgrade intent when dialog opens
+  useEffect(() => {
+    if (upgradeConfirmAddonId) {
+      addonsApi.createIntent(book.id, 'ADDON_AMAZON_PREMIUM_UPGRADE').catch(() => {});
+    }
+  }, [upgradeConfirmAddonId, book.id]);
+
   const upgradeCost = getCreditsCost("PUBLISHING_UPGRADE_PRICE");
 
   const handleUpgradePublishing = async (addonId: string) => {
@@ -570,6 +577,7 @@ export function AuthorJourney({ book, onRefetch, translationId }: AuthorJourneyP
     setSelectedBundle(bundle);
     setBundleLanguage("");
     setBundleDialogOpen(true);
+    addonsApi.createIntent(book.id, undefined, bundle.id).catch(() => {});
   };
 
   const handleBundleRequest = async () => {

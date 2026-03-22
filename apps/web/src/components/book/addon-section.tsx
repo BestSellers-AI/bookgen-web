@@ -187,6 +187,7 @@ export function AddonSection({ book, onRefetch }: AddonSectionProps) {
     setSelectedAddon(config);
     setSelectedLanguage("");
     setDialogOpen(true);
+    addonsApi.createIntent(book.id, config.kind).catch(() => {});
   };
 
   const handleRequest = async () => {

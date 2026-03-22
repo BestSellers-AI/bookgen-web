@@ -505,9 +505,9 @@ export default function AdminUserDetailPage() {
                     </p>
                     <div className="flex items-center gap-2 mt-0.5">
                       <Badge variant="secondary" className={`text-[8px] font-black uppercase ${
-                        pi.type === "subscription" ? "bg-purple-500/10 text-purple-400" : pi.type === "book_generation" ? "bg-emerald-500/10 text-emerald-400" : "bg-blue-500/10 text-blue-400"
+                        pi.type === "subscription" ? "bg-purple-500/10 text-purple-400" : pi.type === "book_generation" ? "bg-emerald-500/10 text-emerald-400" : pi.type === "addon_purchase" ? "bg-orange-500/10 text-orange-400" : "bg-blue-500/10 text-blue-400"
                       }`}>
-                        {pi.type === "subscription" ? t("piPlan") || "Plan" : pi.type === "book_generation" ? t("piGeneration") || "Generation" : t("piCredits") || "Credits"}
+                        {pi.type === "subscription" ? t("piPlan") || "Plan" : pi.type === "book_generation" ? t("piGeneration") || "Generation" : pi.type === "addon_purchase" ? t("piAddon") || "Addon" : t("piCredits") || "Credits"}
                       </Badge>
                       <Badge variant="secondary" className="text-[8px] font-bold">
                         {pi.source}

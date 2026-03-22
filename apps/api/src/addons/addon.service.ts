@@ -39,6 +39,68 @@ export class AddonService {
     private readonly emailService: EmailService,
   ) {}
 
+  // ─── Addon Intent ──────────────────────────────────────────────────
+
+  async createAddonIntent(
+    userId: string,
+    bookId: string,
+    kind?: string,
+    bundleId?: string,
+  ): Promise<{ intentId: string }> {
+    const book = await this.prisma.book.findFirst({
+      where: { id: bookId, userId, deletedAt: null },
+      select: { id: true },
+    });
+
+    if (!book) {
+      throw new NotFoundException('Book not found');
+    }
+
+    const addonLabel = bundleId ?? kind ?? 'unknown';
+    const productSlug = `${bookId}:${addonLabel}`;
+
+    // Reuse existing unconverted intent for same book+addon
+    const existing = await this.prisma.purchaseIntent.findFirst({
+      where: {
+        type: 'addon_purchase',
+        productSlug,
+        userId,
+        converted: false,
+      },
+      select: { id: true },
+    });
+
+    if (existing) {
+      return { intentId: existing.id };
+    }
+
+    const intent = await this.prisma.purchaseIntent.create({
+      data: {
+        userId,
+        type: 'addon_purchase',
+        productSlug,
+        source: 'dashboard',
+      },
+    });
+
+    return { intentId: intent.id };
+  }
+
+  private async markAddonIntentConverted(userId: string, bookId: string, addonLabel: string) {
+    const productSlug = `${bookId}:${addonLabel}`;
+    await this.prisma.purchaseIntent.updateMany({
+      where: {
+        type: 'addon_purchase',
+        productSlug,
+        userId,
+        converted: false,
+      },
+      data: { converted: true, convertedAt: new Date() },
+    });
+  }
+
+  // ─── Request Addon ─────────────────────────────────────────────────
+
   async request(
     userId: string,
     bookId: string,
@@ -157,6 +219,9 @@ export class AddonService {
         `Add-on: ${dto.kind}`,
         { bookId, addonId: addon.id },
       );
+
+      // Mark addon intent as converted
+      this.markAddonIntentConverted(userId, bookId, dto.kind);
     }
 
     // Send addon purchase email
@@ -495,6 +560,9 @@ export class AddonService {
       { bookId },
     );
 
+    // Mark bundle intent as converted
+    this.markAddonIntentConverted(userId, bookId, bundle.id);
+
     // Dispatch each addon — publishing addons are handled inline, others go to BullMQ
     const dispatched: typeof addonRecords = [];
     try {
@@ -751,6 +819,9 @@ export class AddonService {
       'Publishing upgrade: Standard → Premium',
       { bookId, addonId },
     );
+
+    // Mark upgrade intent as converted
+    this.markAddonIntentConverted(userId, bookId, 'ADDON_AMAZON_PREMIUM_UPGRADE');
 
     // Update addon kind
     const updated = await this.prisma.bookAddon.update({

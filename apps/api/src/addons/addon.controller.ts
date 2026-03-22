@@ -20,6 +20,15 @@ import { RequestAddonDto } from './dto';
 export class AddonController {
   constructor(private readonly addonService: AddonService) {}
 
+  @Post('intent')
+  async createAddonIntent(
+    @CurrentUser('id') userId: string,
+    @Param('bookId') bookId: string,
+    @Body() body: { kind?: string; bundleId?: string },
+  ) {
+    return this.addonService.createAddonIntent(userId, bookId, body.kind, body.bundleId);
+  }
+
   @Post()
   @HttpCode(HttpStatus.ACCEPTED)
   async request(
