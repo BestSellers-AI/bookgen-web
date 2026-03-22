@@ -88,8 +88,22 @@ lastRecoveryEmailAt    DateTime?              // when last recovery email was se
 
 All emails use the same dark template (gold button, logo, footer). Button links directly to `/dashboard/books/{bookId}`.
 
+## Admin Panel
+
+### Books List
+
+New column with Mail icon showing recovery email sequence progress:
+
+| Display | Meaning |
+|---------|---------|
+| `—` | No recovery emails sent (book not abandoned or already generated) |
+| `1/3` (amber) | First email sent |
+| `2/3` (amber) | Second email sent |
+| `3/3` (red) | All 3 emails sent, sequence complete |
+
 ## Files Changed
 
+### Backend
 | File | Change |
 |------|--------|
 | `prisma/schema.prisma` | `recoveryEmailsSent` (Int) + `lastRecoveryEmailAt` (DateTime?) on Book |
@@ -97,6 +111,14 @@ All emails use the same dark template (gold button, logo, footer). Button links 
 | `email/email-translations.ts` | 9 keys per locale (subject + body + button × 3 emails) |
 | `email/email-templates.ts` | `bookRecoveryEmail()` with `sequenceNumber` param |
 | `cron/cron.service.ts` | `bookAbandonmentRecovery` daily cron with 3-step loop |
+| `admin/admin.service.ts` | Returns `recoveryEmailsSent` in `AdminBookSummary` |
+
+### Frontend
+| File | Change |
+|------|--------|
+| `lib/api/admin.ts` | `recoveryEmailsSent` on `AdminBookSummary` type |
+| `app/[locale]/dashboard/admin/books/page.tsx` | Recovery column with Mail icon + badge |
+| `packages/shared/src/types/admin.ts` | `recoveryEmailsSent` on `AdminBookSummary` |
 
 ## Recovery Flow
 
