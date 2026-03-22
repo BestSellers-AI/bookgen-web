@@ -206,7 +206,7 @@ export default function AdminPurchaseIntentsPage() {
                             {new Date(intent.recoveryEmailSentAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                           </span>
                         </div>
-                      ) : intent.converted ? (
+                      ) : intent.converted || intent.type === "book_generation" ? (
                         <span className="text-[10px] text-muted-foreground">—</span>
                       ) : (
                         <span className="text-[10px] text-amber-400">{t("piPending")}</span>
