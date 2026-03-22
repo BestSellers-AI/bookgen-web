@@ -6,8 +6,9 @@ import { CreditLedgerService } from '../wallet/credit-ledger.service';
 import { NotificationService } from '../notifications/notification.service';
 import { EmailService } from '../email/email.service';
 import { AppConfigService } from '../config/app-config.service';
-import { creditsExpiringEmail, monthlySummaryEmail, purchaseRecoveryEmail, bookRecoveryEmail } from '../email/email-templates';
-import { AddonStatus, BookStatus, NotificationType, WalletTransactionType, type Prisma } from '@prisma/client';
+import { creditsExpiringEmail, monthlySummaryEmail, purchaseRecoveryEmail, bookRecoveryEmail, bookUpsellEmail, translationUpsellEmail } from '../email/email-templates';
+import { SUPPORTED_LANGUAGES } from '@bestsellers/shared';
+import { AddonStatus, BookStatus, NotificationType, ProductKind, TranslationStatus, WalletTransactionType, type Prisma } from '@prisma/client';
 
 /** Configurable thresholds (can be moved to ConfigDataService later) */
 const NOTIFICATION_RETENTION_DAYS = 90;
@@ -542,5 +543,166 @@ export class CronService {
     }
 
     this.logger.log(`Cron: bookAbandonmentRecovery completed — ${totalSent} emails sent`);
+  }
+
+  // ─── Book Upsell (post-generation publishing offer) ───────────────────────
+  // Runs daily at 10:00 UTC. Sends up to 3 upsell emails for GENERATED books
+  // without publishing addons, and 1 email per translated book without publishing.
+  //   Email 1: 1 day after generation
+  //   Email 2: 3 days after generation
+  //   Email 3: 7 days after generation
+
+  @Cron('0 10 * * *') // daily at 10:00 UTC
+  async bookUpsellEmails() {
+    this.logger.log('Cron: bookUpsellEmails starting');
+
+    const now = Date.now();
+    const publishingKinds: ProductKind[] = [ProductKind.ADDON_AMAZON_STANDARD, ProductKind.ADDON_AMAZON_PREMIUM];
+    let totalSent = 0;
+
+    // ─── Original books (3-email sequence) ──────────────────────────
+    const bookSequences: Array<{ minAge: number; seq: 1 | 2 | 3; emailsSent: number }> = [
+      { minAge: 1 * 24 * 60 * 60 * 1000, seq: 1, emailsSent: 0 },
+      { minAge: 3 * 24 * 60 * 60 * 1000, seq: 2, emailsSent: 1 },
+      { minAge: 7 * 24 * 60 * 60 * 1000, seq: 3, emailsSent: 2 },
+    ];
+
+    for (const { minAge, seq, emailsSent } of bookSequences) {
+      const minSinceLastEmail = 2 * 24 * 60 * 60 * 1000;
+      const lastEmailCutoff = new Date(now - minSinceLastEmail);
+
+      const where: Record<string, unknown> = {
+        status: BookStatus.GENERATED,
+        upsellEmailsSent: emailsSent,
+        deletedAt: null,
+        // Exclude books that already have a publishing addon (original, not translation)
+        NOT: {
+          addons: {
+            some: {
+              kind: { in: publishingKinds },
+              translationId: null,
+            },
+          },
+        },
+      };
+
+      if (seq === 1) {
+        where.generationCompletedAt = { lte: new Date(now - minAge) };
+      } else {
+        where.lastUpsellEmailAt = { lte: lastEmailCutoff };
+      }
+
+      const books = await this.prisma.book.findMany({
+        where,
+        include: {
+          user: { select: { id: true, email: true, name: true, locale: true } },
+        },
+        take: 50,
+      });
+
+      for (const book of books) {
+        try {
+          if (!book.user?.email) continue;
+
+          const email = bookUpsellEmail({
+            userName: book.user.name ?? 'there',
+            bookTitle: book.title,
+            bookUrl: `${this.appConfig.frontendUrl}/dashboard/books/${book.id}`,
+            sequenceNumber: seq,
+            locale: book.user.locale,
+          });
+
+          this.emailService.send({
+            to: book.user.email,
+            subject: email.subject,
+            html: email.html,
+          });
+
+          await this.prisma.book.update({
+            where: { id: book.id },
+            data: {
+              upsellEmailsSent: seq,
+              lastUpsellEmailAt: new Date(),
+            },
+          });
+
+          totalSent++;
+        } catch (error) {
+          this.logger.error(`Failed to send book upsell email #${seq} for book ${book.id}: ${error}`);
+        }
+      }
+    }
+
+    // ─── Translated books (1 email per translation) ─────────────────
+    const translationCutoff = new Date(now - 2 * 24 * 60 * 60 * 1000); // 2 days after translation
+
+    const translations = await (this.prisma.bookTranslation.findMany as Function)({
+      where: {
+        status: TranslationStatus.TRANSLATED,
+        upsellEmailsSent: 0,
+        updatedAt: { lte: translationCutoff },
+      },
+      include: {
+        addons: { where: { kind: { in: publishingKinds } }, select: { id: true } },
+        book: {
+          select: {
+            id: true,
+            title: true,
+            deletedAt: true,
+            user: { select: { id: true, email: true, name: true, locale: true } },
+          },
+        },
+      },
+      take: 50,
+    }) as Array<{
+      id: string;
+      targetLanguage: string;
+      translatedTitle: string | null;
+      addons: Array<{ id: string }>;
+      book: {
+        id: string;
+        title: string;
+        deletedAt: Date | null;
+        user: { id: string; email: string; name: string | null; locale: string } | null;
+      };
+    }>;
+
+    for (const translation of translations) {
+      try {
+        if (translation.book.deletedAt) continue;
+        if (!translation.book.user?.email) continue;
+        if (translation.addons.length > 0) continue; // already has publishing addon
+
+        const langName = SUPPORTED_LANGUAGES.find((l) => l.code === translation.targetLanguage)?.name ?? translation.targetLanguage;
+
+        const email = translationUpsellEmail({
+          userName: translation.book.user.name ?? 'there',
+          bookTitle: translation.translatedTitle ?? translation.book.title,
+          bookUrl: `${this.appConfig.frontendUrl}/dashboard/books/${translation.book.id}`,
+          targetLanguage: langName,
+          locale: translation.book.user.locale,
+        });
+
+        this.emailService.send({
+          to: translation.book.user.email,
+          subject: email.subject,
+          html: email.html,
+        });
+
+        await this.prisma.bookTranslation.update({
+          where: { id: translation.id },
+          data: {
+            upsellEmailsSent: 1,
+            lastUpsellEmailAt: new Date(),
+          },
+        });
+
+        totalSent++;
+      } catch (error) {
+        this.logger.error(`Failed to send translation upsell email for translation ${translation.id}: ${error}`);
+      }
+    }
+
+    this.logger.log(`Cron: bookUpsellEmails completed — ${totalSent} emails sent`);
   }
 }

@@ -102,6 +102,20 @@ export interface EmailTranslations {
   bookRecovery3Subject: (title: string) => string;
   bookRecovery3Body: (title: string) => string;
   bookRecovery3Button: string;
+  // Book upsell (post-generation, 3-email sequence)
+  bookUpsell1Subject: (title: string) => string;
+  bookUpsell1Body: (title: string) => string;
+  bookUpsell1Button: string;
+  bookUpsell2Subject: (title: string) => string;
+  bookUpsell2Body: (title: string) => string;
+  bookUpsell2Button: string;
+  bookUpsell3Subject: (title: string) => string;
+  bookUpsell3Body: (title: string) => string;
+  bookUpsell3Button: string;
+  // Translation upsell
+  translationUpsell1Subject: (title: string, lang: string) => string;
+  translationUpsell1Body: (title: string, lang: string) => string;
+  translationUpsellButton: string;
   // Addon names
   addonName: (kind: string) => string;
 }
@@ -211,6 +225,19 @@ const translations: Record<string, EmailTranslations> = {
     bookRecovery3Subject: (title) => `Last reminder: "${title}" needs your attention — BestSellers AI`,
     bookRecovery3Body: (title) => `This is our last reminder about <strong>"${title}"</strong>. Your book preview is ready and waiting — approve it now and we'll generate your complete book. After this, we won't send more reminders.`,
     bookRecovery3Button: 'Generate My Book Now',
+    // Book upsell
+    bookUpsell1Subject: (title) => `"${title}" is ready — publish it on Amazon! — BestSellers AI`,
+    bookUpsell1Body: (title) => `Your book <strong>"${title}"</strong> is complete! Now take the next step: publish it on Amazon and reach readers worldwide. You can also add a professional AI cover, chapter illustrations, and an audiobook.`,
+    bookUpsell1Button: 'Explore Publishing Options',
+    bookUpsell2Subject: (title) => `Thousands of authors have published — "${title}" is next — BestSellers AI`,
+    bookUpsell2Body: (title) => `Your book <strong>"${title}"</strong> is ready to be published. Thousands of authors have already published their books on Amazon through our platform. Don't miss the opportunity — your readers are waiting.`,
+    bookUpsell2Button: 'Publish My Book',
+    bookUpsell3Subject: (title) => `Last chance to publish "${title}" easily — BestSellers AI`,
+    bookUpsell3Body: (title) => `This is our last reminder about publishing <strong>"${title}"</strong>. Your book is complete and ready to go live on Amazon. One click and we handle the rest — cover, formatting, and submission.`,
+    bookUpsell3Button: 'Publish Now',
+    translationUpsell1Subject: (title, lang) => `Publish "${title}" in ${lang} on Amazon — BestSellers AI`,
+    translationUpsell1Body: (title, lang) => `Your translation of <strong>"${title}"</strong> to <strong>${lang}</strong> is complete! Publish it on Amazon and reach a whole new audience. We handle the formatting and submission for you.`,
+    translationUpsellButton: 'Publish Translation',
     // Addon names
     addonName: (kind) => ({
       ADDON_COVER: 'AI Cover',
@@ -309,6 +336,18 @@ const translations: Record<string, EmailTranslations> = {
     bookRecovery3Subject: (title) => `Último lembrete: "${title}" precisa da sua atenção — BestSellers AI`,
     bookRecovery3Body: (title) => `Este é nosso último lembrete sobre <strong>"${title}"</strong>. A prévia do seu livro está pronta e esperando — aprove agora e vamos gerar seu livro completo. Após este, não enviaremos mais lembretes.`,
     bookRecovery3Button: 'Gerar Meu Livro Agora',
+    bookUpsell1Subject: (title) => `"${title}" está pronto — publique na Amazon! — BestSellers AI`,
+    bookUpsell1Body: (title) => `Seu livro <strong>"${title}"</strong> está completo! Agora dê o próximo passo: publique na Amazon e alcance leitores no mundo todo. Você também pode adicionar uma capa profissional com IA, ilustrações dos capítulos e um audiobook.`,
+    bookUpsell1Button: 'Ver Opções de Publicação',
+    bookUpsell2Subject: (title) => `Milhares de autores já publicaram — "${title}" é o próximo — BestSellers AI`,
+    bookUpsell2Body: (title) => `Seu livro <strong>"${title}"</strong> está pronto para ser publicado. Milhares de autores já publicaram seus livros na Amazon pela nossa plataforma. Não perca a oportunidade — seus leitores estão esperando.`,
+    bookUpsell2Button: 'Publicar Meu Livro',
+    bookUpsell3Subject: (title) => `Última chance de publicar "${title}" com facilidade — BestSellers AI`,
+    bookUpsell3Body: (title) => `Este é nosso último lembrete sobre a publicação de <strong>"${title}"</strong>. Seu livro está completo e pronto para ir ao ar na Amazon. Um clique e nós cuidamos do resto — capa, formatação e envio.`,
+    bookUpsell3Button: 'Publicar Agora',
+    translationUpsell1Subject: (title, lang) => `Publique "${title}" em ${lang} na Amazon — BestSellers AI`,
+    translationUpsell1Body: (title, lang) => `Sua tradução de <strong>"${title}"</strong> para <strong>${lang}</strong> está completa! Publique na Amazon e alcance um público totalmente novo. Nós cuidamos da formatação e envio para você.`,
+    translationUpsellButton: 'Publicar Tradução',
     addonName: (kind) => ({
       ADDON_COVER: 'Capa com IA',
       ADDON_IMAGES: 'Ilustrações dos Capítulos',
@@ -406,6 +445,18 @@ const translations: Record<string, EmailTranslations> = {
     bookRecovery3Subject: (title) => `Último recordatorio: "${title}" necesita tu atención — BestSellers AI`,
     bookRecovery3Body: (title) => `Este es nuestro último recordatorio sobre <strong>"${title}"</strong>. La vista previa de tu libro está lista y esperando — apruébala ahora y generaremos tu libro completo. Después de este, no enviaremos más recordatorios.`,
     bookRecovery3Button: 'Generar Mi Libro Ahora',
+    bookUpsell1Subject: (title) => `"${title}" está listo — ¡publícalo en Amazon! — BestSellers AI`,
+    bookUpsell1Body: (title) => `Tu libro <strong>"${title}"</strong> está completo. Ahora da el siguiente paso: publícalo en Amazon y llega a lectores de todo el mundo. También puedes agregar una portada profesional con IA, ilustraciones de capítulos y un audiolibro.`,
+    bookUpsell1Button: 'Ver Opciones de Publicación',
+    bookUpsell2Subject: (title) => `Miles de autores ya publicaron — "${title}" es el siguiente — BestSellers AI`,
+    bookUpsell2Body: (title) => `Tu libro <strong>"${title}"</strong> está listo para ser publicado. Miles de autores ya han publicado sus libros en Amazon a través de nuestra plataforma. No pierdas la oportunidad — tus lectores están esperando.`,
+    bookUpsell2Button: 'Publicar Mi Libro',
+    bookUpsell3Subject: (title) => `Última oportunidad de publicar "${title}" fácilmente — BestSellers AI`,
+    bookUpsell3Body: (title) => `Este es nuestro último recordatorio sobre la publicación de <strong>"${title}"</strong>. Tu libro está completo y listo para salir en Amazon. Un clic y nosotros nos encargamos del resto — portada, formato y envío.`,
+    bookUpsell3Button: 'Publicar Ahora',
+    translationUpsell1Subject: (title, lang) => `Publica "${title}" en ${lang} en Amazon — BestSellers AI`,
+    translationUpsell1Body: (title, lang) => `Tu traducción de <strong>"${title}"</strong> al <strong>${lang}</strong> está completa. Publícala en Amazon y alcanza una audiencia completamente nueva. Nosotros nos encargamos del formato y envío.`,
+    translationUpsellButton: 'Publicar Traducción',
     addonName: (kind) => ({
       ADDON_COVER: 'Portada con IA',
       ADDON_IMAGES: 'Ilustraciones de Capítulos',

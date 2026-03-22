@@ -397,3 +397,50 @@ export function bookRecoveryEmail(params: {
 
   return { subject: subjectFn(params.bookTitle), html };
 }
+
+// ─── 18. Book Upsell (post-generation, 3-email sequence) ───────────────────
+
+export function bookUpsellEmail(params: {
+  userName: string;
+  bookTitle: string;
+  bookUrl: string;
+  sequenceNumber: 1 | 2 | 3;
+  locale?: string;
+}) {
+  const locale = params.locale ?? 'en';
+  const t = getTranslations(locale);
+
+  const seq = params.sequenceNumber;
+  const subjectFn = seq === 1 ? t.bookUpsell1Subject : seq === 2 ? t.bookUpsell2Subject : t.bookUpsell3Subject;
+  const bodyFn = seq === 1 ? t.bookUpsell1Body : seq === 2 ? t.bookUpsell2Body : t.bookUpsell3Body;
+  const buttonLabel = seq === 1 ? t.bookUpsell1Button : seq === 2 ? t.bookUpsell2Button : t.bookUpsell3Button;
+
+  const html = baseLayout(`
+    ${heading(t.greeting(params.userName))}
+    ${text(bodyFn(params.bookTitle))}
+    ${btn(params.bookUrl, buttonLabel)}
+  `, locale);
+
+  return { subject: subjectFn(params.bookTitle), html };
+}
+
+// ─── 19. Translation Upsell ─────────────────────────────────────────────────
+
+export function translationUpsellEmail(params: {
+  userName: string;
+  bookTitle: string;
+  bookUrl: string;
+  targetLanguage: string;
+  locale?: string;
+}) {
+  const locale = params.locale ?? 'en';
+  const t = getTranslations(locale);
+
+  const html = baseLayout(`
+    ${heading(t.greeting(params.userName))}
+    ${text(t.translationUpsell1Body(params.bookTitle, params.targetLanguage))}
+    ${btn(params.bookUrl, t.translationUpsellButton)}
+  `, locale);
+
+  return { subject: t.translationUpsell1Subject(params.bookTitle, params.targetLanguage), html };
+}
