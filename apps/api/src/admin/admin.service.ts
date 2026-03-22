@@ -449,6 +449,7 @@ export class AdminService {
       wordCount: b.wordCount,
       pageCount: b.pageCount,
       translationsCount: b._count.translations,
+      recoveryEmailsSent: b.recoveryEmailsSent,
       createdAt: b.createdAt.toISOString(),
     }));
 

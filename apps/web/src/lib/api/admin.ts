@@ -89,6 +89,7 @@ export interface AdminBookSummary {
   wordCount: number | null;
   pageCount: number | null;
   translationsCount: number;
+  recoveryEmailsSent: number;
   createdAt: string;
 }
 
