@@ -123,12 +123,7 @@ export default function CreditCard({ pack, onBuy, loading }: CreditCardProps) {
           <button
             onClick={onBuy}
             disabled={loading}
-            className={clsx(
-              'w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed',
-              isPopular
-                ? 'bg-gold-500 hover:bg-gold-600 text-navy-900 shadow-gold-sm hover:shadow-gold-md'
-                : 'dark:bg-white/[0.07] bg-navy-900/[0.07] dark:hover:bg-white/[0.12] hover:bg-navy-900/[0.12] dark:text-cream-200 text-navy-900 border dark:border-white/10 border-navy-900/10 dark:hover:border-white/20 hover:border-navy-900/20',
-            )}
+            className="w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed bg-gold-500 hover:bg-gold-600 text-navy-900 shadow-gold-sm hover:shadow-gold-md"
           >
             {loading ? (
               <svg className="w-5 h-5 animate-spin mx-auto" viewBox="0 0 24 24" fill="none">
