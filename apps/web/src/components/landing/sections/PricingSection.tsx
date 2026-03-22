@@ -211,9 +211,9 @@ export default function PricingSection() {
                 </span>
               </div>
 
-              {/* <PlanCalculator onRecommend={setHighlightedPlan} /> */}
+              <PlanCalculator onRecommend={setHighlightedPlan} />
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
                 {plans.map((plan, i) => (
                   <m.div
                     key={plan.id}

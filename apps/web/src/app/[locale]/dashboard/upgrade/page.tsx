@@ -310,12 +310,12 @@ export default function UpgradePage() {
               </span>
             </div>
 
-            <div className="dark:bg-white/[0.025] bg-navy-900/[0.025] border dark:border-white/[0.07] border-navy-900/[0.07] rounded-2xl">
+            {/* <div className="dark:bg-white/[0.025] bg-navy-900/[0.025] border dark:border-white/[0.07] border-navy-900/[0.07] rounded-2xl">
               <PlanCalculator onRecommend={setHighlightedPlan} />
-            </div>
+            </div> */}
 
             {/* Plan Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {PLAN_ORDER.map((planKey, i) => {
                 const config = getPlanConfig(planKey);
                 if (!config) return null;
@@ -512,7 +512,7 @@ export default function UpgradePage() {
                           </div>
                         ) : (
                           <button
-                            className="w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200 active:scale-[0.98] dark:bg-white/[0.07] bg-navy-900/[0.07] dark:hover:bg-white/[0.12] hover:bg-navy-900/[0.12] dark:text-cream-200 text-navy-900 border dark:border-white/10 border-navy-900/10 dark:hover:border-white/20 hover:border-navy-900/20 disabled:opacity-50"
+                            className="w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200 active:scale-[0.98] bg-gold-500 hover:bg-gold-600 text-navy-900 shadow-gold-sm hover:shadow-gold-md disabled:opacity-50"
                             disabled={loadingPlan !== null}
                             onClick={() => handleSubscribe(planKey)}
                           >
@@ -643,6 +643,7 @@ export default function UpgradePage() {
                     pack={pack}
                     onBuy={() => handleBuyCredits(pack.slug)}
                     loading={loadingSlug === pack.slug}
+                    forceGoldButton
                   />
                 </motion.div>
               ))}
