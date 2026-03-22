@@ -92,12 +92,16 @@ export interface EmailTranslations {
   recoveryCreditBody: (packName: string) => string;
   recoveryButton: string;
   recoveryExpiry: string;
-  // Book recovery
-  bookRecoveryPreviewSubject: (title: string) => string;
-  bookRecoveryPreviewBody: (title: string) => string;
-  bookRecoveryPreviewCompletedSubject: (title: string) => string;
-  bookRecoveryPreviewCompletedBody: (title: string) => string;
-  bookRecoveryButton: string;
+  // Book recovery (3-email sequence)
+  bookRecovery1Subject: (title: string) => string;
+  bookRecovery1Body: (title: string) => string;
+  bookRecovery1Button: string;
+  bookRecovery2Subject: (title: string) => string;
+  bookRecovery2Body: (title: string) => string;
+  bookRecovery2Button: string;
+  bookRecovery3Subject: (title: string) => string;
+  bookRecovery3Body: (title: string) => string;
+  bookRecovery3Button: string;
   // Addon names
   addonName: (kind: string) => string;
 }
@@ -197,12 +201,16 @@ const translations: Record<string, EmailTranslations> = {
     recoveryCreditBody: (packName) => `You were about to purchase the <strong>${packName}</strong> credit pack but didn't finish. Complete your purchase now and start creating.`,
     recoveryButton: 'Complete My Purchase',
     recoveryExpiry: 'This link will take you back to our pricing page.',
-    // Book recovery
-    bookRecoveryPreviewSubject: (title) => `Your book "${title}" has a structure ready — BestSellers AI`,
-    bookRecoveryPreviewBody: (title) => `Your book <strong>"${title}"</strong> already has a structure ready for you to review. Come back and see the outline — you're just a few steps away from your complete book.`,
-    bookRecoveryPreviewCompletedSubject: (title) => `Your preview for "${title}" is ready — BestSellers AI`,
-    bookRecoveryPreviewCompletedBody: (title) => `Great news! The preview for <strong>"${title}"</strong> is complete and waiting for your approval. Approve it now and we'll generate your full book.`,
-    bookRecoveryButton: 'Continue My Book',
+    // Book recovery (3-email sequence)
+    bookRecovery1Subject: (title) => `Your book "${title}" is waiting for you — BestSellers AI`,
+    bookRecovery1Body: (title) => `Your book <strong>"${title}"</strong> already has a preview ready for you to review. Come back and take a look — you're just a few steps away from your complete book.`,
+    bookRecovery1Button: 'Continue My Book',
+    bookRecovery2Subject: (title) => `Don't give up on "${title}" — BestSellers AI`,
+    bookRecovery2Body: (title) => `Your book <strong>"${title}"</strong> is still waiting for you. Many authors are just one click away from their finished book — don't let yours stay incomplete.`,
+    bookRecovery2Button: 'Finish My Book',
+    bookRecovery3Subject: (title) => `Last reminder: "${title}" needs your attention — BestSellers AI`,
+    bookRecovery3Body: (title) => `This is our last reminder about <strong>"${title}"</strong>. Your book preview is ready and waiting — approve it now and we'll generate your complete book. After this, we won't send more reminders.`,
+    bookRecovery3Button: 'Generate My Book Now',
     // Addon names
     addonName: (kind) => ({
       ADDON_COVER: 'AI Cover',
@@ -292,11 +300,15 @@ const translations: Record<string, EmailTranslations> = {
     recoveryCreditBody: (packName) => `Você estava prestes a comprar o pacote <strong>${packName}</strong> mas não finalizou. Complete sua compra agora e comece a criar.`,
     recoveryButton: 'Completar Minha Compra',
     recoveryExpiry: 'Este link vai te levar de volta à nossa página de preços.',
-    bookRecoveryPreviewSubject: (title) => `Seu livro "${title}" já tem uma estrutura pronta — BestSellers AI`,
-    bookRecoveryPreviewBody: (title) => `Seu livro <strong>"${title}"</strong> já tem uma estrutura pronta para você revisar. Volte e veja o esboço — você está a poucos passos do seu livro completo.`,
-    bookRecoveryPreviewCompletedSubject: (title) => `A prévia de "${title}" está pronta — BestSellers AI`,
-    bookRecoveryPreviewCompletedBody: (title) => `Ótimas notícias! A prévia de <strong>"${title}"</strong> está completa e esperando sua aprovação. Aprove agora e vamos gerar seu livro completo.`,
-    bookRecoveryButton: 'Continuar Meu Livro',
+    bookRecovery1Subject: (title) => `Seu livro "${title}" está esperando por você — BestSellers AI`,
+    bookRecovery1Body: (title) => `Seu livro <strong>"${title}"</strong> já tem uma prévia pronta para você revisar. Volte e dê uma olhada — você está a poucos passos do seu livro completo.`,
+    bookRecovery1Button: 'Continuar Meu Livro',
+    bookRecovery2Subject: (title) => `Não desista de "${title}" — BestSellers AI`,
+    bookRecovery2Body: (title) => `Seu livro <strong>"${title}"</strong> ainda está esperando por você. Muitos autores estão a apenas um clique do livro finalizado — não deixe o seu ficar incompleto.`,
+    bookRecovery2Button: 'Finalizar Meu Livro',
+    bookRecovery3Subject: (title) => `Último lembrete: "${title}" precisa da sua atenção — BestSellers AI`,
+    bookRecovery3Body: (title) => `Este é nosso último lembrete sobre <strong>"${title}"</strong>. A prévia do seu livro está pronta e esperando — aprove agora e vamos gerar seu livro completo. Após este, não enviaremos mais lembretes.`,
+    bookRecovery3Button: 'Gerar Meu Livro Agora',
     addonName: (kind) => ({
       ADDON_COVER: 'Capa com IA',
       ADDON_IMAGES: 'Ilustrações dos Capítulos',
@@ -385,11 +397,15 @@ const translations: Record<string, EmailTranslations> = {
     recoveryCreditBody: (packName) => `Estabas a punto de comprar el paquete <strong>${packName}</strong> pero no terminaste. Completa tu compra ahora y empieza a crear.`,
     recoveryButton: 'Completar Mi Compra',
     recoveryExpiry: 'Este enlace te llevará de vuelta a nuestra página de precios.',
-    bookRecoveryPreviewSubject: (title) => `Tu libro "${title}" ya tiene una estructura lista — BestSellers AI`,
-    bookRecoveryPreviewBody: (title) => `Tu libro <strong>"${title}"</strong> ya tiene una estructura lista para que la revises. Vuelve y mira el esquema — estás a pocos pasos de tu libro completo.`,
-    bookRecoveryPreviewCompletedSubject: (title) => `La vista previa de "${title}" está lista — BestSellers AI`,
-    bookRecoveryPreviewCompletedBody: (title) => `¡Excelentes noticias! La vista previa de <strong>"${title}"</strong> está completa y esperando tu aprobación. Apruébala ahora y generaremos tu libro completo.`,
-    bookRecoveryButton: 'Continuar Mi Libro',
+    bookRecovery1Subject: (title) => `Tu libro "${title}" te está esperando — BestSellers AI`,
+    bookRecovery1Body: (title) => `Tu libro <strong>"${title}"</strong> ya tiene una vista previa lista para que la revises. Vuelve y échale un vistazo — estás a pocos pasos de tu libro completo.`,
+    bookRecovery1Button: 'Continuar Mi Libro',
+    bookRecovery2Subject: (title) => `No te rindas con "${title}" — BestSellers AI`,
+    bookRecovery2Body: (title) => `Tu libro <strong>"${title}"</strong> aún te está esperando. Muchos autores están a solo un clic de su libro terminado — no dejes el tuyo incompleto.`,
+    bookRecovery2Button: 'Terminar Mi Libro',
+    bookRecovery3Subject: (title) => `Último recordatorio: "${title}" necesita tu atención — BestSellers AI`,
+    bookRecovery3Body: (title) => `Este es nuestro último recordatorio sobre <strong>"${title}"</strong>. La vista previa de tu libro está lista y esperando — apruébala ahora y generaremos tu libro completo. Después de este, no enviaremos más recordatorios.`,
+    bookRecovery3Button: 'Generar Mi Libro Ahora',
     addonName: (kind) => ({
       ADDON_COVER: 'Portada con IA',
       ADDON_IMAGES: 'Ilustraciones de Capítulos',

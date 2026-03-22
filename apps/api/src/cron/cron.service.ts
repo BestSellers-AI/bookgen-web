@@ -459,66 +459,88 @@ export class CronService {
     this.logger.log(`Cron: purchaseAbandonmentRecovery completed — ${sent} emails sent`);
   }
 
-  // ─── Book Abandonment Recovery ─────────────────────────────────────────────
-  // Runs daily at 09:00 UTC. Finds books in PREVIEW or PREVIEW_COMPLETED
-  // status for 24h+ that haven't received a recovery email yet.
+  // ─── Book Abandonment Recovery (3-email sequence) ──────────────────────────
+  // Runs daily at 09:00 UTC. Sends up to 3 recovery emails per book:
+  //   Email 1: 24h after abandonment (gentle reminder)
+  //   Email 2: 3 days after abandonment (light urgency)
+  //   Email 3: 7 days after abandonment (last reminder)
 
   @Cron('0 9 * * *') // daily at 09:00 UTC
   async bookAbandonmentRecovery() {
     this.logger.log('Cron: bookAbandonmentRecovery starting');
 
-    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const now = Date.now();
 
-    const abandonedBooks = await this.prisma.book.findMany({
-      where: {
+    // Sequence config: [minAge in ms, sequenceNumber]
+    const sequences: Array<{ minAge: number; seq: 1 | 2 | 3; emailsSent: number }> = [
+      { minAge: 24 * 60 * 60 * 1000, seq: 1, emailsSent: 0 },         // 24h, first email
+      { minAge: 3 * 24 * 60 * 60 * 1000, seq: 2, emailsSent: 1 },     // 3 days, second email
+      { minAge: 7 * 24 * 60 * 60 * 1000, seq: 3, emailsSent: 2 },     // 7 days, third email
+    ];
+
+    let totalSent = 0;
+
+    for (const { minAge, seq, emailsSent } of sequences) {
+      const cutoff = new Date(now - minAge);
+
+      // For email 1: check updatedAt (when status was set)
+      // For emails 2-3: check lastRecoveryEmailAt (interval since last email, min 2 days)
+      const minSinceLastEmail = 2 * 24 * 60 * 60 * 1000; // 2 days between emails
+      const lastEmailCutoff = new Date(now - minSinceLastEmail);
+
+      const where: Record<string, unknown> = {
         status: { in: [BookStatus.PREVIEW, BookStatus.PREVIEW_COMPLETED] },
-        recoveryEmailSentAt: null,
+        recoveryEmailsSent: emailsSent,
         deletedAt: null,
-        updatedAt: { lte: twentyFourHoursAgo },
-      },
-      include: {
-        user: { select: { id: true, email: true, name: true, locale: true } },
-      },
-      take: 100,
-    });
+      };
 
-    if (abandonedBooks.length === 0) {
-      this.logger.log('Cron: bookAbandonmentRecovery — no abandoned books found');
-      return;
-    }
+      if (seq === 1) {
+        where.updatedAt = { lte: cutoff };
+      } else {
+        where.lastRecoveryEmailAt = { lte: lastEmailCutoff };
+      }
 
-    let sent = 0;
-    for (const book of abandonedBooks) {
-      try {
-        if (!book.user?.email) continue;
+      const books = await this.prisma.book.findMany({
+        where,
+        include: {
+          user: { select: { id: true, email: true, name: true, locale: true } },
+        },
+        take: 50,
+      });
 
-        const bookUrl = `${this.appConfig.frontendUrl}/dashboard/books/${book.id}`;
+      for (const book of books) {
+        try {
+          if (!book.user?.email) continue;
 
-        const email = bookRecoveryEmail({
-          userName: book.user.name ?? 'there',
-          bookTitle: book.title,
-          bookUrl,
-          status: book.status as 'PREVIEW' | 'PREVIEW_COMPLETED',
-          locale: book.user.locale,
-        });
+          const email = bookRecoveryEmail({
+            userName: book.user.name ?? 'there',
+            bookTitle: book.title,
+            bookUrl: `${this.appConfig.frontendUrl}/dashboard/books/${book.id}`,
+            sequenceNumber: seq,
+            locale: book.user.locale,
+          });
 
-        this.emailService.send({
-          to: book.user.email,
-          subject: email.subject,
-          html: email.html,
-        });
+          this.emailService.send({
+            to: book.user.email,
+            subject: email.subject,
+            html: email.html,
+          });
 
-        await this.prisma.book.update({
-          where: { id: book.id },
-          data: { recoveryEmailSentAt: new Date() },
-        });
+          await this.prisma.book.update({
+            where: { id: book.id },
+            data: {
+              recoveryEmailsSent: seq,
+              lastRecoveryEmailAt: new Date(),
+            },
+          });
 
-        sent++;
-      } catch (error) {
-        this.logger.error(`Failed to send book recovery email for book ${book.id}: ${error}`);
+          totalSent++;
+        } catch (error) {
+          this.logger.error(`Failed to send book recovery email #${seq} for book ${book.id}: ${error}`);
+        }
       }
     }
 
-    this.logger.log(`Cron: bookAbandonmentRecovery completed — ${sent} emails sent`);
+    this.logger.log(`Cron: bookAbandonmentRecovery completed — ${totalSent} emails sent`);
   }
 }

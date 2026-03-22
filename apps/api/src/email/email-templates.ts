@@ -372,30 +372,28 @@ export function purchaseRecoveryEmail(params: {
   return { subject, html };
 }
 
-// ─── 17. Book Recovery ──────────────────────────────────────────────────────
+// ─── 17. Book Recovery (3-email sequence) ───────────────────────────────────
 
 export function bookRecoveryEmail(params: {
   userName: string;
   bookTitle: string;
   bookUrl: string;
-  status: 'PREVIEW' | 'PREVIEW_COMPLETED';
+  sequenceNumber: 1 | 2 | 3;
   locale?: string;
 }) {
   const locale = params.locale ?? 'en';
   const t = getTranslations(locale);
-  const isPreview = params.status === 'PREVIEW';
-  const body = isPreview
-    ? t.bookRecoveryPreviewBody(params.bookTitle)
-    : t.bookRecoveryPreviewCompletedBody(params.bookTitle);
-  const subject = isPreview
-    ? t.bookRecoveryPreviewSubject(params.bookTitle)
-    : t.bookRecoveryPreviewCompletedSubject(params.bookTitle);
+
+  const seq = params.sequenceNumber;
+  const subjectFn = seq === 1 ? t.bookRecovery1Subject : seq === 2 ? t.bookRecovery2Subject : t.bookRecovery3Subject;
+  const bodyFn = seq === 1 ? t.bookRecovery1Body : seq === 2 ? t.bookRecovery2Body : t.bookRecovery3Body;
+  const buttonLabel = seq === 1 ? t.bookRecovery1Button : seq === 2 ? t.bookRecovery2Button : t.bookRecovery3Button;
 
   const html = baseLayout(`
     ${heading(t.greeting(params.userName))}
-    ${text(body)}
-    ${btn(params.bookUrl, t.bookRecoveryButton)}
+    ${text(bodyFn(params.bookTitle))}
+    ${btn(params.bookUrl, buttonLabel)}
   `, locale);
 
-  return { subject, html };
+  return { subject: subjectFn(params.bookTitle), html };
 }

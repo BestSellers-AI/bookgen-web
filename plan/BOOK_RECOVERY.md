@@ -1,22 +1,40 @@
-# Book Abandonment Recovery
+# Book Abandonment Recovery — 3-Email Sequence
 
 **Date:** 2026-03-22
 **Branch:** `feat/book-abandonment-recovery`
 
 ## Overview
 
-Sends a recovery email to users who started creating a book but didn't complete the generation process. Targets books stuck in `PREVIEW` or `PREVIEW_COMPLETED` status for 24+ hours.
+Sends a sequence of up to 3 recovery emails to users who started creating a book but didn't complete the generation process. Targets books stuck in `PREVIEW` or `PREVIEW_COMPLETED` status with escalating urgency.
+
+## Email Sequence
+
+| # | When | Tone | Subject (PT-BR) | Button |
+|---|------|------|-----------------|--------|
+| 1 | 24h after abandonment | Gentle reminder | "Seu livro está esperando por você" | Continuar Meu Livro |
+| 2 | 3 days after abandonment | Light urgency | "Não desista de {title}" | Finalizar Meu Livro |
+| 3 | 7 days after abandonment | Last chance | "Último lembrete: {title} precisa da sua atenção" | Gerar Meu Livro Agora |
+
+After email 3, no more emails are sent for that book.
 
 ## Which Statuses Trigger Recovery
 
-| Status | What happened | Recovery email | Conflicts? |
-|--------|-------------|----------------|------------|
-| `PREVIEW` | Preview/outline was generated, user didn't proceed | Yes — "Your book has a structure ready" | No — only in-app notification exists |
-| `PREVIEW_COMPLETED` | Full preview ready, user didn't approve generation | Yes — "Your preview is ready, approve it" | No — only in-app notification exists |
-| `DRAFT` | Used internally to instantiate, transitions immediately | No — not user-facing | — |
-| `ERROR` | Generation failed | No — already receives error email immediately | Would duplicate |
-| `GENERATED` | Book complete | No — already receives "book ready" email | — |
-| `QUEUED` / `GENERATING` | In progress | No — system still working | — |
+| Status | What happened | Recovery? | Conflicts with existing emails? |
+|--------|-------------|-----------|--------------------------------|
+| `PREVIEW` | Preview/outline generated, user didn't proceed | Yes | No — only in-app notification |
+| `PREVIEW_COMPLETED` | Full preview ready, user didn't approve | Yes | No — only in-app notification |
+| `DRAFT` | Internal state, transitions immediately | No | — |
+| `ERROR` | Generation failed | No | Yes — `bookErrorEmail` already sent |
+| `GENERATED` | Complete | No | Yes — `bookGeneratedEmail` already sent |
+| `QUEUED` / `GENERATING` | In progress | No | — |
+
+## Database Fields
+
+On the Book model:
+```prisma
+recoveryEmailsSent     Int       @default(0)  // 0, 1, 2, or 3
+lastRecoveryEmailAt    DateTime?              // when last recovery email was sent
+```
 
 ## How It Works
 
@@ -24,86 +42,79 @@ Sends a recovery email to users who started creating a book but didn't complete 
 
 **Schedule:** Daily at 09:00 UTC (`0 9 * * *`)
 
-1. Queries books where:
-   - `status` is `PREVIEW` or `PREVIEW_COMPLETED`
-   - `recoveryEmailSentAt IS NULL`
-   - `deletedAt IS NULL`
-   - `updatedAt` is 24+ hours ago
-2. Sends localized recovery email (different copy per status)
-3. Marks `recoveryEmailSentAt` on the book to prevent duplicates
-4. Maximum 100 emails per run
-5. Per-item try/catch (one failure doesn't block others)
+**Sequence logic:**
 
-### Database
+| Email # | Condition | Time check |
+|---------|-----------|------------|
+| 1 | `recoveryEmailsSent = 0` | `updatedAt` ≤ 24h ago |
+| 2 | `recoveryEmailsSent = 1` | `lastRecoveryEmailAt` ≤ 2 days ago |
+| 3 | `recoveryEmailsSent = 2` | `lastRecoveryEmailAt` ≤ 2 days ago |
 
-New field on Book model:
-```prisma
-recoveryEmailSentAt DateTime? @map("recovery_email_sent_at")
-```
+**Why `updatedAt` for email 1:** It's the best proxy for "when the book entered this status". If the user comes back and modifies the book, `updatedAt` resets — which is correct because the book isn't abandoned anymore.
 
-No new models needed. Existing books have `null` (never sent).
+**Why `lastRecoveryEmailAt` for emails 2-3:** The interval between emails should be consistent (minimum 2 days), regardless of when the book was created.
 
-## Email Templates
+**Safety:**
+- Only books in `PREVIEW` or `PREVIEW_COMPLETED` (not deleted)
+- Max 50 books per sequence step per run
+- Per-book try/catch (one failure doesn't block others)
+- `recoveryEmailsSent >= 3` → never sends again
 
-### PREVIEW status
+## Email Content (All 3 Locales)
 
-| Locale | Subject |
-|--------|---------|
-| EN | Your book "{title}" has a structure ready — BestSellers AI |
-| PT-BR | Seu livro "{title}" já tem uma estrutura pronta — BestSellers AI |
-| ES | Tu libro "{title}" ya tiene una estructura lista — BestSellers AI |
-
-Body: Tells the user their book outline is ready to review, encourages them to come back.
-
-### PREVIEW_COMPLETED status
+### Email 1 — Gentle Reminder
 
 | Locale | Subject |
 |--------|---------|
-| EN | Your preview for "{title}" is ready — BestSellers AI |
-| PT-BR | A prévia de "{title}" está pronta — BestSellers AI |
-| ES | La vista previa de "{title}" está lista — BestSellers AI |
+| EN | Your book "{title}" is waiting for you |
+| PT-BR | Seu livro "{title}" está esperando por você |
+| ES | Tu libro "{title}" te está esperando |
 
-Body: Tells the user the preview is complete and waiting for approval to generate the full book.
+### Email 2 — Light Urgency
 
-### Shared
+| Locale | Subject |
+|--------|---------|
+| EN | Don't give up on "{title}" |
+| PT-BR | Não desista de "{title}" |
+| ES | No te rindas con "{title}" |
 
-- **Button:** "Continue My Book" / "Continuar Meu Livro" / "Continuar Mi Libro"
-- **Link:** `/dashboard/books/{bookId}` (goes directly to the book)
-- **Template:** Same dark layout as all other emails (gold button, logo, footer)
+### Email 3 — Last Reminder
 
-## Existing Emails (No Conflict)
+| Locale | Subject |
+|--------|---------|
+| EN | Last reminder: "{title}" needs your attention |
+| PT-BR | Último lembrete: "{title}" precisa da sua atenção |
+| ES | Último recordatorio: "{title}" necesita tu atención |
 
-| Event | Email sent | When |
-|-------|-----------|------|
-| Preview ready | None (only in-app notification) | Immediately |
-| Book generated | `bookGeneratedEmail` | Immediately |
-| Generation error | `bookErrorEmail` | Immediately |
-| Book recovery | `bookRecoveryEmail` | 24h after abandonment (NEW) |
+All emails use the same dark template (gold button, logo, footer). Button links directly to `/dashboard/books/{bookId}`.
 
 ## Files Changed
 
 | File | Change |
 |------|--------|
-| `prisma/schema.prisma` | `recoveryEmailSentAt` on Book |
+| `prisma/schema.prisma` | `recoveryEmailsSent` (Int) + `lastRecoveryEmailAt` (DateTime?) on Book |
 | `prisma/migrations/20260322120000_*` | Migration |
-| `email/email-translations.ts` | 6 new keys per locale (subject + body for PREVIEW and PREVIEW_COMPLETED, button) |
-| `email/email-templates.ts` | `bookRecoveryEmail()` function |
-| `cron/cron.service.ts` | `bookAbandonmentRecovery` daily cron job |
+| `email/email-translations.ts` | 9 keys per locale (subject + body + button × 3 emails) |
+| `email/email-templates.ts` | `bookRecoveryEmail()` with `sequenceNumber` param |
+| `cron/cron.service.ts` | `bookAbandonmentRecovery` daily cron with 3-step loop |
 
 ## Recovery Flow
 
 ```
 User creates book → preview generates → status = PREVIEW or PREVIEW_COMPLETED
-  ├─ User approves → status changes → QUEUED → GENERATING → GENERATED (no recovery)
-  └─ User abandons → 24h passes → cron runs at 09:00 UTC → recovery email sent
-       └─ Email links to /dashboard/books/{bookId}
-       └─ recoveryEmailSentAt marked → never sent again for this book
+  ├─ User approves → status changes → no recovery emails
+  └─ User abandons:
+       ├─ 24h later → Email 1: "Your book is waiting" (recoveryEmailsSent = 1)
+       ├─ 3 days later → Email 2: "Don't give up" (recoveryEmailsSent = 2)
+       ├─ 7 days later → Email 3: "Last reminder" (recoveryEmailsSent = 3)
+       └─ After email 3 → no more emails for this book
 ```
+
+If the user comes back and modifies the book at any point, `updatedAt` resets — delaying email 1. If they approve/generate, the status changes and the book exits the recovery pool entirely.
 
 ## What Does NOT Change
 
-- No new admin pages
-- No new endpoints
+- No new admin pages or endpoints
 - No changes to the user-facing book flow
-- No changes to existing email templates
-- Books that already reached GENERATED/ERROR/CANCELLED are never touched
+- No changes to existing email templates (bookGeneratedEmail, bookErrorEmail)
+- No impact on books already in GENERATED/ERROR/CANCELLED status
