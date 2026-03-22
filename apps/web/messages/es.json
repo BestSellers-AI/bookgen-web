@@ -53,6 +53,7 @@
     "adminProducts": "Productos",
     "adminAnnouncement": "Anuncio",
     "adminPublications": "Publicaciones",
+    "adminPurchaseIntents": "Intenciones de Compra",
     "adminCreditUsage": "Uso de Créditos"
   },
   "notifications": {
@@ -1016,7 +1017,23 @@
     "type_ADJUSTMENT": "Ajuste",
     "type_SUBSCRIPTION_CREDIT": "Crédito de Suscripción",
     "noTransactions": "No se encontraron transacciones",
-    "credits": "créditos"
+    "credits": "créditos",
+    "piTitle": "Intenciones de Compra",
+    "piSubtitle": "Seguimiento de intenciones de compra y abandono de carrito",
+    "piTotal": "Total de Intenciones",
+    "piConverted": "Convertidas",
+    "piAbandoned": "Abandonadas",
+    "piConversionRate": "Tasa de Conversión",
+    "piSearchPlaceholder": "Buscar por producto o email...",
+    "piEmpty": "No se encontraron intenciones de compra",
+    "piType": "Tipo",
+    "piProduct": "Producto",
+    "piSource": "Origen",
+    "piRecovery": "Recuperación",
+    "piGuest": "Visitante",
+    "piPlan": "Plan",
+    "piCredits": "Créditos",
+    "piPending": "Pendiente"
   },
   "publishingResult": {
     "title": "Detalles de la Publicación",

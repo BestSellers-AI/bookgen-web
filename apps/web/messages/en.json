@@ -53,6 +53,7 @@
     "adminProducts": "Products",
     "adminAnnouncement": "Announcement",
     "adminPublications": "Publications",
+    "adminPurchaseIntents": "Purchase Intents",
     "adminCreditUsage": "Credit Usage"
   },
   "notifications": {
@@ -1016,7 +1017,23 @@
     "type_ADJUSTMENT": "Adjustment",
     "type_SUBSCRIPTION_CREDIT": "Subscription Credit",
     "noTransactions": "No transactions found",
-    "credits": "credits"
+    "credits": "credits",
+    "piTitle": "Purchase Intents",
+    "piSubtitle": "Track purchase intentions and cart abandonment",
+    "piTotal": "Total Intents",
+    "piConverted": "Converted",
+    "piAbandoned": "Abandoned",
+    "piConversionRate": "Conversion Rate",
+    "piSearchPlaceholder": "Search by product or email...",
+    "piEmpty": "No purchase intents found",
+    "piType": "Type",
+    "piProduct": "Product",
+    "piSource": "Source",
+    "piRecovery": "Recovery",
+    "piGuest": "Guest",
+    "piPlan": "Plan",
+    "piCredits": "Credits",
+    "piPending": "Pending"
   },
   "publishingResult": {
     "title": "Publication Details",

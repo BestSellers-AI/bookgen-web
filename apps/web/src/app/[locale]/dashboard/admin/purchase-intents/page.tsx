@@ -66,8 +66,8 @@ export default function AdminPurchaseIntentsPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <PageHeader
-        title={t("purchaseIntentsTitle") || "Purchase Intents"}
-        subtitle={t("purchaseIntentsSubtitle") || "Track purchase intentions and cart abandonment"}
+        title={t("piTitle")}
+        subtitle={t("piSubtitle")}
       />
 
       {/* Stats */}
@@ -75,28 +75,28 @@ export default function AdminPurchaseIntentsPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="glass rounded-2xl p-4 text-center">
             <p className="text-2xl font-black">{stats.total}</p>
-            <p className="text-xs text-muted-foreground mt-1">Total Intents</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("piTotal")}</p>
           </div>
           <div className="glass rounded-2xl p-4 text-center">
             <p className="text-2xl font-black text-emerald-400">{stats.converted}</p>
-            <p className="text-xs text-muted-foreground mt-1">Converted</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("piConverted")}</p>
           </div>
           <div className="glass rounded-2xl p-4 text-center">
             <p className="text-2xl font-black text-amber-400">{stats.abandoned}</p>
-            <p className="text-xs text-muted-foreground mt-1">Abandoned</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("piAbandoned")}</p>
           </div>
           <div className="glass rounded-2xl p-4 text-center">
             <p className="text-2xl font-black text-blue-400">{stats.conversionRate}%</p>
-            <p className="text-xs text-muted-foreground mt-1">Conversion Rate</p>
+            <p className="text-xs text-muted-foreground mt-1">{t("piConversionRate")}</p>
           </div>
         </div>
       )}
 
       <Tabs value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
         <TabsList>
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="converted">Converted</TabsTrigger>
-          <TabsTrigger value="abandoned">Abandoned</TabsTrigger>
+          <TabsTrigger value="all">{t("filterAll")}</TabsTrigger>
+          <TabsTrigger value="converted">{t("piConverted")}</TabsTrigger>
+          <TabsTrigger value="abandoned">{t("piAbandoned")}</TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -105,7 +105,7 @@ export default function AdminPurchaseIntentsPage() {
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by product or email..."
+          placeholder={t("piSearchPlaceholder")}
           className="pl-10 rounded-xl"
         />
       </div>
@@ -119,7 +119,7 @@ export default function AdminPurchaseIntentsPage() {
       ) : intents.length === 0 ? (
         <div className="glass rounded-[2rem] p-12 text-center">
           <ShoppingCart className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-          <p className="text-muted-foreground">No purchase intents found</p>
+          <p className="text-muted-foreground">{t("piEmpty")}</p>
         </div>
       ) : (
         <div className="glass rounded-[2rem] overflow-hidden">
@@ -127,13 +127,13 @@ export default function AdminPurchaseIntentsPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border text-left">
-                  <th className="px-6 py-4 font-bold text-muted-foreground">User</th>
-                  <th className="px-6 py-4 font-bold text-muted-foreground">Type</th>
-                  <th className="px-6 py-4 font-bold text-muted-foreground">Product</th>
-                  <th className="px-6 py-4 font-bold text-muted-foreground">Source</th>
-                  <th className="px-6 py-4 font-bold text-muted-foreground">Status</th>
-                  <th className="px-6 py-4 font-bold text-muted-foreground">Recovery</th>
-                  <th className="px-6 py-4 font-bold text-muted-foreground">Date</th>
+                  <th className="px-6 py-4 font-bold text-muted-foreground">{t("user")}</th>
+                  <th className="px-6 py-4 font-bold text-muted-foreground">{t("piType")}</th>
+                  <th className="px-6 py-4 font-bold text-muted-foreground">{t("piProduct")}</th>
+                  <th className="px-6 py-4 font-bold text-muted-foreground">{t("piSource")}</th>
+                  <th className="px-6 py-4 font-bold text-muted-foreground">{t("status")}</th>
+                  <th className="px-6 py-4 font-bold text-muted-foreground">{t("piRecovery")}</th>
+                  <th className="px-6 py-4 font-bold text-muted-foreground">{t("date")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -144,7 +144,7 @@ export default function AdminPurchaseIntentsPage() {
                   >
                     <td className="px-6 py-4">
                       <div className="text-xs">
-                        <p className="font-medium">{intent.userName || "Guest"}</p>
+                        <p className="font-medium">{intent.userName || t("piGuest")}</p>
                         <p className="text-muted-foreground">{intent.email || "—"}</p>
                       </div>
                     </td>
@@ -157,7 +157,7 @@ export default function AdminPurchaseIntentsPage() {
                             : "bg-blue-500/10 text-blue-400"
                         }`}
                       >
-                        {intent.type === "subscription" ? "Plan" : "Credits"}
+                        {intent.type === "subscription" ? t("piPlan") : t("piCredits")}
                       </Badge>
                     </td>
                     <td className="px-6 py-4 text-xs font-mono text-muted-foreground">
@@ -175,12 +175,12 @@ export default function AdminPurchaseIntentsPage() {
                       {intent.converted ? (
                         <div className="flex items-center gap-1.5">
                           <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                          <span className="text-xs text-emerald-400 font-bold">Converted</span>
+                          <span className="text-xs text-emerald-400 font-bold">{t("piConverted")}</span>
                         </div>
                       ) : (
                         <div className="flex items-center gap-1.5">
                           <XCircle className="w-4 h-4 text-amber-400" />
-                          <span className="text-xs text-amber-400 font-bold">Abandoned</span>
+                          <span className="text-xs text-amber-400 font-bold">{t("piAbandoned")}</span>
                         </div>
                       )}
                     </td>
@@ -195,7 +195,7 @@ export default function AdminPurchaseIntentsPage() {
                       ) : intent.converted ? (
                         <span className="text-[10px] text-muted-foreground">—</span>
                       ) : (
-                        <span className="text-[10px] text-amber-400">Pending</span>
+                        <span className="text-[10px] text-amber-400">{t("piPending")}</span>
                       )}
                     </td>
                     <td className="px-6 py-4 text-muted-foreground text-xs">
