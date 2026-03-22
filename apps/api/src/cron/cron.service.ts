@@ -379,15 +379,15 @@ export class CronService {
   }
 
   // ─── Purchase Abandonment Recovery ─────────────────────────────────────────
-  // Runs every hour. Finds intents created 30min–24h ago that weren't converted
-  // and haven't received a recovery email yet.
+  // Runs every 10 minutes. Finds intents created 10min–24h ago that weren't
+  // converted and haven't received a recovery email yet.
 
-  @Cron('0 * * * *') // every hour
+  @Cron('*/10 * * * *') // every 10 minutes
   async purchaseAbandonmentRecovery() {
     this.logger.log('Cron: purchaseAbandonmentRecovery starting');
 
     const now = new Date();
-    const thirtyMinAgo = new Date(now.getTime() - 30 * 60 * 1000);
+    const tenMinAgo = new Date(now.getTime() - 10 * 60 * 1000);
     const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
     const abandonedIntents = await this.prisma.purchaseIntent.findMany({
@@ -396,7 +396,7 @@ export class CronService {
         recoveryEmailSentAt: null,
         createdAt: {
           gte: twentyFourHoursAgo,
-          lte: thirtyMinAgo,
+          lte: tenMinAgo,
         },
       },
       include: {
@@ -410,6 +410,14 @@ export class CronService {
       return;
     }
 
+    // Resolve product names from slugs
+    const slugs = [...new Set(abandonedIntents.map((i) => i.productSlug))];
+    const products = await this.prisma.product.findMany({
+      where: { slug: { in: slugs } },
+      select: { slug: true, name: true },
+    });
+    const productNameMap = new Map(products.map((p) => [p.slug, p.name]));
+
     let sent = 0;
     for (const intent of abandonedIntents) {
       try {
@@ -421,10 +429,12 @@ export class CronService {
           ? `${this.appConfig.frontendUrl}/dashboard/upgrade`
           : `${this.appConfig.frontendUrl}/dashboard/upgrade?tab=credits`;
 
+        const productName = productNameMap.get(intent.productSlug) ?? intent.productSlug;
+
         const email = purchaseRecoveryEmail({
           userName: intent.user?.name ?? 'there',
           type: intent.type as 'subscription' | 'credit_pack',
-          productName: intent.productSlug,
+          productName,
           pricingUrl,
           locale,
         });
