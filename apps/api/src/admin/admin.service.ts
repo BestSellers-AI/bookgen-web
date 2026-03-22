@@ -128,6 +128,10 @@ export class AdminService {
           orderBy: { createdAt: 'desc' },
         },
         _count: { select: { books: true } },
+        purchaseIntents: {
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+        },
       },
     });
 
@@ -173,6 +177,17 @@ export class AdminService {
       browserLanguage: user.browserLanguage,
       geoCountry: user.geoCountry,
       geoCity: user.geoCity,
+      purchaseIntents: user.purchaseIntents.map((pi) => ({
+        id: pi.id,
+        type: pi.type,
+        productSlug: pi.productSlug,
+        billingInterval: pi.billingInterval,
+        source: pi.source,
+        converted: pi.converted,
+        convertedAt: pi.convertedAt?.toISOString() ?? null,
+        recoveryEmailSentAt: pi.recoveryEmailSentAt?.toISOString() ?? null,
+        createdAt: pi.createdAt.toISOString(),
+      })),
       createdAt: user.createdAt.toISOString(),
       updatedAt: user.updatedAt.toISOString(),
     };

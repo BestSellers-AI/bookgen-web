@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Pagination } from "@/components/ui/pagination";
 import { Badge } from "@/components/ui/badge";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { adminApi, type AdminPurchaseIntent, type AdminPurchaseIntentStats } from "@/lib/api/admin";
 import { useDebounce } from "@/hooks/use-debounce";
 import type { PaginationMeta } from "@/lib/api/types";
@@ -143,10 +144,20 @@ export default function AdminPurchaseIntentsPage() {
                     className="border-b border-border last:border-0 hover:bg-accent/30 transition-colors"
                   >
                     <td className="px-6 py-4">
-                      <div className="text-xs">
-                        <p className="font-medium">{intent.userName || t("piGuest")}</p>
-                        <p className="text-muted-foreground">{intent.email || "—"}</p>
-                      </div>
+                      {intent.userId ? (
+                        <Link
+                          href={`/dashboard/admin/users/${intent.userId}`}
+                          className="text-xs hover:text-primary transition-colors"
+                        >
+                          <p className="font-medium">{intent.userName || t("piGuest")}</p>
+                          <p className="text-muted-foreground">{intent.email || "—"}</p>
+                        </Link>
+                      ) : (
+                        <div className="text-xs">
+                          <p className="font-medium">{t("piGuest")}</p>
+                          <p className="text-muted-foreground">{intent.email || "—"}</p>
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       <Badge

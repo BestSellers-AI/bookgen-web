@@ -15,6 +15,9 @@ import {
   Globe,
   MousePointer,
   Eye,
+  ShoppingCart,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -466,6 +469,66 @@ export default function AdminUserDetailPage() {
                 <p className="font-medium text-xs mt-1">{user.utmTerm}</p>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Purchase Intents */}
+      {user.purchaseIntents && user.purchaseIntents.length > 0 && (
+        <div className="glass rounded-[2rem] p-6 space-y-4">
+          <h2 className="text-lg font-bold font-heading flex items-center gap-2">
+            <ShoppingCart className="w-5 h-5 text-primary" />
+            {t("piTitle") || "Purchase Intents"}
+            <Badge variant="secondary" className="text-[9px] font-bold bg-blue-500/10 text-blue-400 border-blue-500/20">
+              {user.purchaseIntents.length}
+            </Badge>
+          </h2>
+          <div className="space-y-2">
+            {user.purchaseIntents.map((pi) => (
+              <div
+                key={pi.id}
+                className="flex items-center justify-between p-3 rounded-xl bg-accent/30 border border-border"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  {pi.converted ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  ) : (
+                    <XCircle className="w-4 h-4 text-amber-400 shrink-0" />
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">
+                      {pi.productSlug}
+                      {pi.billingInterval && (
+                        <span className="text-muted-foreground ml-1">({pi.billingInterval})</span>
+                      )}
+                    </p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <Badge variant="secondary" className={`text-[8px] font-black uppercase ${
+                        pi.type === "subscription" ? "bg-purple-500/10 text-purple-400" : "bg-blue-500/10 text-blue-400"
+                      }`}>
+                        {pi.type === "subscription" ? t("piPlan") || "Plan" : t("piCredits") || "Credits"}
+                      </Badge>
+                      <Badge variant="secondary" className="text-[8px] font-bold">
+                        {pi.source}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right shrink-0 ml-4">
+                  <p className="text-[10px] text-muted-foreground">
+                    {new Date(pi.createdAt).toLocaleDateString()}{" "}
+                    {new Date(pi.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                  {pi.converted ? (
+                    <p className="text-[10px] text-emerald-400 font-bold">{t("piConverted") || "Converted"}</p>
+                  ) : pi.recoveryEmailSentAt ? (
+                    <p className="text-[10px] text-blue-400">{t("piRecovery") || "Recovery"} sent</p>
+                  ) : (
+                    <p className="text-[10px] text-amber-400">{t("piAbandoned") || "Abandoned"}</p>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

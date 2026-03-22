@@ -64,6 +64,17 @@ export interface AdminUserDetail {
   browserLanguage: string | null;
   geoCountry: string | null;
   geoCity: string | null;
+  purchaseIntents: Array<{
+    id: string;
+    type: string;
+    productSlug: string;
+    billingInterval: string | null;
+    source: string;
+    converted: boolean;
+    convertedAt: string | null;
+    recoveryEmailSentAt: string | null;
+    createdAt: string;
+  }>;
   createdAt: string;
   updatedAt: string;
 }
