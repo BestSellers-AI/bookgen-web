@@ -395,6 +395,7 @@ export class CronService {
       where: {
         converted: false,
         recoveryEmailSentAt: null,
+        type: { in: ['subscription', 'credit_pack'] }, // exclude book_generation (covered by book recovery)
         createdAt: {
           gte: twentyFourHoursAgo,
           lte: tenMinAgo,

@@ -308,9 +308,17 @@ export class StripeWebhookService {
         this.logger.warn(`Unhandled product kind: ${product.kind}`);
     }
 
-    // Mark purchase intent as converted
+    // Mark purchase intent as converted (this session + any prior abandoned intents for same user+product)
     await this.prisma.purchaseIntent.updateMany({
-      where: { stripeSessionId: session.id, converted: false },
+      where: {
+        converted: false,
+        OR: [
+          { stripeSessionId: session.id },
+          ...(userId
+            ? [{ userId, type: { in: ['subscription', 'credit_pack'] }, productSlug: metadata.productSlug }]
+            : []),
+        ],
+      },
       data: { converted: true, convertedAt: new Date() },
     });
 
