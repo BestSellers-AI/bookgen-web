@@ -81,6 +81,16 @@ export function trackPurchase(
   track('Purchase', params, eventId);
 }
 
+export function trackLead(
+  params: {
+    content_name?: string;
+    content_category?: string;
+  },
+  eventId?: string,
+) {
+  track('Lead', params, eventId);
+}
+
 // ─── Cookie helpers (for CAPI deduplication) ─────────────────────────────────
 
 export function getFbCookies(): { fbp?: string; fbc?: string } {

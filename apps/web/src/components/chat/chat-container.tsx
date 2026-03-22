@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/auth-store';
 import { authApi } from '@/lib/api/auth';
 import { tokenStorage } from '@/lib/api-client';
 import { getTrackingData } from '@/lib/tracking';
+import { trackLead, generateEventId } from '@/lib/fb-pixel';
 import { booksApi } from '@/lib/api/books';
 import { BookCreationMode } from '@bestsellers/shared';
 import { Loader2, Sparkles } from 'lucide-react';
@@ -448,6 +449,7 @@ export function ChatContainer() {
       // 1. Create account
       const password = crypto.randomUUID().slice(0, 16);
       const tracking = getTrackingData();
+      const leadEventId = generateEventId();
       const authResult = await authApi.register({
         ...tracking,
         email: state.userEmail,
@@ -456,11 +458,15 @@ export function ChatContainer() {
         locale,
         phoneNumber: state.userPhone,
         source: 'chat',
+        leadEventId,
       });
 
       // Auto-login — must save to localStorage so Axios interceptor picks up the token
       tokenStorage.setTokens(authResult.tokens.accessToken, authResult.tokens.refreshToken);
       setAuth(authResult.user, authResult.tokens.accessToken, authResult.tokens.refreshToken);
+
+      // Fire Lead event (browser-side, deduplicates with CAPI via leadEventId)
+      trackLead({ content_name: 'chat', content_category: 'registration' }, leadEventId);
 
       await showTypingThenMessage(t('accountCreated'), 'text', 500);
 

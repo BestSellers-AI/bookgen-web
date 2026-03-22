@@ -63,4 +63,19 @@ export class GoogleAuthDto {
   @IsString()
   @MaxLength(200)
   geoCity?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  fbp?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  fbc?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  leadEventId?: string;
 }

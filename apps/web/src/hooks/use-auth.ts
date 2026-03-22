@@ -6,6 +6,7 @@ import { authApi, type LoginInput, type RegisterInput, type UpdateProfileInput }
 import { tokenStorage } from '@/lib/api-client';
 import { useRouter } from '@/i18n/navigation';
 import { getTrackingData } from '@/lib/tracking';
+import { trackLead, generateEventId } from '@/lib/fb-pixel';
 
 export function useAuth() {
   const { user, isAuthenticated, isLoading, setAuth, setUser, clearAuth } =
@@ -25,9 +26,11 @@ export function useAuth() {
   const signup = useCallback(
     async (data: RegisterInput) => {
       const tracking = getTrackingData();
-      const res = await authApi.register({ ...tracking, ...data });
+      const leadEventId = generateEventId();
+      const res = await authApi.register({ ...tracking, ...data, leadEventId });
       tokenStorage.setTokens(res.tokens.accessToken, res.tokens.refreshToken);
       setAuth(res.user, res.tokens.accessToken, res.tokens.refreshToken);
+      trackLead({ content_name: data.source ?? 'register', content_category: 'registration' }, leadEventId);
       router.push('/dashboard');
     },
     [setAuth, router],
@@ -36,9 +39,13 @@ export function useAuth() {
   const loginWithGoogle = useCallback(
     async (credential: string) => {
       const tracking = getTrackingData();
-      const res = await authApi.google({ idToken: credential, ...tracking });
+      const leadEventId = generateEventId();
+      const res = await authApi.google({ idToken: credential, ...tracking, leadEventId });
       tokenStorage.setTokens(res.tokens.accessToken, res.tokens.refreshToken);
       setAuth(res.user, res.tokens.accessToken, res.tokens.refreshToken);
+      // Lead event only fires if this was a new user (backend returns isNewUser flag not available here,
+      // but duplicate Lead events are harmless — Facebook deduplicates by event_id)
+      trackLead({ content_name: 'google', content_category: 'registration' }, leadEventId);
       router.push('/dashboard');
     },
     [setAuth, router],

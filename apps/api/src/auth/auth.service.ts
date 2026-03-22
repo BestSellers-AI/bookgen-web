@@ -13,6 +13,7 @@ import { AppConfigService } from '../config/app-config.service';
 import { UsersService } from '../users/users.service';
 import { EmailService } from '../email/email.service';
 import { passwordResetEmail, welcomeEmail, welcomeSetPasswordEmail } from '../email/email-templates';
+import { FacebookCapiService } from '../facebook/facebook-capi.service';
 import {
   RegisterDto,
   LoginDto,
@@ -43,6 +44,7 @@ export class AuthService {
     private readonly appConfig: AppConfigService,
     private readonly usersService: UsersService,
     private readonly emailService: EmailService,
+    private readonly facebookCapiService: FacebookCapiService,
   ) {
     this.googleClient = new OAuth2Client(this.appConfig.googleClientId);
   }
@@ -82,6 +84,28 @@ export class AuthService {
     await this.saveSession(user.id, tokens.refreshToken);
 
     const profile = await this.usersService.buildUserProfile(user);
+
+    // Fire Lead event via CAPI (deduplicates with browser-side via leadEventId)
+    if (dto.leadEventId) {
+      this.facebookCapiService.sendEvent({
+        event_name: 'Lead',
+        event_id: dto.leadEventId,
+        event_source_url: `${this.appConfig.frontendUrl}/${dto.source === 'chat' ? 'chat' : 'auth/register'}`,
+        user_data: {
+          em: user.email,
+          fn: user.name?.split(' ')[0],
+          ln: user.name?.includes(' ') ? user.name.split(' ').slice(1).join(' ') : undefined,
+          ph: user.phoneNumber ?? undefined,
+          external_id: user.id,
+          fbp: dto.fbp,
+          fbc: dto.fbc,
+        },
+        custom_data: {
+          content_name: dto.source ?? 'register',
+          content_category: 'registration',
+        },
+      });
+    }
 
     if (dto.source === 'chat' || dto.source === 'guest') {
       // Auto-generated password: send welcome + set password email
@@ -173,6 +197,27 @@ export class AuthService {
         geoCountry: dto.geoCountry,
         geoCity: dto.geoCity,
       });
+
+      // Fire Lead event via CAPI for new Google users
+      if (dto.leadEventId) {
+        this.facebookCapiService.sendEvent({
+          event_name: 'Lead',
+          event_id: dto.leadEventId,
+          event_source_url: `${this.appConfig.frontendUrl}/auth/login`,
+          user_data: {
+            em: email,
+            fn: name?.split(' ')[0],
+            ln: name?.includes(' ') ? name.split(' ').slice(1).join(' ') : undefined,
+            external_id: user.id,
+            fbp: dto.fbp,
+            fbc: dto.fbc,
+          },
+          custom_data: {
+            content_name: 'google',
+            content_category: 'registration',
+          },
+        });
+      }
     } else {
       // Check if Google account is already linked
       const existingAccount = await this.prisma.account.findUnique({

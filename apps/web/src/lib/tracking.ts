@@ -68,6 +68,18 @@ function getTimezone(): string | undefined {
   }
 }
 
+export function getFbCookiesForTracking(): { fbp?: string; fbc?: string } {
+  if (typeof document === 'undefined') return {};
+  const cookies = document.cookie.split('; ');
+  let fbp: string | undefined;
+  let fbc: string | undefined;
+  for (const c of cookies) {
+    if (c.startsWith('_fbp=')) fbp = c.slice(5);
+    if (c.startsWith('_fbc=')) fbc = c.slice(5);
+  }
+  return { fbp, fbc };
+}
+
 export function getTrackingData() {
   return {
     visitorId: getVisitorId(),
@@ -75,5 +87,6 @@ export function getTrackingData() {
     timezone: getTimezone(),
     ...getUtmParams(),
     ...getDeviceInfo(),
+    ...getFbCookiesForTracking(),
   };
 }
