@@ -645,6 +645,30 @@ export class BookService {
     return book;
   }
 
+  // ─── Generation Intent ────────────────────────────────────────────
+
+  async createGenerationIntent(bookId: string, userId: string): Promise<{ intentId: string }> {
+    const book = await this.prisma.book.findFirst({
+      where: { id: bookId, userId, deletedAt: null },
+      select: { id: true, title: true, status: true },
+    });
+
+    if (!book) {
+      throw new NotFoundException('Book not found');
+    }
+
+    const intent = await this.prisma.purchaseIntent.create({
+      data: {
+        userId,
+        type: 'book_generation',
+        productSlug: bookId,
+        source: 'dashboard',
+      },
+    });
+
+    return { intentId: intent.id };
+  }
+
   // ─── Request Generation ───────────────────────────────────────────
 
   async requestGeneration(bookId: string, userId: string) {
@@ -714,6 +738,17 @@ export class BookService {
       });
       throw error;
     }
+
+    // Mark generation intent as converted
+    await this.prisma.purchaseIntent.updateMany({
+      where: {
+        type: 'book_generation',
+        productSlug: bookId,
+        userId,
+        converted: false,
+      },
+      data: { converted: true, convertedAt: new Date() },
+    });
 
     // Determine queue priority based on user's subscription plan (reuse plan from above)
     const queuePlanConfig = plan ? await this.configDataService.getPlanConfig(plan) : null;

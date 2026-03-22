@@ -70,6 +70,9 @@ export const booksApi = {
   approve: (id: string) =>
     apiClient.post<{ message: string }>(`/books/${id}/approve`).then((r) => r.data),
 
+  createGenerationIntent: (id: string) =>
+    apiClient.post<{ intentId: string }>(`/books/${id}/generation-intent`).then((r) => r.data),
+
   generate: (id: string) =>
     apiClient.post<{ message: string }>(`/books/${id}/generate`).then((r) => r.data),
 

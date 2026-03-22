@@ -165,10 +165,12 @@ export default function AdminPurchaseIntentsPage() {
                         className={`text-[9px] font-black uppercase ${
                           intent.type === "subscription"
                             ? "bg-purple-500/10 text-purple-400"
-                            : "bg-blue-500/10 text-blue-400"
+                            : intent.type === "book_generation"
+                              ? "bg-emerald-500/10 text-emerald-400"
+                              : "bg-blue-500/10 text-blue-400"
                         }`}
                       >
-                        {intent.type === "subscription" ? t("piPlan") : t("piCredits")}
+                        {intent.type === "subscription" ? t("piPlan") : intent.type === "book_generation" ? t("piGeneration") : t("piCredits")}
                       </Badge>
                     </td>
                     <td className="px-6 py-4 text-xs font-mono text-muted-foreground">

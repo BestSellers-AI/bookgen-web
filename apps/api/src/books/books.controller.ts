@@ -103,6 +103,15 @@ export class BooksController {
     return { message: 'Preview approved' };
   }
 
+  // POST /books/:id/generation-intent
+  @Post(':id/generation-intent')
+  async createGenerationIntent(
+    @CurrentUser('id') userId: string,
+    @Param('id') id: string,
+  ): Promise<{ intentId: string }> {
+    return this.bookService.createGenerationIntent(id, userId);
+  }
+
   // POST /books/:id/generate
   @Post(':id/generate')
   @HttpCode(HttpStatus.ACCEPTED)

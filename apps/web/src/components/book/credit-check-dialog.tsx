@@ -47,8 +47,10 @@ export function CreditCheckDialog({
   useEffect(() => {
     if (open) {
       walletApi.get().then((w) => setBalance(w.balance)).catch(() => setBalance(0));
+      // Track generation intent (fire-and-forget)
+      booksApi.createGenerationIntent(bookId).catch(() => {});
     }
-  }, [open]);
+  }, [open, bookId]);
 
   const hasSufficientCredits = balance !== null && balance >= cost;
 
