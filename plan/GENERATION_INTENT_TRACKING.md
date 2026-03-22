@@ -40,9 +40,15 @@ When the user clicks "Generate Book" in the dialog:
 - User has insufficient credits → clicks "Buy Credits" → redirected to upgrade page → intent stays `converted: false` (a separate PurchaseIntent for credits may be created at checkout)
 - User generates later → the intent from the earlier dialog gets converted
 
+### Duplicate Prevention
+
+If the user opens and closes the dialog multiple times, the backend reuses the existing unconverted intent for that book instead of creating a new one. Only one `converted: false` intent exists per book per user at any time.
+
 ### No Recovery Email
 
-Generation intents do NOT trigger recovery emails. The book abandonment recovery (PREVIEW/PREVIEW_COMPLETED → 3-email sequence) already covers this use case.
+Generation intents are **excluded from the purchase abandonment cron** (`type IN ('subscription', 'credit_pack')` filter). They never receive purchase recovery emails. The book abandonment recovery (PREVIEW/PREVIEW_COMPLETED → 3-email sequence) already covers this use case.
+
+In the admin list, the "Recovery" column shows `—` for generation intents (never pending, never sent).
 
 ## Admin Panel
 

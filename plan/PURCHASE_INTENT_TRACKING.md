@@ -52,7 +52,8 @@ When a user clicks any "Subscribe" or "Buy Credits" button:
 When Stripe webhook `checkout.session.completed` arrives:
 1. Webhook handler finds `PurchaseIntent` by `stripeSessionId`
 2. Marks `converted = true` and sets `convertedAt`
-3. Continues with normal purchase fulfillment (credits, subscription, etc.)
+3. **Also marks all prior unconverted intents** for the same user + product as converted (prevents stale intents from triggering recovery emails when user retries checkout)
+4. Continues with normal purchase fulfillment (credits, subscription, etc.)
 
 ### Cart Abandonment Recovery
 
@@ -61,6 +62,7 @@ When Stripe webhook `checkout.session.completed` arrives:
 1. Queries intents where:
    - `converted = false`
    - `recoveryEmailSentAt IS NULL`
+   - `type IN ('subscription', 'credit_pack')` — excludes `book_generation` (covered by book recovery)
    - `createdAt` between 10 minutes and 24 hours ago
 2. Resolves product name from DB (shows "Professional" not "plan-profissional")
 3. Sends localized recovery email (different templates for plans vs credits)
