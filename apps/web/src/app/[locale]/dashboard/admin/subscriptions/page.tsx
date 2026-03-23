@@ -79,8 +79,8 @@ export default function AdminSubscriptionsPage() {
                     className="border-b border-border last:border-0 hover:bg-accent/30 transition-colors"
                   >
                     <td className="px-6 py-4">
-                      <Link href={`/dashboard/admin/users/${sub.userId}`} className="text-sm text-muted-foreground hover:text-primary hover:underline transition-colors">
-                        {sub.userEmail}
+                      <Link href={`/dashboard/admin/users/${sub.userId}`} className="text-xs hover:text-primary transition-colors">
+                        <p className="text-muted-foreground">{sub.userEmail}</p>
                       </Link>
                     </td>
                     <td className="px-6 py-4">

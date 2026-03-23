@@ -145,9 +145,9 @@ export default function AdminBooksPage() {
                         <span className="text-muted-foreground/40">—</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-xs">
-                      <Link href={`/dashboard/admin/users/${book.userId}`} className="text-muted-foreground hover:text-primary hover:underline transition-colors">
-                        {book.userEmail}
+                    <td className="px-6 py-4">
+                      <Link href={`/dashboard/admin/users/${book.userId}`} className="text-xs hover:text-primary transition-colors">
+                        <p className="text-muted-foreground">{book.userEmail}</p>
                       </Link>
                     </td>
                     <td className="px-6 py-4 text-muted-foreground text-xs">

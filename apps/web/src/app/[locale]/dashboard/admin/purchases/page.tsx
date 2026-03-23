@@ -95,8 +95,8 @@ export default function AdminPurchasesPage() {
                       {purchase.gateway.toLowerCase()}
                     </td>
                     <td className="px-6 py-4">
-                      <Link href={`/dashboard/admin/users/${purchase.userId}`} className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">
-                        {purchase.userEmail}
+                      <Link href={`/dashboard/admin/users/${purchase.userId}`} className="text-xs hover:text-primary transition-colors">
+                        <p className="text-muted-foreground">{purchase.userEmail}</p>
                       </Link>
                     </td>
                     <td className="px-6 py-4 text-muted-foreground text-xs">

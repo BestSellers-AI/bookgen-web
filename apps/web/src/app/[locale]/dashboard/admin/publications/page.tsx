@@ -246,9 +246,9 @@ export default function AdminPublicationsPage() {
                     <td className="px-6 py-4 text-muted-foreground">
                       {pub.book.author}
                     </td>
-                    <td className="px-6 py-4 text-xs">
-                      <Link href={`/dashboard/admin/users/${pub.user.id}`} className="text-muted-foreground hover:text-primary hover:underline transition-colors">
-                        {pub.user.email}
+                    <td className="px-6 py-4">
+                      <Link href={`/dashboard/admin/users/${pub.user.id}`} className="text-xs hover:text-primary transition-colors">
+                        <p className="text-muted-foreground">{pub.user.email}</p>
                       </Link>
                     </td>
                     <td className="px-6 py-4">

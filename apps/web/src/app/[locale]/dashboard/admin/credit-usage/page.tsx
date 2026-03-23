@@ -280,8 +280,8 @@ export default function CreditUsagePage() {
                     })}
                   </td>
                   <td className="py-3 px-3">
-                    <Link href={`/dashboard/admin/users/${tx.userId}`} className="font-medium hover:text-primary hover:underline transition-colors">
-                      {tx.userEmail}
+                    <Link href={`/dashboard/admin/users/${tx.userId}`} className="text-xs hover:text-primary transition-colors">
+                      <span className="font-medium">{tx.userEmail}</span>
                     </Link>
                   </td>
                   <td className="py-3 px-3">
