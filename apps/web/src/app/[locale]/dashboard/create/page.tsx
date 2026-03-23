@@ -16,6 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { booksApi } from "@/lib/api/books";
 import type { CreateBookInput } from "@/lib/api/books";
 import { useAuth } from "@/hooks/use-auth";
+import { useConfigStore } from "@/stores/config-store";
 import { useBookEvents } from "@/hooks/use-book-events";
 import { useRouter } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
@@ -71,6 +72,7 @@ export default function CreateBookPage() {
   const t = useTranslations("create");
   const tCommon = useTranslations("common");
   const tErr = useTranslations("errors");
+  const autoApproveEnabled = useConfigStore((s) => s.config?.autoApprovePreview ?? false);
 
   const validationMsgs = {
     titleMin: t("validation.titleRequired"),
@@ -109,6 +111,7 @@ export default function CreateBookPage() {
         includeExamples: false,
         includeCaseStudies: false,
         customInstructions: "",
+        editableStructure: false,
       },
     },
   });
@@ -765,6 +768,24 @@ export default function CreateBookPage() {
                               </FormItem>
                             )}
                           />
+
+                          {autoApproveEnabled && (
+                            <FormField
+                              control={advancedForm.control}
+                              name="settings.editableStructure"
+                              render={({ field }) => (
+                                <FormItem className="flex items-center justify-between p-4 rounded-xl bg-accent/30 border border-border">
+                                  <div className="space-y-0.5">
+                                    <FormLabel className="text-sm font-medium">{t("editableStructure")}</FormLabel>
+                                    <p className="text-xs text-muted-foreground">{t("editableStructureDesc")}</p>
+                                  </div>
+                                  <FormControl>
+                                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                          )}
                         </motion.div>
                       )}
                     </div>
