@@ -14,6 +14,7 @@ import { ErrorState } from "@/components/ui/error-state";
 import { useTranslations } from "next-intl";
 import { adminApi } from "@/lib/api/admin";
 import { PageHeader } from "@/components/ui/page-header";
+import { Link } from "@/i18n/navigation";
 
 const TRANSACTION_TYPES = [
   "CREDIT_PURCHASE",
@@ -279,7 +280,9 @@ export default function CreditUsagePage() {
                     })}
                   </td>
                   <td className="py-3 px-3">
-                    <span className="font-medium">{tx.userEmail}</span>
+                    <Link href={`/dashboard/admin/users/${tx.userId}`} className="font-medium hover:text-primary hover:underline transition-colors">
+                      {tx.userEmail}
+                    </Link>
                   </td>
                   <td className="py-3 px-3">
                     <span

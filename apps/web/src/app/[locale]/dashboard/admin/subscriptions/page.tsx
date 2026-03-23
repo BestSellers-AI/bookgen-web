@@ -8,6 +8,7 @@ import { PlanBadge } from "@/components/dashboard/plan-badge";
 import { useTranslations } from "next-intl";
 import { adminApi, type AdminSubscriptionSummary } from "@/lib/api/admin";
 import type { PaginationMeta } from "@/lib/api/types";
+import { Link } from "@/i18n/navigation";
 import { PageHeader } from "@/components/ui/page-header";
 
 export default function AdminSubscriptionsPage() {
@@ -78,9 +79,9 @@ export default function AdminSubscriptionsPage() {
                     className="border-b border-border last:border-0 hover:bg-accent/30 transition-colors"
                   >
                     <td className="px-6 py-4">
-                      <p className="text-sm text-muted-foreground">
+                      <Link href={`/dashboard/admin/users/${sub.userId}`} className="text-sm text-muted-foreground hover:text-primary hover:underline transition-colors">
                         {sub.userEmail}
-                      </p>
+                      </Link>
                     </td>
                     <td className="px-6 py-4">
                       <PlanBadge plan={sub.plan} />

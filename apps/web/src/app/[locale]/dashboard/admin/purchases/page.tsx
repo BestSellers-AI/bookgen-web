@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useTranslations } from "next-intl";
 import { adminApi, type AdminPurchaseSummary } from "@/lib/api/admin";
 import type { PaginationMeta } from "@/lib/api/types";
+import { Link } from "@/i18n/navigation";
 import { PageHeader } from "@/components/ui/page-header";
 
 export default function AdminPurchasesPage() {
@@ -94,9 +95,9 @@ export default function AdminPurchasesPage() {
                       {purchase.gateway.toLowerCase()}
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-xs text-muted-foreground">
+                      <Link href={`/dashboard/admin/users/${purchase.userId}`} className="text-xs text-muted-foreground hover:text-primary hover:underline transition-colors">
                         {purchase.userEmail}
-                      </p>
+                      </Link>
                     </td>
                     <td className="px-6 py-4 text-muted-foreground text-xs">
                       {new Date(purchase.createdAt).toLocaleDateString()}
