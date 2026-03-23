@@ -336,7 +336,7 @@ export default function CreateBookPage() {
               </button>
 
               {/* MODO ADVANCED DESATIVADO */}
-              <button
+              {/* <button
                 onClick={() => handleModeSelect("advanced")}
                 className="group relative p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] bg-accent/50 border border-border hover:border-amber-500/50 transition-all text-left overflow-hidden"
               >
@@ -354,7 +354,7 @@ export default function CreateBookPage() {
                     </p>
                   </div>
                 </div>
-              </button>
+              </button> */}
             </div>
           </motion.div>
         )}
