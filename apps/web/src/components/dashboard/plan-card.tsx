@@ -15,6 +15,8 @@ interface PlanCardProps {
   user: UserProfile | null;
   /** @internal debug only — override wallet balance */
   debugBalance?: number;
+  /** Whether the user has at least 1 book/preview */
+  hasBooks?: boolean;
 }
 
 const PLAN_HIERARCHY = [null, "ASPIRANTE", "PROFISSIONAL", "BESTSELLER"] as const;
@@ -25,7 +27,7 @@ function getNextPlan(current: string | null): string | null {
   return PLAN_HIERARCHY[idx + 1];
 }
 
-export function PlanCard({ user, debugBalance }: PlanCardProps) {
+export function PlanCard({ user, debugBalance, hasBooks }: PlanCardProps) {
   const t = useTranslations("dashboard");
   const tPlan = useTranslations("planNames");
   const router = useRouter();
@@ -40,7 +42,7 @@ export function PlanCard({ user, debugBalance }: PlanCardProps) {
   const isFree = !plan || !hasSubscription;
   const hasCredits = balance > 0;
 
-  // ─── State 1: Free user WITHOUT credits → offer credits ────────────
+  // ─── State 1: Free user WITHOUT credits → card visible, CTA hidden until user has books ─
   if (isFree && !hasCredits) {
     return (
       <div className="relative overflow-hidden rounded-[2rem] border-2 dark:border-gold-500/40 border-gold-600/40 bg-gradient-to-r dark:from-gold-500/[0.08] dark:via-amber-500/[0.04] dark:to-gold-500/[0.08] from-gold-600/[0.08] via-amber-600/[0.04] to-gold-600/[0.08] p-6 shadow-gold-md">
@@ -71,7 +73,14 @@ export function PlanCard({ user, debugBalance }: PlanCardProps) {
             </ul>
           </div>
 
-          <GoldCta href="/dashboard/upgrade?tab=plans" label={t("planCard.freeCtaCredits")} />
+          {/* TODO: revert — CTA hidden until user has at least 1 book/preview
+              Rules:
+              - No books/previews → hide the "Comprar Créditos" button entirely
+              - Has at least 1 book/preview → show the button normally
+          */}
+          {hasBooks && (
+            <GoldCta href="/dashboard/upgrade?tab=plans" label={t("planCard.freeCtaCredits")} />
+          )}
         </div>
       </div>
     );

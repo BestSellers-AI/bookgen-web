@@ -149,7 +149,8 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
           )}
         </div>
 
-        <div className="flex items-center gap-3 py-4 border-y border-border">
+        {/* TODO: revert — author section hidden temporarily */}
+        {/* <div className="flex items-center gap-3 py-4 border-y border-border">
           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
             <User size={20} />
           </div>
@@ -159,7 +160,7 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
             </span>
             <span className="font-bold text-foreground">{book.author}</span>
           </div>
-        </div>
+        </div> */}
 
         {/* Actions */}
         <div className="flex flex-wrap gap-3">
@@ -180,7 +181,8 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
             </Button>
           )}
 
-          {isCompletePreview && (
+          {/* TODO: revert — download editable button hidden temporarily */}
+          {/* {isCompletePreview && (
             <Button
               variant="outline"
               className="rounded-xl border-primary/20 bg-primary/5 text-primary hover:bg-primary/10"
@@ -194,7 +196,7 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
               )}
               {t("downloadEditable")}
             </Button>
-          )}
+          )} */}
 
           {/* Edit Structure — only for structure-only preview */}
           {isStructureOnly && (
@@ -258,7 +260,8 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
             </Button>
           )}
 
-          <ConfirmDialog
+          {/* TODO: revert — delete button hidden temporarily */}
+          {/* <ConfirmDialog
             title={t("deleteTitle")}
             description={`${t("deleteConfirm")} "${book.title}"? ${t("deleteWarning")}`}
             confirmLabel={t("yesDelete")}
@@ -278,7 +281,7 @@ export function PreviewViewer({ book, onRefetch, onApproveGenerate }: PreviewVie
                 {t("discardBook")}
               </Button>
             }
-          />
+          /> */}
         </div>
       </header>
 

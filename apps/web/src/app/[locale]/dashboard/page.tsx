@@ -106,11 +106,11 @@ export default function DashboardPage() {
       <BooksSummaryCard books={allBooks} />
 
       {/* Upgrade Banner */}
-      <PlanCard user={user} />
+      <PlanCard user={user} hasBooks={allBooks.length > 0} />
 
 
       {/* Quick Actions */}
-      <QuickActions />
+      <QuickActions hasBooks={allBooks.length > 0} />
 
       {/* Main Grid */}
       {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-8"> */}
