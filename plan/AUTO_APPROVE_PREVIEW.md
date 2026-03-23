@@ -115,8 +115,9 @@ The override is stored in the book's `settings` JSON field (existing field, no m
 | File | Change |
 |------|--------|
 | `hooks/hooks.service.ts` | Check `book.settings.editableStructure` then global config + emit event |
-| `books/book-events.listener.ts` | New listener for `book.auto-approve` event |
-| `books/books.module.ts` | Register `BookEventsListener` |
+| `books/book-events.listener.ts` | New listener for `book.auto-approve` event, fallback to manual on error |
+| `books/books.module.ts` | Register `BookEventsListener` + import `NotificationsModule` |
+| `books/dto/advanced-settings.dto.ts` | Accept `editableStructure` optional boolean |
 | `config-data/config-data.service.ts` | Expose `autoApprovePreview` in `AppConfigPayload` |
 
 ### Frontend
@@ -124,6 +125,7 @@ The override is stored in the book's `settings` JSON field (existing field, no m
 |------|--------|
 | `components/dashboard/sidebar.tsx` | New "Settings" nav item |
 | `app/[locale]/dashboard/admin/settings/page.tsx` | New settings page with toggle |
+| `app/[locale]/dashboard/create/page.tsx` | Editable structure switch in Advanced form (visible when auto-approve enabled) |
 | `lib/validations/book.ts` | `editableStructure` optional boolean in advanced schema |
 | `stores/config-store.ts` | Fallback for `autoApprovePreview` |
 | `messages/{en,pt-BR,es}.json` | i18n keys for settings + form switch |

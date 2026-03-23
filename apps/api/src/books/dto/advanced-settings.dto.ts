@@ -48,4 +48,8 @@ export class AdvancedSettingsDto {
   @IsString()
   @MaxLength(2000)
   customInstructions?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  editableStructure?: boolean;
 }
