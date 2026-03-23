@@ -101,6 +101,7 @@ export function Sidebar() {
               { label: t("adminPurchaseIntents") || "Purchase Intents", icon: ShoppingCart, href: "/dashboard/admin/purchase-intents" },
               { label: t("adminCreditUsage") || "Credit Usage", icon: Receipt, href: "/dashboard/admin/credit-usage" },
               { label: t("adminAnnouncement") || "Announcement", icon: Megaphone, href: "/dashboard/admin/announcement" },
+              { label: t("adminSettings") || "Settings", icon: Settings2, href: "/dashboard/admin/settings" },
             ].map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
               return (

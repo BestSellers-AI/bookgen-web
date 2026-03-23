@@ -135,18 +135,41 @@ export class HooksService {
       });
     }
 
-    this.eventEmitter.emit('book.preview.progress', {
-      bookId: dto.bookId,
-      status: 'ready',
-    });
+    // Check if auto-approve is enabled
+    const autoApprove = await this.isAutoApproveEnabled();
 
-    await this.notifications.create({
-      userId: book.userId,
-      type: NotificationType.BOOK_PREVIEW_READY,
-      title: 'Preview ready',
-      message: `Your book preview "${dto.title ?? book.title}" is ready for review.`,
-      data: { bookId: dto.bookId },
-    });
+    if (autoApprove) {
+      this.logger.log(`Auto-approve enabled — triggering approve for book ${dto.bookId}`);
+      this.eventEmitter.emit('book.auto-approve', {
+        bookId: dto.bookId,
+        userId: book.userId,
+      });
+    } else {
+      this.eventEmitter.emit('book.preview.progress', {
+        bookId: dto.bookId,
+        status: 'ready',
+      });
+
+      await this.notifications.create({
+        userId: book.userId,
+        type: NotificationType.BOOK_PREVIEW_READY,
+        title: 'Preview ready',
+        message: `Your book preview "${dto.title ?? book.title}" is ready for review.`,
+        data: { bookId: dto.bookId },
+      });
+    }
+  }
+
+  private async isAutoApproveEnabled(): Promise<boolean> {
+    try {
+      const config = await this.prisma.appConfig.findUnique({
+        where: { key: 'AUTO_APPROVE_PREVIEW' },
+      });
+      if (!config?.value || typeof config.value !== 'object') return false;
+      return (config.value as Record<string, unknown>).enabled === true;
+    } catch {
+      return false;
+    }
   }
 
   /* ------------------------------------------------------------------ */

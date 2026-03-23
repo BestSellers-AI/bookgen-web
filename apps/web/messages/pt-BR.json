@@ -54,7 +54,8 @@
     "adminAnnouncement": "Anúncio",
     "adminPublications": "Publicações",
     "adminPurchaseIntents": "Intenções de Compra",
-    "adminCreditUsage": "Uso de Créditos"
+    "adminCreditUsage": "Uso de Créditos",
+    "adminSettings": "Configurações"
   },
   "notifications": {
     "title": "Notificações",
@@ -1036,7 +1037,14 @@
     "piGeneration": "Geração",
     "piAddon": "Addon",
     "piPending": "Pendente",
-    "piRecoverySent": "Recuperação enviada às"
+    "piRecoverySent": "Recuperação enviada às",
+    "settingsTitle": "Configurações",
+    "settingsSubtitle": "Configure o comportamento da plataforma",
+    "settingsGeneration": "Geração de Livros",
+    "settingsAutoApprove": "Aprovar prévia automaticamente",
+    "settingsAutoApproveDesc": "Quando ativado, a estrutura da prévia é automaticamente aprovada e completada sem esperar o usuário. O usuário verá a prévia completa diretamente e só precisará aprovar a geração final.",
+    "settingsSaved": "Configuração salva",
+    "settingsSaveError": "Falha ao salvar configuração"
   },
   "publishingResult": {
     "title": "Detalhes da Publicação",

@@ -54,7 +54,8 @@
     "adminAnnouncement": "Anuncio",
     "adminPublications": "Publicaciones",
     "adminPurchaseIntents": "Intenciones de Compra",
-    "adminCreditUsage": "Uso de Créditos"
+    "adminCreditUsage": "Uso de Créditos",
+    "adminSettings": "Configuración"
   },
   "notifications": {
     "title": "Notificaciones",
@@ -1036,7 +1037,14 @@
     "piGeneration": "Generación",
     "piAddon": "Addon",
     "piPending": "Pendiente",
-    "piRecoverySent": "Recuperación enviada a las"
+    "piRecoverySent": "Recuperación enviada a las",
+    "settingsTitle": "Configuración",
+    "settingsSubtitle": "Configura el comportamiento de la plataforma",
+    "settingsGeneration": "Generación de Libros",
+    "settingsAutoApprove": "Aprobar vista previa automáticamente",
+    "settingsAutoApproveDesc": "Cuando está activado, la estructura de la vista previa se aprueba y completa automáticamente sin esperar al usuario. El usuario verá la vista previa completa directamente y solo necesitará aprobar la generación final.",
+    "settingsSaved": "Configuración guardada",
+    "settingsSaveError": "Error al guardar configuración"
   },
   "publishingResult": {
     "title": "Detalles de la Publicación",

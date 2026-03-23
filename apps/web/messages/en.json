@@ -54,7 +54,8 @@
     "adminAnnouncement": "Announcement",
     "adminPublications": "Publications",
     "adminPurchaseIntents": "Purchase Intents",
-    "adminCreditUsage": "Credit Usage"
+    "adminCreditUsage": "Credit Usage",
+    "adminSettings": "Settings"
   },
   "notifications": {
     "title": "Notifications",
@@ -1036,7 +1037,14 @@
     "piGeneration": "Generation",
     "piAddon": "Addon",
     "piPending": "Pending",
-    "piRecoverySent": "Recovery sent at"
+    "piRecoverySent": "Recovery sent at",
+    "settingsTitle": "Settings",
+    "settingsSubtitle": "Configure platform behavior",
+    "settingsGeneration": "Book Generation",
+    "settingsAutoApprove": "Auto-approve preview",
+    "settingsAutoApproveDesc": "When enabled, the preview structure is automatically approved and completed without waiting for the user. The user will see the complete preview directly and only needs to approve the final generation.",
+    "settingsSaved": "Setting saved",
+    "settingsSaveError": "Failed to save setting"
   },
   "publishingResult": {
     "title": "Publication Details",
