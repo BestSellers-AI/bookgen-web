@@ -42,23 +42,14 @@ export function QuickActions({ hasBooks }: QuickActionsProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-flow-col sm:auto-cols-fr gap-3">
       {actions.map((action) => {
-        const button = (
-          <Button
-            asChild
-            className={`h-11 px-6 rounded-xl font-semibold gap-2 w-full ${'hideOnMobile' in action && action.hideOnMobile ? 'hidden sm:flex' : ''} ${action.className} ${'highlight' in action && action.highlight ? 'rounded-[calc(0.75rem-2px)]' : ''}`}
-          >
-            <Link href={action.href}>
-              <action.icon className="w-4 h-4" />
-              {action.label}
-            </Link>
-          </Button>
-        );
+        const isHighlight = 'highlight' in action && action.highlight;
+        const hideMobile = 'hideOnMobile' in action && action.hideOnMobile ? 'hidden sm:flex' : '';
 
         // TODO: revert — spinning border only for first project CTA
         // Rules:
         // - No books/previews → label "Iniciar Meu Projeto Grátis" + spinning border
         // - Has at least 1 book/preview → label "Criar Novo Livro" + normal style (no border)
-        if ('highlight' in action && action.highlight) {
+        if (isHighlight) {
           return (
             <div key={action.href} className="relative rounded-xl p-[2px] overflow-hidden w-full">
               <div
@@ -67,12 +58,31 @@ export function QuickActions({ hasBooks }: QuickActionsProps) {
                   background: "conic-gradient(from 0deg, transparent 0%, transparent 60%, #f4eee6 75%, #ffffff 85%, #f4eee6 95%, transparent 100%)",
                 }}
               />
-              {button}
+              <Button
+                asChild
+                className={`relative h-11 px-6 rounded-[calc(0.75rem-2px)] font-semibold gap-2 w-full ${action.className}`}
+              >
+                <Link href={action.href}>
+                  <action.icon className="w-4 h-4" />
+                  {action.label}
+                </Link>
+              </Button>
             </div>
           );
         }
 
-        return <div key={action.href}>{button}</div>;
+        return (
+          <Button
+            key={action.href}
+            asChild
+            className={`h-11 px-6 rounded-xl font-semibold gap-2 w-full ${hideMobile} ${action.className}`}
+          >
+            <Link href={action.href}>
+              <action.icon className="w-4 h-4" />
+              {action.label}
+            </Link>
+          </Button>
+        );
       })}
     </div>
   );
