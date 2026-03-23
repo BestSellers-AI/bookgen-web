@@ -212,6 +212,10 @@ export class ConfigDataService implements OnModuleInit {
       const announcement =
         (configMap.get('ANNOUNCEMENT') as AnnouncementConfigPayload | undefined) ?? null;
 
+      // Auto-approve preview toggle
+      const autoApproveRaw = configMap.get('AUTO_APPROVE_PREVIEW') as Record<string, unknown> | undefined;
+      const autoApprovePreview = autoApproveRaw?.enabled === true;
+
       const payload: AppConfigPayload = {
         subscriptionPlans,
         creditPacks,
@@ -219,6 +223,7 @@ export class ConfigDataService implements OnModuleInit {
         freeTier,
         bundles,
         announcement,
+        autoApprovePreview,
       };
 
       this.cache = payload;

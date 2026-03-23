@@ -66,6 +66,7 @@ export function createAdvancedBookSchema(msgs: ErrorMessages = {}) {
       includeExamples: z.boolean(),
       includeCaseStudies: z.boolean(),
       customInstructions: z.string().optional(),
+      editableStructure: z.boolean().optional(),
     }),
   });
 }

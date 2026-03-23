@@ -357,6 +357,8 @@
     "includeExamples": "Incluir Ejemplos",
     "includeCaseStudies": "Incluir Estudios de Caso",
     "customInstructions": "Instrucciones Personalizadas",
+    "editableStructure": "Generar estructura editable",
+    "editableStructureDesc": "Revisa y edita la estructura del libro antes de generar el libro completo.",
     "toneProfessional": "Profesional",
     "toneConversational": "Conversacional",
     "toneAcademic": "Académico",

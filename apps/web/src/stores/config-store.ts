@@ -75,6 +75,7 @@ const buildFallbackConfig = (): AppConfigPayload => ({
     ]),
   ),
   announcement: null,
+  autoApprovePreview: false,
 });
 
 export const useConfigStore = create<ConfigState>((set, get) => ({

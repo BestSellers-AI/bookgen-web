@@ -77,6 +77,30 @@ New page at `/dashboard/admin/settings` with:
 
 Accessible from admin sidebar (new "Settings" item with gear icon).
 
+## Per-Book Override (Advanced Mode)
+
+When the global toggle is ON, the Advanced creation mode offers a switch **"Generate editable structure"**. If the user enables it, that specific book will show the structure for review even though the global config skips it.
+
+### Priority Logic
+
+```
+if (book.settings.editableStructure === true) → manual flow (always)
+else if (AUTO_APPROVE_PREVIEW enabled) → auto-approve
+else → manual flow
+```
+
+The override is stored in the book's `settings` JSON field (existing field, no migration).
+
+| Global config | Switch in form | Result |
+|---|---|---|
+| OFF | — (switch not shown) | Manual (structure shown) |
+| ON | OFF (default) | Auto-approve (structure skipped) |
+| ON | ON | Manual (structure shown for this book only) |
+
+### Config Exposed to Frontend
+
+`autoApprovePreview` is included in the `AppConfigPayload` returned by `GET /api/config`. The frontend config store has it available to conditionally show the switch in the Advanced form.
+
 ## What Does NOT Change
 
 - Credit debit still happens only at `POST /generate` (not at preview)
@@ -90,17 +114,25 @@ Accessible from admin sidebar (new "Settings" item with gear icon).
 ### Backend
 | File | Change |
 |------|--------|
-| `hooks/hooks.service.ts` | Check auto-approve config + emit event instead of SSE/notification |
+| `hooks/hooks.service.ts` | Check `book.settings.editableStructure` then global config + emit event |
 | `books/book-events.listener.ts` | New listener for `book.auto-approve` event |
 | `books/books.module.ts` | Register `BookEventsListener` |
+| `config-data/config-data.service.ts` | Expose `autoApprovePreview` in `AppConfigPayload` |
 
 ### Frontend
 | File | Change |
 |------|--------|
 | `components/dashboard/sidebar.tsx` | New "Settings" nav item |
 | `app/[locale]/dashboard/admin/settings/page.tsx` | New settings page with toggle |
-| `messages/{en,pt-BR,es}.json` | i18n keys for settings page + sidebar |
+| `lib/validations/book.ts` | `editableStructure` optional boolean in advanced schema |
+| `stores/config-store.ts` | Fallback for `autoApprovePreview` |
+| `messages/{en,pt-BR,es}.json` | i18n keys for settings + form switch |
+
+### Shared
+| File | Change |
+|------|--------|
+| `packages/shared/src/types/config.ts` | `autoApprovePreview: boolean` in `AppConfigPayload` |
 
 ### No Migration
 
-Uses existing `AppConfig` table. The `AUTO_APPROVE_PREVIEW` key is created on first toggle via `updateAppConfig` (upsert).
+Uses existing `AppConfig` table and existing `settings` JSON field on Book model.

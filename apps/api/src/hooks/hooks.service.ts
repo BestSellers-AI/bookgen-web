@@ -135,8 +135,10 @@ export class HooksService {
       });
     }
 
-    // Check if auto-approve is enabled
-    const autoApprove = await this.isAutoApproveEnabled();
+    // Check if auto-approve is enabled (per-book override takes priority)
+    const bookSettings = book.settings as Record<string, unknown> | null;
+    const editableStructure = bookSettings?.editableStructure === true;
+    const autoApprove = editableStructure ? false : await this.isAutoApproveEnabled();
 
     if (autoApprove) {
       this.logger.log(`Auto-approve enabled — triggering approve for book ${dto.bookId}`);

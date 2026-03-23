@@ -5,6 +5,7 @@ export interface AppConfigPayload {
   freeTier: FreeTierConfig;
   bundles: Record<string, BundleConfigPayload>;
   announcement: AnnouncementConfigPayload | null;
+  autoApprovePreview: boolean;
 }
 
 export interface AnnouncementMessagePayload {
