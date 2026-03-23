@@ -42,49 +42,48 @@ export function PlanCard({ user, debugBalance, hasBooks }: PlanCardProps) {
   const isFree = !plan || !hasSubscription;
   const hasCredits = balance > 0;
 
-  // ─── State 1: Free user WITHOUT credits → card hidden ─────────────
-  // TODO: revert — uncomment to restore State 1 card
+  // ─── State 1: Free user WITHOUT credits ───────────────────────────
+  // TODO: revert — uncomment original block to always show card for free users without credits
   // Rules:
-  // - Free user without credits → hide the entire plan card
-  // - Card returns when user has credits or a subscription
+  // - Free without credits AND no books/previews → hide card entirely
+  // - Free without credits AND has books/previews → show card with CTA button
   if (isFree && !hasCredits) {
-    return null;
+    if (!hasBooks) return null;
+
+    return (
+      <div className="relative overflow-hidden rounded-[2rem] border-2 dark:border-gold-500/40 border-gold-600/40 bg-gradient-to-r dark:from-gold-500/[0.08] dark:via-amber-500/[0.04] dark:to-gold-500/[0.08] from-gold-600/[0.08] via-amber-600/[0.04] to-gold-600/[0.08] p-6 shadow-gold-md">
+        <div className="absolute -top-16 -right-16 w-48 h-48 bg-gold-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative flex flex-col sm:flex-row items-center justify-between gap-5">
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-gold-500/30 to-amber-500/20 border-2 dark:border-gold-500/40 border-gold-600/40 flex items-center justify-center shadow-lg dark:shadow-gold-500/10 shadow-gold-600/10 shrink-0">
+                <Sparkles className="w-6 h-6 dark:text-gold-400 text-gold-700" />
+              </div>
+              <div>
+                <p className="text-xl font-black dark:text-gold-400 text-gold-700 font-playfair">{t("planCard.freeTitle")}</p>
+                <p className="text-sm dark:text-cream-400 text-navy-600">{t("planCard.freeSubtitle")}</p>
+              </div>
+            </div>
+            <ul className="flex flex-col sm:flex-row gap-2 sm:gap-5">
+              {[
+                { icon: Zap, text: t("planCard.freePerk1") },
+                { icon: BookOpen, text: t("planCard.freePerk2") },
+                { icon: Star, text: t("planCard.freePerk3") },
+              ].map((perk, i) => (
+                <li key={i} className="flex items-center gap-2 text-sm dark:text-cream-400 text-navy-600">
+                  <perk.icon className="w-4 h-4 dark:text-gold-400 text-gold-700 shrink-0" />
+                  <span>{perk.text}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <GoldCta href="/dashboard/upgrade?tab=plans" label={t("planCard.freeCtaCredits")} />
+        </div>
+      </div>
+    );
   }
-  // if (isFree && !hasCredits) {
-  //   return (
-  //     <div className="relative overflow-hidden rounded-[2rem] border-2 dark:border-gold-500/40 border-gold-600/40 bg-gradient-to-r dark:from-gold-500/[0.08] dark:via-amber-500/[0.04] dark:to-gold-500/[0.08] from-gold-600/[0.08] via-amber-600/[0.04] to-gold-600/[0.08] p-6 shadow-gold-md">
-  //       <div className="absolute -top-16 -right-16 w-48 h-48 bg-gold-500/10 rounded-full blur-3xl pointer-events-none" />
-  //       <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-  //       <div className="relative flex flex-col sm:flex-row items-center justify-between gap-5">
-  //         <div className="space-y-3">
-  //           <div className="flex items-center gap-3">
-  //             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-gold-500/30 to-amber-500/20 border-2 dark:border-gold-500/40 border-gold-600/40 flex items-center justify-center shadow-lg dark:shadow-gold-500/10 shadow-gold-600/10 shrink-0">
-  //               <Sparkles className="w-6 h-6 dark:text-gold-400 text-gold-700" />
-  //             </div>
-  //             <div>
-  //               <p className="text-xl font-black dark:text-gold-400 text-gold-700 font-playfair">{t("planCard.freeTitle")}</p>
-  //               <p className="text-sm dark:text-cream-400 text-navy-600">{t("planCard.freeSubtitle")}</p>
-  //             </div>
-  //           </div>
-  //           <ul className="flex flex-col sm:flex-row gap-2 sm:gap-5">
-  //             {[
-  //               { icon: Zap, text: t("planCard.freePerk1") },
-  //               { icon: BookOpen, text: t("planCard.freePerk2") },
-  //               { icon: Star, text: t("planCard.freePerk3") },
-  //             ].map((perk, i) => (
-  //               <li key={i} className="flex items-center gap-2 text-sm dark:text-cream-400 text-navy-600">
-  //                 <perk.icon className="w-4 h-4 dark:text-gold-400 text-gold-700 shrink-0" />
-  //                 <span>{perk.text}</span>
-  //               </li>
-  //             ))}
-  //           </ul>
-  //         </div>
-  //
-  //         <GoldCta href="/dashboard/upgrade?tab=plans" label={t("planCard.freeCtaCredits")} />
-  //       </div>
-  //     </div>
-  //   );
-  // }
 
   // ─── State 2: Free user WITH credits → offer plans (dica esperta style) ─
   if (isFree && hasCredits) {
